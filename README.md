@@ -67,7 +67,7 @@ The fields logged are:
 
 ## Thanks
 
-I want to thanks [@m1024x](https://boards.dingoonity.org/profile/m1024/) and [@jutley](https://boards.dingoonity.org/profile/jutley/) for all the support they are giving, testing and reporting bugs.
+I want to thanks [@msx](https://boards.dingoonity.org/profile/msx/), [@m1024x](https://boards.dingoonity.org/profile/m1024/) and [@jutley](https://boards.dingoonity.org/profile/jutley/) for all the support they are giving, testing and reporting bugs.
 
 
 ## Contacts
