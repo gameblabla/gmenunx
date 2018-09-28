@@ -285,7 +285,11 @@ GMenu2X::GMenu2X() {
 	SDL_ShowCursor(0);
 #elif defined(TARGET_RS97)
 	SDL_ShowCursor(0);
-	s->ScreenSurface = SDL_SetVideoMode(320, 480, confInt["videoBpp"], SDL_HWSURFACE/*|SDL_DOUBLEBUF*/);
+	#if defined(TARGET_ARCADEMINI)
+	s->ScreenSurface = SDL_SetVideoMode(480, 272, confInt["videoBpp"], SDL_HWSURFACE);
+	#else
+	s->ScreenSurface = SDL_SetVideoMode(320, 480, confInt["videoBpp"], SDL_HWSURFACE);
+	#endif
 	s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, resX, resY, confInt["videoBpp"], 0, 0, 0, 0);
 #else
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
@@ -607,7 +611,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 	if (powerManager->suspendActive) {
 		// SUSPEND ACTIVE
 		input.setWakeUpInterval(0);
-		while (!input[POWER]) {
+		while (!input[POWER] || !input[CANCEL] || !input[CONFIRM]) {
 			input.update();
 		}
 		powerManager->doSuspend(0);

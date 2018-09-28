@@ -176,7 +176,10 @@ void Surface::flip() {
 		// SDL_Flip(dblbuffer);
 	// } else 
 	{
-#if defined(TARGET_RS97)
+#if defined(TARGET_ARCADEMINI)
+	SDL_BlitSurface(raw, NULL, ScreenSurface, NULL);
+	SDL_Flip(ScreenSurface);
+#elif defined(TARGET_RS97)
 	// SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);
 	// SDL_Flip(ScreenSurface);
 	uint32_t *s = (uint32_t*)raw->pixels;
