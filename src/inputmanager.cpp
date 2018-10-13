@@ -57,11 +57,13 @@ void InputManager::init(const string &conffile) {
 		ERROR("InputManager initialization from config file failed.");
 }
 
-void InputManager::initJoysticks() {
-	//SDL_JoystickEventState(SDL_IGNORE);
-
+void InputManager::initJoysticks() 
+{
+	SDL_Init(SDL_INIT_JOYSTICK);
+	SDL_JoystickEventState(SDL_ENABLE);
+	
 	int numJoy = SDL_NumJoysticks();
-	// INFO("%d joysticks found", numJoy);
+	INFO("%d joysticks found", numJoy);
 	for (int x = 0; x < numJoy; x++) {
 		SDL_Joystick *joy = SDL_JoystickOpen(x);
 		if (joy) {

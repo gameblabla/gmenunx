@@ -36,17 +36,17 @@ void PowerManager::clearTimer() {
 };
 
 void PowerManager::resetSuspendTimer() {
-	clearTimer();
-	powerTimer = SDL_AddTimer(this->suspendTimeout * 1e3, doSuspend, NULL);
+	/*clearTimer();
+	powerTimer = SDL_AddTimer(this->suspendTimeout * 1e3, doSuspend, NULL);*/
 };
 
 void PowerManager::resetPowerTimer() {
-	clearTimer();
-	powerTimer = SDL_AddTimer(this->powerTimeout * 60e3, doPowerOff, NULL);
+	/*clearTimer();
+	powerTimer = SDL_AddTimer(this->powerTimeout * 60e3, doPowerOff, NULL);*/
 };
 
 uint32_t PowerManager::doSuspend(uint32_t interval, void *param) {
-	if (interval > 0) {
+	/*if (interval > 0) {
 		MessageBox mb(PowerManager::instance->gmenu2x, PowerManager::instance->gmenu2x->tr["Suspend"]);
 		mb.setAutoHide(500);
 		mb.exec();
@@ -65,7 +65,7 @@ uint32_t PowerManager::doSuspend(uint32_t interval, void *param) {
 	PowerManager::instance->gmenu2x->setTVOut(PowerManager::instance->gmenu2x->TVOut);
 	PowerManager::instance->gmenu2x->setBacklight(max(10, PowerManager::instance->gmenu2x->confInt["backlight"]));
 	PowerManager::instance->suspendActive = false;
-	PowerManager::instance->resetSuspendTimer();
+	PowerManager::instance->resetSuspendTimer();*/
 	return interval;
 };
 

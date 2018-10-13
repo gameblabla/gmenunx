@@ -68,12 +68,16 @@ int Selector::exec(int startSelection) {
 	this->bg->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
 
 	if (link->getSelectorBrowser()) {
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Folder up"],
-		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5)));
+		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
+		/* Gameblabla */
+		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"])
+		/*gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Folder up"],
+		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5))*/
+		);
 	} else {
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5));
+		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
+		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"], 5)
+		/*gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5)*/);
 	}
 
 	prepare(&fl, &screens, &titles);
