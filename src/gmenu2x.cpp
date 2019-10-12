@@ -77,6 +77,9 @@
 #include <sys/time.h>   /* for settimeofday() */
 
 #define sync() sync(); system("sync");
+#ifndef __BUILDTIME__
+	#define __BUILDTIME__ __DATE__ " " __TIME__ 
+#endif
 
 const char *CARD_ROOT = "/mnt/"; //Note: Add a trailing /!
 const int CARD_ROOT_LEN = 1;
