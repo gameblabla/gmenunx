@@ -2,6 +2,7 @@ CHAINPREFIX=/opt/gcw0-toolchain
 
 TARGET=gcw0
 DEBUG=0
+PATH_DIR=rg-350
 
 ifeq ($(DEBUG),0)
   CROSS_COMPILE=$(CHAINPREFIX)/usr/bin/mipsel-linux-
@@ -15,7 +16,7 @@ SYSROOT     := $(CHAINPREFIX)/usr/mipsel-$(TARGET)-linux-uclibc/sysroot
 SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
 SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
 
-CFLAGS = -ggdb -DTARGET_GCW0 -DTARGET=$(TARGET) \
+CFLAGS = -ggdb  -DTARGET=$(PATH_DIR) \
 	-std=gnu++11 \
 	-DLOG_LEVEL=3 \
 	-g3 $(SDL_CFLAGS) \
@@ -26,8 +27,8 @@ CFLAGS = -ggdb -DTARGET_GCW0 -DTARGET=$(TARGET) \
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread
 
-OBJDIR = objs/$(TARGET)
-DISTDIR = dist/$(TARGET)/gmenunx
+OBJDIR = objs/$(PATH_DIR)
+DISTDIR = dist/$(PATH_DIR)/gmenunx
 APPNAME = $(OBJDIR)/gmenunx
 
 SOURCES := $(wildcard src/*.cpp)
@@ -56,24 +57,19 @@ clean:
 dist: dir shared
 	install -m755 -D $(APPNAME) $(DISTDIR)/gmenunx
 ifeq ($(DEBUG),0)
-	install -m644 assets/$(TARGET)/input.conf $(DISTDIR)
+	install -m644 assets/$(PATH_DIR)/input.conf $(DISTDIR)
 else
 	install -m644 assets/pc/input.conf $(DISTDIR)
 endif
-	# install -m755 -d $(DISTDIR)/sections/applications $(DISTDIR)/sections/emulators $(DISTDIR)/sections/games $(DISTDIR)/sections/settings
 	install -m644 -D README.md $(DISTDIR)/README.txt
 	install -m644 -D COPYING $(DISTDIR)/COPYING
-	install -m644 -D ChangeLog $(DISTDIR)/ChangeLog
+	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog.md
 	cp -RH assets/skins assets/translations $(DISTDIR)
-	cp -RH assets/$(TARGET)/BlackJeans.png $(DISTDIR)/skins/Default/wallpapers
-	cp -RH assets/$(TARGET)/skin.conf $(DISTDIR)/skins/Default
-	cp -RH assets/$(TARGET)/font.ttf $(DISTDIR)/skins/Default
-	# cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
-	cp -RH assets/$(TARGET)/icons/* $(DISTDIR)/skins/Default/icons/
-	# cp -RH assets/$(TARGET)/emulators/* $(DISTDIR)/sections/emulators/
-	# cp -RH assets/$(TARGET)/games/* $(DISTDIR)/sections/games/
-	# cp -RH assets/$(TARGET)/applications/* $(DISTDIR)/sections/applications/
-	#cd $(DISTDIR)/ && zip -r ../GMenuNext.zip .
+	cp -RH assets/$(PATH_DIR)/BlackJeans.png $(DISTDIR)/skins/Default/wallpapers
+	cp -RH assets/$(PATH_DIR)/skin.conf $(DISTDIR)/skins/Default
+	cp -RH assets/$(PATH_DIR)/font.ttf $(DISTDIR)/skins/Default
+	cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/icons/* $(DISTDIR)/skins/Default/icons/
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
 
