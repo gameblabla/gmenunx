@@ -68,7 +68,7 @@ endif
 	cp -RH assets/$(PATH_DIR)/BlackJeans.png $(DISTDIR)/skins/Default/wallpapers
 	cp -RH assets/$(PATH_DIR)/skin.conf $(DISTDIR)/skins/Default
 	cp -RH assets/$(PATH_DIR)/font.ttf $(DISTDIR)/skins/Default
-	cp -RH assets/$(TARGET)/gmenu2x.conf $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/gmenu2x.conf $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/icons/* $(DISTDIR)/skins/Default/icons/
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
