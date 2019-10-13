@@ -1,31 +1,24 @@
-CHAINPREFIX=/opt/gcw0-toolchain
-
 TARGET=gcw0
 DEBUG=0
 PATH_DIR=rg-350
-
-ifeq ($(DEBUG),0)
-  CROSS_COMPILE=$(CHAINPREFIX)/usr/bin/mipsel-linux-
-endif
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 STRIP = $(CROSS_COMPILE)strip
 
-SYSROOT     := $(CHAINPREFIX)/usr/mipsel-$(TARGET)-linux-uclibc/sysroot
-SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
-SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
+SYSROOT     := $(shell $(CC) --print-sysroot)
+SDL_CONFIG  := $(SYSROOT)/usr/bin/sdl-config
+SDL_CFLAGS  := $(shell $(SDL_CONFIG) --cflags)
+SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 
 CFLAGS = -ggdb  -DTARGET=$(PATH_DIR) \
-	-std=gnu++11 \
-	-DLOG_LEVEL=3 \
-	-g3 $(SDL_CFLAGS) \
-	-I$(CHAINPREFIX)/usr/include/ \
-	-I$(SYSROOT)/usr/include/  \
-	-I$(SYSROOT)/usr/include/SDL/  
-	
+    -std=gnu++11 \
+    -DLOG_LEVEL=3 \
+    -g3 $(SDL_CFLAGS)
+
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread
+
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx
