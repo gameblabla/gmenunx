@@ -230,6 +230,7 @@ void GMenu2X::quit() {
 
 int main(int /*argc*/, char * /*argv*/[]) {
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
+	INFO("Or just export LOG_LEVEL=[0=none|1=error|2=warning|3=info|4=debug]
 
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);

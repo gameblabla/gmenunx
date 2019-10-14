@@ -52,13 +52,15 @@ InputManager::~InputManager() {
 }
 
 void InputManager::init(const string &conffile) {
+	DEBUG("InputManager::init started");
 	initJoysticks();
 	if (!readConfFile(conffile))
 		ERROR("InputManager initialization from config file failed.");
+	DEBUG("InputManager::init completed");
 }
 
-void InputManager::initJoysticks() 
-{
+void InputManager::initJoysticks() {
+	DEBUG("InputManager::initJoysticks started");
 	SDL_Init(SDL_INIT_JOYSTICK);
 	SDL_JoystickEventState(SDL_ENABLE);
 	
@@ -72,9 +74,11 @@ void InputManager::initJoysticks()
 		}
 		else WARNING("Failed to initialize joystick: %i", x);
 	}
+	DEBUG("InputManager::initJoysticks completed");
 }
 
 bool InputManager::readConfFile(const string &conffile) {
+	DEBUG("InputManager::readonfile started");
 	setActionsCount(20); // plus 2 for BACKLIGHT and POWER
 
 	if (!fileExists(conffile)) {
@@ -158,6 +162,7 @@ bool InputManager::readConfFile(const string &conffile) {
 		}
 	}
 	inf.close();
+	DEBUG("InputManager::readConfFile completed");
 	return true;
 }
 
@@ -174,6 +179,7 @@ void InputManager::setActionsCount(int count) {
 }
 
 bool InputManager::update(bool wait) {
+	DEBUG("InputManager::update started");
 	bool anyactions = false;
 	SDL_JoystickUpdate();
 
@@ -210,6 +216,7 @@ bool InputManager::update(bool wait) {
 		}
 	}
 
+	DEBUG("InputManager::update completed");
 	return anyactions;
 }
 
