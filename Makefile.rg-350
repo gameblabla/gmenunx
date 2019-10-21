@@ -59,10 +59,12 @@ endif
 	install -m644 -D COPYING $(DISTDIR)/COPYING
 	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog.md
 	cp -RH assets/skins assets/translations $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/BlackJeans.png $(DISTDIR)/skins/Default/wallpapers
 	cp -RH assets/$(PATH_DIR)/skin.conf $(DISTDIR)/skins/Default
 	cp -RH assets/$(PATH_DIR)/font.ttf $(DISTDIR)/skins/Default
-	cp -RH assets/$(PATH_DIR)/gmenu2x.conf $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/gmenunx.conf $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/icons/* $(DISTDIR)/skins/Default/icons/
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
