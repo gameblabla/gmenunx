@@ -262,9 +262,6 @@ GMenu2X::GMenu2X() {
 
 	DEBUG("GMenu2X::ctor - enter");
 
-	halfX = resX/2;
-	halfY = resY/2;
-
 	exe_path = "";
 	assets_path = "";
 	DEBUG("GMenu2X::ctor - getExePath");
@@ -276,6 +273,8 @@ GMenu2X::GMenu2X() {
 	DEBUG("GMenu2X::ctor - readConfig");
 	readConfig();
 
+	halfX = resX/2;
+	halfY = resY/2;
 	sc.setPrefix(assets_path);
 
 #if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
@@ -453,12 +452,14 @@ void GMenu2X::main() {
 		}
 
 		// LINKS
+		DEBUG("main :: links");
 		s->setClipRect(linksRect);
 		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
 
 		i = menu->firstDispRow() * linkCols;
 
 		if (linkCols == 1) {
+			DEBUG("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
 			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
@@ -468,10 +469,12 @@ void GMenu2X::main() {
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
 				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
+				DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
+			DEBUG("main :: links - row mode : %i", menu->sectionLinks()->size());
 			for (y = 0; y < linkRows; y++) {
 				for (x = 0; x < linkCols && i < menu->sectionLinks()->size(); x++, i++) {
 					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
@@ -484,12 +487,15 @@ void GMenu2X::main() {
 
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, HAlignCenter | VAlignMiddle);
 
+					DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 					s->write(font, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkWidth/2, iy + linkHeight - 2, HAlignCenter | VAlignBottom);
 				}
 			}
 		}
+		DEBUG("main :: links - done");
 		s->clearClipRect();
 
+		
 		drawScrollBar(linkRows, menu->sectionLinks()->size()/linkCols + ((menu->sectionLinks()->size()%linkCols==0) ? 0 : 1), menu->firstDispRow(), linksRect);
 
 		// TRAY DEBUG
@@ -647,9 +653,11 @@ void GMenu2X::main() {
 	pthread_join(thread_id, NULL);
 	// delete btnContextMenu;
 	// btnContextMenu = NULL;
+	DEBUG("main :: exit");
 }
 
 bool GMenu2X::inputCommonActions(bool &inputAction) {
+	DEBUG("GMenu2X::inputCommonActions - enter");
 	// INFO("SDL_GetTicks(): %d\tsuspendActive: %d", SDL_GetTicks(), powerManager->suspendActive);
 
 	if (powerManager->suspendActive) {
@@ -709,6 +717,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 	input[MENU] = wasActive; // Key was active but no combo was pressed
 
+	DEBUG("GMenu2X::inputCommonActions - exit");
 	if ( input[BACKLIGHT] ) {
 		setBacklight(confInt["backlight"], true);
 		return true;
@@ -1920,6 +1929,8 @@ void GMenu2X::formatSd() {
 #endif
 
 void GMenu2X::contextMenu() {
+	
+	DEBUG("GMenu2X::contextMenu - enter");
 	vector<MenuOption> voices;
 	if (menu->selLinkApp() != NULL) {
 		voices.push_back((MenuOption){tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), MakeDelegate(this, &GMenu2X::editLink)});
@@ -1947,6 +1958,9 @@ void GMenu2X::contextMenu() {
 	box.x = halfX - box.w / 2;
 	box.y = halfY - box.h / 2;
 
+	DEBUG("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
+	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
+	
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(45);
 	while (!close) {
@@ -1980,6 +1994,7 @@ void GMenu2X::contextMenu() {
 			else if ( input[SETTINGS] || input[CONFIRM] ) { voices[sel].action(); close = true; }
 		} while (!inputAction);
 	}
+	DEBUG("GMenu2X::contextMenu - exit");
 }
 
 void GMenu2X::addLink() {

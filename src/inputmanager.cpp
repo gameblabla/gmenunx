@@ -30,6 +30,42 @@
 	SELECT     MENU)          SDLK_ESCAPE     27
 	BACKLIGHT  BACKLIGHT      SDLK_3          51
 	POWER      POWER          SDLK_END        279
+	
+	rg-350 key codes
+	
+	https://wiki.libsdl.org/SDLKeycodeLookup
+	
+	D-pad up        KEY_UP,
+	D-pad down      KEY_DOWN,
+	D-pad left      KEY_LEFT,
+	D-pad right     KEY_RIGHT,
+	A               KEY_LEFTCTRL,		306
+	B               KEY_LEFTALT,		308
+	X               KEY_SPACE,			32
+	Y               KEY_LEFTSHIFT,		304
+	L1              KEY_TAB,			9
+	R1              KEY_BACKSPACE,		8
+	L2              KEY_PAGEUP,
+	R2              KEY_PAGEDOWN,
+	L3              KEY_KPSLASH,
+	R3              KEY_KPDOT,
+	START           KEY_ENTER,
+	SELECT          KEY_ESC,
+	POWER           KEY_POWER,
+	VOL_UP          KEY_VOLUMEUP,
+	VOL_DOWN        KEY_VOLUMEDOWN,
+
+	Joysticks
+	Axis 0          Left Joy X
+	Axis 1          Left Joy Y
+	Axis 2          Right Joy X
+	Alis 3          Right Joy Y
+
+	Devices
+	Backlight       pwm1
+	Rumble          pwm4
+	Power LED       JZ_GPIO_PORTB(30)
+	
 */
 
 #include "debug.h"
@@ -193,6 +229,35 @@ bool InputManager::update(bool wait) {
 		if (event.type == SDL_KEYUP) anyactions = true;
 		SDL_Event evcopy = event;
 		events.push_back(evcopy);
+		
+		switch(event.type) {
+			case SDL_KEYUP:
+				DEBUG("Got key code : %i", event.key.keysym.scancode);
+				break;
+			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
+				if ( ( event.jaxis.value < -3200 ) || (event.jaxis.value > 3200 ) ) 
+				{
+					if( event.jaxis.axis == 0) 
+					{
+						/* Left-right movement code goes here */
+					}
+
+					if( event.jaxis.axis == 1) 
+					{
+						/* Up-Down movement code goes here */
+					}
+				}
+				break;
+			case SDL_JOYBUTTONDOWN:  /* Handle Joystick Button Presses */
+				if ( event.jbutton.button == 0 ) 
+				{
+					/* code goes here */
+				}
+				break;
+			default:
+				break;
+		};
+		
 	}
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_KEYUP) anyactions = true;
