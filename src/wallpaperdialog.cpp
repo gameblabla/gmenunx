@@ -40,15 +40,15 @@ bool WallpaperDialog::exec()
 	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 	int32_t selected = 0;
 
-	FileLister fl("skins/" + gmenu2x->confStr["skin"] + "/wallpapers");
+	FileLister fl(gmenu2x->getAssetsPath() + "skins/" + gmenu2x->confStr["skin"] + "/wallpapers");
 	fl.setFilter(".png,.jpg,.jpeg,.bmp");
 	vector<string> wallpapers;
-	if (dirExists("skins/" + gmenu2x->confStr["skin"] + "/wallpapers")) {
+	if (dirExists(gmenu2x->getAssetsPath() + "skins/" + gmenu2x->confStr["skin"] + "/wallpapers")) {
 		fl.browse();
 		wallpapers = fl.getFiles();
 	}
 	if (gmenu2x->confStr["skin"] != "Default") {
-		fl.setPath("skins/Default/wallpapers", true);
+		fl.setPath(gmenu2x->getAssetsPath() + "skins/Default/wallpapers", true);
 		for (uint32_t i = 0; i < fl.getFiles().size(); i++)
 			wallpapers.push_back(fl.getFiles()[i]);
 	}
@@ -112,9 +112,9 @@ bool WallpaperDialog::exec()
 				close = true;
 				if (wallpapers.size() > 0) {
 					if (selected < wallpapers.size() - fl.getFiles().size())
-						wallpaper = "skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[selected];
+						wallpaper = gmenu2x->getAssetsPath() + "skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[selected];
 					else
-						wallpaper = "skins/Default/wallpapers/" + wallpapers[selected];
+						wallpaper = gmenu2x->getAssetsPath() + "skins/Default/wallpapers/" + wallpapers[selected];
 				} else {
 					result = false;
 				}
@@ -124,9 +124,9 @@ bool WallpaperDialog::exec()
 
 	for (uint32_t i = 0; i < wallpapers.size(); i++)
 		if (i < wallpapers.size() - fl.getFiles().size())
-			gmenu2x->sc.del("skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[i]);
+			gmenu2x->sc.del(gmenu2x->getAssetsPath() + "skins/" + gmenu2x->confStr["skin"] + "/wallpapers/" + wallpapers[i]);
 		else
-			gmenu2x->sc.del("skins/Default/wallpapers/" + wallpapers[i]);
+			gmenu2x->sc.del(gmenu2x->getAssetsPath() + "skins/Default/wallpapers/" + wallpapers[i]);
 
 	gmenu2x->confStr["wallpaper"] = wallpaper;
 	return result;

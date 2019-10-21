@@ -657,7 +657,7 @@ void GMenu2X::main() {
 }
 
 bool GMenu2X::inputCommonActions(bool &inputAction) {
-	DEBUG("GMenu2X::inputCommonActions - enter");
+	//DEBUG("GMenu2X::inputCommonActions - enter");
 	// INFO("SDL_GetTicks(): %d\tsuspendActive: %d", SDL_GetTicks(), powerManager->suspendActive);
 
 	if (powerManager->suspendActive) {
@@ -717,7 +717,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 	input[MENU] = wasActive; // Key was active but no combo was pressed
 
-	DEBUG("GMenu2X::inputCommonActions - exit");
+	//DEBUG("GMenu2X::inputCommonActions - exit");
 	if ( input[BACKLIGHT] ) {
 		setBacklight(confInt["backlight"], true);
 		return true;
@@ -1580,8 +1580,11 @@ void GMenu2X::changeWallpaper() {
 	DEBUG("GMenu2X::changeWallpaper - enter");
 	WallpaperDialog wp(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], "skin:icons/wallpaper.png");
 	if (wp.exec() && confStr["wallpaper"] != wp.wallpaper) {
+		DEBUG("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
 		confStr["wallpaper"] = wp.wallpaper;
+		DEBUG("GMenu2X::changeWallpaper - set new wallpaper");
 		setWallpaper(wp.wallpaper);
+		DEBUG("GMenu2X::changeWallpaper - write config");
 		writeConfig();
 	}
 	DEBUG("GMenu2X::changeWallpaper - exit");
