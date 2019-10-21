@@ -43,14 +43,15 @@ void SurfaceCollection::setSkin(const string &skin) {
 }
 
 string SurfaceCollection::getSkinFilePath(const string &file) {
+	DEBUG("SurfaceCollection :: getSkinFilePath - enter : %s", file.c_str());
+	string result = "";
+	
 	if (fileExists(this->prefix+"skins/"+skin+"/"+file))
-		return this->prefix+"skins/"+skin+"/"+file;
+		result = this->prefix+"skins/"+skin+"/"+file;
 	else if (fileExists(this->prefix+"skins/Default/"+file))
-		return this->prefix+"skins/Default/"+file;
-	else if (fileExists(this->prefix+"skins/Default/font.ttf"))
-		return this->prefix+"skins/Default/font.ttf";
-
-	return "";
+		result = this->prefix+"skins/Default/"+file;
+	DEBUG("SurfaceCollection :: getSkinFilePath - exit : %s", result.c_str());
+	return result;
 }
 
 void SurfaceCollection::debug() {
@@ -96,7 +97,7 @@ Surface *SurfaceCollection::addSkinRes(const string &path, bool alpha) {
 	if (skinpath.empty())
 		return NULL;
 
-	DEBUG("Adding skin surface: '%s'", path.c_str());
+	DEBUG("Adding skin surface: '%s:%s'", skinpath.c_str(), path.c_str());
 	Surface *s = new Surface(skinpath,alpha);
 	if (s != NULL)
 		surfaces[path] = s;
