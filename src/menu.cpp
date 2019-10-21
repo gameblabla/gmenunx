@@ -46,7 +46,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	string filepath;
 
 	DEBUG("Menu :: ctor - opening sections");
-	string resolvedPath = this->gmenu2x->getAssetsPath()+"skins/"+this->gmenu2x->confStr["skin"]+"/sections";
+	string resolvedPath = this->gmenu2x->getAssetsPath()+"sections/";
 	DEBUG("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
@@ -54,7 +54,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
 		DEBUG("Menu :: ctor - reading : %s", dptr->d_name);
-		filepath = (string)(resolvedPath + "sections/" + dptr->d_name);
+		filepath = (string)(resolvedPath + dptr->d_name);
 		DEBUG("Menu :: ctor - checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
 		DEBUG("Menu :: ctor - reading stat : %i", statRet);
