@@ -1409,15 +1409,15 @@ void GMenu2X::skinMenu() {
 	do {
 		setSkin(confStr["skin"], false, false);
 
-		FileLister fl_wp("skins/" + confStr["skin"] + "/wallpapers");
+		FileLister fl_wp(assets_path + "skins/" + confStr["skin"] + "/wallpapers");
 		fl_wp.setFilter(".png,.jpg,.jpeg,.bmp");
 		vector<string> wallpapers;
-		if (dirExists("skins/" + confStr["skin"] + "/wallpapers")) {
+		if (dirExists(assets_path + "skins/" + confStr["skin"] + "/wallpapers")) {
 			fl_wp.browse();
 			wallpapers = fl_wp.getFiles();
 		}
 		if (confStr["skin"] != "Default") {
-			fl_wp.setPath("skins/Default/wallpapers", true);
+			fl_wp.setPath(assets_path + "skins/Default/wallpapers", true);
 			for (uint32_t i = 0; i < fl_wp.getFiles().size(); i++)
 				wallpapers.push_back(fl_wp.getFiles()[i]);
 		}
@@ -1447,10 +1447,10 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &confInt["linkRows"], 6, 1, 8));
 		sd.exec();
 
-		if (sc.add("skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"]) != NULL)
-			confStr["wallpaper"] = "skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"];
-		else if (sc.add("skins/Default/wallpapers/" + confStr["wallpaper"]) != NULL)
-			confStr["wallpaper"] = "skins/Default/wallpapers/" + confStr["wallpaper"];
+		if (sc.add(assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"]) != NULL)
+			confStr["wallpaper"] = assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"];
+		else if (sc.add(assets_path + "skins/Default/wallpapers/" + confStr["wallpaper"]) != NULL)
+			confStr["wallpaper"] = assets_path + "skins/Default/wallpapers/" + confStr["wallpaper"];
 
 		setWallpaper(confStr["wallpaper"]);
 

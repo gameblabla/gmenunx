@@ -72,20 +72,30 @@ Surface *SurfaceCollection::add(Surface *s, const string &path) {
 }
 
 Surface *SurfaceCollection::add(const string &path, bool alpha) {
+	DEBUG("SurfaceCollection::add - enter - %s", path.c_str());
 	if (path.empty()) return NULL;
+	DEBUG("SurfaceCollection::add - path exists test");
 	if (exists(path)) return surfaces[path]; //del(path);
 
 	string filePath = path;
 	if (filePath.substr(0,5)=="skin:") {
+		DEBUG("SurfaceCollection::add - matched on skin:");
 		filePath = getSkinFilePath(filePath.substr(5,filePath.length()));
+		DEBUG("SurfaceCollection::add - filepath - %s", filePath.c_str());
 		if (filePath.empty())
 			return NULL;
-	} else if (!fileExists(filePath)) return NULL;
+	} else if (!fileExists(filePath)) {
+		DEBUG("SurfaceCollection::add - file doesn't exist");
+		return NULL;
+	}
 
 	DEBUG("Adding surface: '%s'", path.c_str());
 	Surface *s = new Surface(filePath,alpha);
-	if (s != NULL)
+	if (s != NULL) {
+		DEBUG("SurfaceCollection::add - adding surface to collection");
 		surfaces[path] = s;
+	}
+	DEBUG("SurfaceCollection::add - exit");
 	return s;
 }
 
