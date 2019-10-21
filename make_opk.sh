@@ -18,7 +18,7 @@ Categories=applications;
 EOF
 
 # create opk
-FLIST="objs/gcw0/gmenu2x"
+FLIST="objs/rg-350/gmenunx"
 FLIST="${FLIST} default.gcw0.desktop"
 FLIST="${FLIST} assets/skins/Default/icons/generic.png"
 FLIST="${FLIST} assets/skins"
