@@ -9,7 +9,7 @@
 #define DEBUG_L 4
 
 #ifndef LOG_LEVEL
-# define LOG_LEVEL INFO_L
+# define LOG_LEVEL DEBUG_L
 #endif
 
 // -------------

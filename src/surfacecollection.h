@@ -36,12 +36,14 @@ class SurfaceCollection {
 private:
 	SurfaceHash surfaces;
 	std::string skin;
+	std::string prefix;
 
 public:
 	SurfaceCollection(
 			bool defaultAlpha = true, const std::string &skin = "default");
 	~SurfaceCollection();
 
+	void setPrefix(const std::string &prefix);
 	void setSkin(const std::string &skin);
 	std::string getSkinFilePath(const std::string &file);
 

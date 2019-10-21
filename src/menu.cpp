@@ -36,6 +36,7 @@
 using namespace std;
 
 Menu::Menu(GMenu2X *gmenu2x) {
+	DEBUG("Menu :: ctor - enter");
 	this->gmenu2x = gmenu2x;
 	iFirstDispSection = 0;
 
@@ -44,27 +45,43 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	struct dirent *dptr;
 	string filepath;
 
-	if ((dirp = opendir("sections")) == NULL) return;
+	DEBUG("Menu :: ctor - opening sections");
+	string resolvedPath = this->gmenu2x->getAssetsPath()+"skins/"+this->gmenu2x->confStr["skin"]+"/sections";
+	DEBUG("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
+	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
+	DEBUG("Menu :: ctor - readdir : %i", dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
-		filepath = (string)"sections/" + dptr->d_name;
+		DEBUG("Menu :: ctor - reading : %s", dptr->d_name);
+		filepath = (string)(resolvedPath + "sections/" + dptr->d_name);
+		DEBUG("Menu :: ctor - checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
+		DEBUG("Menu :: ctor - reading stat : %i", statRet);
 		if (!S_ISDIR(st.st_mode)) continue;
 		if (statRet != -1) {
+			DEBUG("Menu :: ctor - adding section : %s", dptr->d_name);
 			sections.push_back((string)dptr->d_name);
 			linklist ll;
 			links.push_back(ll);
 		}
 	}
-
+	DEBUG("Menu :: ctor - dirp read");
+	
+	DEBUG("Menu :: ctor - add sections");
 	addSection("settings");
+	DEBUG("Menu :: ctor - add applications");
 	addSection("applications");
 
+	DEBUG("Menu :: ctor - close dirp");
 	closedir(dirp);
+	DEBUG("Menu :: ctor - sort");
 	sort(sections.begin(),sections.end(),case_less());
+	DEBUG("Menu :: ctor - set index 0");
 	setSectionIndex(0);
+	DEBUG("Menu :: ctor - read links");
 	readLinks();
+	DEBUG("Menu :: ctor - exit");
 }
 
 Menu::~Menu() {

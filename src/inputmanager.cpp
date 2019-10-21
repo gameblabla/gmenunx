@@ -78,7 +78,7 @@ void InputManager::initJoysticks() {
 }
 
 bool InputManager::readConfFile(const string &conffile) {
-	DEBUG("InputManager::readonfile started");
+	DEBUG("InputManager::readconffile started : %s", conffile.c_str());
 	setActionsCount(20); // plus 2 for BACKLIGHT and POWER
 
 	if (!fileExists(conffile)) {

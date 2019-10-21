@@ -230,14 +230,15 @@ void GMenu2X::quit() {
 
 int main(int /*argc*/, char * /*argv*/[]) {
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
-	INFO("Or just export LOG_LEVEL=[0=none|1=error|2=warning|3=info|4=debug]
 
+	DEBUG("Signals");
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
+	DEBUG("New app");
 	app = new GMenu2X();
-	DEBUG("Starting main()");
+	DEBUG("Starting app->main()");
 	app->main();
 
 	return 0;
@@ -256,62 +257,87 @@ void* mainThread(void* param) {
 GMenu2X::GMenu2X() {
 	// instance = this;
 	//Detect firmware version and type
-	//load config data
-	readConfig();
+
+	DEBUG("GMenu2X::ctor - enter");
 
 	halfX = resX/2;
 	halfY = resY/2;
 
-	path = "";
+	exe_path = "";
+	assets_path = "";
+	DEBUG("GMenu2X::ctor - getExePath");
 	getExePath();
+	DEBUG("GMenu2X::ctor - getAssetsPath");
+	getAssetsPath();
+
+	//load config data
+	DEBUG("GMenu2X::ctor - readConfig");
+	readConfig();
+
+	sc.setPrefix(assets_path);
 
 #if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
 	hwInit();
 #endif
 
+	DEBUG("GMenu2X::ctor - setEnv");
 #if !defined(TARGET_PC)
 	setenv("SDL_NOMOUSE", "1", 1);
 #endif
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
+	DEBUG("GMenu2X::ctor - setDateTime");
 	setDateTime();
 
 	//Screen
+	DEBUG("GMenu2X::ctor - sdl_init");
 	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit();
 	}
 
+	DEBUG("GMenu2X::ctor - surface");
 	s = new Surface();
 #if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO)
 	//I'm forced to use SW surfaces since with HW there are issuse with changing the clock frequency
 	SDL_Surface *dbl = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_SWSURFACE);
 	s->enableVirtualDoubleBuffer(dbl);
 	SDL_ShowCursor(0);
-#elif defined(TARGET_RS97)
+#elif defined(TARGET_RS97)// || defined(TARGET_RG350)
+	DEBUG("GMenu2X::ctor - In target");
 	SDL_ShowCursor(0);
 	#if defined(TARGET_ARCADEMINI)
 	s->ScreenSurface = SDL_SetVideoMode(480, 272, confInt["videoBpp"], SDL_HWSURFACE);
 	#else
+	DEBUG("GMenu2X::ctor - video mode - x:320 y:480 bpp:%i", confInt["videoBpp"]);
 	s->ScreenSurface = SDL_SetVideoMode(320, 480, confInt["videoBpp"], SDL_HWSURFACE);
 	#endif
+	DEBUG("GMenu2X::ctor - create rgb surface - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
 	s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, resX, resY, confInt["videoBpp"], 0, 0, 0, 0);
 #else
+	DEBUG("GMenu2X::ctor - No target");
+	DEBUG("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
 #endif
 
+	DEBUG("GMenu2X::ctor - setWallpaper");
 	setWallpaper(confStr["wallpaper"]);
 
+	DEBUG("GMenu2X::ctor - setSkin");
 	setSkin(confStr["skin"], false, true);
 
+	DEBUG("GMenu2X::ctor - power mgr");
 	powerManager = new PowerManager(this, confInt["backlightTimeout"], confInt["powerTimeout"]);
 
+	DEBUG("GMenu2X::ctor - loading");
 	MessageBox mb(this,tr["Loading"]);
 	mb.setAutoHide(1);
 	mb.exec();
 
+	DEBUG("GMenu2X::ctor - backlight");
 	setBacklight(confInt["backlight"]);
 
-	input.init(path + "input.conf");
+	DEBUG("GMenu2X::ctor - input");
+	input.init(assets_path + "input.conf");
 	setInputSpeed();
 
 #if defined(TARGET_GP2X)
@@ -324,22 +350,32 @@ GMenu2X::GMenu2X() {
 	preMMCStatus = curMMCStatus = getMMCStatus();
 	udcConnectedOnBoot = getUDCStatus();
 #endif
+	DEBUG("GMenu2X::ctor - volume");
 	volumeModePrev = volumeMode = getVolumeMode(confInt["globalVolume"]);
 	
+	DEBUG("GMenu2X::ctor - menu");
 	initMenu();
+	
+	DEBUG("GMenu2X::ctor - readTmp");
 	readTmp();
+	DEBUG("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
-
+	DEBUG("GMenu2X::ctor - wake up");
 	input.setWakeUpInterval(1000);
 
 	//recover last session
+	DEBUG("GMenu2X::ctor - recoverSession");
 	if (lastSelectorElement >- 1 && menu->selLinkApp() != NULL && (!menu->selLinkApp()->getSelectorDir().empty() || !lastSelectorDir.empty()))
 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
+	
+	DEBUG("GMenu2X::ctor - exit");
 }
 
 void GMenu2X::main() {
 	pthread_t thread_id;
 
+	DEBUG("main");
+	
 	bool quit = false;
 	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
 	uint32_t tickBattery = -4800, tickNow; //, tickMMC = 0; //, tickUSB = 0;
@@ -385,8 +421,10 @@ void GMenu2X::main() {
 	if (udcConnectedOnBoot == UDC_CONNECT) checkUDC();
 #endif
 
+	DEBUG("main :: mountSd");
 	if (curMMCStatus == MMC_INSERT) mountSd(true);
 
+	DEBUG("main :: loop");
 	while (!quit) {
 		tickNow = SDL_GetTicks();
 
@@ -773,24 +811,35 @@ void GMenu2X::hwDeinit() {
 }
 
 void GMenu2X::setWallpaper(const string &wallpaper) {
+	DEBUG("GMenu2X::setWallpaper - enter");
 	if (bg != NULL) delete bg;
 
+	DEBUG("GMenu2X::setWallpaper - new surface");
 	bg = new Surface(s);
+	DEBUG("GMenu2X::setWallpaper - bg box");
 	bg->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 0});
 
 	confStr["wallpaper"] = wallpaper;
+	DEBUG("GMenu2X::setWallpaper - null test");
 	if (wallpaper.empty() || sc.add(wallpaper) == NULL) {
-		DEBUG("Searching wallpaper");
+		string relativePath = "skins/" + confStr["skin"] + "/wallpapers";
+		DEBUG("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
 
-		FileLister fl("skins/" + confStr["skin"] + "/wallpapers", false, true);
+		FileLister fl(assets_path + relativePath, false, true);
 		fl.setFilter(".png,.jpg,.jpeg,.bmp");
 		fl.browse();
-		if (fl.getFiles().size() <= 0 && confStr["skin"] != "Default")
-			fl.setPath("skins/Default/wallpapers", true);
-		if (fl.getFiles().size() > 0)
+		if (fl.getFiles().size() <= 0 && confStr["skin"] != "Default") {
+			DEBUG("GMenu2X::setWallpaper - Couldn't find non default skin, falling back to default");
+			fl.setPath(assets_path + "skins/Default/wallpapers", true);// + relativePath, true);
+		}
+		if (fl.getFiles().size() > 0) {
+			DEBUG("GMenu2X::setWallpaper - found our wallpaper");
 			confStr["wallpaper"] = fl.getPath() + "/" + fl.getFiles()[0];
+		}
 	}
+	DEBUG("GMenu2X::setWallpaper - blit");
 	sc[wallpaper]->blit(bg, 0, 0);
+	DEBUG("GMenu2X::setWallpaper - exit");
 }
 
 void GMenu2X::initLayout() {
@@ -830,20 +879,36 @@ void GMenu2X::initLayout() {
 }
 
 void GMenu2X::initFont() {
-	if (font != NULL) delete font;
-	if (titlefont != NULL) delete titlefont;
+	DEBUG("GMenu2X::initFont - enter");
+	if (font != NULL) {
+		DEBUG("GMenu2X::initFont - delete font");
+		delete font;
+	}
+	if (titlefont != NULL) {
+		DEBUG("GMenu2X::initFont - delete tile font");
+		delete titlefont;
+	}
 
-	font = new FontHelper(sc.getSkinFilePath("font.ttf"), skinConfInt["fontSize"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
-	titlefont = new FontHelper(sc.getSkinFilePath("font.ttf"), skinConfInt["fontSizeTitle"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
+	string fontPath = sc.getSkinFilePath("font.ttf");
+	DEBUG("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
+	DEBUG("GMenu2X::initFont - getFont");
+	font = new FontHelper(fontPath, skinConfInt["fontSize"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
+	DEBUG("GMenu2X::initFont - getTileFont");
+	titlefont = new FontHelper(fontPath, skinConfInt["fontSizeTitle"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
+	DEBUG("GMenu2X::initFont - exit");
 }
 
 void GMenu2X::initMenu() {
+	DEBUG("GMenu2X::initMenu - enter");
 	if (menu != NULL) delete menu;
+	DEBUG("GMenu2X::initMenu - initLayout");
 	initLayout();
 
 	//Menu structure handler
+	DEBUG("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
 
+	DEBUG("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
@@ -870,16 +935,20 @@ void GMenu2X::initMenu() {
 				menu->addActionLink(i, tr["Umount"], MakeDelegate(this, &GMenu2X::umountSdDialog), tr["Umount external SD"], "skin:icons/eject.png");
 #endif
 
-			if (fileExists(path + "log.txt"))
+			if (fileExists(assets_path + "log.txt"))
 				menu->addActionLink(i, tr["Log Viewer"], MakeDelegate(this, &GMenu2X::viewLog), tr["Displays last launched program's output"], "skin:icons/ebook.png");
 
 			menu->addActionLink(i, tr["About"], MakeDelegate(this, &GMenu2X::about), tr["Info about system"], "skin:icons/about.png");
 			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "skin:icons/exit.png");
 		}
 	}
+	DEBUG("GMenu2X::initMenu - menu->setSectionIndex : %i", confInt["section"]);
 	menu->setSectionIndex(confInt["section"]);
+	DEBUG("GMenu2X::initMenu - menu->setLinkIndex : %i", confInt["link"]);
 	menu->setLinkIndex(confInt["link"]);
+	DEBUG("GMenu2X::initMenu - menu->loadIcons");
 	menu->loadIcons();
+	DEBUG("GMenu2X::initMenu - exit");
 }
 
 void GMenu2X::settings() {
@@ -1002,11 +1071,11 @@ void GMenu2X::resetSettings() {
 			}
 		}
 		if (reset_skin) {
-			tmppath = path + "skins/Default/skin.conf";
+			tmppath = assets_path + "skins/Default/skin.conf";
 			unlink(tmppath.c_str());
 		}
 		if (reset_gmenu) {
-			tmppath = path + "gmenu2x.conf";
+			tmppath = assets_path + "gmenu2x.conf";
 			unlink(tmppath.c_str());
 		}
 		restartDialog();
@@ -1064,8 +1133,11 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 }
 
 void GMenu2X::readConfig() {
-	string conffile = path + "gmenu2x.conf";
+	
+	string conffile = assets_path + "gmenu2x.conf";
 
+	DEBUG("GMenu2X::readConfig - enter : %s", conffile.c_str());
+	
 	// Defaults
 	confStr["batteryType"] = "BL-5B";
 	confStr["datetime"] = __BUILDTIME__;
@@ -1116,16 +1188,19 @@ void GMenu2X::readConfig() {
 
 	resX = constrain( confInt["resolutionX"], 320, 1920 );
 	resY = constrain( confInt["resolutionY"], 240, 1200 );
+	
+	DEBUG("GMenu2X::readConfig - exit");
 }
 
 void GMenu2X::writeConfig() {
+	DEBUG("GMenu2X::writeConfig - enter");
 	ledOn();
 	if (confInt["saveSelection"] && menu != NULL) {
 		confInt["section"] = menu->selSectionIndex();
 		confInt["link"] = menu->selLinkIndex();
 	}
 
-	string conffile = path + "gmenu2x.conf";
+	string conffile = assets_path + "gmenu2x.conf";
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
 		for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
@@ -1146,11 +1221,12 @@ void GMenu2X::writeConfig() {
 			writeConfigOpen2x();
 #endif
 	ledOff();
+	DEBUG("GMenu2X::writeConfig - exit");
 }
 
 void GMenu2X::writeSkinConfig() {
 	ledOn();
-	string conffile = path + "skins/" + confStr["skin"] + "/skin.conf";
+	string conffile = assets_path + "skins/" + confStr["skin"] + "/skin.conf";
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
 		for (ConfStrHash::iterator curr = skinConfStr.begin(); curr != skinConfStr.end(); curr++)
@@ -1172,18 +1248,27 @@ void GMenu2X::writeSkinConfig() {
 }
 
 void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
+	DEBUG("GMenu2X::setSkin - enter - %s", skin.c_str());
+	
 	confStr["skin"] = skin;
 
 //Clear previous skin settings
+	DEBUG("GMenu2X::setSkin - clear skinConfStr");
 	skinConfStr.clear();
+	DEBUG("GMenu2X::setSkin - clear skinConfInt");
 	skinConfInt.clear();
 
 //clear collection and change the skin path
-	if (clearSC) sc.clear();
+	if (clearSC) {
+		DEBUG("GMenu2X::setSkin - clearSC");
+		sc.clear();
+	}
+	DEBUG("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(skin);
 	// if (btnContextMenu != NULL) btnContextMenu->setIcon( btnContextMenu->getIcon() );
 
 //reset colors to the default values
+	DEBUG("GMenu2X::setSkin - skinFontColors");
 	skinConfColors[COLOR_TOP_BAR_BG] = (RGBAColor){255,255,255,130};
 	skinConfColors[COLOR_LIST_BG] = (RGBAColor){255,255,255,0};
 	skinConfColors[COLOR_BOTTOM_BAR_BG] = (RGBAColor){255,255,255,130};
@@ -1197,8 +1282,10 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	skinConfColors[COLOR_FONT_ALT_OUTLINE] = (RGBAColor){253,1,252,0};
 
 //load skin settings
-	string skinconfname = "skins/" + skin + "/skin.conf";
+	string skinconfname = assets_path + "skins/" + skin + "/skin.conf";
+	DEBUG("GMenu2X::setSkin - skinconfname : %s", skinconfname.c_str());
 	if (fileExists(skinconfname)) {
+		DEBUG("GMenu2X::setSkin - skinconfname : exists");
 		ifstream skinconf(skinconfname.c_str(), ios_base::in);
 		if (skinconf.is_open()) {
 			string line;
@@ -1239,12 +1326,15 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	}
 
 // (poor) HACK: ensure font alt colors have a default value
+	DEBUG("GMenu2X::setSkin - skin colors");
 	if (skinConfColors[COLOR_FONT_ALT].r == 253 && skinConfColors[COLOR_FONT_ALT].g == 1 && skinConfColors[COLOR_FONT_ALT].b == 252 && skinConfColors[COLOR_FONT_ALT].a == 0) skinConfColors[COLOR_FONT_ALT] = skinConfColors[COLOR_FONT];
 	if (skinConfColors[COLOR_FONT_ALT_OUTLINE].r == 253 && skinConfColors[COLOR_FONT_ALT_OUTLINE].g == 1 && skinConfColors[COLOR_FONT_ALT_OUTLINE].b == 252 && skinConfColors[COLOR_FONT_ALT_OUTLINE].a == 0) skinConfColors[COLOR_FONT_ALT_OUTLINE] = skinConfColors[COLOR_FONT_OUTLINE];
 
 // prevents breaking current skin until they are updated
+	DEBUG("GMenu2X::setSkin - font size tile");
 	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
 
+	DEBUG("GMenu2X::setSkin - evalIntConf");
 	evalIntConf( &skinConfInt["topBarHeight"], 40, 1, resY);
 	evalIntConf( &skinConfInt["sectionBarSize"], 40, 1, resX);
 	evalIntConf( &skinConfInt["bottomBarHeight"], 16, 1, resY);
@@ -1252,10 +1342,15 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	evalIntConf( &skinConfInt["fontSize"], 12, 6, 60);
 	evalIntConf( &skinConfInt["fontSizeTitle"], 20, 6, 60);
 
-	if (menu != NULL && clearSC) menu->loadIcons();
+	if (menu != NULL && clearSC) {
+		DEBUG("GMenu2X::setSkin - loadIcons");
+		menu->loadIcons();
+	}
 
 //font
+	DEBUG("GMenu2X::setSkin - init font");
 	initFont();
+	DEBUG("GMenu2X::setSkin - exit");
 }
 
 uint32_t GMenu2X::onChangeSkin() {
@@ -1425,11 +1520,11 @@ void GMenu2X::about() {
 }
 
 void GMenu2X::viewLog() {
-	string logfile = path + "log.txt";
+	string logfile = exe_path + "log.txt";
 	if (!fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
-	td.appendFile(path + "log.txt");
+	td.appendFile(assets_path + "log.txt");
 	td.exec();
 
 	MessageBox mb(this, tr["Do you want to delete the log file?"], "skin:icons/ebook.png");
@@ -2050,7 +2145,7 @@ void GMenu2X::deleteSection() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		ledOn();
-		if (rmtree(path+"sections/"+menu->selSection())) {
+		if (rmtree(assets_path+"sections/"+menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}
@@ -2353,17 +2448,28 @@ int GMenu2X::setBacklight(int val, bool popup) {
 }
 
 const string &GMenu2X::getExePath() {
-	if (path.empty()) {
+	DEBUG("GMenu2X::getExePath - enter path: %s", exe_path.c_str());
+	if (exe_path.empty()) {
 		char buf[255];
 		memset(buf, 0, 255);
 		int l = readlink("/proc/self/exe", buf, 255);
 
-		path = buf;
-		path = path.substr(0, l);
-		l = path.rfind("/");
-		path = path.substr(0, l + 1);
+		exe_path = buf;
+		exe_path = exe_path.substr(0, l);
+		l = exe_path.rfind("/");
+		exe_path = exe_path.substr(0, l + 1);
 	}
-	return path;
+	DEBUG("GMenu2X::getExePath - exit path:%s", exe_path.c_str());
+	return exe_path;
+}
+
+const string &GMenu2X::getAssetsPath() {
+	DEBUG("GMenu2X::getAssetsPath - enter path: %s", assets_path.c_str());
+	if (assets_path.empty()) {
+		assets_path = ASSET_PREFIX;
+	}
+	DEBUG("GMenu2X::getAssetsPath - exit path:%s", assets_path.c_str());
+	return assets_path;
 }
 
 string GMenu2X::getDiskFree(const char *path) {

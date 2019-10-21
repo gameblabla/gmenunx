@@ -48,6 +48,9 @@ const int BATTERY_READS = 10;
 extern const char *CARD_ROOT;
 extern const int CARD_ROOT_LEN;
 
+const string ASSET_PREFIX ="/usr/share/gmenunx/";
+const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
+
 // Note: Keep this in sync with colorNames!
 enum color {
 	COLOR_TOP_BAR_BG,
@@ -96,7 +99,9 @@ private:
 	int getBacklight();
 	int getVolume();
 
-	string path; //!< Contains the working directory of GMenu2X
+	string exe_path; //!< Contains the working directory of GMenu2X
+	string assets_path; // Contains the assets path
+
 	/*!
 	Retrieves the free disk space on the sd
 	@return String containing a human readable representation of the free disk space
@@ -177,11 +182,18 @@ public:
 	SDL_Rect listRect, linksRect, sectionBarRect;
 	/*!
 	Retrieves the parent directory of GMenu2X.
-	This functions is used to initialize the "path" variable.
-	@see path
+	This functions is used to initialize the "exe_path" variable.
+	@see exe_path
 	@return String containing the parent directory
 	*/
 	const string &getExePath();
+	/*!
+	Retrieves the directory that gmenunx assets live in.
+	This functions is used to initialize the "assets_path" variable.
+	@see assets_path
+	@return String containing the parent directory
+	*/
+	const string &getAssetsPath();
 
 	InputManager input;
 	Touchscreen ts;

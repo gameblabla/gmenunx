@@ -28,20 +28,27 @@ using std::string;
 
 SurfaceCollection::SurfaceCollection(bool defaultAlpha, const string &skin) {
 	this->defaultAlpha = defaultAlpha;
+	this->prefix = "";
 	setSkin(skin);
 }
 
 SurfaceCollection::~SurfaceCollection() {}
+
+void SurfaceCollection::setPrefix(const string &prefix) {
+	this->prefix = prefix;
+}
 
 void SurfaceCollection::setSkin(const string &skin) {
 	this->skin = skin;
 }
 
 string SurfaceCollection::getSkinFilePath(const string &file) {
-	if (fileExists("skins/"+skin+"/"+file))
-		return "skins/"+skin+"/"+file;
-	else if (fileExists("skins/Default/"+file))
-		return "skins/Default/"+file;
+	if (fileExists(this->prefix+"skins/"+skin+"/"+file))
+		return this->prefix+"skins/"+skin+"/"+file;
+	else if (fileExists(this->prefix+"skins/Default/"+file))
+		return this->prefix+"skins/Default/"+file;
+	else if (fileExists(this->prefix+"skins/Default/font.ttf"))
+		return this->prefix+"skins/Default/font.ttf";
 
 	return "";
 }
