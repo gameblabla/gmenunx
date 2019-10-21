@@ -1075,7 +1075,7 @@ void GMenu2X::resetSettings() {
 			unlink(tmppath.c_str());
 		}
 		if (reset_gmenu) {
-			tmppath = assets_path + "gmenu2x.conf";
+			tmppath = assets_path + "gmenunx.conf";
 			unlink(tmppath.c_str());
 		}
 		restartDialog();
@@ -1134,7 +1134,7 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 
 void GMenu2X::readConfig() {
 	
-	string conffile = assets_path + "gmenu2x.conf";
+	string conffile = assets_path + "gmenunx.conf";
 
 	DEBUG("GMenu2X::readConfig - enter : %s", conffile.c_str());
 	
@@ -1200,7 +1200,7 @@ void GMenu2X::writeConfig() {
 		confInt["link"] = menu->selLinkIndex();
 	}
 
-	string conffile = assets_path + "gmenu2x.conf";
+	string conffile = assets_path + "gmenunx.conf";
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
 		for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
@@ -2466,7 +2466,18 @@ const string &GMenu2X::getExePath() {
 const string &GMenu2X::getAssetsPath() {
 	DEBUG("GMenu2X::getAssetsPath - enter path: %s", assets_path.c_str());
 	if (assets_path.empty()) {
-		assets_path = ASSET_PREFIX;
+		// check for the writable home directory existing
+		DEBUG("GMenu2X::getAssetsPath - testing for writable home dir : %s", USER_PREFIX.c_str());
+		if (opendir(USER_PREFIX.c_str()) == NULL) {
+			DEBUG("GMenu2X::getAssetsPath - No writable home dir");
+			stringstream ss;
+			ss << "cp -arp " << ASSET_PREFIX << " " << USER_PREFIX << " && sync";
+			string call = ss.str();
+			DEBUG("GMenu2X::getAssetsPath - Going to run :: %s", call.c_str());
+			system(call.c_str());
+		};
+
+		assets_path = USER_PREFIX;//ASSET_PREFIX;
 	}
 	DEBUG("GMenu2X::getAssetsPath - exit path:%s", assets_path.c_str());
 	return assets_path;

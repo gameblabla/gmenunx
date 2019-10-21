@@ -35,6 +35,7 @@ class PowerManager;
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <vector>
 #include <tr1/unordered_map>
 
