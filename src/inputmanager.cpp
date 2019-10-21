@@ -78,7 +78,7 @@ void InputManager::initJoysticks() {
 }
 
 bool InputManager::readConfFile(const string &conffile) {
-	DEBUG("InputManager::readconffile started : %s", conffile.c_str());
+	DEBUG("InputManager::readconffile - enter : %s", conffile.c_str());
 	setActionsCount(20); // plus 2 for BACKLIGHT and POWER
 
 	if (!fileExists(conffile)) {
@@ -98,6 +98,7 @@ bool InputManager::readConfFile(const string &conffile) {
 	vector<string> values;
 
 	while (getline(inf, line, '\n')) {
+		DEBUG("InputManager::readconffile - reading : %s", line.c_str());
 		linenum++;
 		pos = line.find("=");
 		name = trim(line.substr(0,pos));
@@ -161,8 +162,9 @@ bool InputManager::readConfFile(const string &conffile) {
 			return false;
 		}
 	}
+	DEBUG("InputManager::readConfFile - close stream");
 	inf.close();
-	DEBUG("InputManager::readConfFile completed");
+	DEBUG("InputManager::readConfFile - exit");
 	return true;
 }
 

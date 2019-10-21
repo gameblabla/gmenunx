@@ -208,6 +208,7 @@ uint8_t getVolumeMode(uint8_t vol) {
 }
 
 GMenu2X::~GMenu2X() {
+	DEBUG("GMenu2X::dtor");
 	confStr["datetime"] = getDateTime();
 
 	writeConfig();
@@ -218,6 +219,7 @@ GMenu2X::~GMenu2X() {
 	delete s;
 	delete font;
 	delete titlefont;
+	DEBUG("GMenu2X::dtor");
 }
 
 void GMenu2X::quit() {
@@ -952,6 +954,7 @@ void GMenu2X::initMenu() {
 }
 
 void GMenu2X::settings() {
+	DEBUG("GMenu2X::settings - enter");
 	int curGlobalVolume = confInt["globalVolume"];
 //G
 	// int prevgamma = confInt["gamma"];
@@ -1017,6 +1020,7 @@ void GMenu2X::settings() {
 
 		if (prevDateTime != confStr["datetime"]) restartDialog();
 	}
+	DEBUG("GMenu2X::settings - exit");
 }
 
 void GMenu2X::resetSettings() {
@@ -1083,6 +1087,7 @@ void GMenu2X::resetSettings() {
 }
 
 void GMenu2X::cpuSettings() {
+	DEBUG("GMenu2X::cpuSettings - enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &confInt["cpuMenu"], 528, 528, 600, 6));
 	sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock "], tr["Maximum overclock for launching links"], &confInt["cpuMax"], 624, 600, 1200, 6));
@@ -1092,6 +1097,7 @@ void GMenu2X::cpuSettings() {
 		setCPU(confInt["cpuMenu"]);
 		writeConfig();
 	}
+	DEBUG("GMenu2X::cpuSettings - exit");
 }
 
 void GMenu2X::readTmp() {
@@ -1196,23 +1202,30 @@ void GMenu2X::writeConfig() {
 	DEBUG("GMenu2X::writeConfig - enter");
 	ledOn();
 	if (confInt["saveSelection"] && menu != NULL) {
+		DEBUG("GMenu2X::writeConfig - save selection");
 		confInt["section"] = menu->selSectionIndex();
 		confInt["link"] = menu->selLinkIndex();
 	}
 
 	string conffile = assets_path + "gmenunx.conf";
+	DEBUG("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
+		DEBUG("GMenu2X::writeConfig - stream open");
 		for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
 			if (curr->first == "sectionBarPosition" || curr->first == "tvoutEncoding") continue;
+			DEBUG("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
 			inf << curr->first << "=\"" << curr->second << "\"" << endl;
 		}
 
 		for (ConfIntHash::iterator curr = confInt.begin(); curr != confInt.end(); curr++) {
 			if (curr->first == "batteryLog" || curr->first == "maxClock" || curr->first == "minClock" || curr->first == "menuClock") continue;
+			DEBUG("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
 			inf << curr->first << "=" << curr->second << endl;
 		}
+		DEBUG("GMenu2X::writeConfig - close");
 		inf.close();
+		DEBUG("GMenu2X::writeConfig - sync");
 		sync();
 	}
 
@@ -1220,11 +1233,13 @@ void GMenu2X::writeConfig() {
 		if (fwType == "open2x" && savedVolumeMode != volumeMode)
 			writeConfigOpen2x();
 #endif
+	DEBUG("GMenu2X::writeConfig - ledOff");
 	ledOff();
 	DEBUG("GMenu2X::writeConfig - exit");
 }
 
 void GMenu2X::writeSkinConfig() {
+	DEBUG("GMenu2X::writeSkinConfig - enter");
 	ledOn();
 	string conffile = assets_path + "skins/" + confStr["skin"] + "/skin.conf";
 	ofstream inf(conffile.c_str());
@@ -1245,6 +1260,7 @@ void GMenu2X::writeSkinConfig() {
 		sync();
 	}
 	ledOff();
+	DEBUG("GMenu2X::writeSkinConfig - exit");
 }
 
 void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
@@ -1358,12 +1374,13 @@ uint32_t GMenu2X::onChangeSkin() {
 }
 
 void GMenu2X::skinMenu() {
+	DEBUG("GMenu2X::skinMenu - enter");
 	bool save = false;
 	int selected = 0;
 	string prevSkin = confStr["skin"];
 	int prevSkinBackdrops = confInt["skinBackdrops"];
 
-	FileLister fl_sk("skins", true, false);
+	FileLister fl_sk(assets_path + "skins", true, false);
 	fl_sk.addExclude("..");
 	fl_sk.browse();
 
@@ -1444,6 +1461,7 @@ void GMenu2X::skinMenu() {
 	if (prevSkinBackdrops != confInt["skinBackdrops"] || prevSkin != confStr["skin"]) restartDialog();
 	if (sbPrev != confInt["sectionBar"]) initMenu();
 	initLayout();
+	DEBUG("GMenu2X::skinMenu - exit");
 }
 
 void GMenu2X::skinColors() {
@@ -1550,12 +1568,14 @@ void GMenu2X::linkScanner() {
 }
 
 void GMenu2X::changeWallpaper() {
+	DEBUG("GMenu2X::changeWallpaper - enter");
 	WallpaperDialog wp(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], "skin:icons/wallpaper.png");
 	if (wp.exec() && confStr["wallpaper"] != wp.wallpaper) {
 		confStr["wallpaper"] = wp.wallpaper;
 		setWallpaper(wp.wallpaper);
 		writeConfig();
 	}
+	DEBUG("GMenu2X::changeWallpaper - exit");
 }
 
 void GMenu2X::showManual() {
@@ -1580,6 +1600,7 @@ void GMenu2X::showManual() {
 }
 
 void GMenu2X::explorer() {
+	DEBUG("GMenu2X::explorer - enter");
 	BrowseDialog fd(this, tr["Explorer"], tr["Select a file or application"]);
 	fd.showDirectories = true;
 	fd.showFiles = true;
@@ -1614,6 +1635,7 @@ void GMenu2X::explorer() {
 			execlp("./gmenu2x", "./gmenu2x", NULL);
 		}
 	}
+	DEBUG("GMenu2X::explorer - exit");
 }
 
 void GMenu2X::ledOn() {
@@ -2166,6 +2188,7 @@ int32_t GMenu2X::getBatteryStatus() {
 }
 
 uint16_t GMenu2X::getBatteryLevel() {
+	DEBUG("GMenu2X::getBatteryLevel - enter");
 	int32_t val = getBatteryStatus();
 
 if (confStr["batteryType"] == "BL-5B") {
@@ -2244,6 +2267,7 @@ if (confStr["batteryType"] == "BL-5B") {
 	if (needWriteConfig)
 		writeConfig();
 
+	DEBUG("GMenu2X::getBatteryLevel - exit");
 	if (max == min)
 		return 0;
 
