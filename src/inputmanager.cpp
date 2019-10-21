@@ -179,7 +179,7 @@ void InputManager::setActionsCount(int count) {
 }
 
 bool InputManager::update(bool wait) {
-	DEBUG("InputManager::update started");
+	//DEBUG("InputManager::update started");
 	bool anyactions = false;
 	SDL_JoystickUpdate();
 
@@ -216,7 +216,7 @@ bool InputManager::update(bool wait) {
 		}
 	}
 
-	DEBUG("InputManager::update completed");
+	//DEBUG("InputManager::update completed");
 	return anyactions;
 }
 
