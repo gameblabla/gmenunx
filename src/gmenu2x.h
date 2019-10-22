@@ -156,11 +156,12 @@ private:
 	void initServices();
 
 #endif
-	void formatSd();
+	
+	//void formatSd();
 	void checkUDC();
 	void umountSdDialog();
-	void umountSd(bool ext);
-	void mountSd(bool ext);
+	void umountSd();
+	void mountSd();
 
 	// void toggleTvOut();
 	void hwDeinit();

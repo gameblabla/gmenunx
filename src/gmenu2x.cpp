@@ -282,6 +282,13 @@ GMenu2X::GMenu2X() {
 	hwInit();
 #endif
 
+	DEBUG("GMenu2X::ctor - checkUDC");
+	checkUDC();
+	if (curMMCStatus == MMC_REMOVE) {
+		DEBUG("GMenu2X::ctor - mounting sd card");
+		mountSd();
+	}
+
 	DEBUG("GMenu2X::ctor - setEnv");
 #if !defined(TARGET_PC)
 	setenv("SDL_NOMOUSE", "1", 1);
@@ -418,13 +425,6 @@ void GMenu2X::main() {
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
-
-#if defined(TARGET_RS97)
-	if (udcConnectedOnBoot == UDC_CONNECT) checkUDC();
-#endif
-
-	DEBUG("main :: mountSd");
-	if (curMMCStatus == MMC_INSERT) mountSd(true);
 
 	DEBUG("main :: loop");
 	while (!quit) {
@@ -957,20 +957,6 @@ void GMenu2X::initMenu() {
 						tr["Appearance & skin settings"], 
 					   "skin:icons/skin.png");
 
-#if defined(TARGET_GP2X)
-			if (fwType == "open2x")
-				menu->addActionLink(i, "Open2x", MakeDelegate(this, &GMenu2X::settingsOpen2x), tr["Configure Open2x system settings"], "skin:icons/o2xconfigure.png");
-			menu->addActionLink(i, "USB SD", MakeDelegate(this, &GMenu2X::activateSdUsb), tr["Activate USB on SD"], "skin:icons/usb.png");
-			if (fwType == "gph" && !f200)
-				menu->addActionLink(i, "USB Nand", MakeDelegate(this, &GMenu2X::activateNandUsb), tr["Activate USB on NAND"], "skin:icons/usb.png");
-#endif
-			
-			menu->addActionLink(i, 
-						"Format", 
-						MakeDelegate(this, &GMenu2X::formatSd), 
-						tr["Format external SD"], 
-						"skin:icons/format.png");
-			
 			if (curMMCStatus == MMC_INSERT)
 				menu->addActionLink(i, 
 						tr["Umount"], 
@@ -1857,7 +1843,7 @@ void GMenu2X::poweroffDialog() {
 		MessageBox mb(this, tr["Quitting"]);
 		mb.setAutoHide(500);
 		mb.exec();
-		this->quit();
+		quit_all(0);
 	}
 }
 
@@ -1869,14 +1855,12 @@ void GMenu2X::setTVOut(string TVOut) {
 #endif
 }
 
-void GMenu2X::mountSd(bool ext) {
-	if (ext)	system("par=$(( $(readlink /tmp/.int_sd | head -c -3 | tail -c 1) ^ 1 )); par=$(ls /dev/mmcblk$par* | tail -n 1); sync; umount -fl /mnt/ext_sd; mount -t vfat -o rw,utf8 $par /mnt/ext_sd");
-	else		system("par=$(readlink /tmp/.int_sd | head -c -3 | tail -c 1); par=$(ls /dev/mmcblk$par* | tail -n 1); sync; umount -fl /mnt/int_sd; mount -t vfat -o rw,utf8 $par /mnt/int_sd");
+void GMenu2X::mountSd() {
+	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard");
 }
 
-void GMenu2X::umountSd(bool ext) {
-	if (ext)	system("sync; umount -fl /mnt/ext_sd");
-	else		system("sync; umount -fl /mnt/int_sd");
+void GMenu2X::umountSd() {
+	system("sync; umount -fl /media/sdcard");
 }
 
 void GMenu2X::umountSdDialog() {
@@ -1884,7 +1868,7 @@ void GMenu2X::umountSdDialog() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
-		umountSd(true);
+		umountSd();
 		menu->deleteSelectedLink();
 		MessageBox mb(this, tr["SD card umounted"], "skin:icons/eject.png");
 		mb.setAutoHide(1000);
@@ -1893,64 +1877,20 @@ void GMenu2X::umountSdDialog() {
 }
 
 void GMenu2X::checkUDC() {
-	if (getUDCStatus() == UDC_CONNECT) {
-		if (!fileExists("/sys/devices/platform/musb_hdrc.0/gadget/gadget-lun1/file")) {
-			MessageBox mb(this, tr["This device does not support USB mount."], "skin:icons/usb.png");
-			mb.setButton(CANCEL,  tr["Charger"]);
-			mb.exec();
-			return;
-		}
-
-		MessageBox mb(this, tr["Select USB mode:"], "skin:icons/usb.png");
-		mb.setButton(CONFIRM, tr["USB Drive"]);
-		mb.setButton(CANCEL,  tr["Charger"]);
-		if (mb.exec() == CONFIRM) {
-			umountSd(false);
-			system("echo \"\" > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun1/file; par=$(readlink /tmp/.int_sd | head -c -3 | tail -c 1); par=$(ls /dev/mmcblk$par* | tail -n 1); echo \"$par\" > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun1/file");
-			INFO("%s, connect USB disk for internal SD", __func__);
-
-			if (getMMCStatus() == MMC_INSERT) {
-				umountSd(true);
-				system("echo \"\" > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun0/file; par=$(( $(readlink /tmp/.int_sd | head -c -3 | tail -c 1) ^ 1 )); par=$(ls /dev/mmcblk$par* | tail -n 1); echo \"$par\" > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun0/file");
-				INFO("%s, connect USB disk for external SD", __func__);
-			}
-
-			sc[confStr["wallpaper"]]->blit(s,0,0);
-
-			{
-				MessageBox mb(this, tr["USB Drive Connected"], "skin:icons/usb.png");
-				mb.setAutoHide(500);
-				mb.exec();
-			}
-
-			powerManager->clearTimer();
-
-			while (udcConnectedOnBoot == UDC_CONNECT && getUDCStatus() == UDC_CONNECT) {
-				input.update();
-				if ( input[MENU] && input[POWER]) udcConnectedOnBoot = UDC_REMOVE;
-			}
-
-			{
-				MessageBox mb(this, tr["USB disconnected. Rebooting..."], "skin:icons/usb.png");
-				mb.setAutoHide(200);
-				mb.exec();
-			}
-
-			system("sync; reboot & sleep 1m");
-
-			system("echo '' > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun0/file");
-			mountSd(false);
-			INFO("%s, disconnect usbdisk for internal sd", __func__);
-			if (getMMCStatus() == MMC_INSERT) {
-				system("echo '' > /sys/devices/platform/musb_hdrc.0/gadget/gadget-lun1/file");
-				mountSd(true);
-				INFO("%s, disconnect USB disk for external SD", __func__);
-			}
-			// powerManager->resetSuspendTimer();
-		}
+	DEBUG("GMenu2X::checkUDC - enter");
+	std::ifstream fsize("/sys/block/mmcblk1/size");
+    unsigned long long size;
+    if ((fsize >> size) && (size > 0)) {
+		curMMCStatus = MMC_INSERT;
+		DEBUG("GMenu2X::checkUDC - mounted");
+	} else {
+		curMMCStatus = MMC_REMOVE;
+		DEBUG("GMenu2X::checkUDC - not mounted");
 	}
+	DEBUG("GMenu2X::checkUDC - exit");
 }
 
+/*
 void GMenu2X::formatSd() {
 	MessageBox mb(this, tr["Format internal SD card?"], "skin:icons/format.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1968,7 +1908,7 @@ void GMenu2X::formatSd() {
 		}
 	}
 }
-
+*/
 void GMenu2X::setPerformanceMode() {
 	DEBUG("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
 	string current = getPerformanceMode();
