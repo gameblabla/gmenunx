@@ -231,7 +231,7 @@ public:
 	Reads the current battery state and returns a number representing it's level of charge
 	@return A number representing battery charge. 0 means fully discharged. 5 means fully charged. 6 represents a gp2x using AC power.
 	*/
-	uint16_t getBatteryLevel();
+	int getBatteryLevel();
 
 	void skinMenu();
 	void skinColors();

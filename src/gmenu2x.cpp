@@ -1530,19 +1530,27 @@ void GMenu2X::skinColors() {
 }
 
 void GMenu2X::about() {
+	DEBUG("GMenu2X::about - enter");
 	vector<string> text;
 	string temp;
 
 	char *hms = ms2hms(SDL_GetTicks());
-	int32_t battlevel = getBatteryLevel();
+	int battLevel = getBatteryLevel();
+	//DEBUG("GMenu2X::about - batt level : %i", battLevel);
+	int battPercent = (battLevel * 20);
+	//DEBUG("GMenu2X::about - batt percent : %i", battPercent);
+	
 	char buffer[50];
-	int n = sprintf (buffer, "%i %", (battlevel * 20));
+	int n = sprintf (buffer, "%i %%", battPercent);
+	
+	//DEBUG("GMenu2X::about - buffer : %s", buffer);
 	string batt(buffer);
+	//DEBUG("GMenu2X::about - string : %s ", batt.c_str());
 	char *hwv = hwVersion();
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
 	temp += tr["Uptime: "] + hms + "\n";
-	temp += tr["Battery: "] + ((battlevel == 6) ? tr["Charging"] : batt) + "\n";
+	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
 #ifdef TARGET_RS97
 	temp += tr["Checksum: 0x"] + hwv + "\n";
 #endif
@@ -1558,6 +1566,7 @@ void GMenu2X::about() {
 	td.appendText(temp);
 	td.appendFile("about.txt");
 	td.exec();
+	DEBUG("GMenu2X::about - exit");
 }
 
 void GMenu2X::viewLog() {
@@ -2310,29 +2319,35 @@ void GMenu2X::deleteSection() {
 	}
 }
 
-uint16_t GMenu2X::getBatteryLevel() {
-	
+int GMenu2X::getBatteryLevel() {
+	DEBUG("GMenu2X::getBatteryLevel - enter");
+
 	// check if we're plugged in
 	FILE *f = fopen("/sys/class/power_supply/usb/online", "r");
 	if (!f) {
-		perror("Unable to open USB sysfs file");
+		ERROR("Unable to open /sys/class/power_supply/usb/online file");
 		return -1;
 	}
 
 	int online;
 	fscanf(f, "%i", &online);
 	fclose(f);
+	DEBUG("GMenu2X::getBatteryLevel - online - %i", online);
+
 	if (online) {
 		return 6;
 	} else {
 		// now get the battery level
 		FILE *f = fopen("/sys/class/power_supply/battery/capacity", "r");
-		if (!f)
+		if (!f) {
+			ERROR("Unable to open /sys/class/power_supply/battery/capacity file");
 			return -1;
+		}
 
 		int battery_level;
 		fscanf(f, "%i", &battery_level);
 		fclose(f);
+		DEBUG("GMenu2X::getBatteryLevel - battery level - %i", battery_level);
 		if (battery_level >= 100) return 5;
 		else if (battery_level > 80) return 4;
 		else if (battery_level > 60) return 3;
@@ -2341,7 +2356,6 @@ uint16_t GMenu2X::getBatteryLevel() {
 		return 0;
 	}
 }
-
 
 void GMenu2X::setInputSpeed() {
 	input.setInterval(180);
