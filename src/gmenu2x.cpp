@@ -1531,20 +1531,22 @@ void GMenu2X::skinColors() {
 
 void GMenu2X::about() {
 	vector<string> text;
-	string temp, batt;
+	string temp;
 
 	char *hms = ms2hms(SDL_GetTicks());
-	int32_t battlevel = getBatteryStatus();
+	int32_t battlevel = getBatteryLevel();
+	char buffer[50];
+	int n = sprintf (buffer, "%i %", (battlevel * 20));
+	string batt(buffer);
 	char *hwv = hwVersion();
-
-	stringstream ss; ss << battlevel; ss >> batt;
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
 	temp += tr["Uptime: "] + hms + "\n";
+	temp += tr["Battery: "] + ((battlevel == 6) ? tr["Charging"] : batt) + "\n";
 #ifdef TARGET_RS97
-	temp += tr["Battery: "] + ((battlevel < 0 || battlevel > 10000) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Checksum: 0x"] + hwv + "\n";
 #endif
+
 	// temp += tr["Storage:"];
 	// temp += "\n    " + tr["Root: "] + getDiskFree("/");
 	// temp += "\n    " + tr["Internal: "] + getDiskFree("/mnt/int_sd");
@@ -1552,26 +1554,6 @@ void GMenu2X::about() {
 	temp += "----\n";
 
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
-
-// #if defined(TARGET_CAANOO)
-// 	string versionFile = "";
-// // 	if (fileExists("/usr/gp2x/version"))
-// // 		versionFile = "/usr/gp2x/version";
-// // 	else if (fileExists("/tmp/gp2x/version"))
-// // 		versionFile = "/tmp/gp2x/version";
-// // 	if (!versionFile.empty()) {
-// // 		ifstream f(versionFile.c_str(), ios_base::in);
-// // 		if (f.is_open()) {
-// // 			string line;
-// // 			if (getline(f, line, '\n'))
-// // 				temp += "\nFirmware version: " + line + "\n" + exec("uname -srm");
-// // 			f.close();
-// // 		}
-// // 	}
-// 	td.appendText("\nFirmware version: ");
-// 	td.appendFile(versionFile);
-// 	td.appendText(exec("uname -srm"));
-// #endif
 
 	td.appendText(temp);
 	td.appendFile("about.txt");
@@ -1864,6 +1846,10 @@ void GMenu2X::setTVOut(string TVOut) {
 #endif
 }
 
+void GMenu2X::mountSd() {
+	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sync");
+	checkUDC();
+}
 void GMenu2X::mountSdDialog() {
 	MessageBox mb(this, tr["Mount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1881,7 +1867,6 @@ void GMenu2X::umountSd() {
 	system("sync; umount -fl /media/sdcard; sync");
 	checkUDC();
 }
-
 void GMenu2X::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1895,10 +1880,7 @@ void GMenu2X::umountSdDialog() {
 		mb.exec();
 	}
 }
-void GMenu2X::mountSd() {
-	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sync");
-	checkUDC();
-}
+
 
 void GMenu2X::checkUDC() {
 	DEBUG("GMenu2X::checkUDC - enter");
@@ -2328,106 +2310,38 @@ void GMenu2X::deleteSection() {
 	}
 }
 
-int32_t GMenu2X::getBatteryStatus() {
-	char buf[32] = "-1";
-#if defined(TARGET_RS97)
-	FILE *f = fopen("/proc/jz/battery", "r");
-	if (f) {
-		fgets(buf, sizeof(buf), f);
-	}
-	fclose(f);
-#endif
-	return atol(buf);
-}
-
 uint16_t GMenu2X::getBatteryLevel() {
-	//DEBUG("GMenu2X::getBatteryLevel - enter");
-	int32_t val = getBatteryStatus();
+	
+	// check if we're plugged in
+	FILE *f = fopen("/sys/class/power_supply/usb/online", "r");
+	if (!f) {
+		perror("Unable to open USB sysfs file");
+		return -1;
+	}
 
-if (confStr["batteryType"] == "BL-5B") {
-	if ((val > 10000) || (val < 0)) return 6;
-	else if (val > 4000) return 5; // 100%
-	else if (val > 3900) return 4; // 80%
-	else if (val > 3800) return 3; // 60%
-	else if (val > 3730) return 2; // 40%
-	else if (val > 3600) return 1; // 20%
-	return 0; // 0% :(
-}
-
-#if defined(TARGET_GP2X)
-	//if (batteryHandle<=0) return 6; //AC Power
-	if (f200) {
-		MMSP2ADC val;
-		read(batteryHandle, &val, sizeof(MMSP2ADC));
-
-		if (val.batt==0) return 5;
-		if (val.batt==1) return 3;
-		if (val.batt==2) return 1;
-		if (val.batt==3) return 0;
+	int online;
+	fscanf(f, "%i", &online);
+	fclose(f);
+	if (online) {
 		return 6;
 	} else {
-		int battval = 0;
-		uint16_t cbv, min=900, max=0;
+		// now get the battery level
+		FILE *f = fopen("/sys/class/power_supply/battery/capacity", "r");
+		if (!f)
+			return -1;
 
-		for (int i = 0; i < BATTERY_READS; i ++) {
-			if ( read(batteryHandle, &cbv, 2) == 2) {
-				battval += cbv;
-				if (cbv>max) max = cbv;
-				if (cbv<min) min = cbv;
-			}
-		}
-
-		battval -= min+max;
-		battval /= BATTERY_READS-2;
-
-		if (battval>=850) return 6;
-		if (battval>780) return 5;
-		if (battval>740) return 4;
-		if (battval>700) return 3;
-		if (battval>690) return 2;
-		if (battval>680) return 1;
-	}
-
-#elif defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-	uint16_t cbv;
-	if ( read(batteryHandle, &cbv, 2) == 2) {
-		// 0=fail, 1=100%, 2=66%, 3=33%, 4=0%
-		switch (cbv) {
-			case 4: return 1;
-			case 3: return 2;
-			case 2: return 4;
-			case 1: return 5;
-			default: return 6;
-		}
-	}
-#else
-
-	val = constrain(val, 0, 4500);
-
-	bool needWriteConfig = false;
-	int32_t max = confInt["maxBattery"];
-	int32_t min = confInt["minBattery"];
-
-	if (val > max) {
-		needWriteConfig = true;
-		max = confInt["maxBattery"] = val;
-	}
-	if (val < min) {
-		needWriteConfig = true;
-		min = confInt["minBattery"] = val;
-	}
-
-	if (needWriteConfig)
-		writeConfig();
-
-	//DEBUG("GMenu2X::getBatteryLevel - exit");
-	if (max == min)
+		int battery_level;
+		fscanf(f, "%i", &battery_level);
+		fclose(f);
+		if (battery_level >= 100) return 5;
+		else if (battery_level > 80) return 4;
+		else if (battery_level > 60) return 3;
+		else if (battery_level > 40) return 2;
+		else if (battery_level > 20) return 1;
 		return 0;
-
-	// return 5 - 5*(100-val)/(100);
-	return 5 - 5 * (max - val) / (max - min);
-#endif
+	}
 }
+
 
 void GMenu2X::setInputSpeed() {
 	input.setInterval(180);

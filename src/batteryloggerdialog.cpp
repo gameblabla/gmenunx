@@ -35,10 +35,10 @@ void BatteryLoggerDialog::exec() {
 	uint32_t rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
 
 	int32_t firstRow = 0, tickNow = 0, tickStart = SDL_GetTicks(), tickBatteryLogger = -1000000;
-	string logfile = gmenu2x->getExePath()+"battery.csv";
+	string logfile = gmenu2x->getAssetsPath()+"battery.csv";
 
 	char buf[100];
-	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(gmenu2x->getExePath()).c_str());
+	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(gmenu2x->getAssetsPath()).c_str());
 	system(buf);
 
 	if (!fileExists(logfile)) return;
@@ -59,7 +59,7 @@ void BatteryLoggerDialog::exec() {
 		if ((tickNow - tickBatteryLogger) >= 60000) {
 			tickBatteryLogger = tickNow;
 
-			sprintf(buf, "echo '%s,%d,%d' >> %s/battery.csv; sync", ms2hms(tickNow - tickStart, true, false), gmenu2x->getBatteryStatus(), gmenu2x->getBatteryLevel(), cmdclean(gmenu2x->getExePath()).c_str());
+			sprintf(buf, "echo '%s,%d' >> %s/battery.csv; sync", ms2hms(tickNow - tickStart, true, false), gmenu2x->getBatteryLevel(), cmdclean(gmenu2x->getAssetsPath()).c_str());
 			system(buf);
 
 			ifstream inf(logfile.c_str(), ios_base::in);
@@ -106,7 +106,8 @@ void BatteryLoggerDialog::exec() {
 			mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
 			mb.setButton(CANCEL,  gmenu2x->tr["No"]);
 			if (mb.exec() == CONFIRM) {
-				system("rm battery.csv");
+				string cmd = "rm " + gmenu2x->getAssetsPath() + "battery.csv";
+				system(cmd.c_str());
 				log.clear();
 			}
 		}
