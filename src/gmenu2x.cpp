@@ -945,22 +945,45 @@ void GMenu2X::initMenu() {
 
 		//Add virtual links in the setting section
 		else if (menu->getSections()[i] == "settings") {
-			menu->addActionLink(i, tr["Settings"], MakeDelegate(this, &GMenu2X::settings), tr["Configure system"], "skin:icons/configure.png");
-			menu->addActionLink(i, tr["Skin"], MakeDelegate(this, &GMenu2X::skinMenu), tr["Appearance & skin settings"], "skin:icons/skin.png");
+			menu->addActionLink(i, 
+						tr["Settings"], 
+						MakeDelegate(this, &GMenu2X::settings), 
+						tr["Configure system"], 
+						"skin:icons/configure.png");
+
+			menu->addActionLink(i, 
+						tr["Skin"], 
+						MakeDelegate(this, &GMenu2X::skinMenu), 
+						tr["Appearance & skin settings"], 
+					   "skin:icons/skin.png");
+
 #if defined(TARGET_GP2X)
 			if (fwType == "open2x")
 				menu->addActionLink(i, "Open2x", MakeDelegate(this, &GMenu2X::settingsOpen2x), tr["Configure Open2x system settings"], "skin:icons/o2xconfigure.png");
 			menu->addActionLink(i, "USB SD", MakeDelegate(this, &GMenu2X::activateSdUsb), tr["Activate USB on SD"], "skin:icons/usb.png");
 			if (fwType == "gph" && !f200)
 				menu->addActionLink(i, "USB Nand", MakeDelegate(this, &GMenu2X::activateNandUsb), tr["Activate USB on NAND"], "skin:icons/usb.png");
-#elif defined(TARGET_RS97)
-			//menu->addActionLink(i, "Format", MakeDelegate(this, &GMenu2X::formatSd), tr["Format internal SD"], "skin:icons/format.png");
-			if (curMMCStatus == MMC_INSERT)
-				menu->addActionLink(i, tr["Umount"], MakeDelegate(this, &GMenu2X::umountSdDialog), tr["Umount external SD"], "skin:icons/eject.png");
 #endif
+			
+			menu->addActionLink(i, 
+						"Format", 
+						MakeDelegate(this, &GMenu2X::formatSd), 
+						tr["Format external SD"], 
+						"skin:icons/format.png");
+			
+			if (curMMCStatus == MMC_INSERT)
+				menu->addActionLink(i, 
+						tr["Umount"], 
+						MakeDelegate(this, &GMenu2X::umountSdDialog), 
+						tr["Umount external SD"], 
+						"skin:icons/eject.png");
 
 			if (fileExists(assets_path + "log.txt"))
-				menu->addActionLink(i, tr["Log Viewer"], MakeDelegate(this, &GMenu2X::viewLog), tr["Displays last launched program's output"], "skin:icons/ebook.png");
+				menu->addActionLink(i, 
+						tr["Log Viewer"], 
+						MakeDelegate(this, &GMenu2X::viewLog), 
+						tr["Displays last launched program's output"], 
+						"skin:icons/ebook.png");
 
 			menu->addActionLink(i, tr["About"], MakeDelegate(this, &GMenu2X::about), tr["Info about system"], "skin:icons/about.png");
 			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "skin:icons/exit.png");
@@ -1811,6 +1834,7 @@ void GMenu2X::restartDialog(bool showDialog) {
 
 void GMenu2X::poweroffDialog() {
 	MessageBox mb(this, tr["Poweroff or reboot the device?"], "skin:icons/exit.png");
+	mb.setButton(SECTION_PREV, tr["Quit"]);
 	mb.setButton(SECTION_NEXT, tr["Reboot"]);
 	mb.setButton(CONFIRM, tr["Poweroff"]);
 	mb.setButton(CANCEL,  tr["Cancel"]);
@@ -1820,18 +1844,20 @@ void GMenu2X::poweroffDialog() {
 		mb.setAutoHide(500);
 		mb.exec();
 		setBacklight(0);
-#if !defined(TARGET_PC)
 		system("sync; poweroff");
-#endif
 	}
 	else if (response == SECTION_NEXT) {
 		MessageBox mb(this, tr["Rebooting"]);
 		mb.setAutoHide(500);
 		mb.exec();
 		setBacklight(0);
-#if !defined(TARGET_PC)
 		system("sync; reboot");
-#endif
+	}
+	else if (response == SECTION_PREV) {
+		MessageBox mb(this, tr["Quitting"]);
+		mb.setAutoHide(500);
+		mb.exec();
+		this->quit();
 	}
 }
 
@@ -1853,7 +1879,6 @@ void GMenu2X::umountSd(bool ext) {
 	else		system("sync; umount -fl /mnt/int_sd");
 }
 
-#if defined(TARGET_RS97)
 void GMenu2X::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1943,7 +1968,6 @@ void GMenu2X::formatSd() {
 		}
 	}
 }
-#endif
 
 void GMenu2X::setPerformanceMode() {
 	DEBUG("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());

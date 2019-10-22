@@ -155,11 +155,10 @@ private:
 	void readCommonIni();
 	void initServices();
 
-#elif defined(TARGET_RS97)
+#endif
 	void formatSd();
 	void checkUDC();
 	void umountSdDialog();
-#endif
 	void umountSd(bool ext);
 	void mountSd(bool ext);
 
