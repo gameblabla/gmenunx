@@ -452,14 +452,14 @@ void GMenu2X::main() {
 		}
 
 		// LINKS
-		DEBUG("main :: links");
+		//DEBUG("main :: links");
 		s->setClipRect(linksRect);
 		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
 
 		i = menu->firstDispRow() * linkCols;
 
 		if (linkCols == 1) {
-			DEBUG("main :: links - column mode : %i", menu->sectionLinks()->size());
+			//DEBUG("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
 			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
@@ -469,12 +469,12 @@ void GMenu2X::main() {
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
 				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
-				DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+				//DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
-			DEBUG("main :: links - row mode : %i", menu->sectionLinks()->size());
+			//DEBUG("main :: links - row mode : %i", menu->sectionLinks()->size());
 			for (y = 0; y < linkRows; y++) {
 				for (x = 0; x < linkCols && i < menu->sectionLinks()->size(); x++, i++) {
 					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
@@ -487,12 +487,12 @@ void GMenu2X::main() {
 
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, HAlignCenter | VAlignMiddle);
 
-					DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+					//DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 					s->write(font, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkWidth/2, iy + linkHeight - 2, HAlignCenter | VAlignBottom);
 				}
 			}
 		}
-		DEBUG("main :: links - done");
+		//DEBUG("main :: links - done");
 		s->clearClipRect();
 
 		
