@@ -81,7 +81,7 @@
 	#define __BUILDTIME__ __DATE__ " " __TIME__ 
 #endif
 
-const char *CARD_ROOT = "/mnt/"; //Note: Add a trailing /!
+const char *CARD_ROOT = "/media/data/local/home/"; //Note: Add a trailing /!
 const int CARD_ROOT_LEN = 1;
 
 static GMenu2X *app;
@@ -926,7 +926,7 @@ void GMenu2X::initMenu() {
 		if (menu->getSections()[i] == "applications") {
 			menu->addActionLink(i, tr["Explorer"], MakeDelegate(this, &GMenu2X::explorer), tr["Browse files and launch apps"], "skin:icons/explorer.png");
 			menu->addActionLink(i, tr["Battery Logger"], MakeDelegate(this, &GMenu2X::batteryLogger), tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
-			menu->addActionLink(i, tr["Performance"], MakeDelegate(this, &GMenu2X::performanceMenu), tr["Change performance mode"], "skin:icons/performance.png");
+			menu->addActionLink(i, tr.translate("Performance - $1", confStr["Performance"].c_str(), NULL), MakeDelegate(this, &GMenu2X::performanceMenu), tr["Change performance mode"], "skin:icons/performance.png");
 		}
 
 		//Add virtual links in the setting section
@@ -1933,10 +1933,18 @@ void GMenu2X::formatSd() {
 
 void GMenu2X::setPerformanceMode() {
 	DEBUG("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
-	ofstream governor;
-	governor.open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-	governor << confStr["Performance"];
-	governor.close();
+	string current = getPerformanceMode();
+	if (current.compare(confStr["Performance"]) != 0) {
+		DEBUG("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
+		DEBUG("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
+		ofstream governor;
+		governor.open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+		governor << confStr["Performance"];
+		governor.close();
+		initMenu();
+	} else {
+		DEBUG("GMenu2X::setPerformanceMode - nothing to do");
+	}
 	DEBUG("GMenu2X::setPerformanceMode - exit");	
 }
 
@@ -1946,8 +1954,9 @@ string GMenu2X::getPerformanceMode() {
 	stringstream strStream;
 	strStream << governor.rdbuf();
 	string result = strStream.str();
+	governor.close();
 	DEBUG("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
-	return result;
+	return full_trim(result);
 }
 
 void GMenu2X::performanceMenu() {

@@ -45,6 +45,23 @@ bool case_less::operator()(const string &left, const string &right) const {
 	return strcasecmp(left.c_str(), right.c_str()) < 0;
 }
 
+string& ltrim(string& str, const string& chars)
+{
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+}
+ 
+string& rtrim(string& str, const string& chars)
+{
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+}
+
+string& full_trim(string& str, const string& chars)
+{
+    return ltrim(rtrim(str, chars), chars);
+}
+
 // General tool to strip spaces from both ends:
 string trim(const string &s) {
   if (s.length() == 0)
@@ -55,6 +72,7 @@ string trim(const string &s) {
     return "";
   return string(s, b, e - b + 1);
 }
+
 
 void string_copy(const string &s, char **cs) {
 	*cs = (char*)malloc(s.length());

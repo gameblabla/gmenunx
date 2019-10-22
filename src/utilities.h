@@ -35,6 +35,10 @@ public:
 	bool operator()(const string &left, const string &right) const;
 };
 
+string& ltrim(string& str, const string& chars = "\t\n\v\f\r ");
+string& rtrim(string& str, const string& chars = "\t\n\v\f\r ");
+string& full_trim(string& str, const string& chars = "\t\n\v\f\r ");
+
 string trim(const string& s);
 string strreplace (string orig, const string &search, const string &replace);
 string cmdclean (string cmdline);
