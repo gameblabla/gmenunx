@@ -161,6 +161,7 @@ private:
 	void checkUDC();
 	void umountSdDialog();
 	void umountSd();
+	void mountSdDialog();
 	void mountSd();
 
 	// void toggleTvOut();

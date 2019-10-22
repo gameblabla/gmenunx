@@ -172,10 +172,12 @@ int memdev = 0;
 #endif
 
 enum mmc_status {
-	MMC_REMOVE, MMC_INSERT, MMC_ERROR
+	MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
 };
 
-int16_t curMMCStatus, preMMCStatus;
+int16_t curMMCStatus;
+/*
+int16_t preMMCStatus;
 int16_t getMMCStatus(void) {
 	if (memdev > 0) return !(memregs[0x10500 >> 2] >> 0 & 0b1);
 	return MMC_ERROR;
@@ -190,7 +192,7 @@ int16_t getUDCStatus(void) {
 	if (memdev > 0) return (memregs[0x10300 >> 2] >> 7 & 0b1);
 	return UDC_ERROR;
 }
-
+*/
 int16_t tvOutPrev = false, tvOutConnected;
 bool getTVOutStatus() {
 	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
@@ -284,7 +286,7 @@ GMenu2X::GMenu2X() {
 
 	DEBUG("GMenu2X::ctor - checkUDC");
 	checkUDC();
-	if (curMMCStatus == MMC_REMOVE) {
+	if (curMMCStatus == MMC_UNMOUNTED) {
 		DEBUG("GMenu2X::ctor - mounting sd card");
 		mountSd();
 	}
@@ -534,7 +536,7 @@ void GMenu2X::main() {
 
 			// TRAY iconTrayShift,1
 			int iconTrayShift = 0;
-			if (curMMCStatus == MMC_INSERT) {
+			if (curMMCStatus == MMC_MOUNTED) {
 				iconSD->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
 				iconTrayShift++;
 			}
@@ -957,11 +959,18 @@ void GMenu2X::initMenu() {
 						tr["Appearance & skin settings"], 
 					   "skin:icons/skin.png");
 
-			if (curMMCStatus == MMC_INSERT)
+			if (curMMCStatus == MMC_MOUNTED)
 				menu->addActionLink(i, 
 						tr["Umount"], 
 						MakeDelegate(this, &GMenu2X::umountSdDialog), 
 						tr["Umount external SD"], 
+						"skin:icons/eject.png");
+
+			if (curMMCStatus == MMC_UNMOUNTED)
+				menu->addActionLink(i, 
+						tr["Mount"], 
+						MakeDelegate(this, &GMenu2X::mountSdDialog), 
+						tr["Mount external SD"], 
 						"skin:icons/eject.png");
 
 			if (fileExists(assets_path + "log.txt"))
@@ -1150,7 +1159,7 @@ void GMenu2X::readTmp() {
 		else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
 	}
 	if (TVOut != "NTSC" && TVOut != "PAL") TVOut = "OFF";
-	udcConnectedOnBoot = 0;
+//	udcConnectedOnBoot = 0;
 	inf.close();
 	unlink("/tmp/gmenu2x.tmp");
 }
@@ -1855,12 +1864,22 @@ void GMenu2X::setTVOut(string TVOut) {
 #endif
 }
 
-void GMenu2X::mountSd() {
-	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard");
+void GMenu2X::mountSdDialog() {
+	MessageBox mb(this, tr["Mount SD card?"], "skin:icons/eject.png");
+	mb.setButton(CONFIRM, tr["Yes"]);
+	mb.setButton(CANCEL,  tr["No"]);
+	if (mb.exec() == CONFIRM) {
+		mountSd();
+		//menu->deleteSelectedLink();
+		initMenu();
+		MessageBox mb(this, tr["SD card mounted"], "skin:icons/eject.png");
+		mb.setAutoHide(1000);
+		mb.exec();
+	}
 }
-
 void GMenu2X::umountSd() {
-	system("sync; umount -fl /media/sdcard");
+	system("sync; umount -fl /media/sdcard; sync");
+	checkUDC();
 }
 
 void GMenu2X::umountSdDialog() {
@@ -1869,25 +1888,64 @@ void GMenu2X::umountSdDialog() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		umountSd();
-		menu->deleteSelectedLink();
+		//menu->deleteSelectedLink();
+		initMenu();
 		MessageBox mb(this, tr["SD card umounted"], "skin:icons/eject.png");
 		mb.setAutoHide(1000);
 		mb.exec();
 	}
 }
+void GMenu2X::mountSd() {
+	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sync");
+	checkUDC();
+}
 
 void GMenu2X::checkUDC() {
 	DEBUG("GMenu2X::checkUDC - enter");
-	std::ifstream fsize("/sys/block/mmcblk1/size");
+	curMMCStatus = MMC_ERROR;
+	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
     unsigned long long size;
-    if ((fsize >> size) && (size > 0)) {
-		curMMCStatus = MMC_INSERT;
-		DEBUG("GMenu2X::checkUDC - mounted");
+	if (fsize >> size) {
+		// ok, so we're inserted....
+		if (size > 0) {
+			// ok, so we're inserted
+			std::ifstream procmounts( "/proc/mounts" );
+			if (!procmounts) {
+				curMMCStatus = MMC_ERROR;
+				ERROR("GMenu2X::checkUDC - couldn't open /proc/mounts");
+			} else {
+				string line;
+				size_t found;
+				while (std::getline(procmounts, line)) {
+					if ( !(procmounts.fail() || procmounts.bad()) ) {
+						found = line.find("mcblk1");
+						if (found != std::string::npos) {
+							curMMCStatus = MMC_MOUNTED;
+							DEBUG("GMenu2X::checkUDC - inserted && mounted");
+							break;
+						}
+					} else {
+						curMMCStatus = MMC_ERROR;
+						DEBUG("GMenu2X::checkUDC - error reading /proc/mounts");
+						break;
+					}
+				}
+				procmounts.close();
+				if (found == std::string::npos) {
+					DEBUG("GMenu2X::checkUDC - inserted but not mounted");
+					curMMCStatus = MMC_UNMOUNTED;
+				}
+			}
+		} else {
+			curMMCStatus = MMC_MISSING;
+			DEBUG("GMenu2X::checkUDC - not inserted");
+		}
 	} else {
-		curMMCStatus = MMC_REMOVE;
-		DEBUG("GMenu2X::checkUDC - not mounted");
+		curMMCStatus = MMC_ERROR;
+		DEBUG("GMenu2X::checkUDC - error, no card?");
 	}
-	DEBUG("GMenu2X::checkUDC - exit");
+	fsize.close();
+	DEBUG("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
 }
 
 /*
