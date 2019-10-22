@@ -924,9 +924,23 @@ void GMenu2X::initMenu() {
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
-			menu->addActionLink(i, tr["Explorer"], MakeDelegate(this, &GMenu2X::explorer), tr["Browse files and launch apps"], "skin:icons/explorer.png");
-			menu->addActionLink(i, tr["Battery Logger"], MakeDelegate(this, &GMenu2X::batteryLogger), tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
-			menu->addActionLink(i, tr.translate("Performance - $1", confStr["Performance"].c_str(), NULL), MakeDelegate(this, &GMenu2X::performanceMenu), tr["Change performance mode"], "skin:icons/performance.png");
+			menu->addActionLink(i, 
+						tr["Explorer"], 
+						MakeDelegate(this, &GMenu2X::explorer), 
+						tr["Browse files and launch apps"], 
+						"skin:icons/explorer.png");
+			
+			menu->addActionLink(i, 
+						tr["Battery Logger"], 
+						MakeDelegate(this, &GMenu2X::batteryLogger), 
+						tr["Log battery power to battery.csv"], 
+						"skin:icons/ebook.png");
+			
+			menu->addActionLink(i, 
+						tr.translate("Performance - $1", confStr["Performance"].c_str(), NULL), 
+						MakeDelegate(this, &GMenu2X::performanceMenu), 
+						tr["Change performance mode"], 
+						"skin:icons/performance.png");
 		}
 
 		//Add virtual links in the setting section
