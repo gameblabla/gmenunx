@@ -270,6 +270,9 @@ public:
 	void about();
 	void viewLog();
 	void batteryLogger();
+	void performanceMenu();
+	void setPerformanceMode();
+	string getPerformanceMode();
 	void contextMenu();
 	void changeWallpaper();
 

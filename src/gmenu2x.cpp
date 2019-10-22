@@ -276,6 +276,7 @@ GMenu2X::GMenu2X() {
 	halfX = resX/2;
 	halfY = resY/2;
 	sc.setPrefix(assets_path);
+	setPerformanceMode();
 
 #if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
 	hwInit();
@@ -924,10 +925,8 @@ void GMenu2X::initMenu() {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
 			menu->addActionLink(i, tr["Explorer"], MakeDelegate(this, &GMenu2X::explorer), tr["Browse files and launch apps"], "skin:icons/explorer.png");
-#if !defined(TARGET_PC)
-			if (getBatteryLevel() > 5) // show only if charging
-#endif
-				menu->addActionLink(i, tr["Battery Logger"], MakeDelegate(this, &GMenu2X::batteryLogger), tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
+			menu->addActionLink(i, tr["Battery Logger"], MakeDelegate(this, &GMenu2X::batteryLogger), tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
+			menu->addActionLink(i, tr["Performance"], MakeDelegate(this, &GMenu2X::performanceMenu), tr["Change performance mode"], "skin:icons/performance.png");
 		}
 
 		//Add virtual links in the setting section
@@ -1176,6 +1175,7 @@ void GMenu2X::readConfig() {
 		}
 	}
 
+	if (confStr["Performance"].empty()) confStr["Performance"] = "ondemand";
 	if (confStr["TVOut"] != "PAL") confStr["TVOut"] = "NTSC";
 	if (!confStr["lang"].empty()) tr.setLang(confStr["lang"]);
 	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) confStr["wallpaper"] = "";
@@ -1931,6 +1931,96 @@ void GMenu2X::formatSd() {
 }
 #endif
 
+void GMenu2X::setPerformanceMode() {
+	DEBUG("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
+	ofstream governor;
+	governor.open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+	governor << confStr["Performance"];
+	governor.close();
+	DEBUG("GMenu2X::setPerformanceMode - exit");	
+}
+
+string GMenu2X::getPerformanceMode() {
+	DEBUG("GMenu2X::getPerformanceMode - enter");
+	ifstream governor("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+	stringstream strStream;
+	strStream << governor.rdbuf();
+	string result = strStream.str();
+	DEBUG("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
+	return result;
+}
+
+void GMenu2X::performanceMenu() {
+	DEBUG("GMenu2X::performanceMenu - enter");
+	vector<MenuOption> voices;
+	voices.push_back((MenuOption){tr["On demand"], 		MakeDelegate(this, &GMenu2X::setPerformanceMode)});
+	voices.push_back((MenuOption){tr["Performance"],	MakeDelegate(this, &GMenu2X::setPerformanceMode)});
+
+	Surface bg(s);
+	bool close = false, inputAction = false;
+	int sel = 0;
+	uint32_t i, fadeAlpha = 0, h = font->getHeight(), h2 = font->getHalfHeight();
+
+	SDL_Rect box;
+	box.h = h * voices.size() + 8;
+	box.w = 0;
+	for (i = 0; i < voices.size(); i++) {
+		int w = font->getTextWidth(voices[i].text);
+		if (w > box.w) box.w = w;
+	}
+	box.w += 23;
+	box.x = halfX - box.w / 2;
+	box.y = halfY - box.h / 2;
+
+	DEBUG("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
+	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
+	
+	uint32_t tickStart = SDL_GetTicks();
+	input.setWakeUpInterval(45);
+	while (!close) {
+		bg.blit(s, 0, 0);
+
+		s->box(0, 0, resX, resY, 0,0,0, fadeAlpha);
+		s->box(box.x, box.y, box.w, box.h, skinConfColors[COLOR_MESSAGE_BOX_BG]);
+		s->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skinConfColors[COLOR_MESSAGE_BOX_BORDER] );
+
+		//draw selection rect
+		s->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skinConfColors[COLOR_MESSAGE_BOX_SELECTION] );
+		for (i = 0; i < voices.size(); i++)
+			s->write( font, voices[i].text, box.x + 12, box.y + h2 + 3 + h * i, VAlignMiddle, skinConfColors[COLOR_FONT_ALT], skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+
+		s->flip();
+
+		if (fadeAlpha < 200) {
+			fadeAlpha = intTransition(0, 200, tickStart, 200);
+			continue;
+		}
+		do {
+			inputAction = input.update();
+
+			if (inputCommonActions(inputAction)) continue;
+
+			if ( input[MENU] || input[CANCEL]) close = true;
+			else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
+			else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
+			else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
+			else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
+			else if ( input[SETTINGS] || input[CONFIRM] ) { 
+				DEBUG("GMenu2X::performanceMenu - got option - %s", voices[sel].text.c_str());
+				if (voices[sel].text == "Performance") {
+					confStr["Performance"] = "performance";
+				} else {
+					confStr["Performance"] = "ondemand";
+				}
+				DEBUG("GMenu2X::performanceMenu - resolved to - %s", confStr["Performance"].c_str());
+				voices[sel].action(); 
+				close = true; 
+			}
+		} while (!inputAction);
+	}
+	DEBUG("GMenu2X::performanceMenu - exit");
+}
+
 void GMenu2X::contextMenu() {
 	
 	DEBUG("GMenu2X::contextMenu - enter");
@@ -2206,7 +2296,7 @@ int32_t GMenu2X::getBatteryStatus() {
 }
 
 uint16_t GMenu2X::getBatteryLevel() {
-	DEBUG("GMenu2X::getBatteryLevel - enter");
+	//DEBUG("GMenu2X::getBatteryLevel - enter");
 	int32_t val = getBatteryStatus();
 
 if (confStr["batteryType"] == "BL-5B") {
@@ -2285,7 +2375,7 @@ if (confStr["batteryType"] == "BL-5B") {
 	if (needWriteConfig)
 		writeConfig();
 
-	DEBUG("GMenu2X::getBatteryLevel - exit");
+	//DEBUG("GMenu2X::getBatteryLevel - exit");
 	if (max == min)
 		return 0;
 
