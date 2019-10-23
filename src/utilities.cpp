@@ -25,6 +25,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <strings.h>
 #include <math.h>
@@ -254,4 +255,26 @@ string base_name(const string &path) {
 	string::size_type p = path.rfind("/");
 	if (p == path.size() - 1) p = path.rfind("/", p - 1);
 	return path.substr(p + 1, path.length());
+}
+
+bool procWriter(string path, string value) {
+	DEBUG("procWriter:: - %s - %s", path.c_str(), value.c_str());
+	if (fileExists(path)) {
+		DEBUG("procWriter:: - file exists");
+		ofstream str(path);
+		str << value;
+		str.close();
+		DEBUG("procWriter:: - success");
+		return true;
+	}
+	return false;
+}
+string procReader(string path) {
+	if (fileExists(path)) {
+		ifstream str(path);
+		stringstream buf;
+		buf << str.rdbuf();
+		return buf.str();
+	}
+	return NULL;
 }

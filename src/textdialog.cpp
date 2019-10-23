@@ -20,15 +20,15 @@
 
 #include "textdialog.h"
 #include "messagebox.h"
-// #include "debug.h"
-
-using namespace std;
+#include "utilities.h"
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
 #include <string>
 #include <fstream>
 #include <sstream>
+
+using namespace std;
 
 TextDialog::TextDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &backdrop)
 	: Dialog(gmenu2x), title(title), description(description), icon(icon), backdrop(backdrop)
@@ -155,26 +155,29 @@ void TextDialog::appendText(const string &text) {
 }
 
 void TextDialog::appendFile(const string &file) {
-	ifstream t(file);
-	stringstream buf;
-	buf << t.rdbuf();
-
-	this->rawText += buf.str();
+	if (fileExists(file)) {
+		ifstream t(file);
+		stringstream buf;
+		buf << t.rdbuf();
+		this->rawText += buf.str();
+	}
 }
 
 void TextDialog::appendCommand(const string &executable) {
-    char buffer[128];
-    std::string result = "";
-    FILE* pipe = popen(executable.c_str(), "r");
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    try {
-        while (fgets(buffer, sizeof buffer, pipe) != NULL) {
-            result += buffer;
-        }
-    } catch (...) {
-        pclose(pipe);
-        throw;
-    }
-    pclose(pipe);
-    this->rawText += result;
+	if (fileExists(executable)) {
+		char buffer[128];
+		std::string result = "";
+		FILE* pipe = popen(executable.c_str(), "r");
+		if (!pipe) throw std::runtime_error("popen() failed!");
+		try {
+			while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+				result += buffer;
+			}
+		} catch (...) {
+			pclose(pipe);
+			throw;
+		}
+		pclose(pipe);
+		this->rawText += result;
+	}
 }

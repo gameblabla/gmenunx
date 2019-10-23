@@ -51,6 +51,7 @@
 #include "gmenu2x.h"
 #include "filelister.h"
 
+#include "led.h"
 #include "iconbutton.h"
 #include "messagebox.h"
 #include "inputdialog.h"
@@ -221,6 +222,7 @@ GMenu2X::~GMenu2X() {
 	delete s;
 	delete font;
 	delete titlefont;
+	delete led;
 	DEBUG("GMenu2X::dtor");
 }
 
@@ -283,6 +285,10 @@ GMenu2X::GMenu2X() {
 #if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
 	hwInit();
 #endif
+
+	DEBUG("GMenu2X::ctor - creating LED instance");
+	led = new LED();
+	ledOn();
 
 	DEBUG("GMenu2X::ctor - checkUDC");
 	checkUDC();
@@ -380,8 +386,10 @@ GMenu2X::GMenu2X() {
 	DEBUG("GMenu2X::ctor - recoverSession");
 	if (lastSelectorElement >- 1 && menu->selLinkApp() != NULL && (!menu->selLinkApp()->getSelectorDir().empty() || !lastSelectorDir.empty()))
 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
-	
+
+	ledOff();
 	DEBUG("GMenu2X::ctor - exit");
+
 }
 
 void GMenu2X::main() {
@@ -1604,8 +1612,10 @@ void GMenu2X::viewLog() {
 }
 
 void GMenu2X::batteryLogger() {
+	ledOn();
 	BatteryLoggerDialog bl(this, tr["Battery Logger"], tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
 	bl.exec();
+	ledOff();
 }
 
 void GMenu2X::linkScanner() {
@@ -1691,6 +1701,9 @@ void GMenu2X::ledOn() {
 #if defined(TARGET_GP2X)
 	if (memdev != 0 && !f200) memregs[0x106E >> 1] ^= 16;
 	//SDL_SYS_JoystickGp2xSys(joy.joystick, BATT_LED_ON);
+#else
+	DEBUG("ledON");
+	led->flash();
 #endif
 }
 
@@ -1698,6 +1711,9 @@ void GMenu2X::ledOff() {
 #if defined(TARGET_GP2X)
 	if (memdev != 0 && !f200) memregs[0x106E >> 1] ^= 16;
 	//SDL_SYS_JoystickGp2xSys(joy.joystick, BATT_LED_OFF);
+#else
+	DEBUG("ledOff");
+	led->reset();
 #endif
 }
 
@@ -1978,10 +1994,13 @@ void GMenu2X::setPerformanceMode() {
 	if (current.compare(confStr["Performance"]) != 0) {
 		DEBUG("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
 		DEBUG("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
+		procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
+		/*
 		ofstream governor;
 		governor.open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 		governor << confStr["Performance"];
 		governor.close();
+		*/
 		initMenu();
 	} else {
 		DEBUG("GMenu2X::setPerformanceMode - nothing to do");
@@ -1991,11 +2010,14 @@ void GMenu2X::setPerformanceMode() {
 
 string GMenu2X::getPerformanceMode() {
 	DEBUG("GMenu2X::getPerformanceMode - enter");
+	/*
 	ifstream governor("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 	stringstream strStream;
 	strStream << governor.rdbuf();
 	string result = strStream.str();
 	governor.close();
+	*/
+	string result = procReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 	DEBUG("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
 	return full_trim(result);
 }

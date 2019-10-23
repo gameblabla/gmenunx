@@ -32,6 +32,7 @@ class PowerManager;
 #include "inputmanager.h"
 #include "surface.h"
 #include "fonthelper.h"
+#include "led.h"
 
 #include <iostream>
 #include <string>
@@ -200,6 +201,7 @@ public:
 	InputManager input;
 	Touchscreen ts;
 
+	LED *led;
 	// uint32_t tickSuspend; //, tickPowerOff;
 
 	//Configuration hashes
