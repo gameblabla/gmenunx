@@ -367,8 +367,10 @@ GMenu2X::GMenu2X() {
 	DEBUG("GMenu2X::ctor - menu");
 	initMenu();
 	
+	/*
 	DEBUG("GMenu2X::ctor - readTmp");
 	readTmp();
+	*/
 	DEBUG("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
 	DEBUG("GMenu2X::ctor - wake up");
@@ -1139,7 +1141,7 @@ void GMenu2X::cpuSettings() {
 	}
 	DEBUG("GMenu2X::cpuSettings - exit");
 }
-
+/*
 void GMenu2X::readTmp() {
 	lastSelectorElement = -1;
 	if (!fileExists("/tmp/gmenu2x.tmp")) return;
@@ -1177,7 +1179,7 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 		inf.close();
 	}
 }
-
+*/
 void GMenu2X::readConfig() {
 	
 	string conffile = assets_path + "gmenunx.conf";
@@ -1542,10 +1544,8 @@ void GMenu2X::about() {
 	
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
-	
-	//DEBUG("GMenu2X::about - buffer : %s", buffer);
+
 	string batt(buffer);
-	//DEBUG("GMenu2X::about - string : %s ", batt.c_str());
 	char *hwv = hwVersion();
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
@@ -1570,10 +1570,14 @@ void GMenu2X::about() {
 	temp += "----\n";
 
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
-
 	td.appendText(temp);
 	
-	DEBUG("GMenu2X::about - append - %sabout.txt", assets_path.c_str());
+	DEBUG("GMenu2X::about - append - command /usr/bin/system_info");
+	td.appendCommand("/usr/bin/system_info");
+	
+	td.appendText("----\n");
+	
+	DEBUG("GMenu2X::about - append - file %sabout.txt", assets_path.c_str());
 	td.appendFile(assets_path + "about.txt");
 	td.exec();
 	DEBUG("GMenu2X::about - exit");

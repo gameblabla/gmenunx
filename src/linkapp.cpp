@@ -307,7 +307,7 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 	Selector sel(gmenu2x, this, selectorDir);
 	int selection = sel.exec(startSelection);
 	if (selection != -1) {
-		gmenu2x->writeTmp(selection, sel.getDir());
+		//gmenu2x->writeTmp(selection, sel.getDir());
 		launch(sel.getFile(), sel.getDir());
 	}
 }
@@ -398,11 +398,12 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		if (gmenu2x->fwType == "open2x") // && gmenu2x->savedVolumeMode != gmenu2x->volumeMode)
 			gmenu2x->writeConfigOpen2x();
 #endif
+		/*
 		if (selectedFile == "") {
 			DEBUG("LinkApp::launch - no file, so calling gmenu2x->writeTmp");
 			gmenu2x->writeTmp();
 		}
-
+		*/
 
 	//toLaunch.reset();
 	//app = nullptr;
@@ -445,7 +446,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		*/
 	}
 
-	chdir(gmenu2x->getExePath().c_str());
+	//chdir(gmenu2x->getExePath().c_str());
 	DEBUG("LinkApp::launch - exit");
 }
 
