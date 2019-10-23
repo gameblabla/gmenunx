@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "linkapp.h"
+#include "launcher.h"
 #include "menu.h"
 #include "selector.h"
 #include "debug.h"
@@ -282,6 +283,14 @@ bool LinkApp::save() {
 	return false;
 }
 
+/*
+ * entry point for running
+ * checks to see if we want a supporting file arg
+ * and launches a chooser
+ * or
+ * just launches
+ */
+
 void LinkApp::run() {
 	if (selectordir != "") {
 		selector();
@@ -290,6 +299,9 @@ void LinkApp::run() {
 	}
 }
 
+/*
+ * lauches a supporting file selector if needed
+ */
 void LinkApp::selector(int startSelection, const string &selectorDir) {
 	//Run selector interface
 	Selector sel(gmenu2x, this, selectorDir);
@@ -391,6 +403,25 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			gmenu2x->writeTmp();
 		}
 
+
+	//toLaunch.reset();
+	//app = nullptr;
+	Launcher *toLaunch = new Launcher(
+				vector<string> { "/bin/sh", "-c", command });
+	//delete menu;
+	gmenu2x->quit();
+	unsetenv("SDL_FBCON_DONT_CLEAR");
+
+	if (toLaunch) {
+		toLaunch->exec();
+		// If control gets here, execution failed. Since we already destructed
+		// everything, the easiest solution is to exit and let the system
+		// respawn the menu.
+		delete toLaunch;
+	}
+	
+		
+		/*
 		DEBUG("LinkApp::launch - calling quit");
 		gmenu2x->quit();
 
@@ -411,6 +442,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		chdir(gmenu2x->getExePath().c_str());
 		DEBUG("LinkApp::launch - changed dir to exe path");
 		execlp("./gmenunx", "./gmenunx", NULL);
+		*/
 	}
 
 	chdir(gmenu2x->getExePath().c_str());

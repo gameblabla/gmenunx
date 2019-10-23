@@ -11,7 +11,9 @@ SDL_CONFIG  := $(SYSROOT)/usr/bin/sdl-config
 SDL_CFLAGS  := $(shell $(SDL_CONFIG) --cflags)
 SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 
-CFLAGS = -ggdb  -DTARGET_RG350 -DTARGET=$(PATH_DIR) \
+#@echo "cross = $(CROSS_COMPILE) *******************************************"
+
+CFLAGS = -ggdb  -DTARGET_RG350 -DPLATFORM_RG350 -DTARGET=$(PATH_DIR) \
     -std=gnu++11 \
     -DLOG_LEVEL=4 \
     -Wno-narrowing \
