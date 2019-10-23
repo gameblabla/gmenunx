@@ -24,6 +24,7 @@ FLIST="${FLIST} assets/skins/Default/icons/generic.png"
 FLIST="${FLIST} assets/skins"
 FLIST="${FLIST} assets/translations"
 FLIST="${FLIST} assets/rg-350/*"
+FLIST="${FLIST} about.txt"
 
 rm -f ${OPK_NAME}
 mksquashfs ${FLIST} ${OPK_NAME} -all-root -no-xattrs -noappend -no-exports
