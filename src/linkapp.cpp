@@ -301,12 +301,16 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 }
 
 void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
+	DEBUG("LinkApp::launch - enter : %s %s", selectedDir.c_str(), selectedFile.c_str());
 	save();
 
 	//Set correct working directory
 	string wd = getRealWorkdir();
-	if (!wd.empty())
+	DEBUG("LinkApp::launch - real work dir = %s", wd.c_str());
+	if (!wd.empty()) {
 		chdir(wd.c_str());
+		DEBUG("LinkApp::launch - changed into wrkdir");
+	}
 
 	//selectedFile
 	if (selectedFile != "") {
@@ -345,6 +349,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	//check if we have to quit
 	string command = cmdclean(exec);
+	DEBUG("LinkApp::launch - command : %s", command.c_str());
 
 	// Check to see if permissions are desirable
 	struct stat fstat;
@@ -356,17 +361,24 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	} // else, well.. we are no worse off :)
 
 	if (params != "") command += " " + params;
+	DEBUG("LinkApp::launch - command + params : %s", command.c_str());
+	
 	// if (useGinge) {
 		// string ginge_prep = gmenu2x->getExePath() + "/ginge/ginge_prep";
 		// if (fileExists(ginge_prep)) command = cmdclean(ginge_prep) + " " + command;
 	// }
-	if (gmenu2x->confInt["outputLogs"]) command += " 2>&1 | tee " + cmdclean(gmenu2x->getExePath()) + "/log.txt";
+	if (gmenu2x->confInt["outputLogs"]) 
+		command += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
+	
+	DEBUG("LinkApp::launch - after logging checked : %s", command.c_str());
+
 	// if (wrapper) command += "; sync & cd " + cmdclean(gmenu2x->getExePath()) + "; exec ./gmenu2x";
 	// if (dontleave) {
 		// system(command.c_str());
 	// } else
 	{
 		if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
+			DEBUG("LinkApp::launch - saving selection");
 			gmenu2x->writeConfig();
 		}
 
@@ -374,24 +386,35 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		if (gmenu2x->fwType == "open2x") // && gmenu2x->savedVolumeMode != gmenu2x->volumeMode)
 			gmenu2x->writeConfigOpen2x();
 #endif
-		if (selectedFile == "") gmenu2x->writeTmp();
+		if (selectedFile == "") {
+			DEBUG("LinkApp::launch - no file, so calling gmenu2x->writeTmp");
+			gmenu2x->writeTmp();
+		}
 
+		DEBUG("LinkApp::launch - calling quit");
 		gmenu2x->quit();
 
-		if (clock() != gmenu2x->confInt["cpuMenu"]) gmenu2x->setCPU(clock());
+		if (clock() != gmenu2x->confInt["cpuMenu"]) {
+			DEBUG("LinkApp::launch - setting clock freq");
+			gmenu2x->setCPU(clock());
+		}
 
 #if defined(TARGET_GP2X)
 		if (gamma() != 0 && gamma() != gmenu2x->confInt["gamma"]) gmenu2x->setGamma(gamma());
 #endif
 
+		DEBUG("LinkApp::launch - shelling the command");
 		execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 		//if execution continues then something went wrong and as we already called SDL_Quit we cannot continue
 		//try relaunching gmenu2x
+		DEBUG("LinkApp::launch - re-entering now");
 		chdir(gmenu2x->getExePath().c_str());
-		execlp("./gmenu2x", "./gmenu2x", NULL);
+		DEBUG("LinkApp::launch - changed dir to exe path");
+		execlp("./gmenunx", "./gmenunx", NULL);
 	}
 
 	chdir(gmenu2x->getExePath().c_str());
+	DEBUG("LinkApp::launch - exit");
 }
 
 const string &LinkApp::getExec() {

@@ -1554,23 +1554,33 @@ void GMenu2X::about() {
 #ifdef TARGET_RS97
 	temp += tr["Checksum: 0x"] + hwv + "\n";
 #endif
-
-	// temp += tr["Storage:"];
-	// temp += "\n    " + tr["Root: "] + getDiskFree("/");
-	// temp += "\n    " + tr["Internal: "] + getDiskFree("/mnt/int_sd");
-	// temp += "\n    " + tr["External: "] + getDiskFree("/mnt/ext_sd");
+	
+	temp += tr["Storage:"];
+	//temp += "\n    " + tr["Root: "] + getDiskFree("/");
+	temp += "\n    " + tr["Internal: "] + getDiskFree("/media/data");
+	
+	checkUDC();
+	string externalSize;
+ 	if (curMMCStatus = MMC_MOUNTED || MMC_UNMOUNTED) {
+		externalSize =  getDiskFree("/media/sdcard");
+	} else {
+		externalSize = tr["Not inserted"];
+	}
+	temp += "\n    " + tr["External: "] + externalSize + "\n";
 	temp += "----\n";
 
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
 
 	td.appendText(temp);
-	td.appendFile("about.txt");
+	
+	DEBUG("GMenu2X::about - append - %sabout.txt", assets_path.c_str());
+	td.appendFile(assets_path + "about.txt");
 	td.exec();
 	DEBUG("GMenu2X::about - exit");
 }
 
 void GMenu2X::viewLog() {
-	string logfile = exe_path + "log.txt";
+	string logfile = assets_path + "log.txt";
 	if (!fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
