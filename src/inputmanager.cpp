@@ -70,6 +70,7 @@
 
 #include "debug.h"
 #include "inputmanager.h"
+#include "screenmanager.h"
 #include "utilities.h"
 
 #include <iostream>
@@ -77,8 +78,8 @@
 
 using namespace std;
 
-InputManager::InputManager()
-	: wakeUpTimer(NULL) {
+InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenManager) {
+	wakeUpTimer = NULL;
 }
 
 InputManager::~InputManager() {
@@ -226,11 +227,22 @@ bool InputManager::update(bool wait) {
 
 	if (wait) {
 		SDL_WaitEvent(&event);
+		
+		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type) {
+			DEBUG("InputManager::update - We're asleep, so we're just going to wake up and eat the timer event");
+			//DEBUG("InputManager::update - event.type == %i", event.type);
+			screenManager.resetScreenTimer();
+			return false;
+		}
+
 		if (event.type == SDL_KEYUP) anyactions = true;
 		SDL_Event evcopy = event;
 		events.push_back(evcopy);
 		
 		switch(event.type) {
+			case SDL_WAKEUPEVENT:
+				//printf("SDL_WAKEUPEVENT ***********\n");
+				break;
 			case SDL_KEYUP:
 				DEBUG("Got key code : %i", event.key.keysym.scancode);
 				break;
@@ -356,6 +368,7 @@ void InputManager::setInterval(int ms, int action) {
 }
 
 void InputManager::setWakeUpInterval(int ms) {
+	//DEBUG("InputManager::setWakeUpInterval - enter - %i", ms);
 	if (wakeUpTimer != NULL)
 		SDL_RemoveTimer(wakeUpTimer);
 
@@ -364,6 +377,7 @@ void InputManager::setWakeUpInterval(int ms) {
 }
 
 uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
+	DEBUG("InputManager::wakeUp - enter");
 	SDL_Event *event = new SDL_Event();
 	event->type = SDL_WAKEUPEVENT;
 	SDL_PushEvent( event );

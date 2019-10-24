@@ -30,6 +30,7 @@ class PowerManager;
 #include "utilities.h"
 #include "touchscreen.h"
 #include "inputmanager.h"
+#include "screenmanager.h"
 #include "surface.h"
 #include "fonthelper.h"
 #include "led.h"
@@ -198,6 +199,7 @@ public:
 	*/
 	const string &getAssetsPath();
 
+	ScreenManager screenManager;
 	InputManager input;
 	Touchscreen ts;
 

@@ -31,6 +31,7 @@ enum actions {
   BACKLIGHT, POWER
 };
 
+#include "screenmanager.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector>
@@ -76,6 +77,8 @@ private:
 	vector <SDL_Joystick*> joysticks;
 	vector <InputManagerAction> actions;
 
+	ScreenManager& screenManager;
+
 	static uint32_t checkRepeat(uint32_t interval, void *_data);
 	static uint32_t wakeUp(uint32_t interval, void *_data);
 	SDL_Event *fakeEventForAction(int action);
@@ -91,7 +94,7 @@ public:
 
 	static const int SDL_WAKEUPEVENT = SDL_USEREVENT+1;
 
-	InputManager();
+	InputManager(ScreenManager& screenManager);
 	~InputManager();
 	void init(const string &conffile);
 	void initJoysticks();

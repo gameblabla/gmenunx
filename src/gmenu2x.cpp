@@ -54,6 +54,7 @@
 #include "led.h"
 #include "iconbutton.h"
 #include "messagebox.h"
+#include "screenmanager.h"
 #include "inputdialog.h"
 #include "settingsdialog.h"
 #include "wallpaperdialog.h"
@@ -260,7 +261,7 @@ void* mainThread(void* param) {
 }
 
 // GMenu2X *GMenu2X::instance = NULL;
-GMenu2X::GMenu2X() {
+GMenu2X::GMenu2X() : input(screenManager) {
 	// instance = this;
 	//Detect firmware version and type
 
@@ -338,6 +339,7 @@ GMenu2X::GMenu2X() {
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
 #endif
 
+	
 	DEBUG("GMenu2X::ctor - setWallpaper");
 	setWallpaper(confStr["wallpaper"]);
 
@@ -347,6 +349,9 @@ GMenu2X::GMenu2X() {
 	DEBUG("GMenu2X::ctor - power mgr");
 	powerManager = new PowerManager(this, confInt["backlightTimeout"], confInt["powerTimeout"]);
 
+	DEBUG("GMenu2X::ctor - screen manager");
+	screenManager.setScreenTimeout(confInt["backlightTimeout"]);
+	
 	DEBUG("GMenu2X::ctor - loading");
 	MessageBox mb(this,tr["Loading"]);
 	mb.setAutoHide(1);
@@ -381,7 +386,8 @@ GMenu2X::GMenu2X() {
 	*/
 	DEBUG("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
-	DEBUG("GMenu2X::ctor - wake up");
+	
+	//DEBUG("GMenu2X::ctor - wake up");
 	input.setWakeUpInterval(1000);
 
 	//recover last session
@@ -673,7 +679,6 @@ void GMenu2X::main() {
 
 bool GMenu2X::inputCommonActions(bool &inputAction) {
 	//DEBUG("GMenu2X::inputCommonActions - enter");
-	// INFO("SDL_GetTicks(): %d\tsuspendActive: %d", SDL_GetTicks(), powerManager->suspendActive);
 
 	if (powerManager->suspendActive) {
 		// SUSPEND ACTIVE
@@ -1039,7 +1044,9 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &confStr["batteryType"], &batteryType));
 	sd.addSetting(new MenuSettingBool(this, tr["Save last selection"], tr["Save the last selected link and section on exit"], &confInt["saveSelection"]));
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &confInt["outputLogs"]));
-	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Seconds to turn display off if inactive"], &confInt["backlightTimeout"], 30, 10, 300));
+	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &confInt["backlightTimeout"], 60, 0, 120));
+	
+
 	sd.addSetting(new MenuSettingInt(this,tr["Power timeout"], tr["Minutes to poweroff system if inactive"], &confInt["powerTimeout"], 10, 1, 300));
 	sd.addSetting(new MenuSettingInt(this,tr["Backlight"], tr["Set LCD backlight"], &confInt["backlight"], 70, 1, 100));
 	sd.addSetting(new MenuSettingInt(this, tr["Audio volume"], tr["Set the default audio volume"], &confInt["globalVolume"], 60, 0, 100));
@@ -1059,12 +1066,12 @@ void GMenu2X::settings() {
 			tr.setLang(lang);
 		}
 
-		setBacklight(confInt["backlight"], false);
-		writeConfig();
+		DEBUG("GMenu2X::settings - setScreenTimeout - %i", confInt["backlightTimeout"]);
+		screenManager.resetScreenTimer();
+		screenManager.setScreenTimeout(confInt["backlightTimeout"]);
 
-		powerManager->resetSuspendTimer();
-		powerManager->setSuspendTimeout(confInt["backlightTimeout"]);
-		powerManager->setPowerTimeout(confInt["powerTimeout"]);
+		writeConfig();
+		//powerManager->setPowerTimeout(confInt["powerTimeout"]);
 
 #if defined(TARGET_GP2X)
 		if (prevgamma != confInt["gamma"]) setGamma(confInt["gamma"]);
@@ -2041,7 +2048,7 @@ void GMenu2X::performanceMenu() {
 	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
 	
 	uint32_t tickStart = SDL_GetTicks();
-	input.setWakeUpInterval(45);
+	input.setWakeUpInterval(1000);
 	while (!close) {
 		bg.blit(s, 0, 0);
 
@@ -2120,7 +2127,7 @@ void GMenu2X::contextMenu() {
 	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
 	
 	uint32_t tickStart = SDL_GetTicks();
-	input.setWakeUpInterval(45);
+	input.setWakeUpInterval(1000);
 	while (!close) {
 		bg.blit(s, 0, 0);
 
@@ -2483,7 +2490,7 @@ int GMenu2X::setVolume(int val, bool popup) {
 			sc.skinRes("imgs/volume.png"),
 		};
 
-		powerManager->clearTimer();
+		screenManager.resetScreenTimer();
 		while (!close) {
 			input.setWakeUpInterval(3000);
 			drawSlider(val, 0, 100, *iconVolume[getVolumeMode(val)], bg);
@@ -2498,7 +2505,7 @@ int GMenu2X::setVolume(int val, bool popup) {
 													if (val > 100) val = 0;
 			}
 		}
-		powerManager->resetSuspendTimer();
+		screenManager.setScreenTimeout(1000);
 		confInt["globalVolume"] = val;
 		writeConfig();
 	}
@@ -2550,7 +2557,7 @@ int GMenu2X::setBacklight(int val, bool popup) {
 			sc.skinRes("imgs/brightness.png")
 		};
 
-		powerManager->clearTimer();
+		screenManager.resetScreenTimer();
 		while (!close) {
 			input.setWakeUpInterval(3000);
 			int brightnessIcon = val/20;
@@ -2566,8 +2573,7 @@ int GMenu2X::setBacklight(int val, bool popup) {
 			else if ( input[RIGHT] || input[INC] )		val = setBacklight(min(100, val + backlightStep), false);
 			else if ( input[BACKLIGHT] )				val = setBacklight(val + backlightStep, false);
 		}
-		powerManager->resetSuspendTimer();
-		// input.setWakeUpInterval(0);
+		screenManager.setScreenTimeout(1000);
 		confInt["backlight"] = val;
 		writeConfig();
 	}
