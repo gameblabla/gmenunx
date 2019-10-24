@@ -231,6 +231,7 @@ void GMenu2X::releaseScreen() {
 	SDL_Quit();
 }
 void GMenu2X::quit() {
+	ledOff();
 	fflush(NULL);
 	sc.clear();
 	s->free();
@@ -352,23 +353,21 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	
 	DEBUG("GMenu2X::ctor - menu");
 	initMenu();
-	
-	/*
-	DEBUG("GMenu2X::ctor - readTmp");
-	readTmp();
-	*/
+
 	DEBUG("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
 	
 	//DEBUG("GMenu2X::ctor - wake up");
 	input.setWakeUpInterval(1000);
 
+	// turn the blinker off
+	ledOff();
+
 	//recover last session
 	DEBUG("GMenu2X::ctor - recoverSession");
 	if (lastSelectorElement >- 1 && menu->selLinkApp() != NULL && (!menu->selLinkApp()->getSelectorDir().empty() || !lastSelectorDir.empty()))
 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
 
-	ledOff();
 	DEBUG("GMenu2X::ctor - exit");
 
 }
@@ -579,6 +578,8 @@ void GMenu2X::main() {
 		if (inputCommonActions(inputAction)) continue;
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
+			DEBUG("******************RUNNING THIS*******************");
+			// why??
 			setVolume(confInt["globalVolume"]);
 
 			if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
@@ -587,6 +588,7 @@ void GMenu2X::main() {
 				mb.exec();
 			}
 
+			DEBUG("******************RUNNING THIS -- RUN*******************");
 			menu->selLink()->run();
 		}
 		else if ( input[SETTINGS] ) settings();
@@ -1685,23 +1687,13 @@ void GMenu2X::explorer() {
 }
 
 void GMenu2X::ledOn() {
-#if defined(TARGET_GP2X)
-	if (memdev != 0 && !f200) memregs[0x106E >> 1] ^= 16;
-	//SDL_SYS_JoystickGp2xSys(joy.joystick, BATT_LED_ON);
-#else
 	DEBUG("ledON");
 	led->flash();
-#endif
 }
 
 void GMenu2X::ledOff() {
-#if defined(TARGET_GP2X)
-	if (memdev != 0 && !f200) memregs[0x106E >> 1] ^= 16;
-	//SDL_SYS_JoystickGp2xSys(joy.joystick, BATT_LED_OFF);
-#else
 	DEBUG("ledOff");
 	led->reset();
-#endif
 }
 
 void GMenu2X::hwCheck() {

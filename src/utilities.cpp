@@ -208,11 +208,13 @@ string strreplace(string orig, const string &search, const string &replace) {
 }
 
 string cmdclean(string cmdline) {
+	DEBUG("cmdclean - enter : %s", cmdline.c_str());
 	string spchars = "\\`$();|{}&'\"*?<>[]!^~-#\n\r ";
 	for (uint32_t i=0; i<spchars.length(); i++) {
 		string curchar = spchars.substr(i,1);
 		cmdline = strreplace(cmdline, curchar, "\\"+curchar);
 	}
+	DEBUG("cmdclean - exit : %s", cmdline.c_str());
 	return cmdline;
 }
 

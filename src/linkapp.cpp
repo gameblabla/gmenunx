@@ -52,6 +52,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfil
 	selectorfilter = "";
 	icon = iconPath = "";
 	selectorbrowser = true;
+	consoleapp = true;
 	// useRamTimings = false;
 	// useGinge = false;
 	workdir = "";
@@ -97,14 +98,14 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfil
 			// setVolume( atoi(value.c_str()) );
 		} else if (name == "selectordir") {
 			setSelectorDir( value );
-		} else if (name == "selectorbrowser" && value == "true") {
-			selectorbrowser = true;
-		} else if (name == "selectorbrowser" && value == "false") {
-			selectorbrowser = false;
+		} else if (name == "selectorbrowser") {
+			selectorbrowser = (value == "true" ? true : false);
 		// } else if (name == "useramtimings" && value == "true") {
 			// useRamTimings = true;
 		// } else if (name == "useginge" && value == "true") {
 			// useGinge = true;
+		} else if (name == "consoleapp") {
+			consoleapp = (value == "true" ? true : false);
 		} else if (name == "selectorfilter") {
 			setSelectorFilter( value );
 		} else if (name == "selectorscreens") {
@@ -121,7 +122,8 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfil
 	}
 	infile.close();
 
-	if (iconPath.empty()) searchIcon();
+	if (iconPath.empty()) 
+		searchIcon();
 
 	edited = false;
 }
@@ -256,6 +258,8 @@ bool LinkApp::save() {
 		if (exec != ""         ) f << "exec="            << exec            << endl;
 		if (params != ""       ) f << "params="          << params          << endl;
 		if (workdir != ""      ) f << "workdir="         << workdir         << endl;
+		if (consoleapp         ) f << "consoleapp=true"                     << endl;
+		if (!consoleapp        ) f << "consoleapp=false"                    << endl;
 		if (manual != ""       ) f << "manual="          << manual          << endl;
 		if (iclock != 0        ) f << "clock="           << iclock          << endl;
 		// if (useRamTimings      ) f << "useramtimings=true"                  << endl;
@@ -313,7 +317,8 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 }
 
 void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
-	DEBUG("LinkApp::launch - enter : %s %s", selectedDir.c_str(), selectedFile.c_str());
+	DEBUG("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
+	
 	save();
 
 	//Set correct working directory
@@ -335,27 +340,30 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			selectedFileName = selectedFile.substr(0,i);
 		}
 
+		DEBUG("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
 		if (selectedDir == "")
 			dir = getSelectorDir();
 		else
 			dir = selectedDir;
-
+		// force a slash at the end
+		if (dir.length() > 0) {
+			if (0 != dir.compare(dir.length() -1, 1, "/")) 
+				dir += "/";
+		} else dir = "/";
+		DEBUG("LinkApp::launch - dir : %s", dir.c_str());
+		
 		if (params == "") {
-			params = cmdclean(dir+"/"+selectedFile);
+			params = cmdclean(dir + selectedFile);
+			DEBUG("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
 		} else {
 			string origParams = params;
-			params = strreplace(params, "[selFullPath]", cmdclean(dir + "/" + selectedFile));
+			params = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
 			params = strreplace(params, "[selPath]", cmdclean(dir));
 			params = strreplace(params, "[selFile]", cmdclean(selectedFileName));
 			params = strreplace(params, "[selExt]", cmdclean(selectedFileExtension));
-			if (params == origParams) params += " " + cmdclean(dir + "/" + selectedFile);
+			if (params == origParams) params += " " + cmdclean(dir + selectedFile);
 		}
 	}
-
-	//if (useRamTimings)
-		//gmenu2x->applyRamTimings();
-	//if (volume()>=0)
-		//gmenu2x->setVolume(volume());
 
 	INFO("Executing '%s' (%s %s)", title.c_str(), exec.c_str(), params.c_str());
 
@@ -384,37 +392,21 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	
 	DEBUG("LinkApp::launch - after logging checked : %s", command.c_str());
 
-	// if (wrapper) command += "; sync & cd " + cmdclean(gmenu2x->getExePath()) + "; exec ./gmenu2x";
-	// if (dontleave) {
-		// system(command.c_str());
-	// } else
-	{
-		if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
-			DEBUG("LinkApp::launch - saving selection");
-			gmenu2x->writeConfig();
-		}
 
-#if defined(TARGET_GP2X)
-		if (gmenu2x->fwType == "open2x") // && gmenu2x->savedVolumeMode != gmenu2x->volumeMode)
-			gmenu2x->writeConfigOpen2x();
-#endif
-		/*
-		if (selectedFile == "") {
-			DEBUG("LinkApp::launch - no file, so calling gmenu2x->writeTmp");
-			gmenu2x->writeTmp();
-		}
-		*/
+	if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
+		DEBUG("LinkApp::launch - saving selection");
+		gmenu2x->writeConfig();
+	}
 
-	//toLaunch.reset();
-	//app = nullptr;
 	Launcher *toLaunch = new Launcher(
 				vector<string> { "/bin/sh", "-c", command });
-	//delete menu;
-	gmenu2x->quit();
-	//gmenu2x->releaseScreen();
-	unsetenv("SDL_FBCON_DONT_CLEAR");
 
 	if (toLaunch) {
+		//delete menu;
+		gmenu2x->quit();
+		//gmenu2x->releaseScreen();
+		unsetenv("SDL_FBCON_DONT_CLEAR");
+
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed
 		// everything, the easiest solution is to exit and let the system
@@ -422,31 +414,6 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		delete toLaunch;
 	}
 
-		/*
-		DEBUG("LinkApp::launch - calling quit");
-		gmenu2x->quit();
-
-		if (clock() != gmenu2x->confInt["cpuMenu"]) {
-			DEBUG("LinkApp::launch - setting clock freq");
-			gmenu2x->setCPU(clock());
-		}
-
-#if defined(TARGET_GP2X)
-		if (gamma() != 0 && gamma() != gmenu2x->confInt["gamma"]) gmenu2x->setGamma(gamma());
-#endif
-
-		DEBUG("LinkApp::launch - shelling the command");
-		execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
-		//if execution continues then something went wrong and as we already called SDL_Quit we cannot continue
-		//try relaunching gmenu2x
-		DEBUG("LinkApp::launch - re-entering now");
-		chdir(gmenu2x->getExePath().c_str());
-		DEBUG("LinkApp::launch - changed dir to exe path");
-		execlp("./gmenunx", "./gmenunx", NULL);
-		*/
-	}
-
-	//chdir(gmenu2x->getExePath().c_str());
 	DEBUG("LinkApp::launch - exit");
 }
 
@@ -552,21 +519,3 @@ void LinkApp::setAliasFile(const string &aliasfile) {
 void LinkApp::renameFile(const string &name) {
 	file = name;
 }
-
-// bool LinkApp::getUseRamTimings() {
-// 	return useRamTimings;
-// }
-
-// void LinkApp::setUseRamTimings(bool value) {
-// 	useRamTimings = value;
-// 	edited = true;
-// }
-
-// bool LinkApp::getUseGinge() {
-// 	return useGinge;
-// }
-
-// void LinkApp::setUseGinge(bool value) {
-// 	useGinge = value;
-// 	edited = true;
-// }

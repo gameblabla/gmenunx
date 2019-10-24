@@ -42,7 +42,7 @@ private:
 	int iclock = 0; //, ivolume = 0;
 
 	string exec, params, workdir, manual, manualPath, selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
-	bool selectorbrowser;
+	bool selectorbrowser, consoleapp;
 	// void drawRun();
 
 	string aliasfile;
