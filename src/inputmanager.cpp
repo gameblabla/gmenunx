@@ -230,7 +230,7 @@ bool InputManager::update(bool wait) {
 		
 		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type) {
 			DEBUG("InputManager::update - We're asleep, so we're just going to wake up and eat the timer event");
-			//DEBUG("InputManager::update - event.type == %i", event.type);
+			DEBUG("InputManager::update - event.type == %i", event.type);
 			screenManager.resetScreenTimer();
 			return false;
 		}
