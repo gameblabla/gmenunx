@@ -45,16 +45,12 @@ void LED::reset() {
 void LED::flash(const int &speed) {
 	DEBUG("LED::flash - enter");
 	int limited = constrain(speed, 0, atoi(max_brightness.c_str()));
-	stringstream ss;  
-	ss<<limited;  
-	string timer;  
-	ss>>timer;  
 	string trigger = triggerToString(AllowedTriggers::TIMER);
-	DEBUG("LED::flash - mode : %s - for %s", trigger.c_str(), timer.c_str());
+	DEBUG("LED::flash - mode : %s - for %i", trigger.c_str(), limited);
 	
 	procWriter(TRIGGER_PATH, trigger);
-	procWriter(DELAY_ON_PATH, timer);
-	procWriter(DELAY_OFF_PATH, timer);
+	procWriter(DELAY_ON_PATH, limited);
+	procWriter(DELAY_OFF_PATH, limited);
 
 	DEBUG("LED::flash - exit");
 	return;

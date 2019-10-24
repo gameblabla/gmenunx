@@ -73,6 +73,7 @@ string dir_name(const string &path);
 string base_name(const string &path);
 
 bool procWriter(string path, string value);
+bool procWriter(string path, int value);
 string procReader(string path);
 	
 #endif

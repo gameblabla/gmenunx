@@ -288,7 +288,7 @@ public:
 	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
 	bool saveScreenshot();
 	int setVolume(int val);
-	int setBacklight(int val, bool popup = false);
+	int setBacklight(int val);
 
 	void setInputSpeed();
 

@@ -286,28 +286,17 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	sc.setPrefix(assets_path);
 	setPerformanceMode();
 
-#if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
-	hwInit();
-#endif
-
 	DEBUG("GMenu2X::ctor - creating LED instance");
 	led = new LED();
 	ledOn();
 
 	DEBUG("GMenu2X::ctor - checkUDC");
 	checkUDC();
-	/*
-	if (curMMCStatus == MMC_UNMOUNTED) {
-		DEBUG("GMenu2X::ctor - mounting sd card");
-		mountSd();
-	}
-	*/
 
 	DEBUG("GMenu2X::ctor - setEnv");
-#if !defined(TARGET_PC)
 	setenv("SDL_NOMOUSE", "1", 1);
-#endif
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
+
 	DEBUG("GMenu2X::ctor - setDateTime");
 	setDateTime();
 
@@ -320,28 +309,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	DEBUG("GMenu2X::ctor - surface");
 	s = new Surface();
-#if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-	//I'm forced to use SW surfaces since with HW there are issuse with changing the clock frequency
-	SDL_Surface *dbl = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_SWSURFACE);
-	s->enableVirtualDoubleBuffer(dbl);
-	SDL_ShowCursor(0);
-#elif defined(TARGET_RS97)// || defined(TARGET_RG350)
-	DEBUG("GMenu2X::ctor - In target");
-	SDL_ShowCursor(0);
-	#if defined(TARGET_ARCADEMINI)
-	s->ScreenSurface = SDL_SetVideoMode(480, 272, confInt["videoBpp"], SDL_HWSURFACE);
-	#else
-	DEBUG("GMenu2X::ctor - video mode - x:320 y:480 bpp:%i", confInt["videoBpp"]);
-	s->ScreenSurface = SDL_SetVideoMode(320, 480, confInt["videoBpp"], SDL_HWSURFACE);
-	#endif
-	DEBUG("GMenu2X::ctor - create rgb surface - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
-	s->raw = SDL_CreateRGBSurface(SDL_SWSURFACE, resX, resY, confInt["videoBpp"], 0, 0, 0, 0);
-#else
 	DEBUG("GMenu2X::ctor - No target");
 	DEBUG("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
-#endif
-
 	
 	DEBUG("GMenu2X::ctor - setWallpaper");
 	setWallpaper(confStr["wallpaper"]);
@@ -741,11 +711,13 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 	input[MENU] = wasActive; // Key was active but no combo was pressed
 
 	//DEBUG("GMenu2X::inputCommonActions - exit");
+	/*
 	if ( input[BACKLIGHT] ) {
-		setBacklight(confInt["backlight"], true);
+		setBacklight(confInt["backlight"]);
 		return true;
 	}
-
+	*/
+	
 	return false;
 }
 
@@ -1016,9 +988,7 @@ void GMenu2X::initMenu() {
 void GMenu2X::settings() {
 	DEBUG("GMenu2X::settings - enter");
 	int curGlobalVolume = confInt["globalVolume"];
-//G
-	// int prevgamma = confInt["gamma"];
-	// bool showRootFolder = fileExists("/mnt/root");
+	int curGlobalBrightness = confInt["backlight"];
 
 	FileLister fl_tr("translations");
 	fl_tr.browse();
@@ -1064,7 +1034,9 @@ void GMenu2X::settings() {
 		if (curGlobalVolume != confInt["globalVolume"]) {
 			curGlobalVolume = setVolume(confInt["globalVolume"]);
 		}
-
+		if (curGlobalBrightness != confInt["backlight"]) {
+			curGlobalBrightness = setBacklight(confInt["backlight"]);
+		}
 		if (lang == "English") lang = "";
 		if (confStr["lang"] != lang) {
 			confStr["lang"] = lang;
@@ -2006,12 +1978,6 @@ void GMenu2X::setPerformanceMode() {
 		DEBUG("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
 		DEBUG("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
 		procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
-		/*
-		ofstream governor;
-		governor.open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-		governor << confStr["Performance"];
-		governor.close();
-		*/
 		initMenu();
 	} else {
 		DEBUG("GMenu2X::setPerformanceMode - nothing to do");
@@ -2472,7 +2438,9 @@ int GMenu2X::getVolume() {
 	DEBUG("GMenu2X::getVolume - enter");
 	int vol = -1;
 	string result = exec(RG350_GET_VOLUME_PATH);
-	vol = atoi(trim(result).c_str());
+	if (result.length() > 0) {
+		vol = atoi(trim(result).c_str());
+	}
 	DEBUG("GMenu2X::getVolume - exit : %i", vol);
 	return vol;
 }
@@ -2483,6 +2451,8 @@ int GMenu2X::setVolume(int val) {
 	else if (val > 100) val = 0;
 	int rg350val = (int)(val * (31.0f/100));
 	DEBUG("GMenu2X::setVolume - rg350 value : %i", rg350val);
+	if (rg350val == getVolume()) 
+		return val;
 	stringstream ss;
 	string cmd;
 	ss << RG350_SET_VOLUME_PATH << rg350val;
@@ -2494,66 +2464,35 @@ int GMenu2X::setVolume(int val) {
 	return val;
 }
 
+#define RG350_BACKLIGHT_PATH "/sys/class/backlight/pwm-backlight/brightness"
+
 int GMenu2X::getBacklight() {
-	char buf[32] = "-1";
-#if defined(TARGET_RS97)
-	FILE *f = fopen("/proc/jz/lcd_backlight", "r");
-	if (f) {
-		fgets(buf, sizeof(buf), f);
+	DEBUG("GMenu2X::getBacklight - enter");
+	int level = -1;
+	string result = procReader(RG350_BACKLIGHT_PATH);
+	if (result.length() > 0) {
+		level = atoi(trim(result).c_str());
 	}
-	fclose(f);
-#endif
-	return atoi(buf);
+	DEBUG("GMenu2X::getBacklight - exit : %i", level);
+	return level;
 }
 
-int GMenu2X::setBacklight(int val, bool popup) {
-	int backlightStep = 10;
+int GMenu2X::setBacklight(int val) {
+	DEBUG("GMenu2X::setBacklight - enter - %i", val);
+	if (val <= 0) val = 100;
+	else if (val > 100) val = 0;
+	int rg350val = (int)(val * (255.0f/100));
+	DEBUG("GMenu2X::setBacklight - rg350 value : %i", rg350val);
+	// save a write
+	if (rg350val == getBacklight()) 
+		return val;
 
-	if (val < 0) val = 100;
-	else if (val > 100) val = backlightStep;
-
-	if (popup) {
-		bool close = false;
-
-		Surface bg(s);
-
-		Surface *iconBrightness[6] = {
-			sc.skinRes("imgs/brightness/0.png"),
-			sc.skinRes("imgs/brightness/1.png"),
-			sc.skinRes("imgs/brightness/2.png"),
-			sc.skinRes("imgs/brightness/3.png"),
-			sc.skinRes("imgs/brightness/4.png"),
-			sc.skinRes("imgs/brightness.png")
-		};
-
-		screenManager.resetScreenTimer();
-		while (!close) {
-			input.setWakeUpInterval(3000);
-			int brightnessIcon = val/20;
-
-			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-
-			drawSlider(val, 0, 100, *iconBrightness[brightnessIcon], bg);
-
-			close = !input.update();
-
-			if ( input[SETTINGS] || input[MENU] || input[CONFIRM] || input[CANCEL] ) close = true;
-			if ( input[LEFT] || input[DEC] )			val = setBacklight(max(1, val - backlightStep), false);
-			else if ( input[RIGHT] || input[INC] )		val = setBacklight(min(100, val + backlightStep), false);
-			else if ( input[BACKLIGHT] )				val = setBacklight(val + backlightStep, false);
-		}
-		screenManager.setScreenTimeout(1000);
-		confInt["backlight"] = val;
-		writeConfig();
+	if (procWriter(RG350_BACKLIGHT_PATH, rg350val)) {
+		DEBUG("GMenu2X::setBacklight - success");
+	} else {
+		ERROR("Couldn't update backlight value to : %i", rg350val);
 	}
-
-#if defined(TARGET_RS97)
-	char buf[34] = {0};
-	sprintf(buf, "echo %d > /proc/jz/lcd_backlight", val);
-	system(buf);
-#endif
-
-	return val;
+	return val;	
 }
 
 const string &GMenu2X::getExePath() {

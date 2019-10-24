@@ -269,6 +269,13 @@ bool procWriter(string path, string value) {
 	}
 	return false;
 }
+bool procWriter(string path, int value) {
+	stringstream ss;
+	string strVal;
+	ss << value;
+	std::getline(ss, strVal);
+	return procWriter(path, strVal);
+}
 string procReader(string path) {
 	if (fileExists(path)) {
 		ifstream str(path);
