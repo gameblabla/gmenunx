@@ -227,11 +227,14 @@ GMenu2X::~GMenu2X() {
 	DEBUG("GMenu2X::dtor");
 }
 
+void GMenu2X::releaseScreen() {
+	SDL_Quit();
+}
 void GMenu2X::quit() {
 	fflush(NULL);
 	sc.clear();
 	s->free();
-	SDL_Quit();
+	releaseScreen();
 	hwDeinit();
 }
 
@@ -1897,9 +1900,12 @@ void GMenu2X::mountSdDialog() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
+		int currentMenuIndex = menu->selSectionIndex();
+		int currentLinkIndex = menu->selLinkIndex();
 		mountSd();
-		//menu->deleteSelectedLink();
 		initMenu();
+		menu->setSectionIndex(currentMenuIndex);
+		menu->setLinkIndex(currentLinkIndex);
 		MessageBox mb(this, tr["SD card mounted"], "skin:icons/eject.png");
 		mb.setAutoHide(1000);
 		mb.exec();
@@ -1914,9 +1920,12 @@ void GMenu2X::umountSdDialog() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
+		int currentMenuIndex = menu->selSectionIndex();
+		int currentLinkIndex = menu->selLinkIndex();
 		umountSd();
-		//menu->deleteSelectedLink();
 		initMenu();
+		menu->setSectionIndex(currentMenuIndex);
+		menu->setLinkIndex(currentLinkIndex);
 		MessageBox mb(this, tr["SD card umounted"], "skin:icons/eject.png");
 		mb.setAutoHide(1000);
 		mb.exec();

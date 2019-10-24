@@ -411,6 +411,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 				vector<string> { "/bin/sh", "-c", command });
 	//delete menu;
 	gmenu2x->quit();
+	//gmenu2x->releaseScreen();
 	unsetenv("SDL_FBCON_DONT_CLEAR");
 
 	if (toLaunch) {
@@ -420,8 +421,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		// respawn the menu.
 		delete toLaunch;
 	}
-	
-		
+
 		/*
 		DEBUG("LinkApp::launch - calling quit");
 		gmenu2x->quit();

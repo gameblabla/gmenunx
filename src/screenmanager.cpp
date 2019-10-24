@@ -54,7 +54,7 @@ void ScreenManager::setScreenTimeout(unsigned int seconds) {
 }
 
 void ScreenManager::resetScreenTimer() {
-	DEBUG("ScreenManager::resetScreenTimer - enter");
+	//DEBUG("ScreenManager::resetScreenTimer - enter");
 	removeScreenTimer();
 	enableScreen();
 	if (screenTimeout != 0) {
@@ -63,9 +63,9 @@ void ScreenManager::resetScreenTimer() {
 }
 
 void ScreenManager::addScreenTimer() {
-	DEBUG("ScreenManager::addScreenTimer - enter");
+	//DEBUG("ScreenManager::addScreenTimer - enter");
 	assert(!screenTimer);
-	DEBUG("ScreenManager::addScreenTimer - no screen timer exists");
+	//DEBUG("ScreenManager::addScreenTimer - no screen timer exists");
 	timeout_startms = SDL_GetTicks();
 	screenTimer = SDL_AddTimer(
 			screenTimeout * 1000, screenTimerCallback, &timeout_startms);
@@ -75,12 +75,12 @@ void ScreenManager::addScreenTimer() {
 }
 
 void ScreenManager::removeScreenTimer() {
-	DEBUG("ScreenManager::removeScreenTimer - enter");
+	//DEBUG("ScreenManager::removeScreenTimer - enter");
 	if (screenTimer) {
-		DEBUG("ScreenManager::removeScreenTimer - timer exists");
+		//DEBUG("ScreenManager::removeScreenTimer - timer exists");
 		SDL_RemoveTimer(screenTimer);
 		screenTimer = nullptr;
-		DEBUG("ScreenManager::removeScreenTimer - timer safely removed");
+		//DEBUG("ScreenManager::removeScreenTimer - timer safely removed");
 	}
 }
 

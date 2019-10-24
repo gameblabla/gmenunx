@@ -239,37 +239,6 @@ bool InputManager::update(bool wait) {
 		SDL_Event evcopy = event;
 		events.push_back(evcopy);
 		
-		switch(event.type) {
-			case SDL_WAKEUPEVENT:
-				//printf("SDL_WAKEUPEVENT ***********\n");
-				break;
-			case SDL_KEYUP:
-				DEBUG("Got key code : %i", event.key.keysym.scancode);
-				break;
-			case SDL_JOYAXISMOTION:  /* Handle Joystick Motion */
-				if ( ( event.jaxis.value < -3200 ) || (event.jaxis.value > 3200 ) ) 
-				{
-					if( event.jaxis.axis == 0) 
-					{
-						/* Left-right movement code goes here */
-					}
-
-					if( event.jaxis.axis == 1) 
-					{
-						/* Up-Down movement code goes here */
-					}
-				}
-				break;
-			case SDL_JOYBUTTONDOWN:  /* Handle Joystick Button Presses */
-				if ( event.jbutton.button == 0 ) 
-				{
-					/* code goes here */
-				}
-				break;
-			default:
-				break;
-		};
-		
 	}
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_KEYUP) anyactions = true;
@@ -293,6 +262,9 @@ bool InputManager::update(bool wait) {
 			}
 			// actions[x].last = 0;
 		}
+	}
+	if (anyactions) {
+		screenManager.resetScreenTimer();
 	}
 
 	//DEBUG("InputManager::update completed");

@@ -176,6 +176,7 @@ public:
 	GMenu2X();
 	~GMenu2X();
 	void quit();
+	void releaseScreen();
 
 	/*
 	 * Variables needed for elements disposition
