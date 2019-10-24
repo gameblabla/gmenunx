@@ -727,7 +727,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 			return true;
 		} else if (input[SECTION_PREV]) {
 			// VOLUME / MUTE
-			setVolume(confInt["globalVolume"], true);
+			setVolume(confInt["globalVolume"]);
 			return true;
 #ifdef TARGET_RS97
 		} else if (input[POWER]) {
@@ -1061,7 +1061,9 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
-		if (curGlobalVolume != confInt["globalVolume"]) setVolume(confInt["globalVolume"]);
+		if (curGlobalVolume != confInt["globalVolume"]) {
+			curGlobalVolume = setVolume(confInt["globalVolume"]);
+		}
 
 		if (lang == "English") lang = "";
 		if (confStr["lang"] != lang) {
@@ -2463,73 +2465,31 @@ void GMenu2X::setCPU(uint32_t mhz) {
 	}
 }
 
-int GMenu2X::getVolume() {
-	int vol = -1;
-	uint32_t soundDev = open("/dev/mixer", O_RDONLY);
+#define RG350_GET_VOLUME_PATH "/usr/bin/alsa-getvolume default PCM"
+#define RG350_SET_VOLUME_PATH "/usr/bin/alsa-setvolume default PCM "
 
-	if (soundDev) {
-#if defined(TARGET_RS97)
-		ioctl(soundDev, SOUND_MIXER_READ_VOLUME, &vol);
-#else
-		ioctl(soundDev, SOUND_MIXER_READ_PCM, &vol);
-#endif
-		close(soundDev);
-		if (vol != -1) {
-			//just return one channel , not both channels, they're hopefully the same anyways
-			return vol & 0xFF;
-		}
-	}
+int GMenu2X::getVolume() {
+	DEBUG("GMenu2X::getVolume - enter");
+	int vol = -1;
+	string result = exec(RG350_GET_VOLUME_PATH);
+	vol = atoi(trim(result).c_str());
+	DEBUG("GMenu2X::getVolume - exit : %i", vol);
 	return vol;
 }
 
-int GMenu2X::setVolume(int val, bool popup) {
-	int volumeStep = 10;
-
+int GMenu2X::setVolume(int val) {
+	DEBUG("GMenu2X::setVolume - enter - %i", val);
 	if (val < 0) val = 100;
 	else if (val > 100) val = 0;
-
-	if (popup) {
-		bool close = false;
-
-		Surface bg(s);
-
-		Surface *iconVolume[3] = {
-			sc.skinRes("imgs/mute.png"),
-			sc.skinRes("imgs/phones.png"),
-			sc.skinRes("imgs/volume.png"),
-		};
-
-		screenManager.resetScreenTimer();
-		while (!close) {
-			input.setWakeUpInterval(3000);
-			drawSlider(val, 0, 100, *iconVolume[getVolumeMode(val)], bg);
-
-			close = !input.update();
-
-			if (input[SETTINGS] || input[CONFIRM] || input[CANCEL]) close = true;
-			if ( input[LEFT] || input[DEC] )		val = max(0, val - volumeStep);
-			else if ( input[RIGHT] || input[INC] )	val = min(100, val + volumeStep);
-			else if ( input[SECTION_PREV] )	{
-													val += volumeStep;
-													if (val > 100) val = 0;
-			}
-		}
-		screenManager.setScreenTimeout(1000);
-		confInt["globalVolume"] = val;
-		writeConfig();
-	}
-
-	uint32_t soundDev = open("/dev/mixer", O_RDWR);
-	if (soundDev) {
-		int vol = (val << 8) | val;
-#if defined(TARGET_RS97)
-		ioctl(soundDev, SOUND_MIXER_WRITE_VOLUME, &vol);
-#else
-		ioctl(soundDev, SOUND_MIXER_WRITE_PCM, &vol);
-#endif
-		close(soundDev);
-
-	}
+	int rg350val = (int)(val * (31.0f/100));
+	DEBUG("GMenu2X::setVolume - rg350 value : %i", rg350val);
+	stringstream ss;
+	string cmd;
+	ss << RG350_SET_VOLUME_PATH << rg350val;
+	std::getline(ss, cmd);
+	DEBUG("GMenu2X::setVolume - cmd : %s", cmd.c_str());
+	string result = exec(cmd.c_str());
+	DEBUG("GMenu2X::setVolume - result : %s", result.c_str());
 	volumeMode = getVolumeMode(val);
 	return val;
 }
@@ -2725,6 +2685,7 @@ void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) 
 }
 
 #if defined(TARGET_GP2X)
+
 void GMenu2X::gp2x_tvout_on(bool pal) {
 	if (memdev != 0) {
 		/*Ioctl_Dummy_t *msg;
