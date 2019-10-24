@@ -292,10 +292,12 @@ GMenu2X::GMenu2X() {
 
 	DEBUG("GMenu2X::ctor - checkUDC");
 	checkUDC();
+	/*
 	if (curMMCStatus == MMC_UNMOUNTED) {
 		DEBUG("GMenu2X::ctor - mounting sd card");
 		mountSd();
 	}
+	*/
 
 	DEBUG("GMenu2X::ctor - setEnv");
 #if !defined(TARGET_PC)
@@ -1563,14 +1565,15 @@ void GMenu2X::about() {
 	temp += tr["Checksum: 0x"] + hwv + "\n";
 #endif
 	
-	temp += tr["Storage:"];
-	//temp += "\n    " + tr["Root: "] + getDiskFree("/");
+	temp += tr["Storage used:"];
 	temp += "\n    " + tr["Internal: "] + getDiskFree("/media/data");
-	
+
 	checkUDC();
 	string externalSize;
- 	if (curMMCStatus = MMC_MOUNTED || MMC_UNMOUNTED) {
-		externalSize =  getDiskFree("/media/sdcard");
+ 	if (curMMCStatus == MMC_MOUNTED) {
+		externalSize = getDiskFree("/media/sdcard");
+	} else if (curMMCStatus == MMC_UNMOUNTED) {
+		externalSize = tr["Inserted, not mounted"];
 	} else {
 		externalSize = tr["Not inserted"];
 	}
@@ -1850,7 +1853,6 @@ void GMenu2X::restartDialog(bool showDialog) {
 
 void GMenu2X::poweroffDialog() {
 	MessageBox mb(this, tr["Poweroff or reboot the device?"], "skin:icons/exit.png");
-	mb.setButton(SECTION_PREV, tr["Quit"]);
 	mb.setButton(SECTION_NEXT, tr["Reboot"]);
 	mb.setButton(CONFIRM, tr["Poweroff"]);
 	mb.setButton(CANCEL,  tr["Cancel"]);
@@ -1869,12 +1871,6 @@ void GMenu2X::poweroffDialog() {
 		setBacklight(0);
 		system("sync; reboot");
 	}
-	else if (response == SECTION_PREV) {
-		MessageBox mb(this, tr["Quitting"]);
-		mb.setAutoHide(500);
-		mb.exec();
-		quit_all(0);
-	}
 }
 
 void GMenu2X::setTVOut(string TVOut) {
@@ -1886,7 +1882,7 @@ void GMenu2X::setTVOut(string TVOut) {
 }
 
 void GMenu2X::mountSd() {
-	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sync");
+	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sleep 1");
 	checkUDC();
 }
 void GMenu2X::mountSdDialog() {
@@ -1903,7 +1899,7 @@ void GMenu2X::mountSdDialog() {
 	}
 }
 void GMenu2X::umountSd() {
-	system("sync; umount -fl /media/sdcard; sync");
+	system("sync; umount -fl /media/sdcard; sleep 1");
 	checkUDC();
 }
 void GMenu2X::umountSdDialog() {
@@ -1920,42 +1916,39 @@ void GMenu2X::umountSdDialog() {
 	}
 }
 
-
 void GMenu2X::checkUDC() {
 	DEBUG("GMenu2X::checkUDC - enter");
 	curMMCStatus = MMC_ERROR;
+	unsigned long size;
+	DEBUG("GMenu2X::checkUDC - reading /sys/block/mmcblk1/size");
 	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
-    unsigned long long size;
 	if (fsize >> size) {
-		// ok, so we're inserted....
 		if (size > 0) {
-			// ok, so we're inserted
+			// ok, so we're inserted, are we mounted
+			DEBUG("GMenu2X::checkUDC - size was : %lu, reading /proc/mounts", size);
 			std::ifstream procmounts( "/proc/mounts" );
 			if (!procmounts) {
 				curMMCStatus = MMC_ERROR;
-				ERROR("GMenu2X::checkUDC - couldn't open /proc/mounts");
+				WARNING("GMenu2X::checkUDC - couldn't open /proc/mounts");
 			} else {
 				string line;
 				size_t found;
+				curMMCStatus = MMC_UNMOUNTED;
 				while (std::getline(procmounts, line)) {
 					if ( !(procmounts.fail() || procmounts.bad()) ) {
 						found = line.find("mcblk1");
 						if (found != std::string::npos) {
 							curMMCStatus = MMC_MOUNTED;
-							DEBUG("GMenu2X::checkUDC - inserted && mounted");
+							DEBUG("GMenu2X::checkUDC - inserted && mounted because line : %s", line.c_str());
 							break;
 						}
 					} else {
 						curMMCStatus = MMC_ERROR;
-						DEBUG("GMenu2X::checkUDC - error reading /proc/mounts");
+						WARNING("GMenu2X::checkUDC - error reading /proc/mounts");
 						break;
 					}
 				}
 				procmounts.close();
-				if (found == std::string::npos) {
-					DEBUG("GMenu2X::checkUDC - inserted but not mounted");
-					curMMCStatus = MMC_UNMOUNTED;
-				}
 			}
 		} else {
 			curMMCStatus = MMC_MISSING;
@@ -1963,7 +1956,7 @@ void GMenu2X::checkUDC() {
 		}
 	} else {
 		curMMCStatus = MMC_ERROR;
-		DEBUG("GMenu2X::checkUDC - error, no card?");
+		WARNING("GMenu2X::checkUDC - error, no card?");
 	}
 	fsize.close();
 	DEBUG("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
@@ -2625,22 +2618,26 @@ const string &GMenu2X::getAssetsPath() {
 }
 
 string GMenu2X::getDiskFree(const char *path) {
+	DEBUG("GMenu2X::getDiskFree - enter - %s", path);
 	string df = "N/A";
 	struct statvfs b;
 
 	if (statvfs(path, &b) == 0) {
+		DEBUG("GMenu2X::getDiskFree - read statvfs ok");
 		// Make sure that the multiplication happens in 64 bits.
 		uint32_t freeMiB = ((uint64_t)b.f_bfree * b.f_bsize) / (1024 * 1024);
 		uint32_t totalMiB = ((uint64_t)b.f_blocks * b.f_frsize) / (1024 * 1024);
+		DEBUG("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %i", b.f_bfree, b.f_blocks, b.f_bsize);
 		stringstream ss;
 		if (totalMiB >= 10000) {
-			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << "/"
-			   << (totalMiB / 1024) << "." << ((totalMiB % 1024) * 10) / 1024 << "GiB";
+			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "
+			   << (totalMiB / 1024) << "." << ((totalMiB % 1024) * 10) / 1024 << " GiB";
 		} else {
-			ss << freeMiB << "/" << totalMiB << "MiB";
+			ss << freeMiB << " / " << totalMiB << " MiB";
 		}
-		ss >> df;
+		std::getline(ss, df);
 	} else WARNING("statvfs failed with error '%s'.\n", strerror(errno));
+	DEBUG("GMenu2X::getDiskFree - exit");
 	return df;
 }
 
