@@ -48,6 +48,8 @@ public:
 	int exec();
 	void setAutoHide(int delay);
 	void setBgAlpha(bool bgalpha);
+	void fadeOut(int delay = 250);
+
 };
 
 #endif /*MESSAGEBOX_H_*/

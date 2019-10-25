@@ -84,6 +84,14 @@ void MessageBox::setBgAlpha(bool bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
+// can oly be called after creating a message box that has a negative value autohide
+void MessageBox::fadeOut(int delay) {
+	if (this->autohide >= 0)
+		return;
+	SDL_Delay(delay);
+	gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
+}
+
 int MessageBox::exec() {
 	TRACE("MessageBox::exec - enter");
 	int result = -1;
@@ -122,10 +130,12 @@ int MessageBox::exec() {
 
 	gmenu2x->s->write(gmenu2x->font, wrapped_text, box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), gmenu2x->halfY - gmenu2x->font->getHeight()/5, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
 
-	if (this->autohide) {
+	if (this->autohide != 0) {
 		gmenu2x->s->flip();
-		SDL_Delay(this->autohide);
-		gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
+		if (this->autohide > 0) {
+			SDL_Delay(this->autohide);
+			gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
+		}
 		return -1;
 	}
 	//draw buttons rectangle
