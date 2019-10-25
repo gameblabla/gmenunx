@@ -226,15 +226,19 @@ int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t
 }
 
 string exec(const char* cmd) {
+	TRACE("exec - enter : %s", cmd);
 	FILE* pipe = popen(cmd, "r");
 	if (!pipe) return "";
 	char buffer[128];
 	string result = "";
 	while (!feof(pipe)) {
-		if(fgets(buffer, 128, pipe) != NULL)
+		if(fgets(buffer, 128, pipe) != NULL) {
+			TRACE("exec - buffer : %s", buffer);
 			result += buffer;
+		}
 	}
 	pclose(pipe);
+	TRACE("exec - exit : %s", result.c_str());
 	return result;
 }
 
@@ -287,3 +291,4 @@ string procReader(string path) {
 	}
 	return NULL;
 }
+

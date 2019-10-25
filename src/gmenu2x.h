@@ -162,9 +162,9 @@ private:
 	//void formatSd();
 	void checkUDC();
 	void umountSdDialog();
-	void umountSd();
+	string umountSd();
 	void mountSdDialog();
-	void mountSd();
+	string mountSd();
 
 	// void toggleTvOut();
 	void hwDeinit();

@@ -1857,29 +1857,56 @@ void GMenu2X::setTVOut(string TVOut) {
 #endif
 }
 
-void GMenu2X::mountSd() {
-	system("mount -t vfat /dev/mmcblk1p1 /media/sdcard; sleep 1");
+string GMenu2X::mountSd() {
+	TRACE("GMenu2X::mountSd - enter");
+	string result = exec("mount -t vfat /dev/mmcblk1p1 /media/sdcard 2>&1");
+	TRACE("GMenu2X::mountSd - result : %s", result.c_str());
+	system("sleep 1");
 	checkUDC();
+	return result;
 }
 void GMenu2X::mountSdDialog() {
 	MessageBox mb(this, tr["Mount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
+
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		mountSd();
+		string result = mountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
-		MessageBox mb(this, tr["SD card mounted"], "skin:icons/eject.png");
-		mb.setAutoHide(1000);
+
+		string msg, icon;
+		int wait = 1000;
+		bool error = false;
+		switch(curMMCStatus) {
+			case MMC_MOUNTED:
+				msg = "SD card mounted";
+				icon = "skin:icons/eject.png";
+				break;
+			default:
+				msg = "Failed to mount sd card\n" + result;
+				icon = "skin:icons/error.png";
+				error = true;
+				break;
+		};
+		MessageBox mb(this, tr[msg], icon);
+		if (error) {
+			mb.setButton(CONFIRM, tr["Close"]);
+		} else {
+			mb.setAutoHide(wait);
+		}
 		mb.exec();
 	}
 }
-void GMenu2X::umountSd() {
-	system("sync; umount -fl /media/sdcard; sleep 1");
+string GMenu2X::umountSd() {
+	system("sync");
+	string result = exec("umount -fl /media/sdcard 2>&1");
+	system("sleep 1");
 	checkUDC();
+	return result;
 }
 void GMenu2X::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
@@ -1888,12 +1915,26 @@ void GMenu2X::umountSdDialog() {
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		umountSd();
+		string result = umountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
-		MessageBox mb(this, tr["SD card umounted"], "skin:icons/eject.png");
-		mb.setAutoHide(1000);
+
+		string msg, icon;
+		int wait = 1000;
+		switch(curMMCStatus) {
+			case MMC_UNMOUNTED:
+				msg = "SD card umounted";
+				icon = "skin:icons/eject.png";
+				break;
+			default:
+				msg = "Failed to unmount sd card\n" + result;
+				icon = "skin:icons/error.png";
+				wait = 3000;
+				break;
+		};
+		MessageBox mb(this, tr[msg], icon);
+		mb.setAutoHide(wait);
 		mb.exec();
 	}
 }

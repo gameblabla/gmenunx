@@ -43,6 +43,7 @@ public:
 	
 	uint32_t getHeight() { return height; };
 	uint32_t getHalfHeight() { return halfHeight; };
+	uint32_t getSize() { return fontSize; }
 
 	void loadFont(const string &fontName, int fontSize);
 

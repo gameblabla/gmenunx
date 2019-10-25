@@ -40,6 +40,7 @@ private:
 	vector<string> buttons;
 	vector<string> buttonLabels;
 	vector<SDL_Rect> buttonPositions;
+	string splitInLines(string source, size_t max_width, string whitespace = " \t\r");
 
 public:
 	MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon="");

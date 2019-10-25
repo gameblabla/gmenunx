@@ -23,7 +23,7 @@
 
 #include "messagebox.h"
 #include "powermanager.h"
-// #include "debug.h"
+#include "debug.h"
 
 using namespace std;
 
@@ -85,6 +85,7 @@ void MessageBox::setBgAlpha(bool bgalpha) {
 }
 
 int MessageBox::exec() {
+	TRACE("MessageBox::exec - enter");
 	int result = -1;
 
 	gmenu2x->powerManager->clearTimer();
@@ -92,11 +93,20 @@ int MessageBox::exec() {
 	// Surface bg(gmenu2x->s);
 	//Darken background
 	gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->resX, gmenu2x->resY}, (RGBAColor){0,0,0,bgalpha});
+	TRACE("MessageBox::exec - resx : %i", gmenu2x->resX);
+	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
+
+	int box_w_padding = 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
+	int wrap_size = ((gmenu2x->resX - (box_w_padding / 2)) / gmenu2x->font->getSize()) + 10;
+	TRACE("MessageBox::exec - wrap size : %i", wrap_size);
+
+	string wrapped_text = splitInLines(text, wrap_size);
+	TRACE("MessageBox::exec - wrap text : %s", wrapped_text.c_str());
 
 	SDL_Rect box;
-	box.h = gmenu2x->font->getTextHeight(text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
+	box.h = gmenu2x->font->getTextHeight(wrapped_text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
 	if (gmenu2x->sc[icon] != NULL && box.h < 40) box.h = 48;
-	box.w = gmenu2x->font->getTextWidth(text) + 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
+	box.w = gmenu2x->font->getTextWidth(wrapped_text) + box_w_padding;
 	box.x = gmenu2x->halfX - box.w/2 - 2;
 	box.y = gmenu2x->halfY - box.h/2 - 2;
 
@@ -106,11 +116,11 @@ int MessageBox::exec() {
 	//draw inner rectangle
 	gmenu2x->s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BORDER]);
 
-	//icon+text
+	//icon+wrapped_text
 	if (gmenu2x->sc[icon] != NULL)
 		gmenu2x->sc[icon]->blit( gmenu2x->s, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
 
-	gmenu2x->s->write(gmenu2x->font, text, box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), gmenu2x->halfY - gmenu2x->font->getHeight()/5, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+	gmenu2x->s->write(gmenu2x->font, wrapped_text, box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), gmenu2x->halfY - gmenu2x->font->getHeight()/5, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
 
 	if (this->autohide) {
 		gmenu2x->s->flip();
@@ -160,5 +170,23 @@ int MessageBox::exec() {
 
 	gmenu2x->input.dropEvents(); // prevent passing input away
 	gmenu2x->powerManager->resetSuspendTimer();
+	TRACE("MessageBox::exec - exit : %i", result);
 	return result;
+}
+
+string MessageBox::splitInLines(string source, size_t max_width, string whitespace) {
+    size_t  currIndex = max_width - 1;
+    size_t  sizeToElim;
+    while ( currIndex < source.length() ) {
+        currIndex = source.find_last_of(whitespace,currIndex + 1); 
+        if (currIndex == std::string::npos)
+            break;
+        currIndex = source.find_last_not_of(whitespace,currIndex);
+        if (currIndex == std::string::npos)
+            break;
+        sizeToElim = source.find_first_not_of(whitespace,currIndex + 1) - currIndex - 1;
+        source.replace( currIndex + 1, sizeToElim , "\n");
+        currIndex += (max_width + 1); //due to the recently inserted "\n"
+    }
+    return source;
 }

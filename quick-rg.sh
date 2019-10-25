@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux- && \
-export DEBUG=5 && \
+export DEBUG=4 && \
 make -f ./Makefile.rg-350 clean && \
 make -f ./Makefile.rg-350 && \
 scp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home && \
