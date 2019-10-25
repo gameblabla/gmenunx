@@ -87,8 +87,11 @@ char *string_copy(const string &s) {
 }
 
 bool dirExists(const string &path) {
+	TRACE("dirExists - enter : %s", path.c_str());
 	struct stat s;
-	return (stat(path.c_str(), &s) == 0 && s.st_mode & S_IFDIR); // exists and is dir
+	bool result = (stat(path.c_str(), &s) == 0 && s.st_mode & S_IFDIR); // exists and is dir
+	TRACE("dirExists - result : %i", result);
+	return result;
 }
 
 bool fileExists(const string &path) {
