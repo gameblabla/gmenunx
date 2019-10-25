@@ -422,10 +422,17 @@ void GMenu2X::main() {
 	while (!quit) {
 		tickNow = SDL_GetTicks();
 
+		TRACE("main :: setting the box");
 		s->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 255});
-		sc[currBackdrop]->blit(s,0,0);
-
+		
+		// this is the bomb if not set!!
+		if (sc[currBackdrop]) {
+			TRACE("main :: blitting sc[currBackdrop]");
+			sc[currBackdrop]->blit(s,0,0);
+		}
+		
 		// SECTIONS
+		TRACE("main :: sections");
 		if (confInt["sectionBar"]) {
 			s->box(sectionBarRect, skinConfColors[COLOR_TOP_BAR_BG]);
 
@@ -445,14 +452,14 @@ void GMenu2X::main() {
 		}
 
 		// LINKS
-		//TRACE("main :: links");
+		TRACE("main :: links");
 		s->setClipRect(linksRect);
 		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
 
 		i = menu->firstDispRow() * linkCols;
 
 		if (linkCols == 1) {
-			//TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
+			TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
 			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
@@ -462,12 +469,12 @@ void GMenu2X::main() {
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
 				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
-				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+				TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
-			//TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
+			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
 			for (y = 0; y < linkRows; y++) {
 				for (x = 0; x < linkCols && i < menu->sectionLinks()->size(); x++, i++) {
 					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
@@ -480,12 +487,12 @@ void GMenu2X::main() {
 
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, HAlignCenter | VAlignMiddle);
 
-					//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+					TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 					s->write(font, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkWidth/2, iy + linkHeight - 2, HAlignCenter | VAlignBottom);
 				}
 			}
 		}
-		//TRACE("main :: links - done");
+		TRACE("main :: links - done");
 		s->clearClipRect();
 
 		
@@ -499,6 +506,7 @@ void GMenu2X::main() {
 
 		currBackdrop = confStr["wallpaper"];
 		if (menu->selLink() != NULL && menu->selLinkApp() != NULL && !menu->selLinkApp()->getBackdropPath().empty() && sc.add(menu->selLinkApp()->getBackdropPath()) != NULL) {
+			TRACE("main :: setting currBackdrop to : %s", menu->selLinkApp()->getBackdropPath().c_str());
 			currBackdrop = menu->selLinkApp()->getBackdropPath();
 		}
 
@@ -579,7 +587,7 @@ void GMenu2X::main() {
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
 			TRACE("******************RUNNING THIS*******************");
-			// why??
+			// FIXME -  why do we do this??
 			setVolume(confInt["globalVolume"]);
 
 			if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
@@ -591,6 +599,7 @@ void GMenu2X::main() {
 			TRACE("******************RUNNING THIS -- RUN*******************");
 			menu->selLink()->run();
 		}
+
 		else if ( input[SETTINGS] ) settings();
 		else if ( input[MENU]     ) contextMenu();
 		// LINK NAVIGATION
@@ -604,20 +613,6 @@ void GMenu2X::main() {
 		else if ( input[SECTION_PREV] ) menu->decSectionIndex();
 		else if ( input[SECTION_NEXT] ) menu->incSectionIndex();
 
-		// VOLUME SCALE MODIFIER
-#if defined(TARGET_GP2X)
-		else if ( fwType=="open2x" && input[CANCEL] ) {
-			volumeMode = constrain(volumeMode - 1, -VOLUME_MODE_MUTE - 1, VOLUME_MODE_NORMAL);
-			if (volumeMode < VOLUME_MODE_MUTE)
-				volumeMode = VOLUME_MODE_NORMAL;
-			switch(volumeMode) {
-				case VOLUME_MODE_MUTE:   setVolumeScaler(VOLUME_SCALER_MUTE); break;
-				case VOLUME_MODE_PHONES: setVolumeScaler(volumeScalerPhones); break;
-				case VOLUME_MODE_NORMAL: setVolumeScaler(volumeScalerNormal); break;
-			}
-			setVolume(confInt["globalVolume"]);
-		}
-#endif
 		// SELLINKAPP SELECTED
 		else if (input[MANUAL] && menu->selLinkApp() != NULL) showManual(); // menu->selLinkApp()->showManual();
 
