@@ -1240,38 +1240,37 @@ void GMenu2X::readConfig() {
 void GMenu2X::writeConfig() {
 	TRACE("GMenu2X::writeConfig - enter");
 	ledOn();
-	if (confInt["saveSelection"] && menu != NULL) {
-		TRACE("GMenu2X::writeConfig - save selection");
-		confInt["section"] = menu->selSectionIndex();
-		confInt["link"] = menu->selLinkIndex();
-	}
-
-	string conffile = assets_path + "gmenunx.conf";
-	TRACE("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
-	ofstream inf(conffile.c_str());
-	if (inf.is_open()) {
-		TRACE("GMenu2X::writeConfig - stream open");
-		for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
-			if (curr->first == "sectionBarPosition" || curr->first == "tvoutEncoding") continue;
-			TRACE("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
-			inf << curr->first << "=\"" << curr->second << "\"" << endl;
+	
+	// don't try and save to RO file system
+	if (ASSET_PREFIX != assets_path) {
+		if (confInt["saveSelection"] && menu != NULL) {
+			TRACE("GMenu2X::writeConfig - save selection");
+			confInt["section"] = menu->selSectionIndex();
+			confInt["link"] = menu->selLinkIndex();
 		}
 
-		for (ConfIntHash::iterator curr = confInt.begin(); curr != confInt.end(); curr++) {
-			if (curr->first == "batteryLog" || curr->first == "maxClock" || curr->first == "minClock" || curr->first == "menuClock") continue;
-			TRACE("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
-			inf << curr->first << "=" << curr->second << endl;
-		}
-		TRACE("GMenu2X::writeConfig - close");
-		inf.close();
-		TRACE("GMenu2X::writeConfig - sync");
-		sync();
-	}
+		string conffile = assets_path + "gmenunx.conf";
+		TRACE("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
+		ofstream inf(conffile.c_str());
+		if (inf.is_open()) {
+			TRACE("GMenu2X::writeConfig - stream open");
+			for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
+				if (curr->first == "sectionBarPosition" || curr->first == "tvoutEncoding") continue;
+				TRACE("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
+				inf << curr->first << "=\"" << curr->second << "\"" << endl;
+			}
 
-#if defined(TARGET_GP2X)
-		if (fwType == "open2x" && savedVolumeMode != volumeMode)
-			writeConfigOpen2x();
-#endif
+			for (ConfIntHash::iterator curr = confInt.begin(); curr != confInt.end(); curr++) {
+				if (curr->first == "batteryLog" || curr->first == "maxClock" || curr->first == "minClock" || curr->first == "menuClock") continue;
+				TRACE("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
+				inf << curr->first << "=" << curr->second << endl;
+			}
+			TRACE("GMenu2X::writeConfig - close");
+			inf.close();
+			TRACE("GMenu2X::writeConfig - sync");
+			sync();
+		}
+	}
 	TRACE("GMenu2X::writeConfig - ledOff");
 	ledOff();
 	TRACE("GMenu2X::writeConfig - exit");
