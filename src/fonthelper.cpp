@@ -17,7 +17,7 @@ FontHelper::~FontHelper() {
 
 void FontHelper::loadFont(const string &fontName, int fontSize) {
 	if (!TTF_WasInit()) {
-		DEBUG("Initializing font");
+		TRACE("Initializing font");
 		if (TTF_Init() == -1) {
 			ERROR("TTF_Init: %s", TTF_GetError());
 			exit(2);

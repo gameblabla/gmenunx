@@ -102,7 +102,7 @@ bool rmtree(string path) {
 	struct dirent *dptr;
 	string filepath;
 
-	DEBUG("RMTREE: '%s'", path.c_str());
+	TRACE("RMTREE: '%s'", path.c_str());
 
 	if ((dirp = opendir(path.c_str())) == NULL) return false;
 	if (path[path.length()-1]!='/') path += "/";
@@ -208,13 +208,13 @@ string strreplace(string orig, const string &search, const string &replace) {
 }
 
 string cmdclean(string cmdline) {
-	DEBUG("cmdclean - enter : %s", cmdline.c_str());
+	TRACE("cmdclean - enter : %s", cmdline.c_str());
 	string spchars = "\\`$();|{}&'\"*?<>[]!^~-#\n\r ";
 	for (uint32_t i=0; i<spchars.length(); i++) {
 		string curchar = spchars.substr(i,1);
 		cmdline = strreplace(cmdline, curchar, "\\"+curchar);
 	}
-	DEBUG("cmdclean - exit : %s", cmdline.c_str());
+	TRACE("cmdclean - exit : %s", cmdline.c_str());
 	return cmdline;
 }
 
@@ -260,13 +260,13 @@ string base_name(const string &path) {
 }
 
 bool procWriter(string path, string value) {
-	DEBUG("procWriter:: - %s - %s", path.c_str(), value.c_str());
+	TRACE("procWriter:: - %s - %s", path.c_str(), value.c_str());
 	if (fileExists(path)) {
-		DEBUG("procWriter:: - file exists");
+		TRACE("procWriter:: - file exists");
 		ofstream str(path);
 		str << value;
 		str.close();
-		DEBUG("procWriter:: - success");
+		TRACE("procWriter:: - success");
 		return true;
 	}
 	return false;

@@ -36,7 +36,7 @@
 using namespace std;
 
 Menu::Menu(GMenu2X *gmenu2x) {
-	DEBUG("Menu :: ctor - enter");
+	TRACE("Menu :: ctor - enter");
 	this->gmenu2x = gmenu2x;
 	iFirstDispSection = 0;
 
@@ -45,44 +45,44 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	struct dirent *dptr;
 	string filepath;
 
-	DEBUG("Menu :: ctor - opening sections");
+	TRACE("Menu :: ctor - opening sections");
 	string resolvedPath = this->gmenu2x->getAssetsPath()+"sections/";
-	DEBUG("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
+	TRACE("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
-	DEBUG("Menu :: ctor - readdir : %i", dirp);
+	TRACE("Menu :: ctor - readdir : %i", dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
-		DEBUG("Menu :: ctor - reading : %s", dptr->d_name);
+		TRACE("Menu :: ctor - reading : %s", dptr->d_name);
 		filepath = (string)(resolvedPath + dptr->d_name);
-		DEBUG("Menu :: ctor - checking : %s", filepath.c_str());
+		TRACE("Menu :: ctor - checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
-		DEBUG("Menu :: ctor - reading stat : %i", statRet);
+		TRACE("Menu :: ctor - reading stat : %i", statRet);
 		if (!S_ISDIR(st.st_mode)) continue;
 		if (statRet != -1) {
-			DEBUG("Menu :: ctor - adding section : %s", dptr->d_name);
+			TRACE("Menu :: ctor - adding section : %s", dptr->d_name);
 			sections.push_back((string)dptr->d_name);
 			// 
 			linklist ll;
 			links.push_back(ll);
 		}
 	}
-	DEBUG("Menu :: ctor - dirp has been read");
+	TRACE("Menu :: ctor - dirp has been read");
 	
-	DEBUG("Menu :: ctor - add sections");
+	TRACE("Menu :: ctor - add sections");
 	addSection("settings");
-	DEBUG("Menu :: ctor - add applications");
+	TRACE("Menu :: ctor - add applications");
 	addSection("applications");
 
-	DEBUG("Menu :: ctor - close dirp");
+	TRACE("Menu :: ctor - close dirp");
 	closedir(dirp);
-	DEBUG("Menu :: ctor - sort");
+	TRACE("Menu :: ctor - sort");
 	sort(sections.begin(),sections.end(),case_less());
-	DEBUG("Menu :: ctor - set index 0");
+	TRACE("Menu :: ctor - set index 0");
 	setSectionIndex(0);
-	DEBUG("Menu :: ctor - read links");
+	TRACE("Menu :: ctor - read links");
 	readLinks();
-	DEBUG("Menu :: ctor - exit");
+	TRACE("Menu :: ctor - exit");
 }
 
 Menu::~Menu() {
@@ -208,7 +208,7 @@ bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::Fa
 }
 
 bool Menu::addLink(string path, string file, string section) {
-	DEBUG("Menu::addLink - enter");
+	TRACE("Menu::addLink - enter");
 	if (section == "")
 		section = selSection();
 	else if (find(sections.begin(), sections.end(), section) == sections.end()) {
@@ -280,23 +280,23 @@ bool Menu::addLink(string path, string file, string section) {
 
 	setLinkIndex(links[isection].size() - 1);
 
-	DEBUG("Menu::addLink - exit");
+	TRACE("Menu::addLink - exit");
 	return true;
 }
 
 bool Menu::addSection(const string &sectionName) {
-	DEBUG("Menu::addSection - enter %s", sectionName.c_str());
+	TRACE("Menu::addSection - enter %s", sectionName.c_str());
 	string sectiondir = gmenu2x->getAssetsPath() + "sections/" + sectionName;
 
 	if (mkdir(sectiondir.c_str(),0777) == 0) {
 		sections.push_back(sectionName);
 		linklist ll;
 		links.push_back(ll);
-		DEBUG("Menu::addSection - exit created dir : %s", sectiondir.c_str());
+		TRACE("Menu::addSection - exit created dir : %s", sectiondir.c_str());
 		return true;
 	} else if (errno == EEXIST ) {
-		DEBUG("Menu::addSection - skipping dir already exists : %s", sectiondir.c_str());
-	} else DEBUG("Menu::addSection - failed to mkdir");
+		TRACE("Menu::addSection - skipping dir already exists : %s", sectiondir.c_str());
+	} else TRACE("Menu::addSection - failed to mkdir");
 	return false;
 }
 
@@ -427,7 +427,7 @@ void Menu::setLinkIndex(int i) {
 }
 
 void Menu::readLinks() {
-	DEBUG("Menu::readLinks - enter");
+	TRACE("Menu::readLinks - enter");
 	vector<string> linkfiles;
 
 	iLink = 0;
@@ -444,37 +444,37 @@ void Menu::readLinks() {
 		linkfiles.clear();
 		string full_path = assets_path + sectionPath(i);
 		
-		DEBUG("Menu::readLinks - scanning path : %s", full_path.c_str());
+		TRACE("Menu::readLinks - scanning path : %s", full_path.c_str());
 		if ((dirp = opendir(full_path.c_str())) == NULL) continue;
-		DEBUG("Menu::readLinks - opened path : %s", full_path.c_str());
+		TRACE("Menu::readLinks - opened path : %s", full_path.c_str());
 		while ((dptr = readdir(dirp))) {
 			if (dptr->d_name[0] == '.') continue;
 			filepath = full_path + dptr->d_name;
-			DEBUG("Menu::readLinks - filepath : %s", filepath.c_str());
+			TRACE("Menu::readLinks - filepath : %s", filepath.c_str());
 			int statRet = stat(filepath.c_str(), &st);
 			if (S_ISDIR(st.st_mode)) continue;
 			if (statRet != -1) {
-				DEBUG("Menu::readLinks - filepath valid : %s", filepath.c_str());
+				TRACE("Menu::readLinks - filepath valid : %s", filepath.c_str());
 				linkfiles.push_back(filepath);
 			}
 		}
 
-		DEBUG("Menu::readLinks - sorting links");
+		TRACE("Menu::readLinks - sorting links");
 		sort(linkfiles.begin(), linkfiles.end(),case_less());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkfiles[x].c_str());
 			if (link->targetExists()) {
-				DEBUG("Menu::readLinks - target exists");
+				TRACE("Menu::readLinks - target exists");
 				links[i].push_back( link );
 			} else {
-				DEBUG("Menu::readLinks - target doesn't exist");
+				TRACE("Menu::readLinks - target doesn't exist");
 				delete link;
 			}
 		}
 
 		closedir(dirp);
 	}
-	DEBUG("Menu::readLinks - exit");
+	TRACE("Menu::readLinks - exit");
 }
 
 void Menu::renameSection(int index, const string &name) {

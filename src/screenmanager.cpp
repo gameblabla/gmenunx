@@ -11,17 +11,17 @@
 ScreenManager *ScreenManager::instance = nullptr;
 
 Uint32 screenTimerCallback(Uint32 timeout, void *d) {
-	DEBUG("ScreenManager::screenTimerCallback - enter");
+	TRACE("ScreenManager::screenTimerCallback - enter");
 	unsigned int * old_ticks = (unsigned int *) d;
 	unsigned int new_ticks = SDL_GetTicks();
 
 	if (new_ticks > *old_ticks + timeout + 1000) {
-		DEBUG("Suspend occured, restarting timer\n");
+		TRACE("Suspend occured, restarting timer\n");
 		*old_ticks = new_ticks;
 		return timeout;
 	}
 
-	DEBUG("ScreenManager::screenTimerCallback - Disable Backlight Event\n");
+	TRACE("ScreenManager::screenTimerCallback - Disable Backlight Event\n");
 	ScreenManager::instance->disableScreen();
 	return 0;
 }
@@ -54,7 +54,7 @@ void ScreenManager::setScreenTimeout(unsigned int seconds) {
 }
 
 void ScreenManager::resetScreenTimer() {
-	//DEBUG("ScreenManager::resetScreenTimer - enter");
+	//TRACE("ScreenManager::resetScreenTimer - enter");
 	removeScreenTimer();
 	enableScreen();
 	if (screenTimeout != 0) {
@@ -63,9 +63,9 @@ void ScreenManager::resetScreenTimer() {
 }
 
 void ScreenManager::addScreenTimer() {
-	//DEBUG("ScreenManager::addScreenTimer - enter");
+	//TRACE("ScreenManager::addScreenTimer - enter");
 	assert(!screenTimer);
-	//DEBUG("ScreenManager::addScreenTimer - no screen timer exists");
+	//TRACE("ScreenManager::addScreenTimer - no screen timer exists");
 	timeout_startms = SDL_GetTicks();
 	screenTimer = SDL_AddTimer(
 			screenTimeout * 1000, screenTimerCallback, &timeout_startms);
@@ -75,18 +75,18 @@ void ScreenManager::addScreenTimer() {
 }
 
 void ScreenManager::removeScreenTimer() {
-	//DEBUG("ScreenManager::removeScreenTimer - enter");
+	//TRACE("ScreenManager::removeScreenTimer - enter");
 	if (screenTimer) {
-		//DEBUG("ScreenManager::removeScreenTimer - timer exists");
+		//TRACE("ScreenManager::removeScreenTimer - timer exists");
 		SDL_RemoveTimer(screenTimer);
 		screenTimer = nullptr;
-		//DEBUG("ScreenManager::removeScreenTimer - timer safely removed");
+		//TRACE("ScreenManager::removeScreenTimer - timer safely removed");
 	}
 }
 
 #define SCREEN_BLANK_PATH "/sys/class/graphics/fb0/blank"
 void ScreenManager::setScreenBlanking(bool state) {
-	DEBUG("ScreenManager::setScreenBlanking - %s", (state ? "on" : "off"));
+	TRACE("ScreenManager::setScreenBlanking - %s", (state ? "on" : "off"));
 	const char *path = SCREEN_BLANK_PATH;
 	const char *blank = state ? "0" : "1";
 
@@ -104,7 +104,7 @@ void ScreenManager::setScreenBlanking(bool state) {
 }
 
 void ScreenManager::enableScreen() {
-	DEBUG("ScreenManager::enableScreen - enter");
+	TRACE("ScreenManager::enableScreen - enter");
 	asleep = false;
 	if (!screenState) {
 		setScreenBlanking(true);
@@ -112,7 +112,7 @@ void ScreenManager::enableScreen() {
 }
 
 void ScreenManager::disableScreen() {
-	DEBUG("ScreenManager::disableScreen - enter");
+	TRACE("ScreenManager::disableScreen - enter");
 	asleep = true;
 	if (screenState) {
 		setScreenBlanking(false);

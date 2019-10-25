@@ -7,13 +7,16 @@
 #define WARNING_L 2
 #define INFO_L 3
 #define DEBUG_L 4
+#define TRACE_L 5
 
 #ifndef LOG_LEVEL
-# define LOG_LEVEL DEBUG_L
+# define LOG_LEVEL INFO_L
 #endif
 
 // -------------
-
+#ifndef COLOR_TRACE
+# define COLOR_TRACE   "\e[1;35m"
+#endif
 #ifndef COLOR_DEBUG
 # define COLOR_DEBUG   "\e[1;34m"
 #endif
@@ -28,6 +31,18 @@
 #endif
 
 #define COLOR_END "\e[00m"
+
+#if (LOG_LEVEL >= TRACE_L)
+# ifdef COLOR_TRACE
+#  define TRACE(str, ...) \
+    fprintf(stdout, COLOR_TRACE "[D] %s:%d %s: " str COLOR_END "\n", __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
+# else
+#  define TRACE(str, ...) \
+    fprintf(stdout, "TRACE: " str "\n", ##__VA_ARGS__)
+# endif
+#else
+# define TRACE(...)
+#endif
 
 #if (LOG_LEVEL >= DEBUG_L)
 # ifdef COLOR_DEBUG

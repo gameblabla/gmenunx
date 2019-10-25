@@ -212,7 +212,7 @@ uint8_t getVolumeMode(uint8_t vol) {
 }
 
 GMenu2X::~GMenu2X() {
-	DEBUG("GMenu2X::dtor");
+	TRACE("GMenu2X::dtor");
 	confStr["datetime"] = getDateTime();
 
 	writeConfig();
@@ -224,7 +224,7 @@ GMenu2X::~GMenu2X() {
 	delete font;
 	delete titlefont;
 	delete led;
-	DEBUG("GMenu2X::dtor");
+	TRACE("GMenu2X::dtor");
 }
 
 void GMenu2X::releaseScreen() {
@@ -242,14 +242,14 @@ void GMenu2X::quit() {
 int main(int /*argc*/, char * /*argv*/[]) {
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
 
-	DEBUG("Signals");
+	TRACE("Signals");
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
-	DEBUG("New app");
+	TRACE("New app");
 	app = new GMenu2X();
-	DEBUG("Starting app->main()");
+	TRACE("Starting app->main()");
 	app->main();
 
 	return 0;
@@ -269,17 +269,17 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	// instance = this;
 	//Detect firmware version and type
 
-	DEBUG("GMenu2X::ctor - enter");
+	TRACE("GMenu2X::ctor - enter");
 
 	exe_path = "";
 	assets_path = "";
-	DEBUG("GMenu2X::ctor - getExePath");
+	TRACE("GMenu2X::ctor - getExePath");
 	getExePath();
-	DEBUG("GMenu2X::ctor - getAssetsPath");
+	TRACE("GMenu2X::ctor - getAssetsPath");
 	getAssetsPath();
 
 	//load config data
-	DEBUG("GMenu2X::ctor - readConfig");
+	TRACE("GMenu2X::ctor - readConfig");
 	readConfig();
 
 	halfX = resX/2;
@@ -287,54 +287,54 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	sc.setPrefix(assets_path);
 	setPerformanceMode();
 
-	DEBUG("GMenu2X::ctor - creating LED instance");
+	TRACE("GMenu2X::ctor - creating LED instance");
 	led = new LED();
 	ledOn();
 
-	DEBUG("GMenu2X::ctor - checkUDC");
+	TRACE("GMenu2X::ctor - checkUDC");
 	checkUDC();
 
-	DEBUG("GMenu2X::ctor - setEnv");
+	TRACE("GMenu2X::ctor - setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 
-	DEBUG("GMenu2X::ctor - setDateTime");
+	TRACE("GMenu2X::ctor - setDateTime");
 	setDateTime();
 
 	//Screen
-	DEBUG("GMenu2X::ctor - sdl_init");
+	TRACE("GMenu2X::ctor - sdl_init");
 	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit();
 	}
 
-	DEBUG("GMenu2X::ctor - surface");
+	TRACE("GMenu2X::ctor - surface");
 	s = new Surface();
-	DEBUG("GMenu2X::ctor - No target");
-	DEBUG("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
+	TRACE("GMenu2X::ctor - No target");
+	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
-	DEBUG("GMenu2X::ctor - setWallpaper");
+	TRACE("GMenu2X::ctor - setWallpaper");
 	setWallpaper(confStr["wallpaper"]);
 
-	DEBUG("GMenu2X::ctor - setSkin");
+	TRACE("GMenu2X::ctor - setSkin");
 	setSkin(confStr["skin"], false, true);
 
-	DEBUG("GMenu2X::ctor - power mgr");
+	TRACE("GMenu2X::ctor - power mgr");
 	powerManager = new PowerManager(this, confInt["backlightTimeout"], confInt["powerTimeout"]);
 
-	DEBUG("GMenu2X::ctor - screen manager");
+	TRACE("GMenu2X::ctor - screen manager");
 	screenManager.setScreenTimeout(confInt["backlightTimeout"]);
 	
-	DEBUG("GMenu2X::ctor - loading");
+	TRACE("GMenu2X::ctor - loading");
 	MessageBox mb(this,tr["Loading"]);
 	mb.setAutoHide(1);
 	mb.exec();
 
-	DEBUG("GMenu2X::ctor - backlight");
+	TRACE("GMenu2X::ctor - backlight");
 	setBacklight(confInt["backlight"]);
 
-	DEBUG("GMenu2X::ctor - input");
+	TRACE("GMenu2X::ctor - input");
 	input.init(assets_path + "input.conf");
 	setInputSpeed();
 
@@ -348,34 +348,34 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	preMMCStatus = curMMCStatus = getMMCStatus();
 	udcConnectedOnBoot = getUDCStatus();
 #endif
-	DEBUG("GMenu2X::ctor - volume");
+	TRACE("GMenu2X::ctor - volume");
 	volumeModePrev = volumeMode = getVolumeMode(confInt["globalVolume"]);
 	
-	DEBUG("GMenu2X::ctor - menu");
+	TRACE("GMenu2X::ctor - menu");
 	initMenu();
 
-	DEBUG("GMenu2X::ctor - setCpu");
+	TRACE("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
 	
-	//DEBUG("GMenu2X::ctor - wake up");
+	//TRACE("GMenu2X::ctor - wake up");
 	input.setWakeUpInterval(1000);
 
 	// turn the blinker off
 	ledOff();
 
 	//recover last session
-	DEBUG("GMenu2X::ctor - recoverSession");
+	TRACE("GMenu2X::ctor - recoverSession");
 	if (lastSelectorElement >- 1 && menu->selLinkApp() != NULL && (!menu->selLinkApp()->getSelectorDir().empty() || !lastSelectorDir.empty()))
 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
 
-	DEBUG("GMenu2X::ctor - exit");
+	TRACE("GMenu2X::ctor - exit");
 
 }
 
 void GMenu2X::main() {
 	pthread_t thread_id;
 
-	DEBUG("main");
+	TRACE("main");
 	
 	bool quit = false;
 	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
@@ -418,7 +418,7 @@ void GMenu2X::main() {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
 
-	DEBUG("main :: loop");
+	TRACE("main :: loop");
 	while (!quit) {
 		tickNow = SDL_GetTicks();
 
@@ -445,14 +445,14 @@ void GMenu2X::main() {
 		}
 
 		// LINKS
-		//DEBUG("main :: links");
+		//TRACE("main :: links");
 		s->setClipRect(linksRect);
 		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
 
 		i = menu->firstDispRow() * linkCols;
 
 		if (linkCols == 1) {
-			//DEBUG("main :: links - column mode : %i", menu->sectionLinks()->size());
+			//TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
 			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
@@ -462,12 +462,12 @@ void GMenu2X::main() {
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
 				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
-				//DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
-			//DEBUG("main :: links - row mode : %i", menu->sectionLinks()->size());
+			//TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
 			for (y = 0; y < linkRows; y++) {
 				for (x = 0; x < linkCols && i < menu->sectionLinks()->size(); x++, i++) {
 					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
@@ -480,18 +480,18 @@ void GMenu2X::main() {
 
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, HAlignCenter | VAlignMiddle);
 
-					//DEBUG("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+					//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 					s->write(font, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkWidth/2, iy + linkHeight - 2, HAlignCenter | VAlignBottom);
 				}
 			}
 		}
-		//DEBUG("main :: links - done");
+		//TRACE("main :: links - done");
 		s->clearClipRect();
 
 		
 		drawScrollBar(linkRows, menu->sectionLinks()->size()/linkCols + ((menu->sectionLinks()->size()%linkCols==0) ? 0 : 1), menu->firstDispRow(), linksRect);
 
-		// TRAY DEBUG
+		// TRAY TRACE
 		// s->box(sectionBarRect.x + sectionBarRect.w - 38 + 0 * 20, sectionBarRect.y + sectionBarRect.h - 18,16,16, strtorgba("ffff00ff"));
 		// s->box(sectionBarRect.x + sectionBarRect.w - 38 + 1 * 20, sectionBarRect.y + sectionBarRect.h - 18,16,16, strtorgba("00ff00ff"));
 		// s->box(sectionBarRect.x + sectionBarRect.w - 38, sectionBarRect.y + sectionBarRect.h - 38,16,16, strtorgba("0000ffff"));
@@ -578,7 +578,7 @@ void GMenu2X::main() {
 		if (inputCommonActions(inputAction)) continue;
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
-			DEBUG("******************RUNNING THIS*******************");
+			TRACE("******************RUNNING THIS*******************");
 			// why??
 			setVolume(confInt["globalVolume"]);
 
@@ -588,7 +588,7 @@ void GMenu2X::main() {
 				mb.exec();
 			}
 
-			DEBUG("******************RUNNING THIS -- RUN*******************");
+			TRACE("******************RUNNING THIS -- RUN*******************");
 			menu->selLink()->run();
 		}
 		else if ( input[SETTINGS] ) settings();
@@ -649,11 +649,11 @@ void GMenu2X::main() {
 	pthread_join(thread_id, NULL);
 	// delete btnContextMenu;
 	// btnContextMenu = NULL;
-	DEBUG("main :: exit");
+	TRACE("main :: exit");
 }
 
 bool GMenu2X::inputCommonActions(bool &inputAction) {
-	//DEBUG("GMenu2X::inputCommonActions - enter");
+	//TRACE("GMenu2X::inputCommonActions - enter");
 
 	if (powerManager->suspendActive) {
 		// SUSPEND ACTIVE
@@ -712,7 +712,7 @@ bool GMenu2X::inputCommonActions(bool &inputAction) {
 
 	input[MENU] = wasActive; // Key was active but no combo was pressed
 
-	//DEBUG("GMenu2X::inputCommonActions - exit");
+	//TRACE("GMenu2X::inputCommonActions - exit");
 	/*
 	if ( input[BACKLIGHT] ) {
 		setBacklight(confInt["backlight"]);
@@ -819,35 +819,35 @@ void GMenu2X::hwDeinit() {
 }
 
 void GMenu2X::setWallpaper(const string &wallpaper) {
-	DEBUG("GMenu2X::setWallpaper - enter");
+	TRACE("GMenu2X::setWallpaper - enter");
 	if (bg != NULL) delete bg;
 
-	DEBUG("GMenu2X::setWallpaper - new surface");
+	TRACE("GMenu2X::setWallpaper - new surface");
 	bg = new Surface(s);
-	DEBUG("GMenu2X::setWallpaper - bg box");
+	TRACE("GMenu2X::setWallpaper - bg box");
 	bg->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 0});
 
 	confStr["wallpaper"] = wallpaper;
-	DEBUG("GMenu2X::setWallpaper - null test");
+	TRACE("GMenu2X::setWallpaper - null test");
 	if (wallpaper.empty() || sc.add(wallpaper) == NULL) {
 		string relativePath = "skins/" + confStr["skin"] + "/wallpapers";
-		DEBUG("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
+		TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
 
 		FileLister fl(assets_path + relativePath, false, true);
 		fl.setFilter(".png,.jpg,.jpeg,.bmp");
 		fl.browse();
 		if (fl.getFiles().size() <= 0 && confStr["skin"] != "Default") {
-			DEBUG("GMenu2X::setWallpaper - Couldn't find non default skin, falling back to default");
+			TRACE("GMenu2X::setWallpaper - Couldn't find non default skin, falling back to default");
 			fl.setPath(assets_path + "skins/Default/wallpapers", true);// + relativePath, true);
 		}
 		if (fl.getFiles().size() > 0) {
-			DEBUG("GMenu2X::setWallpaper - found our wallpaper");
+			TRACE("GMenu2X::setWallpaper - found our wallpaper");
 			confStr["wallpaper"] = fl.getPath() + "/" + fl.getFiles()[0];
 		}
 	}
-	DEBUG("GMenu2X::setWallpaper - blit");
+	TRACE("GMenu2X::setWallpaper - blit");
 	sc[wallpaper]->blit(bg, 0, 0);
-	DEBUG("GMenu2X::setWallpaper - exit");
+	TRACE("GMenu2X::setWallpaper - exit");
 }
 
 void GMenu2X::initLayout() {
@@ -887,36 +887,36 @@ void GMenu2X::initLayout() {
 }
 
 void GMenu2X::initFont() {
-	DEBUG("GMenu2X::initFont - enter");
+	TRACE("GMenu2X::initFont - enter");
 	if (font != NULL) {
-		DEBUG("GMenu2X::initFont - delete font");
+		TRACE("GMenu2X::initFont - delete font");
 		delete font;
 	}
 	if (titlefont != NULL) {
-		DEBUG("GMenu2X::initFont - delete tile font");
+		TRACE("GMenu2X::initFont - delete tile font");
 		delete titlefont;
 	}
 
 	string fontPath = sc.getSkinFilePath("font.ttf");
-	DEBUG("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
-	DEBUG("GMenu2X::initFont - getFont");
+	TRACE("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
+	TRACE("GMenu2X::initFont - getFont");
 	font = new FontHelper(fontPath, skinConfInt["fontSize"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
-	DEBUG("GMenu2X::initFont - getTileFont");
+	TRACE("GMenu2X::initFont - getTileFont");
 	titlefont = new FontHelper(fontPath, skinConfInt["fontSizeTitle"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
-	DEBUG("GMenu2X::initFont - exit");
+	TRACE("GMenu2X::initFont - exit");
 }
 
 void GMenu2X::initMenu() {
-	DEBUG("GMenu2X::initMenu - enter");
+	TRACE("GMenu2X::initMenu - enter");
 	if (menu != NULL) delete menu;
-	DEBUG("GMenu2X::initMenu - initLayout");
+	TRACE("GMenu2X::initMenu - initLayout");
 	initLayout();
 
 	//Menu structure handler
-	DEBUG("GMenu2X::initMenu - new menu");
+	TRACE("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
 
-	DEBUG("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
+	TRACE("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
@@ -978,17 +978,17 @@ void GMenu2X::initMenu() {
 			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "skin:icons/exit.png");
 		}
 	}
-	DEBUG("GMenu2X::initMenu - menu->setSectionIndex : %i", confInt["section"]);
+	TRACE("GMenu2X::initMenu - menu->setSectionIndex : %i", confInt["section"]);
 	menu->setSectionIndex(confInt["section"]);
-	DEBUG("GMenu2X::initMenu - menu->setLinkIndex : %i", confInt["link"]);
+	TRACE("GMenu2X::initMenu - menu->setLinkIndex : %i", confInt["link"]);
 	menu->setLinkIndex(confInt["link"]);
-	DEBUG("GMenu2X::initMenu - menu->loadIcons");
+	TRACE("GMenu2X::initMenu - menu->loadIcons");
 	menu->loadIcons();
-	DEBUG("GMenu2X::initMenu - exit");
+	TRACE("GMenu2X::initMenu - exit");
 }
 
 void GMenu2X::settings() {
-	DEBUG("GMenu2X::settings - enter");
+	TRACE("GMenu2X::settings - enter");
 	int curGlobalVolume = confInt["globalVolume"];
 	int curGlobalBrightness = confInt["backlight"];
 
@@ -1045,7 +1045,7 @@ void GMenu2X::settings() {
 			tr.setLang(lang);
 		}
 
-		DEBUG("GMenu2X::settings - setScreenTimeout - %i", confInt["backlightTimeout"]);
+		TRACE("GMenu2X::settings - setScreenTimeout - %i", confInt["backlightTimeout"]);
 		screenManager.resetScreenTimer();
 		screenManager.setScreenTimeout(confInt["backlightTimeout"]);
 
@@ -1058,7 +1058,7 @@ void GMenu2X::settings() {
 
 		if (prevDateTime != confStr["datetime"]) restartDialog();
 	}
-	DEBUG("GMenu2X::settings - exit");
+	TRACE("GMenu2X::settings - exit");
 }
 
 void GMenu2X::resetSettings() {
@@ -1125,7 +1125,7 @@ void GMenu2X::resetSettings() {
 }
 
 void GMenu2X::cpuSettings() {
-	DEBUG("GMenu2X::cpuSettings - enter");
+	TRACE("GMenu2X::cpuSettings - enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &confInt["cpuMenu"], 528, 528, 600, 6));
 	sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock "], tr["Maximum overclock for launching links"], &confInt["cpuMax"], 624, 600, 1200, 6));
@@ -1135,7 +1135,7 @@ void GMenu2X::cpuSettings() {
 		setCPU(confInt["cpuMenu"]);
 		writeConfig();
 	}
-	DEBUG("GMenu2X::cpuSettings - exit");
+	TRACE("GMenu2X::cpuSettings - exit");
 }
 /*
 void GMenu2X::readTmp() {
@@ -1180,7 +1180,7 @@ void GMenu2X::readConfig() {
 	
 	string conffile = assets_path + "gmenunx.conf";
 
-	DEBUG("GMenu2X::readConfig - enter : %s", conffile.c_str());
+	TRACE("GMenu2X::readConfig - enter : %s", conffile.c_str());
 	
 	// Defaults
 	confStr["batteryType"] = "BL-5B";
@@ -1234,37 +1234,37 @@ void GMenu2X::readConfig() {
 	resX = constrain( confInt["resolutionX"], 320, 1920 );
 	resY = constrain( confInt["resolutionY"], 240, 1200 );
 	
-	DEBUG("GMenu2X::readConfig - exit");
+	TRACE("GMenu2X::readConfig - exit");
 }
 
 void GMenu2X::writeConfig() {
-	DEBUG("GMenu2X::writeConfig - enter");
+	TRACE("GMenu2X::writeConfig - enter");
 	ledOn();
 	if (confInt["saveSelection"] && menu != NULL) {
-		DEBUG("GMenu2X::writeConfig - save selection");
+		TRACE("GMenu2X::writeConfig - save selection");
 		confInt["section"] = menu->selSectionIndex();
 		confInt["link"] = menu->selLinkIndex();
 	}
 
 	string conffile = assets_path + "gmenunx.conf";
-	DEBUG("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
+	TRACE("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
-		DEBUG("GMenu2X::writeConfig - stream open");
+		TRACE("GMenu2X::writeConfig - stream open");
 		for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
 			if (curr->first == "sectionBarPosition" || curr->first == "tvoutEncoding") continue;
-			DEBUG("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
+			TRACE("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
 			inf << curr->first << "=\"" << curr->second << "\"" << endl;
 		}
 
 		for (ConfIntHash::iterator curr = confInt.begin(); curr != confInt.end(); curr++) {
 			if (curr->first == "batteryLog" || curr->first == "maxClock" || curr->first == "minClock" || curr->first == "menuClock") continue;
-			DEBUG("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
+			TRACE("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
 			inf << curr->first << "=" << curr->second << endl;
 		}
-		DEBUG("GMenu2X::writeConfig - close");
+		TRACE("GMenu2X::writeConfig - close");
 		inf.close();
-		DEBUG("GMenu2X::writeConfig - sync");
+		TRACE("GMenu2X::writeConfig - sync");
 		sync();
 	}
 
@@ -1272,13 +1272,13 @@ void GMenu2X::writeConfig() {
 		if (fwType == "open2x" && savedVolumeMode != volumeMode)
 			writeConfigOpen2x();
 #endif
-	DEBUG("GMenu2X::writeConfig - ledOff");
+	TRACE("GMenu2X::writeConfig - ledOff");
 	ledOff();
-	DEBUG("GMenu2X::writeConfig - exit");
+	TRACE("GMenu2X::writeConfig - exit");
 }
 
 void GMenu2X::writeSkinConfig() {
-	DEBUG("GMenu2X::writeSkinConfig - enter");
+	TRACE("GMenu2X::writeSkinConfig - enter");
 	ledOn();
 	string conffile = assets_path + "skins/" + confStr["skin"] + "/skin.conf";
 	ofstream inf(conffile.c_str());
@@ -1299,31 +1299,31 @@ void GMenu2X::writeSkinConfig() {
 		sync();
 	}
 	ledOff();
-	DEBUG("GMenu2X::writeSkinConfig - exit");
+	TRACE("GMenu2X::writeSkinConfig - exit");
 }
 
 void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
-	DEBUG("GMenu2X::setSkin - enter - %s", skin.c_str());
+	TRACE("GMenu2X::setSkin - enter - %s", skin.c_str());
 	
 	confStr["skin"] = skin;
 
 //Clear previous skin settings
-	DEBUG("GMenu2X::setSkin - clear skinConfStr");
+	TRACE("GMenu2X::setSkin - clear skinConfStr");
 	skinConfStr.clear();
-	DEBUG("GMenu2X::setSkin - clear skinConfInt");
+	TRACE("GMenu2X::setSkin - clear skinConfInt");
 	skinConfInt.clear();
 
 //clear collection and change the skin path
 	if (clearSC) {
-		DEBUG("GMenu2X::setSkin - clearSC");
+		TRACE("GMenu2X::setSkin - clearSC");
 		sc.clear();
 	}
-	DEBUG("GMenu2X::setSkin - sc.setSkin");
+	TRACE("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(skin);
 	// if (btnContextMenu != NULL) btnContextMenu->setIcon( btnContextMenu->getIcon() );
 
 //reset colors to the default values
-	DEBUG("GMenu2X::setSkin - skinFontColors");
+	TRACE("GMenu2X::setSkin - skinFontColors");
 	skinConfColors[COLOR_TOP_BAR_BG] = (RGBAColor){255,255,255,130};
 	skinConfColors[COLOR_LIST_BG] = (RGBAColor){255,255,255,0};
 	skinConfColors[COLOR_BOTTOM_BAR_BG] = (RGBAColor){255,255,255,130};
@@ -1338,15 +1338,15 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 
 //load skin settings
 	string skinconfname = assets_path + "skins/" + skin + "/skin.conf";
-	DEBUG("GMenu2X::setSkin - skinconfname : %s", skinconfname.c_str());
+	TRACE("GMenu2X::setSkin - skinconfname : %s", skinconfname.c_str());
 	if (fileExists(skinconfname)) {
-		DEBUG("GMenu2X::setSkin - skinconfname : exists");
+		TRACE("GMenu2X::setSkin - skinconfname : exists");
 		ifstream skinconf(skinconfname.c_str(), ios_base::in);
 		if (skinconf.is_open()) {
 			string line;
 			while (getline(skinconf, line, '\n')) {
 				line = trim(line);
-				// DEBUG("skinconf: '%s'", line.c_str());
+				// TRACE("skinconf: '%s'", line.c_str());
 				string::size_type pos = line.find("=");
 				string name = trim(line.substr(0,pos));
 				string value = trim(line.substr(pos+1,line.length()));
@@ -1381,15 +1381,15 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	}
 
 // (poor) HACK: ensure font alt colors have a default value
-	DEBUG("GMenu2X::setSkin - skin colors");
+	TRACE("GMenu2X::setSkin - skin colors");
 	if (skinConfColors[COLOR_FONT_ALT].r == 253 && skinConfColors[COLOR_FONT_ALT].g == 1 && skinConfColors[COLOR_FONT_ALT].b == 252 && skinConfColors[COLOR_FONT_ALT].a == 0) skinConfColors[COLOR_FONT_ALT] = skinConfColors[COLOR_FONT];
 	if (skinConfColors[COLOR_FONT_ALT_OUTLINE].r == 253 && skinConfColors[COLOR_FONT_ALT_OUTLINE].g == 1 && skinConfColors[COLOR_FONT_ALT_OUTLINE].b == 252 && skinConfColors[COLOR_FONT_ALT_OUTLINE].a == 0) skinConfColors[COLOR_FONT_ALT_OUTLINE] = skinConfColors[COLOR_FONT_OUTLINE];
 
 // prevents breaking current skin until they are updated
-	DEBUG("GMenu2X::setSkin - font size tile");
+	TRACE("GMenu2X::setSkin - font size tile");
 	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
 
-	DEBUG("GMenu2X::setSkin - evalIntConf");
+	TRACE("GMenu2X::setSkin - evalIntConf");
 	evalIntConf( &skinConfInt["topBarHeight"], 40, 1, resY);
 	evalIntConf( &skinConfInt["sectionBarSize"], 40, 1, resX);
 	evalIntConf( &skinConfInt["bottomBarHeight"], 16, 1, resY);
@@ -1398,14 +1398,14 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	evalIntConf( &skinConfInt["fontSizeTitle"], 20, 6, 60);
 
 	if (menu != NULL && clearSC) {
-		DEBUG("GMenu2X::setSkin - loadIcons");
+		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}
 
 //font
-	DEBUG("GMenu2X::setSkin - init font");
+	TRACE("GMenu2X::setSkin - init font");
 	initFont();
-	DEBUG("GMenu2X::setSkin - exit");
+	TRACE("GMenu2X::setSkin - exit");
 }
 
 uint32_t GMenu2X::onChangeSkin() {
@@ -1413,7 +1413,7 @@ uint32_t GMenu2X::onChangeSkin() {
 }
 
 void GMenu2X::skinMenu() {
-	DEBUG("GMenu2X::skinMenu - enter");
+	TRACE("GMenu2X::skinMenu - enter");
 	bool save = false;
 	int selected = 0;
 	string prevSkin = confStr["skin"];
@@ -1500,7 +1500,7 @@ void GMenu2X::skinMenu() {
 	if (prevSkinBackdrops != confInt["skinBackdrops"] || prevSkin != confStr["skin"]) restartDialog();
 	if (sbPrev != confInt["sectionBar"]) initMenu();
 	initLayout();
-	DEBUG("GMenu2X::skinMenu - exit");
+	TRACE("GMenu2X::skinMenu - exit");
 }
 
 void GMenu2X::skinColors() {
@@ -1528,15 +1528,15 @@ void GMenu2X::skinColors() {
 }
 
 void GMenu2X::about() {
-	DEBUG("GMenu2X::about - enter");
+	TRACE("GMenu2X::about - enter");
 	vector<string> text;
 	string temp;
 
 	char *hms = ms2hms(SDL_GetTicks());
 	int battLevel = getBatteryLevel();
-	//DEBUG("GMenu2X::about - batt level : %i", battLevel);
+	//TRACE("GMenu2X::about - batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
-	//DEBUG("GMenu2X::about - batt percent : %i", battPercent);
+	//TRACE("GMenu2X::about - batt percent : %i", battPercent);
 	
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
@@ -1569,15 +1569,15 @@ void GMenu2X::about() {
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
 	td.appendText(temp);
 	
-	DEBUG("GMenu2X::about - append - command /usr/bin/system_info");
+	TRACE("GMenu2X::about - append - command /usr/bin/system_info");
 	td.appendCommand("/usr/bin/system_info");
 	
 	td.appendText("----\n");
 	
-	DEBUG("GMenu2X::about - append - file %sabout.txt", assets_path.c_str());
+	TRACE("GMenu2X::about - append - file %sabout.txt", assets_path.c_str());
 	td.appendFile(assets_path + "about.txt");
 	td.exec();
-	DEBUG("GMenu2X::about - exit");
+	TRACE("GMenu2X::about - exit");
 }
 
 void GMenu2X::viewLog() {
@@ -1613,17 +1613,17 @@ void GMenu2X::linkScanner() {
 }
 
 void GMenu2X::changeWallpaper() {
-	DEBUG("GMenu2X::changeWallpaper - enter");
+	TRACE("GMenu2X::changeWallpaper - enter");
 	WallpaperDialog wp(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], "skin:icons/wallpaper.png");
 	if (wp.exec() && confStr["wallpaper"] != wp.wallpaper) {
-		DEBUG("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
+		TRACE("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
 		confStr["wallpaper"] = wp.wallpaper;
-		DEBUG("GMenu2X::changeWallpaper - set new wallpaper");
+		TRACE("GMenu2X::changeWallpaper - set new wallpaper");
 		setWallpaper(wp.wallpaper);
-		DEBUG("GMenu2X::changeWallpaper - write config");
+		TRACE("GMenu2X::changeWallpaper - write config");
 		writeConfig();
 	}
-	DEBUG("GMenu2X::changeWallpaper - exit");
+	TRACE("GMenu2X::changeWallpaper - exit");
 }
 
 void GMenu2X::showManual() {
@@ -1648,7 +1648,7 @@ void GMenu2X::showManual() {
 }
 
 void GMenu2X::explorer() {
-	DEBUG("GMenu2X::explorer - enter");
+	TRACE("GMenu2X::explorer - enter");
 	BrowseDialog fd(this, tr["Explorer"], tr["Select a file or application"]);
 	fd.showDirectories = true;
 	fd.showFiles = true;
@@ -1683,16 +1683,16 @@ void GMenu2X::explorer() {
 			execlp("./gmenu2x", "./gmenu2x", NULL);
 		}
 	}
-	DEBUG("GMenu2X::explorer - exit");
+	TRACE("GMenu2X::explorer - exit");
 }
 
 void GMenu2X::ledOn() {
-	DEBUG("ledON");
+	TRACE("ledON");
 	led->flash();
 }
 
 void GMenu2X::ledOff() {
-	DEBUG("ledOff");
+	TRACE("ledOff");
 	led->reset();
 }
 
@@ -1899,15 +1899,15 @@ void GMenu2X::umountSdDialog() {
 }
 
 void GMenu2X::checkUDC() {
-	DEBUG("GMenu2X::checkUDC - enter");
+	TRACE("GMenu2X::checkUDC - enter");
 	curMMCStatus = MMC_ERROR;
 	unsigned long size;
-	DEBUG("GMenu2X::checkUDC - reading /sys/block/mmcblk1/size");
+	TRACE("GMenu2X::checkUDC - reading /sys/block/mmcblk1/size");
 	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
 	if (fsize >> size) {
 		if (size > 0) {
 			// ok, so we're inserted, are we mounted
-			DEBUG("GMenu2X::checkUDC - size was : %lu, reading /proc/mounts", size);
+			TRACE("GMenu2X::checkUDC - size was : %lu, reading /proc/mounts", size);
 			std::ifstream procmounts( "/proc/mounts" );
 			if (!procmounts) {
 				curMMCStatus = MMC_ERROR;
@@ -1921,7 +1921,7 @@ void GMenu2X::checkUDC() {
 						found = line.find("mcblk1");
 						if (found != std::string::npos) {
 							curMMCStatus = MMC_MOUNTED;
-							DEBUG("GMenu2X::checkUDC - inserted && mounted because line : %s", line.c_str());
+							TRACE("GMenu2X::checkUDC - inserted && mounted because line : %s", line.c_str());
 							break;
 						}
 					} else {
@@ -1934,14 +1934,14 @@ void GMenu2X::checkUDC() {
 			}
 		} else {
 			curMMCStatus = MMC_MISSING;
-			DEBUG("GMenu2X::checkUDC - not inserted");
+			TRACE("GMenu2X::checkUDC - not inserted");
 		}
 	} else {
 		curMMCStatus = MMC_ERROR;
 		WARNING("GMenu2X::checkUDC - error, no card?");
 	}
 	fsize.close();
-	DEBUG("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
+	TRACE("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
 }
 
 /*
@@ -1964,21 +1964,21 @@ void GMenu2X::formatSd() {
 }
 */
 void GMenu2X::setPerformanceMode() {
-	DEBUG("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
+	TRACE("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
 	string current = getPerformanceMode();
 	if (current.compare(confStr["Performance"]) != 0) {
-		DEBUG("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
-		DEBUG("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
+		TRACE("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
+		TRACE("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
 		procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
 		initMenu();
 	} else {
-		DEBUG("GMenu2X::setPerformanceMode - nothing to do");
+		TRACE("GMenu2X::setPerformanceMode - nothing to do");
 	}
-	DEBUG("GMenu2X::setPerformanceMode - exit");	
+	TRACE("GMenu2X::setPerformanceMode - exit");	
 }
 
 string GMenu2X::getPerformanceMode() {
-	DEBUG("GMenu2X::getPerformanceMode - enter");
+	TRACE("GMenu2X::getPerformanceMode - enter");
 	/*
 	ifstream governor("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 	stringstream strStream;
@@ -1987,12 +1987,12 @@ string GMenu2X::getPerformanceMode() {
 	governor.close();
 	*/
 	string result = procReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-	DEBUG("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
+	TRACE("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
 	return full_trim(result);
 }
 
 void GMenu2X::performanceMenu() {
-	DEBUG("GMenu2X::performanceMenu - enter");
+	TRACE("GMenu2X::performanceMenu - enter");
 	vector<MenuOption> voices;
 	voices.push_back((MenuOption){tr["On demand"], 		MakeDelegate(this, &GMenu2X::setPerformanceMode)});
 	voices.push_back((MenuOption){tr["Performance"],	MakeDelegate(this, &GMenu2X::setPerformanceMode)});
@@ -2013,8 +2013,8 @@ void GMenu2X::performanceMenu() {
 	box.x = halfX - box.w / 2;
 	box.y = halfY - box.h / 2;
 
-	DEBUG("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
+	TRACE("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
+	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
 	
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
@@ -2047,24 +2047,24 @@ void GMenu2X::performanceMenu() {
 			else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
 			else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
 			else if ( input[SETTINGS] || input[CONFIRM] ) { 
-				DEBUG("GMenu2X::performanceMenu - got option - %s", voices[sel].text.c_str());
+				TRACE("GMenu2X::performanceMenu - got option - %s", voices[sel].text.c_str());
 				if (voices[sel].text == "Performance") {
 					confStr["Performance"] = "performance";
 				} else {
 					confStr["Performance"] = "ondemand";
 				}
-				DEBUG("GMenu2X::performanceMenu - resolved to - %s", confStr["Performance"].c_str());
+				TRACE("GMenu2X::performanceMenu - resolved to - %s", confStr["Performance"].c_str());
 				voices[sel].action(); 
 				close = true; 
 			}
 		} while (!inputAction);
 	}
-	DEBUG("GMenu2X::performanceMenu - exit");
+	TRACE("GMenu2X::performanceMenu - exit");
 }
 
 void GMenu2X::contextMenu() {
 	
-	DEBUG("GMenu2X::contextMenu - enter");
+	TRACE("GMenu2X::contextMenu - enter");
 	vector<MenuOption> voices;
 	if (menu->selLinkApp() != NULL) {
 		voices.push_back((MenuOption){tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), MakeDelegate(this, &GMenu2X::editLink)});
@@ -2092,8 +2092,8 @@ void GMenu2X::contextMenu() {
 	box.x = halfX - box.w / 2;
 	box.y = halfY - box.h / 2;
 
-	DEBUG("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	DEBUG("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
+	TRACE("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
+	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
 	
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
@@ -2128,7 +2128,7 @@ void GMenu2X::contextMenu() {
 			else if ( input[SETTINGS] || input[CONFIRM] ) { voices[sel].action(); close = true; }
 		} while (!inputAction);
 	}
-	DEBUG("GMenu2X::contextMenu - exit");
+	TRACE("GMenu2X::contextMenu - exit");
 }
 
 void GMenu2X::addLink() {
@@ -2325,7 +2325,7 @@ void GMenu2X::deleteSection() {
 }
 
 int GMenu2X::getBatteryLevel() {
-	DEBUG("GMenu2X::getBatteryLevel - enter");
+	TRACE("GMenu2X::getBatteryLevel - enter");
 
 	// check if we're plugged in
 	FILE *f = fopen("/sys/class/power_supply/usb/online", "r");
@@ -2337,7 +2337,7 @@ int GMenu2X::getBatteryLevel() {
 	int online;
 	fscanf(f, "%i", &online);
 	fclose(f);
-	DEBUG("GMenu2X::getBatteryLevel - online - %i", online);
+	TRACE("GMenu2X::getBatteryLevel - online - %i", online);
 
 	if (online) {
 		return 6;
@@ -2352,7 +2352,7 @@ int GMenu2X::getBatteryLevel() {
 		int battery_level;
 		fscanf(f, "%i", &battery_level);
 		fclose(f);
-		DEBUG("GMenu2X::getBatteryLevel - battery level - %i", battery_level);
+		TRACE("GMenu2X::getBatteryLevel - battery level - %i", battery_level);
 		if (battery_level >= 100) return 5;
 		else if (battery_level > 80) return 4;
 		else if (battery_level > 60) return 3;
@@ -2384,7 +2384,7 @@ void GMenu2X::setInputSpeed() {
 void GMenu2X::setCPU(uint32_t mhz) {
 	// mhz = constrain(mhz, CPU_CLK_MIN, CPU_CLK_MAX);
 	if (memdev > 0) {
-		DEBUG("Setting clock to %d", mhz);
+		TRACE("Setting clock to %d", mhz);
 
 #if defined(TARGET_GP2X)
 		uint32_t v, mdiv, pdiv=3, scale=0;
@@ -2427,31 +2427,31 @@ void GMenu2X::setCPU(uint32_t mhz) {
 #define RG350_SET_VOLUME_PATH "/usr/bin/alsa-setvolume default PCM "
 
 int GMenu2X::getVolume() {
-	DEBUG("GMenu2X::getVolume - enter");
+	TRACE("GMenu2X::getVolume - enter");
 	int vol = -1;
 	string result = exec(RG350_GET_VOLUME_PATH);
 	if (result.length() > 0) {
 		vol = atoi(trim(result).c_str());
 	}
-	DEBUG("GMenu2X::getVolume - exit : %i", vol);
+	TRACE("GMenu2X::getVolume - exit : %i", vol);
 	return vol;
 }
 
 int GMenu2X::setVolume(int val) {
-	DEBUG("GMenu2X::setVolume - enter - %i", val);
+	TRACE("GMenu2X::setVolume - enter - %i", val);
 	if (val < 0) val = 100;
 	else if (val > 100) val = 0;
 	int rg350val = (int)(val * (31.0f/100));
-	DEBUG("GMenu2X::setVolume - rg350 value : %i", rg350val);
+	TRACE("GMenu2X::setVolume - rg350 value : %i", rg350val);
 	if (rg350val == getVolume()) 
 		return val;
 	stringstream ss;
 	string cmd;
 	ss << RG350_SET_VOLUME_PATH << rg350val;
 	std::getline(ss, cmd);
-	DEBUG("GMenu2X::setVolume - cmd : %s", cmd.c_str());
+	TRACE("GMenu2X::setVolume - cmd : %s", cmd.c_str());
 	string result = exec(cmd.c_str());
-	DEBUG("GMenu2X::setVolume - result : %s", result.c_str());
+	TRACE("GMenu2X::setVolume - result : %s", result.c_str());
 	volumeMode = getVolumeMode(val);
 	return val;
 }
@@ -2459,28 +2459,28 @@ int GMenu2X::setVolume(int val) {
 #define RG350_BACKLIGHT_PATH "/sys/class/backlight/pwm-backlight/brightness"
 
 int GMenu2X::getBacklight() {
-	DEBUG("GMenu2X::getBacklight - enter");
+	TRACE("GMenu2X::getBacklight - enter");
 	int level = -1;
 	string result = procReader(RG350_BACKLIGHT_PATH);
 	if (result.length() > 0) {
 		level = atoi(trim(result).c_str());
 	}
-	DEBUG("GMenu2X::getBacklight - exit : %i", level);
+	TRACE("GMenu2X::getBacklight - exit : %i", level);
 	return level;
 }
 
 int GMenu2X::setBacklight(int val) {
-	DEBUG("GMenu2X::setBacklight - enter - %i", val);
+	TRACE("GMenu2X::setBacklight - enter - %i", val);
 	if (val <= 0) val = 100;
 	else if (val > 100) val = 0;
 	int rg350val = (int)(val * (255.0f/100));
-	DEBUG("GMenu2X::setBacklight - rg350 value : %i", rg350val);
+	TRACE("GMenu2X::setBacklight - rg350 value : %i", rg350val);
 	// save a write
 	if (rg350val == getBacklight()) 
 		return val;
 
 	if (procWriter(RG350_BACKLIGHT_PATH, rg350val)) {
-		DEBUG("GMenu2X::setBacklight - success");
+		TRACE("GMenu2X::setBacklight - success");
 	} else {
 		ERROR("Couldn't update backlight value to : %i", rg350val);
 	}
@@ -2488,7 +2488,7 @@ int GMenu2X::setBacklight(int val) {
 }
 
 const string &GMenu2X::getExePath() {
-	DEBUG("GMenu2X::getExePath - enter path: %s", exe_path.c_str());
+	TRACE("GMenu2X::getExePath - enter path: %s", exe_path.c_str());
 	if (exe_path.empty()) {
 		char buf[255];
 		memset(buf, 0, 255);
@@ -2499,41 +2499,41 @@ const string &GMenu2X::getExePath() {
 		l = exe_path.rfind("/");
 		exe_path = exe_path.substr(0, l + 1);
 	}
-	DEBUG("GMenu2X::getExePath - exit path:%s", exe_path.c_str());
+	TRACE("GMenu2X::getExePath - exit path:%s", exe_path.c_str());
 	return exe_path;
 }
 
 const string &GMenu2X::getAssetsPath() {
-	DEBUG("GMenu2X::getAssetsPath - enter path: %s", assets_path.c_str());
+	TRACE("GMenu2X::getAssetsPath - enter path: %s", assets_path.c_str());
 	if (assets_path.empty()) {
 		// check for the writable home directory existing
-		DEBUG("GMenu2X::getAssetsPath - testing for writable home dir : %s", USER_PREFIX.c_str());
+		TRACE("GMenu2X::getAssetsPath - testing for writable home dir : %s", USER_PREFIX.c_str());
 		if (opendir(USER_PREFIX.c_str()) == NULL) {
-			DEBUG("GMenu2X::getAssetsPath - No writable home dir");
+			TRACE("GMenu2X::getAssetsPath - No writable home dir");
 			stringstream ss;
 			ss << "cp -arp " << ASSET_PREFIX << " " << USER_PREFIX << " && sync";
 			string call = ss.str();
-			DEBUG("GMenu2X::getAssetsPath - Going to run :: %s", call.c_str());
+			TRACE("GMenu2X::getAssetsPath - Going to run :: %s", call.c_str());
 			system(call.c_str());
 		};
 
 		assets_path = USER_PREFIX;//ASSET_PREFIX;
 	}
-	DEBUG("GMenu2X::getAssetsPath - exit path:%s", assets_path.c_str());
+	TRACE("GMenu2X::getAssetsPath - exit path:%s", assets_path.c_str());
 	return assets_path;
 }
 
 string GMenu2X::getDiskFree(const char *path) {
-	DEBUG("GMenu2X::getDiskFree - enter - %s", path);
+	TRACE("GMenu2X::getDiskFree - enter - %s", path);
 	string df = "N/A";
 	struct statvfs b;
 
 	if (statvfs(path, &b) == 0) {
-		DEBUG("GMenu2X::getDiskFree - read statvfs ok");
+		TRACE("GMenu2X::getDiskFree - read statvfs ok");
 		// Make sure that the multiplication happens in 64 bits.
 		uint32_t freeMiB = ((uint64_t)b.f_bfree * b.f_bsize) / (1024 * 1024);
 		uint32_t totalMiB = ((uint64_t)b.f_blocks * b.f_frsize) / (1024 * 1024);
-		DEBUG("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %i", b.f_bfree, b.f_blocks, b.f_bsize);
+		TRACE("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %i", b.f_bfree, b.f_blocks, b.f_bsize);
 		stringstream ss;
 		if (totalMiB >= 10000) {
 			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "
@@ -2543,7 +2543,7 @@ string GMenu2X::getDiskFree(const char *path) {
 		}
 		std::getline(ss, df);
 	} else WARNING("statvfs failed with error '%s'.\n", strerror(errno));
-	DEBUG("GMenu2X::getDiskFree - exit");
+	TRACE("GMenu2X::getDiskFree - exit");
 	return df;
 }
 

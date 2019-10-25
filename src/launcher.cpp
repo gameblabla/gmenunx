@@ -38,13 +38,13 @@ Launcher::Launcher(vector<string> && commandLine, bool consoleApp)
 
 void Launcher::exec()
 {
-	DEBUG("Launcher::exec - enter");
+	TRACE("Launcher::exec - enter");
 	
 	if (consoleApp) {
-		DEBUG("Launcher::exec - console app");
+		TRACE("Launcher::exec - console app");
 #if BIND_CONSOLE
 		/* Enable the framebuffer console */
-		DEBUG("Launcher::exec - enabling framebuffer");
+		TRACE("Launcher::exec - enabling framebuffer");
 		char c = '1';
 		int fd = open("/sys/devices/virtual/vtconsole/vtcon1/bind", O_WRONLY);
 		if (fd < 0) {
@@ -53,7 +53,7 @@ void Launcher::exec()
 			write(fd, &c, 1);
 			close(fd);
 		}
-		DEBUG("Launcher::exec - opening tty handle");
+		TRACE("Launcher::exec - opening tty handle");
 		fd = open("/dev/tty1", O_RDWR);
 		if (fd < 0) {
 			WARNING("Unable to open tty1 handle\n");
@@ -63,10 +63,10 @@ void Launcher::exec()
 			close(fd);
 		}
 #endif
-		DEBUG("Launcher::exec - end of console specific work");
+		TRACE("Launcher::exec - end of console specific work");
 	}
 
-	DEBUG("Launcher::exec - sorting args out");
+	TRACE("Launcher::exec - sorting args out");
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
 	for (auto arg : commandLine) {
@@ -74,10 +74,10 @@ void Launcher::exec()
 	}
 	args.push_back(nullptr);
 	
-	DEBUG("Launcher::exec - exec-ing now");
+	TRACE("Launcher::exec - exec-ing now");
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
 	WARNING("Failed to exec '%s': %s\n",
 			commandLine[0].c_str(), strerror(errno));
 	
-	DEBUG("Launcher::exec - exit");
+	TRACE("Launcher::exec - exit");
 }

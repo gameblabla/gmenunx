@@ -317,16 +317,16 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 }
 
 void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
-	DEBUG("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
+	TRACE("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
 	
 	save();
 
 	//Set correct working directory
 	string wd = getRealWorkdir();
-	DEBUG("LinkApp::launch - real work dir = %s", wd.c_str());
+	TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
 	if (!wd.empty()) {
 		chdir(wd.c_str());
-		DEBUG("LinkApp::launch - changed into wrkdir");
+		TRACE("LinkApp::launch - changed into wrkdir");
 	}
 
 	//selectedFile
@@ -340,7 +340,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			selectedFileName = selectedFile.substr(0,i);
 		}
 
-		DEBUG("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
+		TRACE("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
 		if (selectedDir == "")
 			dir = getSelectorDir();
 		else
@@ -350,11 +350,11 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			if (0 != dir.compare(dir.length() -1, 1, "/")) 
 				dir += "/";
 		} else dir = "/";
-		DEBUG("LinkApp::launch - dir : %s", dir.c_str());
+		TRACE("LinkApp::launch - dir : %s", dir.c_str());
 		
 		if (params == "") {
 			params = cmdclean(dir + selectedFile);
-			DEBUG("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
+			TRACE("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
 		} else {
 			string origParams = params;
 			params = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
@@ -369,7 +369,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	//check if we have to quit
 	string command = cmdclean(exec);
-	DEBUG("LinkApp::launch - command : %s", command.c_str());
+	TRACE("LinkApp::launch - command : %s", command.c_str());
 
 	// Check to see if permissions are desirable
 	struct stat fstat;
@@ -381,7 +381,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	} // else, well.. we are no worse off :)
 
 	if (params != "") command += " " + params;
-	DEBUG("LinkApp::launch - command + params : %s", command.c_str());
+	TRACE("LinkApp::launch - command + params : %s", command.c_str());
 	
 	// if (useGinge) {
 		// string ginge_prep = gmenu2x->getExePath() + "/ginge/ginge_prep";
@@ -390,11 +390,11 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	if (gmenu2x->confInt["outputLogs"]) 
 		command += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
 	
-	DEBUG("LinkApp::launch - after logging checked : %s", command.c_str());
+	TRACE("LinkApp::launch - after logging checked : %s", command.c_str());
 
 
 	if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
-		DEBUG("LinkApp::launch - saving selection");
+		TRACE("LinkApp::launch - saving selection");
 		gmenu2x->writeConfig();
 	}
 
@@ -414,7 +414,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		delete toLaunch;
 	}
 
-	DEBUG("LinkApp::launch - exit");
+	TRACE("LinkApp::launch - exit");
 }
 
 const string &LinkApp::getExec() {
