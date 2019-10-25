@@ -271,35 +271,38 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	TRACE("GMenu2X::ctor - enter");
 
-	exe_path = "";
-	assets_path = "";
+	TRACE("GMenu2X::ctor - creating LED instance");
+	led = new LED();
+	
+	TRACE("GMenu2X::ctor - ledOn");
+	ledOn();
+
+	bool firstRun = !dirExists(getAssetsPath());
+	if (firstRun) {
+		assets_path = ASSET_PREFIX;
+	} else {
+		assets_path = getAssetsPath();
+	}
+	TRACE("GMenu2X::ctor - first run : %i, assets_path : %s", firstRun, assets_path.c_str());
+	
 	TRACE("GMenu2X::ctor - getExePath");
-	getExePath();
-	TRACE("GMenu2X::ctor - getAssetsPath");
-	getAssetsPath();
+	exe_path = getExePath();
 
 	//load config data
 	TRACE("GMenu2X::ctor - readConfig");
 	readConfig();
 
+	// set this ASAP
+	TRACE("GMenu2X::ctor - backlight");
+	setBacklight(confInt["backlight"]);
+
+	// now we can create sdl surfaces
 	halfX = resX/2;
 	halfY = resY/2;
-	sc.setPrefix(assets_path);
-	setPerformanceMode();
-
-	TRACE("GMenu2X::ctor - creating LED instance");
-	led = new LED();
-	ledOn();
-
-	TRACE("GMenu2X::ctor - checkUDC");
-	checkUDC();
 
 	TRACE("GMenu2X::ctor - setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
-
-	TRACE("GMenu2X::ctor - setDateTime");
-	setDateTime();
 
 	//Screen
 	TRACE("GMenu2X::ctor - sdl_init");
@@ -307,47 +310,61 @@ GMenu2X::GMenu2X() : input(screenManager) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit();
 	}
+	TRACE("GMenu2X::ctor - disabling the cursor");
+	SDL_ShowCursor(SDL_DISABLE);
 
 	TRACE("GMenu2X::ctor - surface");
 	s = new Surface();
-	TRACE("GMenu2X::ctor - No target");
+
 	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", resX, resY, confInt["videoBpp"]);
 	s->raw = SDL_SetVideoMode(resX, resY, confInt["videoBpp"], SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
+	TRACE("GMenu2X::ctor - set prefix on surface collection");
+	sc.setPrefix(assets_path);
+
 	TRACE("GMenu2X::ctor - setWallpaper");
 	setWallpaper(confStr["wallpaper"]);
 
 	TRACE("GMenu2X::ctor - setSkin");
 	setSkin(confStr["skin"], false, true);
 
+	TRACE("GMenu2X::ctor - screen manager");
+	screenManager.setScreenTimeout(confInt["backlightTimeout"]);
+
 	TRACE("GMenu2X::ctor - power mgr");
 	powerManager = new PowerManager(this, confInt["backlightTimeout"], confInt["powerTimeout"]);
 
-	TRACE("GMenu2X::ctor - screen manager");
-	screenManager.setScreenTimeout(confInt["backlightTimeout"]);
-	
-	TRACE("GMenu2X::ctor - loading");
-	MessageBox mb(this,tr["Loading"]);
-	mb.setAutoHide(1);
-	mb.exec();
+	if (firstRun) {
+		TRACE("GMenu2X::ctor - first run, copying skins/");
+		MessageBox mb(this,tr["Copying data for first run..."], assets_path + "skins/Default/icons/generic.png");
+		mb.setAutoHide(-1);
+		mb.exec();
+		if (copyAssets()) {
+			mb.fadeOut(500);
+			quit();
+			// or just quit ...?
+		}
+		
+	} else {
+		TRACE("GMenu2X::ctor - not first run - loading");
+		MessageBox mb(this,tr["Loading"]);
+		mb.setAutoHide(1);
+		mb.exec();
+	}
 
-	TRACE("GMenu2X::ctor - backlight");
-	setBacklight(confInt["backlight"]);
+	TRACE("GMenu2X::ctor - setPerformanceMode");
+	setPerformanceMode();
+
+	TRACE("GMenu2X::ctor - checkUDC");
+	checkUDC();
+
+	TRACE("GMenu2X::ctor - setDateTime");
+	setDateTime();
 
 	TRACE("GMenu2X::ctor - input");
 	input.init(assets_path + "input.conf");
 	setInputSpeed();
 
-#if defined(TARGET_GP2X)
-	initServices();
-	setGamma(confInt["gamma"]);
-	applyDefaultTimings();
-#elif defined(TARGET_RS97)
-	system("ln -sf $(mount | grep int_sd | cut -f 1 -d ' ') /tmp/.int_sd");
-	tvOutConnected = getTVOutStatus();
-	preMMCStatus = curMMCStatus = getMMCStatus();
-	udcConnectedOnBoot = getUDCStatus();
-#endif
 	TRACE("GMenu2X::ctor - volume");
 	volumeModePrev = volumeMode = getVolumeMode(confInt["globalVolume"]);
 	
@@ -357,10 +374,11 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - setCpu");
 	setCPU(confInt["cpuMenu"]);
 	
-	//TRACE("GMenu2X::ctor - wake up");
+	TRACE("GMenu2X::ctor - setting wake up");
 	input.setWakeUpInterval(1000);
 
 	// turn the blinker off
+	TRACE("GMenu2X::ctor - ledOff");
 	ledOff();
 
 	//recover last session
@@ -2539,23 +2557,32 @@ const string &GMenu2X::getExePath() {
 }
 
 const string &GMenu2X::getAssetsPath() {
-	TRACE("GMenu2X::getAssetsPath - enter path: %s", assets_path.c_str());
-	if (assets_path.empty()) {
-		// check for the writable home directory existing
-		TRACE("GMenu2X::getAssetsPath - testing for writable home dir : %s", USER_PREFIX.c_str());
-		if (opendir(USER_PREFIX.c_str()) == NULL) {
-			TRACE("GMenu2X::getAssetsPath - No writable home dir");
-			stringstream ss;
-			ss << "cp -arp " << ASSET_PREFIX << " " << USER_PREFIX << " && sync";
-			string call = ss.str();
-			TRACE("GMenu2X::getAssetsPath - Going to run :: %s", call.c_str());
-			system(call.c_str());
-		};
+	return USER_PREFIX;
+}
 
-		assets_path = USER_PREFIX;//ASSET_PREFIX;
-	}
-	TRACE("GMenu2X::getAssetsPath - exit path:%s", assets_path.c_str());
-	return assets_path;
+bool GMenu2X::copyAssets() {
+	TRACE("GMenu2X::copyAssets - enter");
+	bool success = false;
+	// check for the writable home directory existing
+	TRACE("GMenu2X::copyAssets - testing for writable home dir : %s", USER_PREFIX.c_str());
+	
+	//if (opendir(USER_PREFIX.c_str()) == NULL) {
+		TRACE("GMenu2X::copyAssets - No writable home dir");
+		
+		string message = "Doing first run setup....";
+		string icon = ASSET_PREFIX + "skins/Default/icons/generic.png";
+		TRACE("GMenu2X::copyAssets - icon : %s", icon.c_str());
+
+		stringstream ss;
+		ss << "cp -arp " << ASSET_PREFIX << " " << USER_PREFIX << " && sync";
+		string call = ss.str();
+		TRACE("GMenu2X::copyAssets - Going to run :: %s", call.c_str());
+		system(call.c_str());
+
+		success = true;
+	//}
+	TRACE("GMenu2X::copyAssets - exit");
+	return success;
 }
 
 string GMenu2X::getDiskFree(const char *path) {

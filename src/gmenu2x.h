@@ -199,6 +199,7 @@ public:
 	@return String containing the parent directory
 	*/
 	const string &getAssetsPath();
+	bool copyAssets();
 
 	ScreenManager screenManager;
 	InputManager input;
