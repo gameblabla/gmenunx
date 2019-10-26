@@ -268,7 +268,8 @@ bool Menu::addLink(string path, string file, string section) {
 		if (isection >= 0 && isection < (int)sections.size()) {
 			INFO("Section: '%s(%i)'", sections[isection].c_str(), isection);
 
-			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkpath.c_str(), true);
+			// TODO :: Clean the comments out after integrating OPK
+			LinkApp *link = new LinkApp(gmenu2x, /*gmenu2x->input,*/ linkpath.c_str(), true);
 			if (link->targetExists())
 				links[isection].push_back( link );
 			else
@@ -467,7 +468,9 @@ void Menu::readLinks() {
 		TRACE("Menu::readLinks - validating %i links exist", linkfiles.size());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
-			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkfiles[x].c_str(), true);
+
+			// TODO :: Clean the comments out after integrating OPK
+			LinkApp *link = new LinkApp(gmenu2x, /*gmenu2x->input,*/ linkfiles[x].c_str(), true);
 			TRACE("Menu::readLinks - link created...");
 			if (link->targetExists()) {
 				TRACE("Menu::readLinks - target exists");

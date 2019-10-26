@@ -40,9 +40,11 @@ using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 
-LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
+// TODO :: Clean the comments out after integrating OPK
+LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
-	inputMgr(inputMgr_)
+	inputMgr(gmenu2x->input)/*
+	inputMgr(inputMgr_)*/
 {
 	TRACE("LinkApp::LinkApp - ctor - enter");
 	manual = manualPath = "";
