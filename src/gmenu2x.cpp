@@ -241,7 +241,7 @@ void GMenu2X::quit() {
 
 int main(int /*argc*/, char * /*argv*/[]) {
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
-	INFO("GMenu2X starting: Build Date - %s:%s", __DATE__, __TIME__);
+	INFO("GMenu2X starting: Build Date - %s - %s", __DATE__, __TIME__);
 
 	TRACE("Signals");
 	signal(SIGINT, &quit_all);
