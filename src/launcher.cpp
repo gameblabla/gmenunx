@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -36,8 +38,7 @@ Launcher::Launcher(vector<string> && commandLine, bool consoleApp)
 {
 }
 
-void Launcher::exec()
-{
+void Launcher::exec() {
 	TRACE("Launcher::exec - enter");
 	
 	if (consoleApp) {
@@ -66,15 +67,23 @@ void Launcher::exec()
 		TRACE("Launcher::exec - end of console specific work");
 	}
 
-	TRACE("Launcher::exec - sorting args out");
+	TRACE("Launcher::exec - sorting args out for size : %i", commandLine.size() + 1);
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
+	TRACE("Launcher::exec - sorting args reserved");
 	for (auto arg : commandLine) {
+		TRACE("Launcher::exec - pushing back arg : %s", arg.c_str());
 		args.push_back(arg.c_str());
 	}
 	args.push_back(nullptr);
-	
-	TRACE("Launcher::exec - exec-ing now");
+	TRACE("Launcher::exec - args finished");
+
+	std::string s;
+	for (std::vector<std::string>::const_iterator i = commandLine.begin(); i != commandLine.end(); ++i)
+		s += *i;
+
+	TRACE("Launcher::exec - exec-ing :: %s", s.c_str());
+
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
 	WARNING("Failed to exec '%s': %s\n",
 			commandLine[0].c_str(), strerror(errno));

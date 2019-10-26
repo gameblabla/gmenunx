@@ -212,7 +212,7 @@ uint8_t getVolumeMode(uint8_t vol) {
 }
 
 GMenu2X::~GMenu2X() {
-	TRACE("GMenu2X::dtor");
+	TRACE("GMenu2X::dtor - enter\n\n");
 	confStr["datetime"] = getDateTime();
 
 	writeConfig();
@@ -224,7 +224,7 @@ GMenu2X::~GMenu2X() {
 	delete font;
 	delete titlefont;
 	delete led;
-	TRACE("GMenu2X::dtor");
+	TRACE("GMenu2X::dtor - exit\n\n");
 }
 
 void GMenu2X::releaseScreen() {
@@ -607,8 +607,6 @@ void GMenu2X::main() {
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
 			TRACE("******************RUNNING THIS*******************");
-			// FIXME -  why do we do this??
-			setVolume(confInt["globalVolume"]);
 
 			if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 				MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());

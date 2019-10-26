@@ -25,6 +25,7 @@
 #include <sstream>
 #include <opk.h>
 #include <array>
+#include <cerrno>
 
 #ifdef HAVE_LIBXDGMIME
 #include <xdgmime.h>
@@ -71,7 +72,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 /* ---------------------------------------------------------------- */
 
 	if (isOPK) {
-		TRACE("LinkApp::LinkApp - ctor - handling opk");
+		TRACE("LinkApp::LinkApp - ctor - handling opk :%s", linkfile);
 		string::size_type pos;
 		const char *key, *val;
 		size_t lkey, lval;
@@ -84,9 +85,11 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 		pos = opkMount.rfind('.');
 		opkMount = opkMount.substr(0, pos);
 
+		TRACE("LinkApp::LinkApp - ctor - opkMount : %s", opkMount.c_str());
 		appTakesFileArg = false;
 		category = "applications";
 
+		TRACE("LinkApp::LinkApp - ctor - reading pairs from meta begins");
 		while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
 			if (ret < 0) {
 				ERROR("Unable to read meta-data\n");
@@ -103,37 +106,39 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 				if (pos != category.npos)
 					category = category.substr(0, pos);
 
+				DEBUG("LinkApp::LinkApp - ctor - opk::category : %s", category.c_str());
 			} else if ((!strncmp(key, "Name", lkey) && title.empty())
 						|| !strncmp(key, ("Name[" + gmenu2x->tr["Lng"] +
 								"]").c_str(), lkey)) {
 				title = buf;
-
+				DEBUG("LinkApp::LinkApp - ctor - opk::title : %s", title.c_str());
 			} else if ((!strncmp(key, "Comment", lkey) && description.empty())
 						|| !strncmp(key, ("Comment[" +
 								gmenu2x->tr["Lng"] + "]").c_str(), lkey)) {
 				description = buf;
-
+				DEBUG("LinkApp::LinkApp - ctor - opk::description : %s", description.c_str());
 			} else if (!strncmp(key, "Terminal", lkey)) {
 				consoleapp = !strncmp(val, "true", lval);
-
+				DEBUG("LinkApp::LinkApp - ctor - opk::consoleapp : %i", consoleapp);
 			} else if (!strncmp(key, "X-OD-Manual", lkey)) {
 				manual = buf;
-
+				DEBUG("LinkApp::LinkApp - ctor - opk::manual : %s", manual.c_str());
 			} else if (!strncmp(key, "Icon", lkey)) {
-				// Read the icon from the OPK only
-				// if it doesn't exist on the skin
+				// Read the icon from the OPK if it doesn't exist on the skin
 				this->icon = gmenu2x->sc.getSkinFilePath("icons/" + (string) buf + ".png");
 				if (this->icon.empty()) {
 					this->icon = linkfile + '#' + (string) buf + ".png";
 				}
 				iconPath = this->icon;
+				DEBUG("LinkApp::LinkApp - ctor - opk::icon : %s", icon.c_str());
 				updateSurfaces();
 
 			} else if (!strncmp(key, "Exec", lkey)) {
-				string tmp = buf;
-
+				exec = buf;
+				TRACE("LinkApp::LinkApp - ctor - opk::raw exec : %s", exec.c_str());
 				for (auto token : tokens) {
-					if (tmp.find(token) != tmp.npos) {
+					if (exec.find(token) != exec.npos) {
+						DEBUG("LinkApp::LinkApp - ctor - opk::exec takes a token");
 						selectordir = CARD_ROOT;
 						appTakesFileArg = true;
 						break;
@@ -188,7 +193,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 	while (getline(infile, line, '\n')) {
 
 		line = trim(line);
-		if (line == "") continue;
+		if (line.empty()) continue;
 		if (line[0] == '#') continue;
 
 		string::size_type position = line.find("=");
@@ -202,7 +207,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 		} else if (name == "selectorbrowser") {
 			selectorbrowser = (value == "true" ? true : false);
 		} else if (!isOpk()) {
-				
+
 			if (name == "title") {
 				title = value;
 			} else if (name == "description") {
@@ -355,11 +360,16 @@ bool LinkApp::targetExists() {
 	return fileExists(target);
 }
 
+/*
 bool LinkApp::save() {
 	if (!edited) return false;
 
 	ofstream f(file.c_str());
 	if (f.is_open()) {
+		if (iclock != 0        ) f << "clock="           << iclock          << endl;
+		if (selectordir != ""    ) f << "selectordir="     << selectordir     << endl;
+		if (selectorbrowser      ) f << "selectorbrowser=true"                << endl;
+
 		if (title != ""        ) f << "title="           << title           << endl;
 		if (description != ""  ) f << "description="     << description     << endl;
 		if (icon != ""         ) f << "icon="            << icon            << endl;
@@ -369,26 +379,60 @@ bool LinkApp::save() {
 		if (consoleapp         ) f << "consoleapp=true"                     << endl;
 		if (!consoleapp        ) f << "consoleapp=false"                    << endl;
 		if (manual != ""       ) f << "manual="          << manual          << endl;
-		if (iclock != 0        ) f << "clock="           << iclock          << endl;
-		// if (useRamTimings      ) f << "useramtimings=true"                  << endl;
-		// if (useGinge           ) f << "useginge=true"                       << endl;
-		// if (ivolume > 0        ) f << "volume="          << ivolume         << endl;
-
-
-		if (selectordir != ""    ) f << "selectordir="     << selectordir     << endl;
-		if (selectorbrowser      ) f << "selectorbrowser=true"                << endl;
 		if (!selectorbrowser     ) f << "selectorbrowser=false"               << endl;
 		if (selectorfilter != "" ) f << "selectorfilter="  << selectorfilter  << endl;
 		if (selectorscreens != "") f << "selectorscreens=" << selectorscreens << endl;
 		if (aliasfile != ""      ) f << "selectoraliases=" << aliasfile       << endl;
 		if (backdrop != ""       ) f << "backdrop="        << backdrop        << endl;
-		// if (wrapper              ) f << "wrapper=true"                        << endl;
-		// if (dontleave            ) f << "dontleave=true"                      << endl;
 		f.close();
 		return true;
 	} else
 		ERROR("Error while opening the file '%s' for write.", file.c_str());
 	return false;
+}
+*/
+
+
+bool LinkApp::save() {
+	if (!edited) return false;
+
+	std::ostringstream out;
+	if (!isOpk()) {
+		if (title != ""          ) out << "title="           << title           << endl;
+		if (description != ""    ) out << "description="     << description     << endl;
+		if (icon != ""           ) out << "icon="            << icon            << endl;
+		if (exec != ""           ) out << "exec="            << exec            << endl;
+		if (params != ""         ) out << "params="          << params          << endl;
+		if (workdir != ""        ) out << "workdir="         << workdir         << endl;
+		if (consoleapp           ) out << "consoleapp=true"                     << endl;
+		if (!consoleapp          ) out << "consoleapp=false"                    << endl;
+		if (manual != ""         ) out << "manual="          << manual          << endl;
+		if (!selectorbrowser     ) out << "selectorbrowser=false"               << endl;
+		if (selectorfilter != "" ) out << "selectorfilter="  << selectorfilter  << endl;
+		if (selectorscreens != "") out << "selectorscreens=" << selectorscreens << endl;
+		if (aliasfile != ""      ) out << "selectoraliases=" << aliasfile       << endl;
+		if (backdrop != ""       ) out << "backdrop="        << backdrop        << endl;
+	}
+	if (iclock != 0              ) out << "clock="           << iclock          << endl;
+	if (!selectordir.empty()     ) out << "selectordir="     << selectordir     << endl;
+	if (!selectorbrowser         ) out << "selectorbrowser=false"               << endl;
+
+	if (out.tellp() > 0) {
+		DEBUG("Saving app settings: %s\n", file.c_str());
+		ofstream f(file.c_str());
+		if (f.is_open()) {
+			f << out.str();
+			f.close();
+			sync();
+			return true;
+		} else {
+			ERROR("Error while opening the file '%s' for write.\n", file.c_str());
+			return false;
+		}
+	} else {
+		DEBUG("Empty app settings: %s\n", file.c_str());
+		return unlink(file.c_str()) == 0 || errno == ENOENT;
+	}
 }
 
 /*
@@ -423,18 +467,23 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	TRACE("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
 	
-	save();
+	//save();
 
-	//Set correct working directory
-	string wd = getRealWorkdir();
-	TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
-	if (!wd.empty()) {
-		chdir(wd.c_str());
-		TRACE("LinkApp::launch - changed into wrkdir");
+	if (!isOpk()) {
+		TRACE("LinkApp::launch - not an opk");
+		//Set correct working directory
+		string wd = getRealWorkdir();
+		TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
+		if (!wd.empty()) {
+			chdir(wd.c_str());
+			TRACE("LinkApp::launch - changed into wrkdir");
+		}
 	}
 
-	//selectedFile
-	if (selectedFile != "") {
+	// selectedFile means a rom or some kind of data file..
+	if (!selectedFile.empty()) {
+		TRACE("LinkApp::launch - we have a selected file to work with : %s", selectedFile.c_str());
+		// gbreak out the dir, filename and extension
 		string selectedFileExtension;
 		string selectedFileName;
 		string dir;
@@ -445,18 +494,19 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		}
 
 		TRACE("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
-		if (selectedDir == "")
+		if (selectedDir.empty())
 			dir = getSelectorDir();
 		else
 			dir = selectedDir;
+
 		// force a slash at the end
 		if (dir.length() > 0) {
 			if (0 != dir.compare(dir.length() -1, 1, "/")) 
 				dir += "/";
 		} else dir = "/";
 		TRACE("LinkApp::launch - dir : %s", dir.c_str());
-		
-		if (params == "") {
+
+		if (params.empty()) {
 			params = cmdclean(dir + selectedFile);
 			TRACE("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
 		} else {
@@ -469,38 +519,42 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		}
 	}
 
-	INFO("Executing '%s' (%s %s)", title.c_str(), exec.c_str(), params.c_str());
-
-	//check if we have to quit
-	string command = cmdclean(exec);
-	TRACE("LinkApp::launch - command : %s", command.c_str());
-
-	// Check to see if permissions are desirable
-	struct stat fstat;
-	if ( stat( command.c_str(), &fstat ) == 0 ) {
-		struct stat newstat = fstat;
-		if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
-		if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
-		if ( fstat.st_mode != newstat.st_mode ) chmod( command.c_str(), newstat.st_mode );
-	} // else, well.. we are no worse off :)
-
-	if (params != "") command += " " + params;
-	TRACE("LinkApp::launch - command + params : %s", command.c_str());
-
-	if (gmenu2x->confInt["outputLogs"]) 
-		command += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
-	
-	TRACE("LinkApp::launch - after logging checked : %s", command.c_str());
-
 	if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
 		TRACE("LinkApp::launch - saving selection");
 		gmenu2x->writeConfig();
 	}
 
-	Launcher *toLaunch = new Launcher(
-				vector<string> { "/bin/sh", "-c", command });
+	vector<string> commandLine;
 
+	if (isOpk()) {
+		commandLine = { "opkrun", "-m", metadata, opkFile };
+		DEBUG("LinkApp::launch - running an opk via : opkrun -m %s %s", metadata.c_str(), opkFile.c_str());
+		if (!params.empty()) {
+			DEBUG("LinkApp::launch - running an opk with extra params : %s", params.c_str());
+			commandLine.push_back(params);
+		}
+	} else {
+		DEBUG("LinkApp::launch - running a standard desktop file");
+		// Check to see if permissions are desirable
+		struct stat fstat;
+		if ( stat( exec.c_str(), &fstat ) == 0 ) {
+			struct stat newstat = fstat;
+			if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
+			if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
+			if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
+		} // else, well.. we are no worse off :)
+
+		commandLine = { "/bin/sh", "-c", exec + " " + params };
+		DEBUG("LinkApp::launch - standard file cmd lime : %s %s",  exec.c_str(), params.c_str());
+	}
+	if (gmenu2x->confInt["outputLogs"]) {
+		commandLine.push_back( "2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt");
+		TRACE("LinkApp::launch - adding logging");
+	}
+
+	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
 	if (toLaunch) {
+		TRACE("LinkApp::launch - lift off");
 		//delete menu;
 		gmenu2x->quit();
 		//gmenu2x->releaseScreen();
