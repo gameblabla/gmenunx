@@ -341,8 +341,8 @@ GMenu2X::GMenu2X() : input(screenManager) {
 		mb.exec();
 		if (copyAssets()) {
 			mb.fadeOut(500);
+			ledOff();
 			quit();
-			// or just quit ...?
 		}
 		
 	} else {
@@ -589,6 +589,7 @@ void GMenu2X::main() {
 
 		bool inputAction = input.update();
 		if (input.combo()) {
+			
 			confInt["sectionBar"] = ((confInt["sectionBar"] + 1) % 5);
 			if (!confInt["sectionBar"]) confInt["sectionBar"]++;
 			initMenu();
