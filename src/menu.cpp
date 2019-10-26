@@ -483,6 +483,10 @@ void Menu::readLinks() {
 
 		closedir(dirp);
 	}
+
+	TRACE("Menu::readLinks - orderLinks");
+	orderLinks();
+
 	TRACE("Menu::readLinks - exit");
 }
 
@@ -502,3 +506,24 @@ const string Menu::getSectionIcon(int i) {
 	return sectionIcon;
 }
 
+static bool compare_links(Link *a, Link *b)
+{
+	LinkApp *app1 = dynamic_cast<LinkApp *>(a);
+	LinkApp *app2 = dynamic_cast<LinkApp *>(b);
+	bool app1_is_opk = app1 && app1->isOpk(),
+		 app2_is_opk = app2 && app2->isOpk();
+
+	if (app1_is_opk && !app2_is_opk)
+			return false;
+	if (app2_is_opk && !app1_is_opk)
+			return true;
+	return a->getTitle().compare(b->getTitle()) <= 0;
+}
+
+void Menu::orderLinks() {
+	TRACE("Menu::orderLinks - enter");
+	for (auto& section : links) {
+		sort(section.begin(), section.end(), compare_links);
+	}
+	TRACE("Menu::orderLinks - exit");
+}
