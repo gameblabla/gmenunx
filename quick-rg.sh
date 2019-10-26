@@ -32,7 +32,7 @@ echo "
 
 *\                     */"
 
-echo "runing :: \nscp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home"
+printf "runing :: \nscp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home"
 
 tries=0
 success=-1
