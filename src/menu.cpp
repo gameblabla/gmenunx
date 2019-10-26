@@ -460,8 +460,12 @@ void Menu::readLinks() {
 		}
 
 		TRACE("Menu::readLinks - sorting links");
-		sort(linkfiles.begin(), linkfiles.end(),case_less());
+		sort(linkfiles.begin(), linkfiles.end(), case_less());
+		TRACE("Menu::readLinks - links sorted");
+
+		TRACE("Menu::readLinks - validating %i links exist", linkfiles.size());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
+			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
 			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkfiles[x].c_str());
 			if (link->targetExists()) {
 				TRACE("Menu::readLinks - target exists");
@@ -471,7 +475,6 @@ void Menu::readLinks() {
 				delete link;
 			}
 		}
-
 		closedir(dirp);
 	}
 	TRACE("Menu::readLinks - exit");
