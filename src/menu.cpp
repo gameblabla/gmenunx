@@ -32,6 +32,7 @@
 #include "filelister.h"
 #include "utilities.h"
 #include "debug.h"
+#include "opkmanager.h"
 
 using namespace std;
 
@@ -62,7 +63,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 		if (statRet != -1) {
 			TRACE("Menu :: ctor - adding section : %s", dptr->d_name);
 			sections.push_back((string)dptr->d_name);
-			// 
+			// add a new link list to the links collection
 			linklist ll;
 			links.push_back(ll);
 		}
@@ -267,7 +268,7 @@ bool Menu::addLink(string path, string file, string section) {
 		if (isection >= 0 && isection < (int)sections.size()) {
 			INFO("Section: '%s(%i)'", sections[isection].c_str(), isection);
 
-			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkpath.c_str());
+			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkpath.c_str(), true);
 			if (link->targetExists())
 				links[isection].push_back( link );
 			else
@@ -466,7 +467,8 @@ void Menu::readLinks() {
 		TRACE("Menu::readLinks - validating %i links exist", linkfiles.size());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
-			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkfiles[x].c_str());
+			LinkApp *link = new LinkApp(gmenu2x, gmenu2x->input, linkfiles[x].c_str(), true);
+			TRACE("Menu::readLinks - link created...");
 			if (link->targetExists()) {
 				TRACE("Menu::readLinks - target exists");
 				links[i].push_back( link );
@@ -475,6 +477,7 @@ void Menu::readLinks() {
 				delete link;
 			}
 		}
+
 		closedir(dirp);
 	}
 	TRACE("Menu::readLinks - exit");
@@ -495,5 +498,4 @@ const string Menu::getSectionIcon(int i) {
 	}
 	return sectionIcon;
 }
-
 

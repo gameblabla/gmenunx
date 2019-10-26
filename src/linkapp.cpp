@@ -23,6 +23,12 @@
 
 #include <fstream>
 #include <sstream>
+#include <opk.h>
+#include <array>
+
+#ifdef HAVE_LIBXDGMIME
+#include <xdgmime.h>
+#endif
 
 #include "linkapp.h"
 #include "launcher.h"
@@ -32,35 +38,153 @@
 
 using namespace std;
 
-LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfile):
+static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
+
+LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
 	inputMgr(inputMgr_)
 {
+	TRACE("LinkApp::LinkApp - ctor - enter");
 	manual = manualPath = "";
 	file = linkfile;
-	// wrapper = false;
-	// dontleave = false;
-	setCPU(gmenu2x->confInt["cpuMenu"]);
-	// setVolume(-1);
 
-#if defined(TARGET_GP2X)
-	//G
-	setGamma(0);
-#endif
+	TRACE("LinkApp::LinkApp - ctor - setCPU");
+	setCPU(gmenu2x->confInt["cpuMenu"]);
 
 	selectordir = "";
 	selectorfilter = "";
 	icon = iconPath = "";
 	selectorbrowser = true;
 	consoleapp = true;
-	// useRamTimings = false;
-	// useGinge = false;
 	workdir = "";
 	backdrop = backdropPath = "";
 
+	deletable = deletable_;
+
+	TRACE("LinkApp::LinkApp - ctor - setting opk by testing value of : %i", opk);
+	isOPK = (0 != opk);
+	TRACE("LinkApp::LinkApp - ctor - setting metadata : %s", metadata_);
+
+	bool appTakesFileArg = true;
+/* ---------------------------------------------------------------- */
+
+	if (isOPK) {
+		TRACE("LinkApp::LinkApp - ctor - handling opk");
+		string::size_type pos;
+		const char *key, *val;
+		size_t lkey, lval;
+		int ret;
+
+		metadata.assign(metadata_);
+		opkFile = file;
+		pos = file.rfind('/');
+		opkMount = file.substr(pos+1);
+		pos = opkMount.rfind('.');
+		opkMount = opkMount.substr(0, pos);
+
+		appTakesFileArg = false;
+		category = "applications";
+
+		while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
+			if (ret < 0) {
+				ERROR("Unable to read meta-data\n");
+				break;
+			}
+
+			char buf[lval + 1];
+			sprintf(buf, "%.*s", lval, val);
+
+			if (!strncmp(key, "Categories", lkey)) {
+				category = buf;
+
+				pos = category.find(';');
+				if (pos != category.npos)
+					category = category.substr(0, pos);
+
+			} else if ((!strncmp(key, "Name", lkey) && title.empty())
+						|| !strncmp(key, ("Name[" + gmenu2x->tr["Lng"] +
+								"]").c_str(), lkey)) {
+				title = buf;
+
+			} else if ((!strncmp(key, "Comment", lkey) && description.empty())
+						|| !strncmp(key, ("Comment[" +
+								gmenu2x->tr["Lng"] + "]").c_str(), lkey)) {
+				description = buf;
+
+			} else if (!strncmp(key, "Terminal", lkey)) {
+				consoleapp = !strncmp(val, "true", lval);
+
+			} else if (!strncmp(key, "X-OD-Manual", lkey)) {
+				manual = buf;
+
+			} else if (!strncmp(key, "Icon", lkey)) {
+				// Read the icon from the OPK only
+				// if it doesn't exist on the skin
+				this->icon = gmenu2x->sc.getSkinFilePath("icons/" + (string) buf + ".png");
+				if (this->icon.empty()) {
+					this->icon = linkfile + '#' + (string) buf + ".png";
+				}
+				iconPath = this->icon;
+				updateSurfaces();
+
+			} else if (!strncmp(key, "Exec", lkey)) {
+				string tmp = buf;
+
+				for (auto token : tokens) {
+					if (tmp.find(token) != tmp.npos) {
+						selectordir = CARD_ROOT;
+						appTakesFileArg = true;
+						break;
+					}
+				}
+
+				continue;
+			}
+
+#ifdef HAVE_LIBXDGMIME
+			if (!strncmp(key, "MimeType", lkey)) {
+				string mimetypes = buf;
+				selectorfilter = "";
+
+				while ((pos = mimetypes.find(';')) != mimetypes.npos) {
+					int nb = 16;
+					char *extensions[nb];
+					string mimetype = mimetypes.substr(0, pos);
+					mimetypes = mimetypes.substr(pos + 1);
+
+					nb = xdg_mime_get_extensions_from_mime_type(
+								mimetype.c_str(), extensions, nb);
+
+					while (nb--) {
+						selectorfilter += (string) extensions[nb] + ',';
+						free(extensions[nb]);
+					}
+				}
+
+				// Remove last comma
+				if (!selectorfilter.empty()) {
+					selectorfilter.erase(selectorfilter.end());
+					DEBUG("Compatible extensions: %s\n", selectorfilter.c_str());
+				}
+
+				continue;
+			}
+#endif // HAVE_LIBXDGMIME
+		}
+
+		file = gmenu2x->getAssetsPath() + "/sections/" + category + '/' + opkMount;
+		opkMount = (string) "/mnt/" + opkMount + '/';
+		edited = true;
+	}
+
+/* ---------------------------------------------------------------- */
+
 	string line;
+	TRACE("LinkApp::LinkApp - ctor - creating ifstream");
 	ifstream infile (linkfile, ios_base::in);
+	TRACE("LinkApp::LinkApp - ctor - iterating thru infile : %s", linkfile);
 	while (getline(infile, line, '\n')) {
+
 		line = trim(line);
 		if (line == "") continue;
 		if (line[0] == '#') continue;
@@ -68,62 +192,57 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, InputManager &inputMgr_, const char* linkfil
 		string::size_type position = line.find("=");
 		string name = trim(line.substr(0,position));
 		string value = trim(line.substr(position+1));
-		if (name == "title") {
-			title = value;
-		} else if (name == "description") {
-			description = value;
-		} else if (name == "icon") {
-			setIcon(value);
-		} else if (name == "exec") {
-			exec = value;
-		} else if (name == "params") {
-			params = value;
-		} else if (name == "workdir") {
-			workdir = value;
-		} else if (name == "manual") {
-			setManual(value);
-		// } else if (name == "wrapper" && value == "true") {
-			// wrapper = true;
-		// } else if (name == "dontleave" && value == "true") {
-			// dontleave = true;
-		} else if (name == "clock") {
-			setCPU( atoi(value.c_str()) );
 
-#if defined(TARGET_GP2X)
-		//G
-		} else if (name == "gamma") {
-			setGamma( atoi(value.c_str()) );
-#endif
-		// } else if (name == "volume") {
-			// setVolume( atoi(value.c_str()) );
+		if (name == "clock") {
+			setCPU( atoi(value.c_str()) );
 		} else if (name == "selectordir") {
 			setSelectorDir( value );
 		} else if (name == "selectorbrowser") {
 			selectorbrowser = (value == "true" ? true : false);
-		// } else if (name == "useramtimings" && value == "true") {
-			// useRamTimings = true;
-		// } else if (name == "useginge" && value == "true") {
-			// useGinge = true;
-		} else if (name == "consoleapp") {
-			consoleapp = (value == "true" ? true : false);
-		} else if (name == "selectorfilter") {
-			setSelectorFilter( value );
-		} else if (name == "selectorscreens") {
-			setSelectorScreens( value );
-		} else if (name == "selectoraliases") {
-			setAliasFile( value );
-		} else if (name == "backdrop") {
-			setBackdrop(value);
-			// WARNING("BACKDROP: '%s'", backdrop.c_str());
+		} else if (!isOpk()) {
+				
+			if (name == "title") {
+				title = value;
+			} else if (name == "description") {
+				description = value;
+			} else if (name == "icon") {
+				setIcon(value);
+			} else if (name == "exec") {
+				exec = value;
+			} else if (name == "params") {
+				params = value;
+			} else if (name == "workdir") {
+				workdir = value;
+			} else if (name == "manual") {
+				setManual(value);
+			} else if (name == "consoleapp") {
+				consoleapp = (value == "true" ? true : false);
+			} else if (name == "selectorfilter") {
+				setSelectorFilter( value );
+			} else if (name == "selectorscreens") {
+				setSelectorScreens( value );
+			} else if (name == "selectoraliases") {
+				setAliasFile( value );
+			} else if (name == "backdrop") {
+				setBackdrop(value);
+				// WARNING("BACKDROP: '%s'", backdrop.c_str());
+			} else {
+				WARNING("Unrecognized native link option: '%s'", name.c_str());
+				break;
+			}
+
 		} else {
-			WARNING("Unrecognized option: '%s'", name.c_str());
-			break;
+			WARNING("Unrecognized OPK link option: '%s'\n", name.c_str());
 		}
+
 	}
+	TRACE("LinkApp::LinkApp - ctor - closing infile");
 	infile.close();
 
-	if (iconPath.empty()) 
+	if (iconPath.empty()) {
+		TRACE("LinkApp::LinkApp - ctor - searching for icon");
 		searchIcon();
+	}
 
 	edited = false;
 }
@@ -407,6 +526,8 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		//gmenu2x->releaseScreen();
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
+		// TODO Blank the screen
+		
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed
 		// everything, the easiest solution is to exit and let the system

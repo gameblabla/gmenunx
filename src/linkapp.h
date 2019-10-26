@@ -38,20 +38,30 @@ Parses links files.
 class LinkApp : public Link {
 private:
 	InputManager &inputMgr;
-	// string svolume, sclock, svolume;
-	int iclock = 0; //, ivolume = 0;
+
+	int iclock = 0;
 
 	string exec, params, workdir, manual, manualPath, selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
-	bool selectorbrowser, consoleapp;
-	// void drawRun();
+	bool selectorbrowser, consoleapp, deletable, editable;
+
+	bool isOPK;
+	string opkMount, opkFile, category, metadata;
 
 	string aliasfile;
 	string file;
 
-	// bool wrapper, dontleave, useRamTimings, useGinge;
-
 public:
-	LinkApp(GMenu2X *gmenu2x, InputManager &inputMgr, const char* linkfile);
+	/* TODO :: 	
+	LinkApp(GMenu2X *gmenu2x, std::string const& linkfile, bool deletable,
+				struct OPK *opk = NULL, const char *metadata = NULL);
+				*/
+
+	LinkApp(GMenu2X *gmenu2x, InputManager &inputMgr, const char* linkfile, bool deletable, struct OPK *opk = NULL, const char *metadata = NULL);
+
+	const std::string &getCategory() { return category; }
+	bool isOpk() { return isOPK; }
+	const std::string &getOpkFile() { return opkFile; }
+
 	virtual const string &searchIcon();
 	virtual const string &searchBackdrop();
 	virtual const string &searchManual();
@@ -70,10 +80,7 @@ public:
 	void setSelectorDir(const string &selectordir);
 	bool getSelectorBrowser();
 	void setSelectorBrowser(bool value);
-	// bool getUseRamTimings();
-	// void setUseRamTimings(bool value);
-	// bool getUseGinge();
-	// void setUseGinge(bool value);
+
 	const string &getSelectorScreens();
 	void setSelectorScreens(const string &selectorscreens);
 	const string &getSelectorFilter();
@@ -84,23 +91,6 @@ public:
 	int clock();
 	// const string &clockStr(int maxClock);
 	void setCPU(int mhz = 0);
-
-	// int volume();
-	// const string &volumeStr();
-	// void setVolume(int vol);
-
-#if defined(TARGET_GP2X)
-	//G
-	// string sgamma;
-	//G
-	int igamma;
-
-//G
-	int gamma();
-	// const string &gammaStr();
-	void setGamma(int gamma);
-// /G
-#endif
 
 	bool save();
 	void run();
@@ -115,8 +105,9 @@ public:
 	void setBackdrop(const string selectedFile="");
 
 	void renameFile(const string &name);
-	// bool &needsWrapperRef() { return wrapper; }
-	// bool &runsInBackgroundRef() { return dontleave; }
+	bool isDeletable() { return deletable; }
+	bool isEditable() { return editable; }
+
 };
 
 #endif

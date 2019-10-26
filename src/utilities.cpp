@@ -86,6 +86,16 @@ char *string_copy(const string &s) {
 	return cs;
 }
 
+string char_to_string(char *cs) {
+	std::string s;
+	if (cs) {
+		std::stringstream ss;
+		ss << cs;
+		ss >> s;
+	}
+	return s;
+}
+
 bool dirExists(const string &path) {
 	TRACE("dirExists - enter : %s", path.c_str());
 	struct stat s;
