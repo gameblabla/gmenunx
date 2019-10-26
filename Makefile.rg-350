@@ -15,11 +15,12 @@ DEBUG ?= 3
 CFLAGS = -ggdb  -DTARGET_RG350 -DPLATFORM_RG350 -DTARGET=$(PATH_DIR) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
+    -DHAVE_OPK=1 \
     -Wno-narrowing \
     -g3 $(SDL_CFLAGS)
 
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread
+LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk
 
 
 OBJDIR = objs/$(PATH_DIR)
