@@ -76,7 +76,7 @@
 #include <sys/mman.h>
 
 #include <ctime>
-#include <sys/time.h>   /* for settimeofday() */
+#include <sys/time.h>
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -241,6 +241,7 @@ void GMenu2X::quit() {
 
 int main(int /*argc*/, char * /*argv*/[]) {
 	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
+	INFO("GMenu2X starting: Build Date - %s:%s", __DATE__, __TIME__);
 
 	TRACE("Signals");
 	signal(SIGINT, &quit_all);

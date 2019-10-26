@@ -84,8 +84,8 @@ using std::vector;
 using fastdelegate::FastDelegate0;
 
 typedef FastDelegate0<> MenuAction;
-typedef unordered_map<string, string, hash<string> > ConfStrHash;
-typedef unordered_map<string, int, hash<string> > ConfIntHash;
+typedef unordered_map<string, string, std::hash<string> > ConfStrHash;
+typedef unordered_map<string, int, std::hash<string> > ConfIntHash;
 // typedef unordered_map<string, RGBAColor, hash<string> > ConfColorHash;
 
 struct MenuOption {
