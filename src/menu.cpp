@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <math.h>
 #include <fstream>
+#include <opk.h>
 
 #include "gmenu2x.h"
 #include "linkapp.h"
@@ -32,9 +33,10 @@
 #include "filelister.h"
 #include "utilities.h"
 #include "debug.h"
-#include "opkmanager.h"
 
 using namespace std;
+
+#define OPK_PATH "/media/data/apps"
 
 Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - enter");
@@ -83,6 +85,9 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	setSectionIndex(0);
 	TRACE("Menu :: ctor - read links");
 	readLinks();
+
+	openPackagesFromDir(OPK_PATH);
+
 	TRACE("Menu :: ctor - exit");
 }
 
@@ -526,4 +531,158 @@ void Menu::orderLinks() {
 		sort(section.begin(), section.end(), compare_links);
 	}
 	TRACE("Menu::orderLinks - exit");
+}
+
+
+/* --------------- OPK SECTION ---------------*/
+
+void Menu::openPackagesFromDir(string path) {
+	TRACE("Menu::openPackagesFromDir - enter : %s", path.c_str());
+	readPackages(path);
+	TRACE("Menu::openPackagesFromDir - exit");
+}
+
+#define OPK_PLATFORM "gcw0"
+
+void Menu::openPackage(string path, bool order) {
+	TRACE("Menu::openPackage - enter : search : %s, sort : %i", path.c_str(), order);
+
+	/* First try to remove existing links of the same OPK
+	 * (needed for instance when an OPK is modified) */
+	removePackageLink(path);
+
+
+	struct OPK *opk = opk_open(path.c_str());
+	if (!opk) {
+		ERROR("Unable to open OPK %s\n", path.c_str());
+		return;
+	}
+
+	TRACE("Menu::openPackage : meta outer loop");
+	for (;;) {
+		unsigned int i;
+		bool has_metadata = false;
+		const char *name;
+		LinkApp *link;
+
+		TRACE("Menu::openPackage : meta inner loop");
+		for (;;) {
+			string::size_type pos;
+			int ret = opk_open_metadata(opk, &name);
+			if (ret < 0) {
+				ERROR("Error while loading meta-data\n");
+				break;
+			} else if (!ret)
+			  break;
+
+			/* Strip .desktop */
+			string metadata(name);
+			pos = metadata.rfind('.');
+			metadata = metadata.substr(0, pos);
+
+			/* Keep only the platform name */
+			pos = metadata.rfind('.');
+			metadata = metadata.substr(pos + 1);
+
+			TRACE("Menu::openPackage : resolved meta data to : %s", metadata.c_str());
+			if (metadata == OPK_PLATFORM || metadata == "all") {
+				TRACE("Menu::openPackage : metadata matches platform : %s", OPK_PLATFORM);
+				has_metadata = true;
+				break;
+			}
+		}
+
+		if (!has_metadata)
+		  break;
+
+		// Note: OPK links can only be deleted by removing the OPK itself,
+		//       but that is not something we want to do in the menu,
+		//       so consider this link undeletable.
+
+		TRACE("Menu::openPackage : creating new linkapp");
+		link = new LinkApp(gmenu2x, path.c_str(), false, opk, name);
+		TRACE("Menu::openPackage : setting sizes");
+		link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
+
+		TRACE("Menu::openPackage : adding category for %S", link->getCategory().c_str());
+		addSection(link->getCategory());
+		for (i = 0; i < sections.size(); i++) {
+			if (sections[i] == link->getCategory()) {
+				TRACE("Menu::openPackage : matched category, adding link");
+				links[i].push_back(link);
+				break;
+			}
+		}
+	}
+
+	TRACE("Menu::openPackage : closed opk");
+	opk_close(opk);
+
+	if (order) {
+		TRACE("Menu::openPackage : ordering links");
+		orderLinks();
+	}
+
+	TRACE("Menu::openPackage : exit");
+}
+
+void Menu::readPackages(std::string parentDir) {
+	DIR *dirp;
+	struct dirent *dptr;
+	vector<string> linkfiles;
+
+	dirp = opendir(parentDir.c_str());
+	if (!dirp)
+		return;
+
+	while ((dptr = readdir(dirp))) {
+		char *c;
+
+		if (dptr->d_type != DT_REG)
+			continue;
+
+		c = strrchr(dptr->d_name, '.');
+		if (!c) /* File without extension */
+			continue;
+
+		if (strcasecmp(c + 1, "opk"))
+			continue;
+
+		if (dptr->d_name[0] == '.') {
+			// Ignore hidden files.
+			// Mac OS X places these on SD cards, probably to store metadata.
+			continue;
+		}
+
+		openPackage(parentDir + '/' + dptr->d_name, false);
+	}
+
+	closedir(dirp);
+	orderLinks();
+}
+
+/* Remove all links that correspond to the given path.
+ * If "path" is a directory, it will remove all links that
+ * correspond to an OPK present in the directory. */
+void Menu::removePackageLink(std::string path) {
+	for (vector< vector<Link*> >::iterator section = links.begin();
+				section < links.end(); section++) {
+		for (vector<Link*>::iterator link = section->begin();
+					link < section->end(); link++) {
+			LinkApp *app = dynamic_cast<LinkApp *> (*link);
+			if (!app || !app->isOpk() || app->getOpkFile().empty())
+				continue;
+
+			if (app->getOpkFile().compare(0, path.size(), path) == 0) {
+				DEBUG("Removing link corresponding to package %s\n",
+							app->getOpkFile().c_str());
+				section->erase(link);
+				if (section - links.begin() == iSection
+							&& iLink == (int) section->size())
+					setLinkIndex(iLink - 1);
+				link--;
+			}
+		}
+	}
+
 }
