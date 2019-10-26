@@ -338,19 +338,6 @@ void LinkApp::setCPU(int mhz) {
 	edited = true;
 }
 
-#if defined(TARGET_GP2X)
-//G
-int LinkApp::gamma() {
-	return igamma;
-}
-
-void LinkApp::setGamma(int gamma) {
-	igamma = constrain(gamma, 0, 100);
-	edited = true;
-}
-// /G
-#endif
-
 void LinkApp::setBackdrop(const string selectedFile) {
 	backdrop = backdropPath = selectedFile;
 	edited = true;
@@ -387,10 +374,6 @@ bool LinkApp::save() {
 		// if (useGinge           ) f << "useginge=true"                       << endl;
 		// if (ivolume > 0        ) f << "volume="          << ivolume         << endl;
 
-#if defined(TARGET_GP2X)
-		//G
-		if (igamma != 0        ) f << "gamma="           << igamma          << endl;
-#endif
 
 		if (selectordir != ""    ) f << "selectordir="     << selectordir     << endl;
 		if (selectorbrowser      ) f << "selectorbrowser=true"                << endl;
@@ -503,16 +486,11 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	if (params != "") command += " " + params;
 	TRACE("LinkApp::launch - command + params : %s", command.c_str());
-	
-	// if (useGinge) {
-		// string ginge_prep = gmenu2x->getExePath() + "/ginge/ginge_prep";
-		// if (fileExists(ginge_prep)) command = cmdclean(ginge_prep) + " " + command;
-	// }
+
 	if (gmenu2x->confInt["outputLogs"]) 
 		command += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
 	
 	TRACE("LinkApp::launch - after logging checked : %s", command.c_str());
-
 
 	if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
 		TRACE("LinkApp::launch - saving selection");
