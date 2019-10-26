@@ -99,10 +99,17 @@ void OpkManager::openPackage(std::string path, bool order) {
 		// Note: OPK links can only be deleted by removing the OPK itself,
 		//       but that is not something we want to do in the menu,
 		//       so consider this link undeletable.
-		/*
-		link = new LinkApp(gmenu2x, path, false, opk, name);
+		
+		link = new LinkApp(gmenu2x, path.c_str(), false, opk, name);
 		link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
 
+/*
+
+here we should just add it to a collection and return it, and run this in the menu class...
+
+*/
+
+/*
 		// this needs to just trawl the vector
 		addSection(link->getCategory());
 		for (i = 0; i < sections.size(); i++) {
@@ -111,7 +118,8 @@ void OpkManager::openPackage(std::string path, bool order) {
 				break;
 			}
 		}
-		*/
+*/
+
 	}
 
 	opk_close(opk);

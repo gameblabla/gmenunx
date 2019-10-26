@@ -47,6 +47,7 @@ private:
 
 	void readLinks();
 	void freeLinks();
+	void orderLinks();
 
 public:
 	Menu(GMenu2X *gmenu2x);
