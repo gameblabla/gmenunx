@@ -16,7 +16,7 @@ if [ $? -ne 0 ]; then
 	echo "make -f ./Makefile.rg-350 failed"
 	exit 1
 fi
-	
+
 if [ $# -ne 1 ]; then
 	make -f ./Makefile.rg-350 dist
 	if [ $? -ne 0 ]; then
@@ -32,7 +32,7 @@ echo "
 
 *\                     */"
 
-printf "runing :: \nscp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home"
+printf "runing :: \nscp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home\n"
 
 tries=0
 success=-1

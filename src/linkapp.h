@@ -51,12 +51,8 @@ private:
 	string file;
 
 public:
-	/* TODO :: Clean the comments out after integrating OPK	
-	LinkApp(GMenu2X *gmenu2x, std::string const& linkfile, bool deletable,
-				struct OPK *opk = NULL, const char *metadata = NULL);
-				*/
 
-	LinkApp(GMenu2X *gmenu2x, /*InputManager &inputMgr,*/ const char* linkfile, bool deletable, struct OPK *opk = NULL, const char *metadata = NULL);
+	LinkApp(GMenu2X *gmenu2x, const char* linkfile, bool deletable, struct OPK *opk = NULL, const char *metadata = NULL);
 
 	const std::string &getCategory() { return category; }
 	bool isOpk() { return isOPK; }
@@ -107,6 +103,8 @@ public:
 	void renameFile(const string &name);
 	bool isDeletable() { return deletable; }
 	bool isEditable() { return editable; }
+
+	std::ostream& operator<<(const LinkApp &a);
 
 };
 

@@ -41,11 +41,9 @@ using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 
-// TODO :: Clean the comments out after integrating OPK
-LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
+LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
-	inputMgr(gmenu2x->input)/*
-	inputMgr(inputMgr_)*/
+	inputMgr(gmenu2x->input)
 {
 	TRACE("LinkApp::LinkApp - ctor - enter");
 	manual = manualPath = "";
@@ -72,7 +70,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 /* ---------------------------------------------------------------- */
 
 	if (isOPK) {
-		TRACE("LinkApp::LinkApp - ctor - handling opk :%s", linkfile);
+		DEBUG("LinkApp::LinkApp - ctor - handling opk :%s", linkfile);
 		string::size_type pos;
 		const char *key, *val;
 		size_t lkey, lval;
@@ -182,74 +180,75 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, /*InputManager &inputMgr_,*/ const char* lin
 		file = gmenu2x->getAssetsPath() + "/sections/" + category + '/' + opkMount;
 		opkMount = (string) "/mnt/" + opkMount + '/';
 		edited = true;
-	}
+	}	// isOPK
 
-/* ---------------------------------------------------------------- */
+	else {
+		DEBUG("LinkApp::LinkApp - ctor - handling normal desktop file :%s", linkfile);
+		string line;
+		TRACE("LinkApp::LinkApp - ctor - creating ifstream");
+		ifstream infile (linkfile, ios_base::in);
+		TRACE("LinkApp::LinkApp - ctor - iterating thru infile : %s", linkfile);
+		while (getline(infile, line, '\n')) {
 
-	string line;
-	TRACE("LinkApp::LinkApp - ctor - creating ifstream");
-	ifstream infile (linkfile, ios_base::in);
-	TRACE("LinkApp::LinkApp - ctor - iterating thru infile : %s", linkfile);
-	while (getline(infile, line, '\n')) {
+			line = trim(line);
+			if (line.empty()) continue;
+			if (line[0] == '#') continue;
 
-		line = trim(line);
-		if (line.empty()) continue;
-		if (line[0] == '#') continue;
+			string::size_type position = line.find("=");
+			string name = trim(line.substr(0,position));
+			string value = trim(line.substr(position+1));
 
-		string::size_type position = line.find("=");
-		string name = trim(line.substr(0,position));
-		string value = trim(line.substr(position+1));
+			if (name == "clock") {
+				setCPU( atoi(value.c_str()) );
+			} else if (name == "selectordir") {
+				setSelectorDir( value );
+			} else if (name == "selectorbrowser") {
+				selectorbrowser = (value == "true" ? true : false);
+			} else if (!isOpk()) {
 
-		if (name == "clock") {
-			setCPU( atoi(value.c_str()) );
-		} else if (name == "selectordir") {
-			setSelectorDir( value );
-		} else if (name == "selectorbrowser") {
-			selectorbrowser = (value == "true" ? true : false);
-		} else if (!isOpk()) {
+				if (name == "title") {
+					title = value;
+				} else if (name == "description") {
+					description = value;
+				} else if (name == "icon") {
+					setIcon(value);
+				} else if (name == "exec") {
+					exec = value;
+				} else if (name == "params") {
+					params = value;
+				} else if (name == "workdir") {
+					workdir = value;
+				} else if (name == "manual") {
+					setManual(value);
+				} else if (name == "consoleapp") {
+					consoleapp = (value == "true" ? true : false);
+				} else if (name == "selectorfilter") {
+					setSelectorFilter( value );
+				} else if (name == "selectorscreens") {
+					setSelectorScreens( value );
+				} else if (name == "selectoraliases") {
+					setAliasFile( value );
+				} else if (name == "backdrop") {
+					setBackdrop(value);
+					// WARNING("BACKDROP: '%s'", backdrop.c_str());
+				} else {
+					WARNING("Unrecognized native link option: '%s'", name.c_str());
+					break;
+				}
 
-			if (name == "title") {
-				title = value;
-			} else if (name == "description") {
-				description = value;
-			} else if (name == "icon") {
-				setIcon(value);
-			} else if (name == "exec") {
-				exec = value;
-			} else if (name == "params") {
-				params = value;
-			} else if (name == "workdir") {
-				workdir = value;
-			} else if (name == "manual") {
-				setManual(value);
-			} else if (name == "consoleapp") {
-				consoleapp = (value == "true" ? true : false);
-			} else if (name == "selectorfilter") {
-				setSelectorFilter( value );
-			} else if (name == "selectorscreens") {
-				setSelectorScreens( value );
-			} else if (name == "selectoraliases") {
-				setAliasFile( value );
-			} else if (name == "backdrop") {
-				setBackdrop(value);
-				// WARNING("BACKDROP: '%s'", backdrop.c_str());
 			} else {
-				WARNING("Unrecognized native link option: '%s'", name.c_str());
-				break;
+				WARNING("Unrecognized OPK link option: '%s'\n", name.c_str());
 			}
 
-		} else {
-			WARNING("Unrecognized OPK link option: '%s'\n", name.c_str());
 		}
+		TRACE("LinkApp::LinkApp - ctor - closing infile");
+		infile.close();
 
-	}
-	TRACE("LinkApp::LinkApp - ctor - closing infile");
-	infile.close();
-
-	if (iconPath.empty()) {
-		TRACE("LinkApp::LinkApp - ctor - searching for icon");
-		searchIcon();
-	}
+		if (iconPath.empty()) {
+			TRACE("LinkApp::LinkApp - ctor - searching for icon");
+			searchIcon();
+		}
+	}	// !opk
 
 	edited = false;
 }
@@ -392,33 +391,23 @@ bool LinkApp::save() {
 }
 */
 
-
 bool LinkApp::save() {
-	if (!edited) return false;
+	TRACE("LinkApp::save - enter : %s", file.c_str());
+	if (!edited) {
+		TRACE("LinkApp::save - not edited, nothing to save");
+		return false;
+	}
+	if (isOpk()) {
+		TRACE("LinkApp::save - OPK, nothing to save");
+		return false;
+	}
 
 	std::ostringstream out;
-	if (!isOpk()) {
-		if (title != ""          ) out << "title="           << title           << endl;
-		if (description != ""    ) out << "description="     << description     << endl;
-		if (icon != ""           ) out << "icon="            << icon            << endl;
-		if (exec != ""           ) out << "exec="            << exec            << endl;
-		if (params != ""         ) out << "params="          << params          << endl;
-		if (workdir != ""        ) out << "workdir="         << workdir         << endl;
-		if (consoleapp           ) out << "consoleapp=true"                     << endl;
-		if (!consoleapp          ) out << "consoleapp=false"                    << endl;
-		if (manual != ""         ) out << "manual="          << manual          << endl;
-		if (!selectorbrowser     ) out << "selectorbrowser=false"               << endl;
-		if (selectorfilter != "" ) out << "selectorfilter="  << selectorfilter  << endl;
-		if (selectorscreens != "") out << "selectorscreens=" << selectorscreens << endl;
-		if (aliasfile != ""      ) out << "selectoraliases=" << aliasfile       << endl;
-		if (backdrop != ""       ) out << "backdrop="        << backdrop        << endl;
-	}
-	if (iclock != 0              ) out << "clock="           << iclock          << endl;
-	if (!selectordir.empty()     ) out << "selectordir="     << selectordir     << endl;
-	if (!selectorbrowser         ) out << "selectorbrowser=false"               << endl;
+	out <<(this);
 
 	if (out.tellp() > 0) {
-		DEBUG("Saving app settings: %s\n", file.c_str());
+		DEBUG("LinkApp::save - Saving app settings: %s\n", file.c_str());
+		DEBUG("LinkApp::save - data : %s", out.str().c_str());
 		ofstream f(file.c_str());
 		if (f.is_open()) {
 			f << out.str();
@@ -426,11 +415,11 @@ bool LinkApp::save() {
 			sync();
 			return true;
 		} else {
-			ERROR("Error while opening the file '%s' for write.\n", file.c_str());
+			ERROR("LinkApp::save - Error while opening the file '%s' for write.\n", file.c_str());
 			return false;
 		}
 	} else {
-		DEBUG("Empty app settings: %s\n", file.c_str());
+		DEBUG("LinkApp::save - Empty app settings: %s\n", file.c_str());
 		return unlink(file.c_str()) == 0 || errno == ENOENT;
 	}
 }
@@ -673,4 +662,32 @@ void LinkApp::setAliasFile(const string &aliasfile) {
 
 void LinkApp::renameFile(const string &name) {
 	file = name;
+}
+
+std::ostream& LinkApp::operator<<(const LinkApp &a) {
+	
+	std::ostringstream out;
+	if (isOpk()) {
+
+	} else {
+		if (title != ""          ) out << "title="           << title           << endl;
+		if (description != ""    ) out << "description="     << description     << endl;
+		if (icon != ""           ) out << "icon="            << icon            << endl;
+		if (exec != ""           ) out << "exec="            << exec            << endl;
+		if (params != ""         ) out << "params="          << params          << endl;
+		if (workdir != ""        ) out << "workdir="         << workdir         << endl;
+		if (consoleapp           ) out << "consoleapp=true"                     << endl;
+		if (!consoleapp          ) out << "consoleapp=false"                    << endl;
+		if (manual != ""         ) out << "manual="          << manual          << endl;
+		if (!selectorbrowser     ) out << "selectorbrowser=false"               << endl;
+		if (selectorfilter != "" ) out << "selectorfilter="  << selectorfilter  << endl;
+		if (selectorscreens != "") out << "selectorscreens=" << selectorscreens << endl;
+		if (aliasfile != ""      ) out << "selectoraliases=" << aliasfile       << endl;
+		if (backdrop != ""       ) out << "backdrop="        << backdrop        << endl;
+		if (iclock != 0              ) out << "clock="           << iclock          << endl;
+		if (!selectordir.empty()     ) out << "selectordir="     << selectordir     << endl;
+		if (!selectorbrowser         ) out << "selectorbrowser=false"               << endl;
+	}
+	return out;
+
 }

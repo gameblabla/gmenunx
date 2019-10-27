@@ -45,7 +45,9 @@ string cmdclean (string cmdline);
 
 char *string_copy(const string &);
 void string_copy(const string &, char **);
-string char_to_string(char *cs);
+
+template <typename T>
+string to_string( const T& value );
 
 bool fileExists(const string &path);
 bool dirExists(const string &path);
