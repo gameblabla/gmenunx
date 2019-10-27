@@ -20,7 +20,7 @@ CFLAGS = -ggdb  -DTARGET_RG350 -DPLATFORM_RG350 -DTARGET=$(PATH_DIR) \
     -g3 $(SDL_CFLAGS)
 
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk
+LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk -lpng
 
 
 OBJDIR = objs/$(PATH_DIR)

@@ -58,7 +58,7 @@ public:
 	bool isOpk() { return isOPK; }
 	const std::string &getOpkFile() { return opkFile; }
 
-	virtual const string &searchIcon();
+	virtual const string &searchIcon(bool fallBack = true);
 	virtual const string &searchBackdrop();
 	virtual const string &searchManual();
 

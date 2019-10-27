@@ -35,6 +35,7 @@
 #include "launcher.h"
 #include "menu.h"
 #include "selector.h"
+#include "imageio.h"
 #include "debug.h"
 
 using namespace std;
@@ -122,13 +123,19 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				manual = buf;
 				DEBUG("LinkApp::LinkApp - ctor - opk::manual : %s", manual.c_str());
 			} else if (!strncmp(key, "Icon", lkey)) {
+				string ip = "icons/" + (string) buf + ".png";
+				DEBUG("LinkApp::LinkApp - ctor - looking for icon at : %s", ip.c_str());
 				// Read the icon from the OPK if it doesn't exist on the skin
-				this->icon = gmenu2x->sc.getSkinFilePath("icons/" + (string) buf + ".png");
-				if (this->icon.empty()) {
+				searchIcon(false);
+				if (!iconPath.empty()) {
+					this->icon = iconPath;
+				} else {
+					// let's extract the image and use for now, and save it locally for the future
+					DEBUG("LinkApp::LinkApp - ctor - icon not found, looking in the opk");
 					this->icon = linkfile + '#' + (string) buf + ".png";
 				}
-				iconPath = this->icon;
-				DEBUG("LinkApp::LinkApp - ctor - opk::icon : %s", icon.c_str());
+
+				DEBUG("LinkApp::LinkApp - ctor - opk::icon path set to : %s", iconPath.c_str());
 				updateSurfaces();
 
 			} else if (!strncmp(key, "Exec", lkey)) {
@@ -211,6 +218,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				} else if (name == "description") {
 					description = value;
 				} else if (name == "icon") {
+					DEBUG("LinkApp::LinkApp - ctor - setting icon value to %s", value.c_str());
 					setIcon(value);
 				} else if (name == "exec") {
 					exec = value;
@@ -244,11 +252,14 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		TRACE("LinkApp::LinkApp - ctor - closing infile");
 		infile.close();
 
+		// try and find an icon 
 		if (iconPath.empty()) {
-			TRACE("LinkApp::LinkApp - ctor - searching for icon");
+			DEBUG("LinkApp::LinkApp - ctor - searching for icon");
 			searchIcon();
 		}
+
 	}	// !opk
+
 	DEBUG("LinkApp::LinkApp - ctor : %s", this->toString().c_str());
 	edited = false;
 }
@@ -306,7 +317,10 @@ const string &LinkApp::searchBackdrop() {
 	return backdropPath;
 }
 
-const string &LinkApp::searchIcon() {
+const string &LinkApp::searchIcon(bool fallBack) {
+	DEBUG("LinkApp::searchIcon - enter - fallback : %i", fallBack);
+
+	// get every permutation possible from the metadata opts
 	string execicon = exec;
 	string::size_type pos = exec.rfind(".");
 	if (pos != string::npos) execicon = exec.substr(0, pos);
@@ -326,9 +340,11 @@ const string &LinkApp::searchIcon() {
 		iconPath = gmenu2x->sc.getSkinFilePath("icons/" + dirtitle);
 	else if (fileExists(execicon))
 		iconPath = execicon;
-	else
+	else if (fallBack) {
 		iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
+	}
 
+	DEBUG("LinkApp::searchIcon - exit - iconPath : %s", iconPath.c_str());
 	return iconPath;
 }
 
