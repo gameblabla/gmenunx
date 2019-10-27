@@ -543,7 +543,8 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		TRACE("LinkApp::launch - dir : %s", dir.c_str());
 
 		if (params.empty()) {
-			params = cmdclean(dir + selectedFile);
+			//params = cmdclean(dir + selectedFile);
+			params = dir + selectedFile;
 			TRACE("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
 		} else {
 			string origParams = params;
@@ -590,7 +591,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
 	if (toLaunch) {
-		TRACE("LinkApp::launch - lift off");
+		TRACE("LinkApp::launch - quit");
 		//delete menu;
 		gmenu2x->quit();
 		//gmenu2x->releaseScreen();
@@ -598,6 +599,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 		// TODO Blank the screen??
 		
+		TRACE("LinkApp::launch - calling exec");
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed
 		// everything, the easiest solution is to exit and let the system

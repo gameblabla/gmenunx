@@ -17,7 +17,9 @@
 
 // Bind and activate the framebuffer console on selected platforms.
 #define BIND_CONSOLE \
-		defined(PLATFORM_A320) || defined(PLATFORM_GCW0)|| defined(PLATFORM_RG350)
+		defined(PLATFORM_A320) || \
+		defined(PLATFORM_GCW0)|| \
+		defined(PLATFORM_RG350)
 
 #if BIND_CONSOLE
 #include <linux/vt.h>
@@ -80,7 +82,7 @@ void Launcher::exec() {
 
 	std::string s;
 	for (std::vector<std::string>::const_iterator i = commandLine.begin(); i != commandLine.end(); ++i)
-		s += *i;
+		s += " " + *i;
 
 	TRACE("Launcher::exec - exec-ing :: %s", s.c_str());
 

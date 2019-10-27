@@ -231,12 +231,14 @@ void GMenu2X::releaseScreen() {
 	SDL_Quit();
 }
 void GMenu2X::quit() {
+	TRACE("GMenu2X::quit - enter");
 	ledOff();
 	fflush(NULL);
 	sc.clear();
 	s->free();
 	releaseScreen();
 	hwDeinit();
+	TRACE("GMenu2X::quit - exit");
 }
 
 int main(int /*argc*/, char * /*argv*/[]) {
