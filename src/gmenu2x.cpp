@@ -1222,7 +1222,7 @@ void GMenu2X::readConfig() {
 	if (confStr["TVOut"] != "PAL") confStr["TVOut"] = "NTSC";
 	if (!confStr["lang"].empty()) tr.setLang(confStr["lang"]);
 	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) confStr["wallpaper"] = "";
-	if (confStr["skin"].empty() || !dirExists("skins/" + confStr["skin"])) confStr["skin"] = "Default";
+	if (confStr["skin"].empty() || !dirExists(assets_path + "skins/" + confStr["skin"])) confStr["skin"] = "Default";
 
 	evalIntConf( &confInt["backlightTimeout"], 30, 10, 300);
 	evalIntConf( &confInt["powerTimeout"], 10, 1, 300);
