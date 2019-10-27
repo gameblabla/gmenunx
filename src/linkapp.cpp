@@ -249,7 +249,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			searchIcon();
 		}
 	}	// !opk
-
+	DEBUG("LinkApp::LinkApp - ctor : %s", this->toString().c_str());
 	edited = false;
 }
 
@@ -403,7 +403,7 @@ bool LinkApp::save() {
 	}
 
 	std::ostringstream out;
-	out <<(this);
+	out << this->toString();
 
 	if (out.tellp() > 0) {
 		DEBUG("LinkApp::save - Saving app settings: %s\n", file.c_str());
@@ -549,7 +549,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		//gmenu2x->releaseScreen();
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
-		// TODO Blank the screen
+		// TODO Blank the screen??
 		
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed
@@ -664,11 +664,18 @@ void LinkApp::renameFile(const string &name) {
 	file = name;
 }
 
-std::ostream& LinkApp::operator<<(const LinkApp &a) {
+std::string LinkApp::toString() {
 	
 	std::ostringstream out;
 	if (isOpk()) {
-
+		if (!category.empty()) out << "Categories=" << category           << endl;
+		if (!title.empty()) out << "Name=" << title << endl;
+		if (!description.empty()) out << "Comment=" << description << endl;
+		if (consoleapp           ) out << "Terminal=true"                     << endl;
+		if (!consoleapp          ) out << "Terminal=false"                    << endl;
+		if (!manual.empty()) out << "X-OD-Manual=" << manual << endl;
+		if (!this->icon.empty()) out << "Icon=" << this->icon << endl;
+		if (!exec.empty()) out << "Exec=" << exec << endl;
 	} else {
 		if (title != ""          ) out << "title="           << title           << endl;
 		if (description != ""    ) out << "description="     << description     << endl;
@@ -688,6 +695,6 @@ std::ostream& LinkApp::operator<<(const LinkApp &a) {
 		if (!selectordir.empty()     ) out << "selectordir="     << selectordir     << endl;
 		if (!selectorbrowser         ) out << "selectorbrowser=false"               << endl;
 	}
-	return out;
+	return out.str();
 
 }

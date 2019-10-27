@@ -104,7 +104,7 @@ public:
 	bool isDeletable() { return deletable; }
 	bool isEditable() { return editable; }
 
-	std::ostream& operator<<(const LinkApp &a);
+	std::string toString();
 
 };
 
