@@ -199,6 +199,9 @@ public:
 	@return String containing the parent directory
 	*/
 	const string &getAssetsPath();
+
+	string getCurrentSkinPath();
+
 	bool copyAssets();
 
 	ScreenManager screenManager;

@@ -86,6 +86,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - read links");
 	readLinks();
 
+	TRACE("Menu :: ctor - read OPK links");
 	openPackagesFromDir(OPK_PATH);
 
 	TRACE("Menu :: ctor - exit");
@@ -100,24 +101,36 @@ uint32_t Menu::firstDispRow() {
 }
 
 void Menu::loadIcons() {
-	//reload section icons
+	TRACE("Menu::loadIcons - enter");
+
 	for (uint32_t i = 0; i < sections.size(); i++) {
 		string sectionIcon = "sections/" + sections[i] + ".png";
-		if (!gmenu2x->sc.getSkinFilePath(sectionIcon).empty())
+		TRACE("Menu::loadIcons - section : %s", sections[i].c_str());
+		if (!gmenu2x->sc.getSkinFilePath(sectionIcon).empty()) {
+			TRACE("Menu::loadIcons - section  icon: skin:%s", sectionIcon.c_str());
 			gmenu2x->sc.add("skin:" + sectionIcon);
+		}
 
 		//check link's icons
 		string linkIcon;
 		for (uint32_t x = 0; x < sectionLinks(i)->size(); x++) {
 			linkIcon = sectionLinks(i)->at(x)->getIcon();
+			TRACE("Menu::loadIcons - link : %s", sectionLinks(i)->at(x)->getTitle().c_str());
+			TRACE("Menu::loadIcons - link icon : %s", linkIcon.c_str());
+
+			TRACE("Menu::loadIcons - updating surfaces");
 			sectionLinks(i)->at(x)->updateSurfaces();
+
+			TRACE("Menu::loadIcons - link : casting the link app");
 			LinkApp *linkapp = dynamic_cast<LinkApp*>(sectionLinks(i)->at(x));
 
 			if (linkapp != NULL) {
+				TRACE("Menu::loadIcons - link - searching backdrop and mauals");
 				linkapp->searchBackdrop();
 				linkapp->searchManual();
 			}
 
+			TRACE("Menu::loadIcons - link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
 				linkIcon = gmenu2x->sc.getSkinFilePath(linkIcon.substr(5,linkIcon.length()));
 				if (linkapp != NULL && !fileExists(linkIcon))
@@ -130,6 +143,7 @@ void Menu::loadIcons() {
 			}
 		}
 	}
+	TRACE("Menu::loadIcons - exit");
 }
 
 /*====================================

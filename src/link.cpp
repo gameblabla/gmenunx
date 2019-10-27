@@ -22,7 +22,7 @@
 #include "link.h"
 #include "menu.h"
 #include "selector.h"
-// #include "debug.h"
+#include "debug.h"
 #include "fonthelper.h"
 
 Link::Link(GMenu2X *gmenu2x_, LinkAction action)
@@ -42,6 +42,7 @@ void Link::run() {
 }
 
 void Link::updateSurfaces() {
+	DEBUG("Link::updateSurfaces - setting iconSurface frm iconPath : %s", getIconPath().c_str());
 	iconSurface = gmenu2x->sc[getIconPath()];
 }
 

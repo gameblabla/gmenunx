@@ -43,13 +43,19 @@ void SurfaceCollection::setSkin(const string &skin) {
 }
 
 string SurfaceCollection::getSkinFilePath(const string &file) {
-	TRACE("SurfaceCollection :: getSkinFilePath - enter : %s", file.c_str());
+	TRACE("SurfaceCollection::getSkinFilePath - enter : %s", file.c_str());
+	TRACE("SurfaceCollection::getSkinFilePath - prefix : %s, skin : %s", prefix.c_str(), skin.c_str());
 	string result = "";
 	
-	if (fileExists(this->prefix+"skins/"+skin+"/"+file))
-		result = this->prefix+"skins/"+skin+"/"+file;
-	else if (fileExists(this->prefix+"skins/Default/"+file))
-		result = this->prefix+"skins/Default/"+file;
+	if (fileExists(this->prefix + "skins/" + skin + "/" + file)) {
+		TRACE("SurfaceCollection::getSkinFilePath - found file in current skin");
+		result = this->prefix + "skins/" + skin + "/" + file;
+	} else if (fileExists(this->prefix + "skins/Default/" + file)) {
+		TRACE("SurfaceCollection::getSkinFilePath - found file in default skin");
+		result = this->prefix + "skins/Default/" + file;
+	} else {
+		TRACE("SurfaceCollection::getSkinFilePath - didn't find file anywhere");
+	}
 	TRACE("SurfaceCollection :: getSkinFilePath - exit : %s", result.c_str());
 	return result;
 }

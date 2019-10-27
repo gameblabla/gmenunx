@@ -2560,6 +2560,12 @@ const string &GMenu2X::getAssetsPath() {
 	return USER_PREFIX;
 }
 
+string GMenu2X::getCurrentSkinPath() {
+	string currentSkin = (confStr["skin"].empty() ? "Default" : confStr["skin"]);
+	DEBUG("GMenu2X::getCurrentSkinPath - current skin looks to be : %s", currentSkin.c_str());
+	return assets_path + "skins/" + currentSkin;
+}
+
 bool GMenu2X::copyAssets() {
 	TRACE("GMenu2X::copyAssets - enter");
 	bool success = false;
