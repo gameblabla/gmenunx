@@ -83,8 +83,9 @@
 	#define __BUILDTIME__ __DATE__ " " __TIME__ 
 #endif
 
-const char *CARD_ROOT = "/media/data/local/home/"; //Note: Add a trailing /!
-const int CARD_ROOT_LEN = 1;
+// TODO this should probably point to /media/sdcard
+const char *CARD_ROOT = "/media/data/local/home/";
+const int MIN_CONFIG_VERSION = 1;
 
 static GMenu2X *app;
 
@@ -267,10 +268,7 @@ void* mainThread(void* param) {
 	return NULL;
 }
 
-// GMenu2X *GMenu2X::instance = NULL;
 GMenu2X::GMenu2X() : input(screenManager) {
-	// instance = this;
-	//Detect firmware version and type
 
 	TRACE("GMenu2X::ctor - enter");
 
@@ -294,6 +292,11 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	//load config data
 	TRACE("GMenu2X::ctor - readConfig");
 	readConfig();
+	if (!firstRun && MIN_CONFIG_VERSION > confInt["version"]) {
+		// we're doing an upgrade
+		TRACE("GMenu2X::ctor - upgrade requested from %i to %i", confInt["version"], MIN_CONFIG_VERSION);
+		firstRun = true;
+	}
 
 	// set this ASAP
 	TRACE("GMenu2X::ctor - backlight");
@@ -1201,6 +1204,7 @@ void GMenu2X::readConfig() {
 	confStr["batteryType"] = "BL-5B";
 	confStr["datetime"] = __BUILDTIME__;
 	confInt["saveSelection"] = 1;
+	confInt["version"] = -1;
 
 	if (fileExists(conffile)) {
 		ifstream inf(conffile.c_str(), ios_base::in);
@@ -1240,6 +1244,7 @@ void GMenu2X::readConfig() {
 	evalIntConf( &confInt["sectionBar"], SB_LEFT, 1, 4);
 	evalIntConf( &confInt["linkCols"], 1, 1, 8);
 	evalIntConf( &confInt["linkRows"], 6, 1, 8);
+	evalIntConf( &confInt["version"], 0, 0, 999);
 
 	if (!confInt["saveSelection"]) {
 		confInt["section"] = 0;

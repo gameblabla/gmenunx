@@ -49,9 +49,8 @@ const int VOLUME_SCALER_NORMAL = 100;
 const int BATTERY_READS = 10;
 
 extern const char *CARD_ROOT;
-extern const int CARD_ROOT_LEN;
 
-const string ASSET_PREFIX ="/usr/share/gmenunx/";
+const string ASSET_PREFIX = "./";//"/usr/share/gmenunx/";
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 
 // Note: Keep this in sync with colorNames!
