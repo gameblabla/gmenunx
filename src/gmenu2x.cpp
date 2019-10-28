@@ -387,6 +387,8 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - ledOff");
 	ledOff();
 
+	readTmp();
+
 	//recover last session
 	TRACE("GMenu2X::ctor - recoverSession test");
 	if (lastSelectorElement >- 1 && \
@@ -1088,11 +1090,12 @@ void GMenu2X::cpuSettings() {
 	}
 	TRACE("GMenu2X::cpuSettings - exit");
 }
-/*
+
 void GMenu2X::readTmp() {
+	TRACE("GMenu2X::readTmp - enter");
 	lastSelectorElement = -1;
-	if (!fileExists("/tmp/gmenu2x.tmp")) return;
-	ifstream inf("/tmp/gmenu2x.tmp", ios_base::in);
+	if (!fileExists("/tmp/gmenunx.tmp")) return;
+	ifstream inf("/tmp/gmenunx.tmp", ios_base::in);
 	if (!inf.is_open()) return;
 	string line, name, value;
 
@@ -1110,11 +1113,11 @@ void GMenu2X::readTmp() {
 	if (TVOut != "NTSC" && TVOut != "PAL") TVOut = "OFF";
 //	udcConnectedOnBoot = 0;
 	inf.close();
-	unlink("/tmp/gmenu2x.tmp");
+	unlink("/tmp/gmenunx.tmp");
 }
 
 void GMenu2X::writeTmp(int selelem, const string &selectordir) {
-	string conffile = "/tmp/gmenu2x.tmp";
+	string conffile = "/tmp/gmenunx.tmp";
 	ofstream inf(conffile.c_str());
 	if (inf.is_open()) {
 		inf << "section=" << menu->selSectionIndex() << endl;
@@ -1126,7 +1129,7 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 		inf.close();
 	}
 }
-*/
+
 void GMenu2X::readConfig() {
 	
 	string conffile = assets_path + "gmenunx.conf";
