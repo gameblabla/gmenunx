@@ -73,17 +73,14 @@ void Launcher::exec() {
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
 	TRACE("Launcher::exec - sorting args reserved");
+	std::string s;
 	for (auto arg : commandLine) {
 		TRACE("Launcher::exec - pushing back arg : %s", arg.c_str());
 		args.push_back(arg.c_str());
+		s += " " + arg;
 	}
 	args.push_back(nullptr);
 	TRACE("Launcher::exec - args finished");
-
-	std::string s;
-	for (std::vector<std::string>::const_iterator i = commandLine.begin(); i != commandLine.end(); ++i)
-		s += " " + *i;
-
 	TRACE("Launcher::exec - exec-ing :: %s", s.c_str());
 
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
