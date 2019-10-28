@@ -89,7 +89,7 @@ void BatteryLoggerDialog::exec() {
 		gmenu2x->s->flip();
 
 		bool inputAction = gmenu2x->input.update(false);
-		// if (gmenu2x->inputCommonActions(inputAction)) continue;
+		
 		if ( gmenu2x->input[UP  ] && firstRow > 0 ) firstRow--;
 		else if ( gmenu2x->input[DOWN] && firstRow + rowsPerPage < log.size() ) firstRow++;
 		else if ( gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) {

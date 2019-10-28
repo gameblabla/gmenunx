@@ -168,7 +168,6 @@ int MessageBox::exec() {
 
 		bool inputAction = gmenu2x->input.update();
 		if (inputAction) {
-			// if (gmenu2x->inputCommonActions(inputAction)) continue; // causes power button bounce
 			for (uint32_t i = 0; i < buttons.size(); i++) {
 				if (buttons[i] != "" && gmenu2x->input[i]) {
 					result = i;
