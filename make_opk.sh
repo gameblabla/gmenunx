@@ -14,7 +14,7 @@ cat > default.gcw0.desktop <<EOF
 [Desktop Entry]
 Name=GmenuNX
 Comment=GmenuNX
-Exec=gmenunx
+Exec=/mnt/GmenuNX/gmenunx
 Terminal=false
 Type=Application
 StartupNotify=true

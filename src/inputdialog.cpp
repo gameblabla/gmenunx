@@ -160,8 +160,7 @@ bool InputDialog::exec() {
 		gmenu2x->s->flip();
 
 		bool inputAction = gmenu2x->input.update();
-		if (gmenu2x->inputCommonActions(inputAction)) continue;
-
+		
 		if ( gmenu2x->input[CANCEL] || gmenu2x->input[MENU] ) action = ID_ACTION_CLOSE;
 		else if ( gmenu2x->input[SETTINGS] ) action = ID_ACTION_SAVE;
 		else if ( gmenu2x->input[UP]       ) action = ID_ACTION_UP;

@@ -151,7 +151,6 @@ int Selector::exec(int startSelection) {
 
 		do {
 			inputAction = gmenu2x->input.update();
-			if (gmenu2x->inputCommonActions(inputAction)) continue;
 			if (inputAction) tickStart = SDL_GetTicks();
 
 			if ( gmenu2x->input[UP] ) {

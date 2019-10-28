@@ -388,9 +388,15 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	ledOff();
 
 	//recover last session
-	TRACE("GMenu2X::ctor - recoverSession");
-	if (lastSelectorElement >- 1 && menu->selLinkApp() != NULL && (!menu->selLinkApp()->getSelectorDir().empty() || !lastSelectorDir.empty()))
+	TRACE("GMenu2X::ctor - recoverSession test");
+	if (lastSelectorElement >- 1 && \
+		menu->selLinkApp() != NULL && \
+		(!menu->selLinkApp()->getSelectorDir().empty() || \
+		!lastSelectorDir.empty())) {
+
+		TRACE("GMenu2X::ctor - recoverSession happening");
 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
+	}
 
 	TRACE("GMenu2X::ctor - exit");
 
@@ -608,8 +614,6 @@ void GMenu2X::main() {
 		}
 		// input.setWakeUpInterval(0);
 
-		if (inputCommonActions(inputAction)) continue;
-
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
 			TRACE("******************RUNNING THIS*******************");
 
@@ -668,77 +672,6 @@ void GMenu2X::main() {
 	// delete btnContextMenu;
 	// btnContextMenu = NULL;
 	TRACE("main :: exit");
-}
-
-bool GMenu2X::inputCommonActions(bool &inputAction) {
-	//TRACE("GMenu2X::inputCommonActions - enter");
-
-	if (powerManager->suspendActive) {
-		// SUSPEND ACTIVE
-		input.setWakeUpInterval(0);
-		while (!input[CONFIRM]) {
-			input.update();
-		}
-		powerManager->doSuspend(0);
-		input.setWakeUpInterval(1000);
-		return true;
-	}
-
-	if (inputAction) powerManager->resetSuspendTimer();
-	input.setWakeUpInterval(1000);
-
-	hwCheck();
-
-	bool wasActive = false;
-	while (input[POWER]) {
-		wasActive = true;
-		input.update();
-		if (input[POWER]) {
-			// HOLD POWER BUTTON
-			poweroffDialog();
-			return true;
-		}
-	}
-
-	if (wasActive) {
-		powerManager->doSuspend(1);
-		return true;
-	}
-
-	while (input[MENU]) {
-		wasActive = true;
-		input.update();
-		if (input[SECTION_NEXT]) {
-			// SCREENSHOT
-			if (!saveScreenshot()) { ERROR("Can't save screenshot"); return true; }
-			MessageBox mb(this, tr["Screenshot saved"]);
-			mb.setAutoHide(1000);
-			mb.exec();
-			return true;
-		} else if (input[SECTION_PREV]) {
-			// VOLUME / MUTE
-			setVolume(confInt["globalVolume"]);
-			return true;
-#ifdef TARGET_RS97
-		} else if (input[POWER]) {
-			udcConnectedOnBoot = UDC_CONNECT;
-			checkUDC();
-			return true;
-#endif
-		}
-	}
-
-	input[MENU] = wasActive; // Key was active but no combo was pressed
-
-	//TRACE("GMenu2X::inputCommonActions - exit");
-	/*
-	if ( input[BACKLIGHT] ) {
-		setBacklight(confInt["backlight"]);
-		return true;
-	}
-	*/
-	
-	return false;
 }
 
 void GMenu2X::hwInit() {
@@ -1565,11 +1498,7 @@ void GMenu2X::about() {
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
 	temp += tr["Uptime: "] + hms + "\n";
-	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
-#ifdef TARGET_RS97
-	temp += tr["Checksum: 0x"] + hwv + "\n";
-#endif
-	
+	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";	
 	temp += tr["Storage used:"];
 	temp += "\n    " + tr["Internal: "] + getDiskFree("/media/data");
 
@@ -2027,10 +1956,11 @@ void GMenu2X::setPerformanceMode() {
 	TRACE("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
 	string current = getPerformanceMode();
 	if (current.compare(confStr["Performance"]) != 0) {
-		TRACE("WTF :: %i vs. %i", current.length(), confStr["Performance"].length());
 		TRACE("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
-		procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
-		initMenu();
+		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
+			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
+			initMenu();
+		}
 	} else {
 		TRACE("GMenu2X::setPerformanceMode - nothing to do");
 	}
@@ -2039,14 +1969,10 @@ void GMenu2X::setPerformanceMode() {
 
 string GMenu2X::getPerformanceMode() {
 	TRACE("GMenu2X::getPerformanceMode - enter");
-	/*
-	ifstream governor("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-	stringstream strStream;
-	strStream << governor.rdbuf();
-	string result = strStream.str();
-	governor.close();
-	*/
-	string result = procReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+	string result = "ondemand";
+	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
+		result = procReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+	}
 	TRACE("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
 	return full_trim(result);
 }
@@ -2098,9 +2024,6 @@ void GMenu2X::performanceMenu() {
 		}
 		do {
 			inputAction = input.update();
-
-			if (inputCommonActions(inputAction)) continue;
-
 			if ( input[MENU] || input[CANCEL]) close = true;
 			else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
 			else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
@@ -2177,9 +2100,6 @@ void GMenu2X::contextMenu() {
 		}
 		do {
 			inputAction = input.update();
-
-			if (inputCommonActions(inputAction)) continue;
-
 			if ( input[MENU] || input[CANCEL]) close = true;
 			else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
 			else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;

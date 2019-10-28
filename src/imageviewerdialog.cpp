@@ -32,7 +32,6 @@ void ImageViewerDialog::exec() {
 
 		do {
 			inputAction = gmenu2x->input.update();
-			if (gmenu2x->inputCommonActions(inputAction)) continue;
 
 			if ( gmenu2x->input[MANUAL] || gmenu2x->input[CANCEL] || gmenu2x->input[SETTINGS] ) close = true;
 			else if ( gmenu2x->input[LEFT] && offsetX < 0) {

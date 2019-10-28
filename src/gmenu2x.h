@@ -246,8 +246,6 @@ public:
 	uint32_t onChangeSkin();
 	void initLayout();
 
-	bool inputCommonActions(bool &inputAction);
-
 	PowerManager *powerManager;
 
 #if defined(TARGET_GP2X)

@@ -79,7 +79,6 @@ bool SettingsDialog::exec() {
 		gmenu2x->s->flip();
 		do {
 			inputAction = gmenu2x->input.update();
-			if (gmenu2x->inputCommonActions(inputAction)) continue;
 
 			action = SD_NO_ACTION;
 			if ( gmenu2x->input[SETTINGS] ) action = SD_ACTION_SAVE;

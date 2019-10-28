@@ -110,7 +110,6 @@ bool BrowseDialog::exec() {
 
 		do {
 			inputAction = gmenu2x->input.update();
-			if (gmenu2x->inputCommonActions(inputAction)) continue;
 			if (inputAction) tickStart = SDL_GetTicks();
 
 			uint32_t action = getAction();
