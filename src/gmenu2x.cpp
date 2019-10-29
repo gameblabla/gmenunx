@@ -1810,7 +1810,7 @@ void GMenu2X::setTVOut(string TVOut) {
 
 string GMenu2X::mountSd() {
 	TRACE("GMenu2X::mountSd - enter");
-	string result = exec("mount -t vfat /dev/mmcblk1p1 /media/sdcard 2>&1");
+	string result = exec("mount -t auto /dev/mmcblk1p1 /media/sdcard 2>&1");
 	TRACE("GMenu2X::mountSd - result : %s", result.c_str());
 	system("sleep 1");
 	checkUDC();
