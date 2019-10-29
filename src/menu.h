@@ -49,6 +49,12 @@ private:
 	void freeLinks();
 	void orderLinks();
 
+	/* opk section */
+	void openPackagesFromDir(std::string path);
+	void readPackages(std::string parentDir);
+	void openPackage(std::string path, bool order);
+	void removePackageLink(std::string path);
+
 public:
 	Menu(GMenu2X *gmenu2x);
 	~Menu();
@@ -91,12 +97,6 @@ public:
 	void renameSection(int index, const string &name);
 	int getSectionIndex(const string &name);
 	const string getSectionIcon(int i);
-
-	/* opk section */
-	void openPackagesFromDir(std::string path);
-	void openPackage(std::string path, bool order);
-	void readPackages(std::string parentDir);
-	void removePackageLink(std::string path);
 
 };
 
