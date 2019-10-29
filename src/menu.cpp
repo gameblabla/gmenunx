@@ -36,7 +36,9 @@
 
 using namespace std;
 
-#define OPK_PATH "/media/data/apps"
+const string OPK_INTERNAL_PATH = "/media/data/apps";
+const string OPK_EXTERNAL_PATH = "/media/sdcard/apps";
+const string OPK_PLATFORM = "gcw0";
 
 Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - enter");
@@ -86,8 +88,10 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - read links");
 	readLinks();
 
-	TRACE("Menu :: ctor - read OPK links");
-	openPackagesFromDir(OPK_PATH);
+	TRACE("Menu :: ctor - read internal OPK links");
+	openPackagesFromDir(OPK_INTERNAL_PATH);
+	TRACE("Menu :: ctor - read external OPK links");
+	openPackagesFromDir(OPK_EXTERNAL_PATH);
 
 	TRACE("Menu :: ctor - exit");
 }
@@ -552,11 +556,10 @@ void Menu::orderLinks() {
 
 void Menu::openPackagesFromDir(string path) {
 	TRACE("Menu::openPackagesFromDir - enter : %s", path.c_str());
-	readPackages(path);
+	if (dirExists(path))
+		readPackages(path);
 	TRACE("Menu::openPackagesFromDir - exit");
 }
-
-#define OPK_PLATFORM "gcw0"
 
 void Menu::openPackage(string path, bool order) {
 	TRACE("Menu::openPackage - enter : search : %s, sort : %i", path.c_str(), order);
@@ -564,7 +567,6 @@ void Menu::openPackage(string path, bool order) {
 	/* First try to remove existing links of the same OPK
 	 * (needed for instance when an OPK is modified) */
 	removePackageLink(path);
-
 
 	struct OPK *opk = opk_open(path.c_str());
 	if (!opk) {
@@ -600,7 +602,7 @@ void Menu::openPackage(string path, bool order) {
 
 			TRACE("Menu::openPackage : resolved meta data to : %s", metadata.c_str());
 			if (metadata == OPK_PLATFORM || metadata == "all") {
-				TRACE("Menu::openPackage : metadata matches platform : %s", OPK_PLATFORM);
+				TRACE("Menu::openPackage : metadata matches platform : %s", OPK_PLATFORM.c_str());
 				has_metadata = true;
 				break;
 			}
@@ -641,6 +643,7 @@ void Menu::openPackage(string path, bool order) {
 }
 
 void Menu::readPackages(std::string parentDir) {
+	TRACE("Menu::readPackage - enter : %s", parentDir.c_str());
 	DIR *dirp;
 	struct dirent *dptr;
 	vector<string> linkfiles;
@@ -649,6 +652,7 @@ void Menu::readPackages(std::string parentDir) {
 	if (!dirp)
 		return;
 
+	TRACE("Menu::readPackage - dir opened");
 	while ((dptr = readdir(dirp))) {
 		char *c;
 
@@ -656,6 +660,7 @@ void Menu::readPackages(std::string parentDir) {
 			continue;
 
 		c = strrchr(dptr->d_name, '.');
+		TRACE("Menu::readPackage - found file : %s", c);
 		if (!c) /* File without extension */
 			continue;
 
@@ -668,11 +673,13 @@ void Menu::readPackages(std::string parentDir) {
 			continue;
 		}
 
+		TRACE("Menu::readPackage - it's an opk, handling it...");
 		openPackage(parentDir + '/' + dptr->d_name, false);
 	}
-
+	TRACE("Menu::readPackage - closing dir");
 	closedir(dirp);
 	orderLinks();
+	TRACE("Menu::readPackage - exit");
 }
 
 /* Remove all links that correspond to the given path.
