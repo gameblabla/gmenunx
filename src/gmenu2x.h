@@ -50,7 +50,6 @@ const int BATTERY_READS = 10;
 
 extern const char *CARD_ROOT;
 
-const string ASSET_PREFIX = "./";//"/usr/share/gmenunx/";
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 
 // Note: Keep this in sync with colorNames!

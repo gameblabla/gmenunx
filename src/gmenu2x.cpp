@@ -280,7 +280,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	bool firstRun = !dirExists(getAssetsPath());
 	if (firstRun) {
-		assets_path = ASSET_PREFIX;
+		assets_path = getExePath();
 	} else {
 		assets_path = getAssetsPath();
 	}
@@ -1198,7 +1198,7 @@ void GMenu2X::writeConfig() {
 	ledOn();
 	
 	// don't try and save to RO file system
-	if (ASSET_PREFIX != assets_path) {
+	if (getExePath() != assets_path) {
 		if (confInt["saveSelection"] && menu != NULL) {
 			TRACE("GMenu2X::writeConfig - save selection");
 			confInt["section"] = menu->selSectionIndex();
@@ -2506,11 +2506,11 @@ bool GMenu2X::copyAssets() {
 		TRACE("GMenu2X::copyAssets - No writable home dir");
 		
 		string message = "Doing first run setup....";
-		string icon = ASSET_PREFIX + "skins/Default/icons/generic.png";
+		string icon = getExePath() + "skins/Default/icons/generic.png";
 		TRACE("GMenu2X::copyAssets - icon : %s", icon.c_str());
 
 		stringstream ss;
-		ss << "cp -arp " << ASSET_PREFIX << " " << USER_PREFIX << " && sync";
+		ss << "cp -arp " << getExePath() << " " << USER_PREFIX << " && sync";
 		string call = ss.str();
 		TRACE("GMenu2X::copyAssets - Going to run :: %s", call.c_str());
 		system(call.c_str());
