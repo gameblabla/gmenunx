@@ -1930,7 +1930,7 @@ void GMenu2X::checkUDC() {
 		}
 	} else {
 		curMMCStatus = MMC_ERROR;
-		WARNING("GMenu2X::checkUDC - error, no card?");
+		WARNING("GMenu2X::checkUDC - error, no card");
 	}
 	fsize.close();
 	TRACE("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
