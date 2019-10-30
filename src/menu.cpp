@@ -92,7 +92,6 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - read internal OPK links");
 	openPackagesFromDir(OPK_INTERNAL_PATH);
 
-
 	TRACE("Menu :: ctor - searching for external OPK links under : %s", OPK_EXTERNAL_PATH_SEARCH_ROOT.c_str());
 	if (dirExists(OPK_EXTERNAL_PATH_SEARCH_ROOT)) {
 		TRACE("Menu :: ctor - external search root exists : %s", OPK_EXTERNAL_PATH_SEARCH_ROOT.c_str());
@@ -118,6 +117,9 @@ Menu::Menu(GMenu2X *gmenu2x) {
 		}
 		closedir(dirp);
 	}
+
+	TRACE("Menu :: ctor - ordering links");
+	orderLinks();
 
 	TRACE("Menu :: ctor - exit");
 }
@@ -680,11 +682,14 @@ void Menu::readPackages(std::string parentDir) {
 
 	TRACE("Menu::readPackage - dir opened");
 	while ((dptr = readdir(dirp))) {
-		char *c;
+		TRACE("Menu::readPackage - reading directory");
 
-		if (dptr->d_type != DT_REG)
+		if (dptr->d_type != DT_REG) {
+			TRACE("Menu::readPackage - skipping non regular dir entry : %s - (%u)", dptr->d_name, dptr->d_type);
 			continue;
+		}
 
+		char *c;
 		c = strrchr(dptr->d_name, '.');
 		TRACE("Menu::readPackage - found file : %s", c);
 		if (!c) /* File without extension */
@@ -704,7 +709,6 @@ void Menu::readPackages(std::string parentDir) {
 	}
 	TRACE("Menu::readPackage - closing dir");
 	closedir(dirp);
-	orderLinks();
 	TRACE("Menu::readPackage - exit");
 }
 
