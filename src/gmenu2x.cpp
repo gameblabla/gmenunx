@@ -2053,8 +2053,20 @@ void GMenu2X::contextMenu() {
 	TRACE("GMenu2X::contextMenu - enter");
 	vector<MenuOption> voices;
 	if (menu->selLinkApp() != NULL) {
-		voices.push_back((MenuOption){tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), MakeDelegate(this, &GMenu2X::editLink)});
-		voices.push_back((MenuOption){tr.translate("Delete $1", menu->selLink()->getTitle().c_str(), NULL), MakeDelegate(this, &GMenu2X::deleteLink)});
+		if (menu->selLinkApp()->isEditable() ){
+			voices.push_back(
+				(MenuOption){
+					tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), 
+					MakeDelegate(this, &GMenu2X::editLink)
+				});
+		}
+		if (menu->selLinkApp()->isDeletable()) {
+			voices.push_back(
+				(MenuOption){
+					tr.translate("Delete $1", menu->selLink()->getTitle().c_str(), NULL), 
+					MakeDelegate(this, &GMenu2X::deleteLink)
+				});
+		}
 	}
 	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &GMenu2X::addLink)});
 	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &GMenu2X::addSection)});

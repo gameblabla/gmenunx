@@ -453,13 +453,13 @@ bool LinkApp::save() {
 	out << this->toString();
 
 	if (out.tellp() > 0) {
-		DEBUG("LinkApp::save - Saving app settings: %s\n", file.c_str());
-		DEBUG("LinkApp::save - data : %s", out.str().c_str());
+		DEBUG("LinkApp::save - saving data : %s", out.str().c_str());
 		ofstream f(file.c_str());
 		if (f.is_open()) {
 			f << out.str();
 			f.close();
 			sync();
+			DEBUG("LinkApp::save - save success");
 			return true;
 		} else {
 			ERROR("LinkApp::save - Error while opening the file '%s' for write.\n", file.c_str());
