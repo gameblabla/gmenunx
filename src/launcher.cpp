@@ -16,17 +16,9 @@
 #include <fcntl.h>
 
 // Bind and activate the framebuffer console on selected platforms.
-#define BIND_CONSOLE \
-		defined(PLATFORM_A320) || \
-		defined(PLATFORM_GCW0)|| \
-		defined(PLATFORM_RG350)
-
-#if BIND_CONSOLE
 #include <linux/vt.h>
-#endif
 
 using namespace std;
-
 
 Launcher::Launcher(vector<string> const& commandLine, bool consoleApp)
 	: commandLine(commandLine)
@@ -45,7 +37,7 @@ void Launcher::exec() {
 	
 	if (consoleApp) {
 		TRACE("Launcher::exec - console app");
-#if BIND_CONSOLE
+
 		/* Enable the framebuffer console */
 		TRACE("Launcher::exec - enabling framebuffer");
 		char c = '1';
@@ -65,7 +57,7 @@ void Launcher::exec() {
 				WARNING("Unable to activate tty1\n");
 			close(fd);
 		}
-#endif
+
 		TRACE("Launcher::exec - end of console specific work");
 	}
 

@@ -27,10 +27,6 @@
 #include <array>
 #include <cerrno>
 
-#ifdef HAVE_LIBXDGMIME
-#include <xdgmime.h>
-#endif
-
 #include "linkapp.h"
 #include "launcher.h"
 #include "menu.h"
@@ -72,6 +68,9 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	if (isOPK) {
 		DEBUG("LinkApp::LinkApp - ctor - handling opk :%s", file.c_str());
+		// let's override these guys for sure
+		deletable = editable = false;
+
 		string::size_type pos;
 		const char *key, *val;
 		size_t lkey, lval;
@@ -140,40 +139,9 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 				continue;
 			}
-
-#ifdef HAVE_LIBXDGMIME
-			if (!strncmp(key, "MimeType", lkey)) {
-				string mimetypes = buf;
-				selectorfilter = "";
-
-				while ((pos = mimetypes.find(';')) != mimetypes.npos) {
-					int nb = 16;
-					char *extensions[nb];
-					string mimetype = mimetypes.substr(0, pos);
-					mimetypes = mimetypes.substr(pos + 1);
-
-					nb = xdg_mime_get_extensions_from_mime_type(
-								mimetype.c_str(), extensions, nb);
-
-					while (nb--) {
-						selectorfilter += (string) extensions[nb] + ',';
-						free(extensions[nb]);
-					}
-				}
-
-				// Remove last comma
-				if (!selectorfilter.empty()) {
-					selectorfilter.erase(selectorfilter.end());
-					DEBUG("Compatible extensions: %s\n", selectorfilter.c_str());
-				}
-
-				continue;
-			}
-#endif // HAVE_LIBXDGMIME
 		}
 
 		// let's sort out icons
-
 		string shortFileName = metaIcon + ".png";
 		string ip = "icons/" + shortFileName;
 		DEBUG("LinkApp::LinkApp - ctor - looking for icon at : %s", ip.c_str());
@@ -395,48 +363,13 @@ void LinkApp::setBackdrop(const string selectedFile) {
 }
 
 bool LinkApp::targetExists() {
-#if defined(TARGET_PC)
-	return true; //For displaying elements during testing on pc
-#endif
-
 	string target = exec;
 	if (!exec.empty() && exec[0] != '/' && !workdir.empty())
 		target = workdir + "/" + exec;
 
+	TRACE("LinkApp::targetExists - looking for : %s", target.c_str());
 	return fileExists(target);
 }
-
-/*
-bool LinkApp::save() {
-	if (!edited) return false;
-
-	ofstream f(file.c_str());
-	if (f.is_open()) {
-		if (iclock != 0        ) f << "clock="           << iclock          << endl;
-		if (selectordir != ""    ) f << "selectordir="     << selectordir     << endl;
-		if (selectorbrowser      ) f << "selectorbrowser=true"                << endl;
-
-		if (title != ""        ) f << "title="           << title           << endl;
-		if (description != ""  ) f << "description="     << description     << endl;
-		if (icon != ""         ) f << "icon="            << icon            << endl;
-		if (exec != ""         ) f << "exec="            << exec            << endl;
-		if (params != ""       ) f << "params="          << params          << endl;
-		if (workdir != ""      ) f << "workdir="         << workdir         << endl;
-		if (consoleapp         ) f << "consoleapp=true"                     << endl;
-		if (!consoleapp        ) f << "consoleapp=false"                    << endl;
-		if (manual != ""       ) f << "manual="          << manual          << endl;
-		if (!selectorbrowser     ) f << "selectorbrowser=false"               << endl;
-		if (selectorfilter != "" ) f << "selectorfilter="  << selectorfilter  << endl;
-		if (selectorscreens != "") f << "selectorscreens=" << selectorscreens << endl;
-		if (aliasfile != ""      ) f << "selectoraliases=" << aliasfile       << endl;
-		if (backdrop != ""       ) f << "backdrop="        << backdrop        << endl;
-		f.close();
-		return true;
-	} else
-		ERROR("Error while opening the file '%s' for write.", file.c_str());
-	return false;
-}
-*/
 
 bool LinkApp::save() {
 	TRACE("LinkApp::save - enter : %s", file.c_str());
@@ -502,8 +435,6 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 
 void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	TRACE("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
-	
-	//save();
 
 	if (!isOpk()) {
 		TRACE("LinkApp::launch - not an opk");
@@ -591,14 +522,11 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
 	if (toLaunch) {
-		TRACE("LinkApp::launch - quit");
-		//delete menu;
-		gmenu2x->quit();
-		//gmenu2x->releaseScreen();
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
-		// TODO Blank the screen??
-		
+		TRACE("LinkApp::launch - quit");
+		gmenu2x->quit();
+
 		TRACE("LinkApp::launch - calling exec");
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed

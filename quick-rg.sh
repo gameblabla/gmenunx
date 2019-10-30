@@ -1,5 +1,15 @@
 #!/bin/bash
 
+export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
+export DEBUG=2
+
+RG350_HOME="/media/data/local/home"
+LAUNCHER="/usr/local/sbin/frontend_start"
+RG350_IP="root@10.1.1.2"
+TARGET_DIR="gmenunx-beta"
+
+# probably don't edit below here
+
 rsync=`which rsync`
 if [ $? -ne 0 ]; then
 	echo "This script requires rsync"
@@ -10,14 +20,6 @@ if [ $? -ne 0 ]; then
 	echo "This script requires scp"
 	exit 1
 fi
-
-RG350_HOME="/media/data/local/home"
-LAUNCHER="/usr/local/sbin/frontend_start"
-RG350_IP="root@10.1.1.2"
-TARGET_DIR="gmenunx-beta"
-
-export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux- && \
-export DEBUG=5
 
 function launchLinkExists {
 	echo "checking if a launchLink exists"

@@ -11,7 +11,7 @@ SDL_CFLAGS  := $(shell $(SDL_CONFIG) --cflags)
 SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 
 #@echo "cross = $(CROSS_COMPILE) *******************************************"
-DEBUG ?= 3
+DEBUG ?= 2
 CFLAGS = -ggdb \
 	-DTARGET_RG350 \
 	-DPLATFORM_RG350 \

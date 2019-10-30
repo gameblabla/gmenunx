@@ -86,6 +86,9 @@
 // TODO this should probably point to /media/sdcard
 const char *CARD_ROOT = "/media/data/local/home/";
 const int MIN_CONFIG_VERSION = 1;
+const string RG350_GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
+const string RG350_SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
+const string RG350_BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
 
 static GMenu2X *app;
 
@@ -205,7 +208,7 @@ bool getTVOutStatus() {
 enum vol_mode_t {
 	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
 };
-int16_t volumeModePrev, volumeMode;
+int16_t volumeMode;
 uint8_t getVolumeMode(uint8_t vol) {
 	if (!vol) return VOLUME_MODE_MUTE;
 	else if (memdev > 0 && !(memregs[0x10300 >> 2] >> 6 & 0b1)) return VOLUME_MODE_PHONES;
@@ -238,7 +241,6 @@ void GMenu2X::quit() {
 	sc.clear();
 	s->free();
 	releaseScreen();
-	hwDeinit();
 	TRACE("GMenu2X::quit - exit");
 }
 
@@ -372,7 +374,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	setInputSpeed();
 
 	TRACE("GMenu2X::ctor - volume");
-	volumeModePrev = volumeMode = getVolumeMode(confInt["globalVolume"]);
+	volumeMode = getVolumeMode(confInt["globalVolume"]);
 	
 	TRACE("GMenu2X::ctor - menu");
 	initMenu();
@@ -527,14 +529,10 @@ void GMenu2X::main() {
 		TRACE("main :: links - done");
 		s->clearClipRect();
 
-		
-		drawScrollBar(linkRows, menu->sectionLinks()->size()/linkCols + ((menu->sectionLinks()->size()%linkCols==0) ? 0 : 1), menu->firstDispRow(), linksRect);
-
-		// TRAY TRACE
-		// s->box(sectionBarRect.x + sectionBarRect.w - 38 + 0 * 20, sectionBarRect.y + sectionBarRect.h - 18,16,16, strtorgba("ffff00ff"));
-		// s->box(sectionBarRect.x + sectionBarRect.w - 38 + 1 * 20, sectionBarRect.y + sectionBarRect.h - 18,16,16, strtorgba("00ff00ff"));
-		// s->box(sectionBarRect.x + sectionBarRect.w - 38, sectionBarRect.y + sectionBarRect.h - 38,16,16, strtorgba("0000ffff"));
-		// s->box(sectionBarRect.x + sectionBarRect.w - 18, sectionBarRect.y + sectionBarRect.h - 38,16,16, strtorgba("ff00ffff"));
+		drawScrollBar(linkRows, 
+			menu->sectionLinks()->size()/linkCols + ((menu->sectionLinks()->size()%linkCols==0) ? 0 : 1), 
+			menu->firstDispRow(), 
+			linksRect);
 
 		currBackdrop = confStr["wallpaper"];
 		if (menu->selLink() != NULL && menu->selLinkApp() != NULL && !menu->selLinkApp()->getBackdropPath().empty() && sc.add(menu->selLinkApp()->getBackdropPath()) != NULL) {
@@ -557,7 +555,6 @@ void GMenu2X::main() {
 
 			// TRAY 1,0
 			if (tickNow - tickBattery >= 5000) {
-				// TODO: move to hwCheck
 				tickBattery = tickNow;
 				batteryIcon = getBatteryLevel();
 			}
@@ -643,30 +640,8 @@ void GMenu2X::main() {
 		else if ( input[SECTION_NEXT] ) menu->incSectionIndex();
 
 		// SELLINKAPP SELECTED
-		else if (input[MANUAL] && menu->selLinkApp() != NULL) showManual(); // menu->selLinkApp()->showManual();
-
-
-		// On Screen Help
-		// else if (input[MODIFIER]) {
-		// 	s->box(10,50,300,162, skinConfColors[COLOR_MESSAGE_BOX_BG]);
-		// 	s->rectangle( 12,52,296,158, skinConfColors[COLOR_MESSAGE_BOX_BORDER] );
-		// 	int line = 60; s->write( font, tr["CONTROLS"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["A: Confirm action"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["B: Cancel action"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["X: Show manual"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["L, R: Change section"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["Select: Modifier"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["Start: Contextual menu"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["Select+Start: Options menu"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["Backlight: Adjust backlight level"], 20, line);
-		// 	line += font->getHeight() + 5; s->write( font, tr["Power: Toggle speaker on/off"], 20, line);
-		// 	s->flip();
-		// 	bool close = false;
-		// 	while (!close) {
-		// 		input.update();
-		// 		if (input[MODIFIER] || input[CONFIRM] || input[CANCEL]) close = true;
-		// 	}
-		// }
+		else if (input[MANUAL] && menu->selLinkApp() != NULL) 
+			showManual();
 	}
 
 	exitMainThread = true;
@@ -674,101 +649,6 @@ void GMenu2X::main() {
 	// delete btnContextMenu;
 	// btnContextMenu = NULL;
 	TRACE("main :: exit");
-}
-
-void GMenu2X::hwInit() {
-#if defined(TARGET_GP2X) || defined(TARGET_WIZ) || defined(TARGET_CAANOO) || defined(TARGET_RS97)
-	memdev = open("/dev/mem", O_RDWR);
-	if (memdev < 0) WARNING("Could not open /dev/mem");
-#endif
-
-	if (memdev > 0) {
-#if defined(TARGET_GP2X)
-		memregs = (uint16_t*)mmap(0, 0x10000, PROT_READ|PROT_WRITE, MAP_SHARED, memdev, 0xc0000000);
-		MEM_REG = &memregs[0];
-
-		//Fix tv-out
-		if (memregs[0x2800 >> 1] & 0x100) {
-			memregs[0x2906 >> 1] = 512;
-			//memregs[0x290C >> 1]=640;
-			memregs[0x28E4 >> 1] = memregs[0x290C >> 1];
-		}
-		memregs[0x28E8 >> 1] = 239;
-
-#elif defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-		memregs = (uint16_t*)mmap(0, 0x20000, PROT_READ|PROT_WRITE, MAP_SHARED, memdev, 0xc0000000);
-#elif defined(TARGET_RS97)
-		memregs = (uint32_t*)mmap(0, 0x20000, PROT_READ | PROT_WRITE, MAP_SHARED, memdev, 0x10000000);
-#endif
-		if (memregs == MAP_FAILED) {
-			ERROR("Could not mmap hardware registers!");
-			close(memdev);
-		}
-	}
-
-#if defined(TARGET_GP2X)
-	if (fileExists("/etc/open2x")) fwType = "open2x";
-	else fwType = "gph";
-
-	f200 = fileExists("/dev/touchscreen/wm97xx");
-
-	//open2x
-	savedVolumeMode = 0;
-	volumeScalerNormal = VOLUME_SCALER_NORMAL;
-	volumeScalerPhones = VOLUME_SCALER_PHONES;
-	o2x_usb_net_on_boot = false;
-	o2x_usb_net_ip = "";
-	o2x_ftp_on_boot = false;
-	o2x_telnet_on_boot = false;
-	o2x_gp2xjoy_on_boot = false;
-	o2x_usb_host_on_boot = false;
-	o2x_usb_hid_on_boot = false;
-	o2x_usb_storage_on_boot = false;
-	usbnet = samba = inet = web = false;
-	if (fwType=="open2x") {
-		readConfigOpen2x();
-		//	VOLUME MODIFIER
-		switch(volumeMode) {
-			case VOLUME_MODE_MUTE:   setVolumeScaler(VOLUME_SCALER_MUTE); break;
-			case VOLUME_MODE_PHONES: setVolumeScaler(volumeScalerPhones); break;
-			case VOLUME_MODE_NORMAL: setVolumeScaler(volumeScalerNormal); break;
-		}
-	}
-	readCommonIni();
-	cx25874 = 0;
-	batteryHandle = 0;
-	// useSelectionPng = false;
-
-	batteryHandle = open(f200 ? "/dev/mmsp2adc" : "/dev/batt", O_RDONLY);
-	//if wm97xx fails to open, set f200 to false to prevent any further access to the touchscreen
-	if (f200) f200 = ts.init();
-#elif defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-	/* get access to battery device */
-	batteryHandle = open("/dev/pollux_batt", O_RDONLY);
-#endif
-	INFO("System Init Done!");
-}
-
-void GMenu2X::hwDeinit() {
-#if defined(TARGET_GP2X)
-	if (memdev > 0) {
-		//Fix tv-out
-		if (memregs[0x2800 >> 1] & 0x100) {
-			memregs[0x2906 >> 1] = 512;
-			memregs[0x28E4 >> 1] = memregs[0x290C >> 1];
-		}
-
-		memregs[0x28DA >> 1] = 0x4AB;
-		memregs[0x290C >> 1] = 640;
-	}
-	if (f200) ts.deinit();
-	if (batteryHandle != 0) close(batteryHandle);
-
-	if (memdev > 0) {
-		memregs = NULL;
-		close(memdev);
-	}
-#endif
 }
 
 void GMenu2X::setWallpaper(const string &wallpaper) {
@@ -1647,68 +1527,6 @@ void GMenu2X::ledOff() {
 	led->reset();
 }
 
-void GMenu2X::hwCheck() {
-#if defined(TARGET_RS97)
-	if (memdev > 0) {
-		// printf("\e[s\e[1;0f");
-		// printbin("A", memregs[0x10000 >> 2]);
-		// printbin("B", memregs[0x10100 >> 2]);
-		// printbin("C", memregs[0x10200 >> 2]);
-		// printbin("D", memregs[0x10300 >> 2]);
-		// printbin("E", memregs[0x10400 >> 2]);
-		// printbin("F", memregs[0x10500 >> 2]);
-		// printf("\n\e[K\e[u");
-
-		curMMCStatus = getMMCStatus();
-		if (preMMCStatus != curMMCStatus) {
-			preMMCStatus = curMMCStatus;
-			string msg;
-
-			if (curMMCStatus == MMC_INSERT) msg = tr["SD card connected"];
-			else msg = tr["SD card removed"];
-
-			MessageBox mb(this, msg, "skin:icons/eject.png");
-			mb.setAutoHide(1000);
-			mb.exec();
-
-			if (curMMCStatus == MMC_INSERT) {
-				mountSd(true);
-				menu->addActionLink(menu->getSectionIndex("settings"), tr["Umount"], MakeDelegate(this, &GMenu2X::umountSdDialog), tr["Umount external SD"], "skin:icons/eject.png");
-			} else {
-				umountSd(true);
-			}
-		}
-
-		tvOutConnected = getTVOutStatus();
-		if (tvOutPrev != tvOutConnected) {
-			tvOutPrev = tvOutConnected;
-
-			TVOut = "OFF";
-			int lcd_brightness = confInt["backlight"];
-
-			if (tvOutConnected) {
-				MessageBox mb(this, tr["TV-out connected.\nContinue?"], "skin:icons/tv.png");
-				mb.setButton(SETTINGS, tr["Yes"]);
-				mb.setButton(CONFIRM,  tr["No"]);
-
-				if (mb.exec() == SETTINGS) {
-					TVOut = confStr["TVOut"];
-					lcd_brightness = 0;
-				}
-			}
-			setTVOut(TVOut);
-			setBacklight(lcd_brightness);
-		}
-
-		volumeMode = getVolumeMode(confInt["globalVolume"]);
-		if (volumeModePrev != volumeMode && volumeMode == VOLUME_MODE_PHONES) {
-			setVolume(min(70, confInt["globalVolume"]), true);
-		}
-		volumeModePrev = volumeMode;
-	}
-#endif
-}
-
 const string GMenu2X::getDateTime() {
 	char       buf[80];
 	time_t     now = time(0);
@@ -2418,13 +2236,10 @@ void GMenu2X::setCPU(uint32_t mhz) {
 	}
 }
 
-#define RG350_GET_VOLUME_PATH "/usr/bin/alsa-getvolume default PCM"
-#define RG350_SET_VOLUME_PATH "/usr/bin/alsa-setvolume default PCM "
-
 int GMenu2X::getVolume() {
 	TRACE("GMenu2X::getVolume - enter");
 	int vol = -1;
-	string result = exec(RG350_GET_VOLUME_PATH);
+	string result = exec(RG350_GET_VOLUME_PATH.c_str());
 	if (result.length() > 0) {
 		vol = atoi(trim(result).c_str());
 	}
@@ -2451,7 +2266,6 @@ int GMenu2X::setVolume(int val) {
 	return val;
 }
 
-#define RG350_BACKLIGHT_PATH "/sys/class/backlight/pwm-backlight/brightness"
 
 int GMenu2X::getBacklight() {
 	TRACE("GMenu2X::getBacklight - enter");

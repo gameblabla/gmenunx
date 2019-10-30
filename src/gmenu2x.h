@@ -164,12 +164,6 @@ private:
 	void mountSdDialog();
 	string mountSd();
 
-	// void toggleTvOut();
-	void hwDeinit();
-	void hwInit();
-	void hwCheck();
-	// static GMenu2X *instance;
-
 public:
 	GMenu2X();
 	~GMenu2X();
