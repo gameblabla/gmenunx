@@ -42,20 +42,24 @@ bool Translator::exists(const string &term) {
 }
 
 void Translator::setPath(const string &path) {
+	TRACE("Translator::setPath : %s", path.c_str());
 	_path = path;
 	if (!_lang.empty())
 		setLang(_lang);
 }
 
 void Translator::setLang(const string &lang) {
+	TRACE("Translator::setLang : %s", lang.c_str());
 	translations.clear();
 
 	string line;
-	ifstream infile (string(_path + "translations/" + lang).c_str(), ios_base::in);
+	string path = _path + "translations/" + lang;
+	TRACE("Translator::setLang : opening - %s", path.c_str());
+	ifstream infile (path.c_str(), ios_base::in);
 	if (infile.is_open()) {
 		while (getline(infile, line, '\n')) {
 			line = trim(line);
-			if (line=="") continue;
+			if (line.empty()) continue;
 			if (line[0]=='#') continue;
 
 			string::size_type position = line.find("=");

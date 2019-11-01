@@ -879,6 +879,7 @@ void GMenu2X::settings() {
 		}
 		if (lang == "English") lang = "";
 		if (confStr["lang"] != lang) {
+			TRACE("GMenu2X::settings - updating language : %s", lang.c_str());
 			confStr["lang"] = lang;
 			tr.setLang(lang);
 		}
