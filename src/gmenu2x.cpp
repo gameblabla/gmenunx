@@ -344,7 +344,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	if (firstRun) {
 		TRACE("GMenu2X::ctor - first run, copying skins/");
-		MessageBox mb(this,tr["Copying data for first run..."], assets_path + "skins/Default/icons/generic.png");
+		MessageBox mb(this, "Copying data for first run...", assets_path + "gmenunx.png");
 		mb.setAutoHide(-1);
 		mb.exec();
 		if (copyAssets()) {
@@ -352,10 +352,10 @@ GMenu2X::GMenu2X() : input(screenManager) {
 			ledOff();
 			quit();
 		}
-		
 	} else {
+		tr.setPath(this->getAssetsPath());
 		TRACE("GMenu2X::ctor - not first run - loading");
-		MessageBox mb(this,tr["Loading"]);
+		MessageBox mb(this, tr["Loading"]);
 		mb.setAutoHide(1);
 		mb.exec();
 	}
@@ -370,7 +370,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	setDateTime();
 
 	TRACE("GMenu2X::ctor - input");
-	input.init(assets_path + "input.conf");
+	input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
 
 	TRACE("GMenu2X::ctor - volume");
@@ -389,6 +389,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - ledOff");
 	ledOff();
 
+	TRACE("GMenu2X::ctor - readTmp");
 	readTmp();
 
 	//recover last session
@@ -820,7 +821,7 @@ void GMenu2X::settings() {
 	int curGlobalBrightness = confInt["backlight"];
 
 	TRACE("GMenu2X::settings - getting translations");
-	FileLister fl_tr("translations");
+	FileLister fl_tr(getAssetsPath() + "translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
 	string lang = tr.lang();
@@ -846,7 +847,6 @@ void GMenu2X::settings() {
 	vector<string> performanceModes;
 	performanceModes.push_back("On demand");
 	performanceModes.push_back("Performance");
-
 
 	string prevDateTime = confStr["datetime"] = getDateTime();
 

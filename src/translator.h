@@ -29,6 +29,7 @@ Hash Map of translation strings.
 */
 class Translator {
 private:
+	string _path;
 	string _lang;
 	unordered_map<string, string> translations;
 
@@ -38,6 +39,7 @@ public:
 
 	string lang();
 	void setLang(const string &lang);
+	void setPath(const string &path);
 	bool exists(const string &term);
 	string translate(const string &term,const char *replacestr=NULL,...);
 	string operator[](const string &term);

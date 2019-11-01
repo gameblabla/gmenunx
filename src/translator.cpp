@@ -29,6 +29,7 @@
 using namespace std;
 
 Translator::Translator(const string &lang) {
+	_path = "";
 	_lang = "";
 	if (!lang.empty())
 		setLang(lang);
@@ -40,11 +41,16 @@ bool Translator::exists(const string &term) {
 	return translations.find(term) != translations.end();
 }
 
+void Translator::setPath(const string &path) {
+	_path = path;
+	setLang(_lang);
+}
+
 void Translator::setLang(const string &lang) {
 	translations.clear();
 
 	string line;
-	ifstream infile (string("translations/"+lang).c_str(), ios_base::in);
+	ifstream infile (string(_path + "translations/" + lang).c_str(), ios_base::in);
 	if (infile.is_open()) {
 		while (getline(infile, line, '\n')) {
 			line = trim(line);
