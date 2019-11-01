@@ -56,6 +56,7 @@ void FileLister::setFilter(const string &filter) {
 }
 
 void FileLister::browse() {
+	TRACE("FileLister::browse - enter");
 	directories.clear();
 	files.clear();
 
@@ -105,8 +106,10 @@ void FileLister::browse() {
 		closedir(dirp);
 		sort(files.begin(), files.end(), case_less());
 		sort(directories.begin(), directories.end(), case_less());
-		if (showDirectories && path != "/" && allowDirUp) directories.insert(directories.begin(), "..");
+		if (showDirectories && path != "/" && allowDirUp) 
+			directories.insert(directories.begin(), "..");
 	}
+	TRACE("FileLister::browse - enter");
 }
 
 uint32_t FileLister::size() {
