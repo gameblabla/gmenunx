@@ -42,7 +42,7 @@ void Link::run() {
 }
 
 void Link::updateSurfaces() {
-	DEBUG("Link::updateSurfaces - setting iconSurface frm iconPath : %s", getIconPath().c_str());
+	TRACE("Link::updateSurfaces - setting iconSurface from iconPath : %s", getIconPath().c_str());
 	iconSurface = gmenu2x->sc[getIconPath()];
 }
 

@@ -178,10 +178,10 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 		// end of icons
 
-		// what does file do....?
+		// update the filename to point at the opk's section category and friendly name
 		file = gmenu2x->getAssetsPath() + "/sections/" + category + '/' + opkMount;
+		// define the mount point
 		opkMount = (string) "/mnt/" + opkMount + '/';
-		edited = true;
 	}	// isOPK
 
 	else {
@@ -255,7 +255,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	}	// !opk
 
-	DEBUG("LinkApp::LinkApp - ctor : %s", this->toString().c_str());
+	DEBUG("LinkApp::LinkApp - ctor exit : %s", this->toString().c_str());
 	edited = false;
 }
 
