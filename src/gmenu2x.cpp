@@ -764,12 +764,6 @@ void GMenu2X::initMenu() {
 						MakeDelegate(this, &GMenu2X::batteryLogger), 
 						tr["Log battery power to battery.csv"], 
 						"skin:icons/ebook.png");
-			
-			menu->addActionLink(i, 
-						tr.translate("Performance - $1", confStr["Performance"].c_str(), NULL), 
-						MakeDelegate(this, &GMenu2X::performanceMenu), 
-						tr["Change performance mode"], 
-						"skin:icons/performance.png");
 		}
 
 		//Add virtual links in the setting section
@@ -849,12 +843,20 @@ void GMenu2X::settings() {
 	opFactory.push_back(">>");
 	string tmp = ">>";
 
+	vector<string> performanceModes;
+	performanceModes.push_back("On demand");
+	performanceModes.push_back("Performance");
+
+
 	string prevDateTime = confStr["datetime"] = getDateTime();
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenu2X"], &lang, &fl_tr.getFiles()));
 	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
 	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &confStr["batteryType"], &batteryType));
+
+	sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &confStr["Performance"], &performanceModes));
+
 	sd.addSetting(new MenuSettingBool(this, tr["Save last selection"], tr["Save the last selected link and section on exit"], &confInt["saveSelection"]));
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &confInt["outputLogs"]));
 	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &confInt["backlightTimeout"], 60, 0, 120));
@@ -1044,11 +1046,16 @@ void GMenu2X::readConfig() {
 		}
 	}
 
-	if (confStr["Performance"].empty()) confStr["Performance"] = "ondemand";
-	if (confStr["TVOut"] != "PAL") confStr["TVOut"] = "NTSC";
-	if (!confStr["lang"].empty()) tr.setLang(confStr["lang"]);
-	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) confStr["wallpaper"] = "";
-	if (confStr["skin"].empty() || !dirExists(assets_path + "skins/" + confStr["skin"])) confStr["skin"] = "Default";
+	if (confStr["Performance"] != "Performance") 
+		confStr["Performance"] = "On demand";
+	if (confStr["TVOut"] != "PAL") 
+		confStr["TVOut"] = "NTSC";
+	if (!confStr["lang"].empty()) 
+		tr.setLang(confStr["lang"]);
+	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) 
+		confStr["wallpaper"] = "";
+	if (confStr["skin"].empty() || !dirExists(assets_path + "skins/" + confStr["skin"])) 
+		confStr["skin"] = "Default";
 
 	evalIntConf( &confInt["backlightTimeout"], 30, 10, 300);
 	evalIntConf( &confInt["powerTimeout"], 10, 1, 300);
@@ -1780,10 +1787,14 @@ void GMenu2X::formatSd() {
 void GMenu2X::setPerformanceMode() {
 	TRACE("GMenu2X::setPerformanceMode - enter - %s", confStr["Performance"].c_str());
 	string current = getPerformanceMode();
-	if (current.compare(confStr["Performance"]) != 0) {
-		TRACE("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), confStr["Performance"].c_str());
+	string desired = "ondemand";
+	if ("Performance" == confStr["Performance"]) {
+		desired = "performance";
+	}
+	if (current.compare(desired) != 0) {
+		TRACE("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), desired.c_str());
 		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", confStr["Performance"]);
+			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
 			initMenu();
 		}
 	} else {
@@ -1800,74 +1811,6 @@ string GMenu2X::getPerformanceMode() {
 	}
 	TRACE("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
 	return full_trim(result);
-}
-
-void GMenu2X::performanceMenu() {
-	TRACE("GMenu2X::performanceMenu - enter");
-	vector<MenuOption> voices;
-	voices.push_back((MenuOption){tr["On demand"], 		MakeDelegate(this, &GMenu2X::setPerformanceMode)});
-	voices.push_back((MenuOption){tr["Performance"],	MakeDelegate(this, &GMenu2X::setPerformanceMode)});
-
-	Surface bg(s);
-	bool close = false, inputAction = false;
-	int sel = 0;
-	uint32_t i, fadeAlpha = 0, h = font->getHeight(), h2 = font->getHalfHeight();
-
-	SDL_Rect box;
-	box.h = h * voices.size() + 8;
-	box.w = 0;
-	for (i = 0; i < voices.size(); i++) {
-		int w = font->getTextWidth(voices[i].text);
-		if (w > box.w) box.w = w;
-	}
-	box.w += 23;
-	box.x = halfX - box.w / 2;
-	box.y = halfY - box.h / 2;
-
-	TRACE("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  resX, resY, halfX, halfY);
-	
-	uint32_t tickStart = SDL_GetTicks();
-	input.setWakeUpInterval(1000);
-	while (!close) {
-		bg.blit(s, 0, 0);
-
-		s->box(0, 0, resX, resY, 0,0,0, fadeAlpha);
-		s->box(box.x, box.y, box.w, box.h, skinConfColors[COLOR_MESSAGE_BOX_BG]);
-		s->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skinConfColors[COLOR_MESSAGE_BOX_BORDER] );
-
-		//draw selection rect
-		s->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skinConfColors[COLOR_MESSAGE_BOX_SELECTION] );
-		for (i = 0; i < voices.size(); i++)
-			s->write( font, voices[i].text, box.x + 12, box.y + h2 + 3 + h * i, VAlignMiddle, skinConfColors[COLOR_FONT_ALT], skinConfColors[COLOR_FONT_ALT_OUTLINE]);
-
-		s->flip();
-
-		if (fadeAlpha < 200) {
-			fadeAlpha = intTransition(0, 200, tickStart, 200);
-			continue;
-		}
-		do {
-			inputAction = input.update();
-			if ( input[MENU] || input[CANCEL]) close = true;
-			else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
-			else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
-			else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
-			else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
-			else if ( input[SETTINGS] || input[CONFIRM] ) { 
-				TRACE("GMenu2X::performanceMenu - got option - %s", voices[sel].text.c_str());
-				if (voices[sel].text == "Performance") {
-					confStr["Performance"] = "performance";
-				} else {
-					confStr["Performance"] = "ondemand";
-				}
-				TRACE("GMenu2X::performanceMenu - resolved to - %s", confStr["Performance"].c_str());
-				voices[sel].action(); 
-				close = true; 
-			}
-		} while (!inputAction);
-	}
-	TRACE("GMenu2X::performanceMenu - exit");
 }
 
 void GMenu2X::contextMenu() {
