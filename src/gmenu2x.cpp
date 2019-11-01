@@ -825,11 +825,16 @@ void GMenu2X::settings() {
 	int curGlobalVolume = confInt["globalVolume"];
 	int curGlobalBrightness = confInt["backlight"];
 
+	TRACE("GMenu2X::settings - getting translations");
 	FileLister fl_tr("translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
 	string lang = tr.lang();
-	if (lang == "") lang = "English";
+	TRACE("GMenu2X::settings - found %i translations", fl_tr.fileCount());
+	if (lang.empty()) {
+		lang = "English";
+	}
+	TRACE("GMenu2X::settings - current language : %s", lang.c_str());
 
 	vector<string> encodings;
 	// encodings.push_back("OFF");
@@ -854,7 +859,6 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &confInt["outputLogs"]));
 	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &confInt["backlightTimeout"], 60, 0, 120));
 	
-
 	sd.addSetting(new MenuSettingInt(this,tr["Power timeout"], tr["Minutes to poweroff system if inactive"], &confInt["powerTimeout"], 10, 1, 300));
 	sd.addSetting(new MenuSettingInt(this,tr["Backlight"], tr["Set LCD backlight"], &confInt["backlight"], 70, 1, 100));
 	sd.addSetting(new MenuSettingInt(this, tr["Audio volume"], tr["Set the default audio volume"], &confInt["globalVolume"], 60, 0, 100));
