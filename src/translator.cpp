@@ -43,7 +43,8 @@ bool Translator::exists(const string &term) {
 
 void Translator::setPath(const string &path) {
 	_path = path;
-	setLang(_lang);
+	if (!_lang.empty())
+		setLang(_lang);
 }
 
 void Translator::setLang(const string &lang) {

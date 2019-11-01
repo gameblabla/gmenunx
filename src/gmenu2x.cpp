@@ -353,7 +353,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 			quit();
 		}
 	} else {
-		tr.setPath(this->getAssetsPath());
 		TRACE("GMenu2X::ctor - not first run - loading");
 		MessageBox mb(this, tr["Loading"]);
 		mb.setAutoHide(1);
@@ -1050,8 +1049,10 @@ void GMenu2X::readConfig() {
 		confStr["Performance"] = "On demand";
 	if (confStr["TVOut"] != "PAL") 
 		confStr["TVOut"] = "NTSC";
-	if (!confStr["lang"].empty()) 
+	if (!confStr["lang"].empty()) {
+		tr.setPath(assets_path);
 		tr.setLang(confStr["lang"]);
+	}
 	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) 
 		confStr["wallpaper"] = "";
 	if (confStr["skin"].empty() || !dirExists(assets_path + "skins/" + confStr["skin"])) 
@@ -1066,8 +1067,8 @@ void GMenu2X::readConfig() {
 	evalIntConf( &confInt["globalVolume"], 60, 1, 100 );
 	evalIntConf( &confInt["videoBpp"], 16, 8, 32 );
 	evalIntConf( &confInt["backlight"], 70, 1, 100);
-	evalIntConf( &confInt["minBattery"], 0, 1, 10000);
-	evalIntConf( &confInt["maxBattery"], 4500, 1, 10000);
+	evalIntConf( &confInt["minBattery"], 0, 0, 5);
+	evalIntConf( &confInt["maxBattery"], 5, 0, 5);
 	evalIntConf( &confInt["sectionBar"], SB_LEFT, 1, 4);
 	evalIntConf( &confInt["linkCols"], 1, 1, 8);
 	evalIntConf( &confInt["linkRows"], 6, 1, 8);
