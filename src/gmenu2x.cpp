@@ -871,6 +871,7 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
+		TRACE("GMenu2X::settings - updating the settings");
 		if (curGlobalVolume != confInt["globalVolume"]) {
 			curGlobalVolume = setVolume(confInt["globalVolume"]);
 		}
@@ -882,6 +883,7 @@ void GMenu2X::settings() {
 			TRACE("GMenu2X::settings - updating language : %s", lang.c_str());
 			confStr["lang"] = lang;
 			tr.setLang(lang);
+			initMenu();
 		}
 
 		TRACE("GMenu2X::settings - setScreenTimeout - %i", confInt["backlightTimeout"]);
@@ -895,7 +897,8 @@ void GMenu2X::settings() {
 		if (prevgamma != confInt["gamma"]) setGamma(confInt["gamma"]);
 #endif
 
-		if (prevDateTime != confStr["datetime"]) restartDialog();
+		if (prevDateTime != confStr["datetime"]) 
+			restartDialog();
 	}
 	TRACE("GMenu2X::settings - exit");
 }
@@ -1604,9 +1607,9 @@ void GMenu2X::restartDialog(bool showDialog) {
 	}
 
 	quit();
-	WARNING("Re-launching gmenu2x");
+	WARNING("Re-launching gmenunx");
 	chdir(getExePath().c_str());
-	execlp("./gmenu2x", "./gmenu2x", NULL);
+	execlp("./gmenunx", "./gmenunx", NULL);
 }
 
 void GMenu2X::poweroffDialog() {

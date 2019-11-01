@@ -158,7 +158,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			SDL_Surface *tmpIcon = loadPNG(opkImagePath, true);
 			if (tmpIcon) {
 				DEBUG("LinkApp::LinkApp - ctor - loaded opk icon ok");
-				string outFile = gmenu2x->getCurrentSkinPath() + "/icons/" + shortFileName;
+				string outFile = gmenu2x->getCurrentSkinPath() + "/icons/" + basename(shortFileName.c_str());
 				DEBUG("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
 				if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
 					string workingName = "skin:" + ip;
