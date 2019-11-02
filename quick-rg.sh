@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
-export DEBUG=5
+export DEBUG=4
 
 RG350_HOME="/media/data/local/home"
 LAUNCHER="/usr/local/sbin/frontend_start"
@@ -87,8 +87,10 @@ function showHelp {
 }
 
 function myMake {
+	makefile="$1"
+	shift
 	args="$*"
-	cmd="make -f ./Makefile.rg-350 ${args}"
+	cmd="make -f ./${makefile} ${args}"
 	echo "make command : ${cmd}"
 	${cmd}
 	if [ $? -ne 0 ]; then
@@ -102,7 +104,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-while getopts ":hfqiu" opt; do
+while getopts ":hfqiul" opt; do
 
   case ${opt} in
 	h )
@@ -110,13 +112,18 @@ while getopts ":hfqiu" opt; do
 		exit 0
       ;;
     f )
-		myMake "clean all dist"
+		myMake "Makefile.rg-350 clean all dist"
 		fullDeploy
 		installLaunchLink
 		exit 0
       ;;
     q )
-		myMake "all"
+		myMake "Makefile.rg-350 all"
+		binaryDeploy
+		exit 0
+      ;;
+    l )
+		myMake "Makefile.linux clean all dist"
 		binaryDeploy
 		exit 0
       ;;

@@ -1,0 +1,79 @@
+TARGET=LINUX
+PATH_DIR=LINUX
+
+CC = gcc
+CXX = g++
+STRIP = strip
+
+SYSROOT     := $(shell $(CC) --print-sysroot)
+SDL_CONFIG  := $(SYSROOT)/usr/bin/sdl-config
+SDL_CFLAGS  := $(shell $(SDL_CONFIG) --cflags)
+SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
+
+#@echo "cross = $(CROSS_COMPILE) *******************************************"
+DEBUG ?= 2
+CFLAGS = -ggdb \
+    -I/usr/local/include/ \
+	-DTARGET_PC \
+	-DPLATFORM_PC \
+	-DTARGET=$(PATH_DIR) \
+    -std=gnu++11 \
+    -DLOG_LEVEL=$(DEBUG) \
+    -DHAVE_LIBOPK \
+    -Wno-narrowing \
+    -g3 \
+    $(SDL_CFLAGS)
+
+CXXFLAGS = $(CFLAGS)
+LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lpthread -lopk -lpng
+
+OBJDIR = objs/$(PATH_DIR)
+DISTDIR = dist/$(PATH_DIR)/gmenunx
+APPNAME = $(OBJDIR)/gmenunx
+
+SOURCES := $(wildcard src/*.cpp)
+OBJS := $(patsubst src/%.cpp, $(OBJDIR)/src/%.o, $(SOURCES))
+
+# File types rules
+$(OBJDIR)/src/%.o: src/%.cpp src/%.h
+	$(CXX) $(CFLAGS) -o $@ -c $<
+
+all: dir shared
+
+dir:
+	@if [ ! -d $(OBJDIR)/src ]; then mkdir -p $(OBJDIR)/src; fi
+
+debug: $(OBJS)
+	@echo "Linking gmenunx-debug..."
+	$(CXX) -o $(APPNAME)-debug $(LDFLAGS) $(OBJS)
+	 # $(LDFLAGS) 
+
+shared: debug
+	$(STRIP) $(APPNAME)-debug -o $(APPNAME)
+
+clean:
+	rm -rf $(OBJDIR) $(DISTDIR) *.gcda *.gcno $(APPNAME)
+
+dist: dir shared
+	install -m755 -D $(APPNAME) $(DISTDIR)/gmenunx
+	install -m644 assets/$(PATH_DIR)/input.conf $(DISTDIR)
+	install -m644 -D README.md $(DISTDIR)/README.txt
+	install -m644 -D COPYING $(DISTDIR)/COPYING
+	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog.md
+	install -m644 -D about.txt $(DISTDIR)/about.txt
+	install -m644 -D assets/$(PATH_DIR)/gmenunx.conf $(DISTDIR)
+	cp -RH assets/skins assets/translations $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
+	cp -RH assets/$(PATH_DIR)/skin.conf $(DISTDIR)/skins/Default
+	cp -RH assets/$(PATH_DIR)/font.ttf $(DISTDIR)/skins/Default
+	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/gmenunx.png
+
+-include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
+
+$(OBJDIR)/src/%.d: src/%.cpp
+	@if [ ! -d $(OBJDIR)/src ]; then mkdir -p $(OBJDIR)/src; fi
+	$(CXX) -M $(CXXFLAGS) $< > $@.$$$$; \
+	sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.$$$$ > $@; \
+	rm -f $@.$$$$
+
