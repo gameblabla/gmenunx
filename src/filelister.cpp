@@ -88,6 +88,7 @@ void FileLister::browse() {
 
 			if (S_ISDIR(st.st_mode)) {
 				if (!showDirectories) continue;
+				TRACE("FileLister::browse - adding directory : %s", file.c_str());
 				directories.push_back(file);
 			} else {
 				if (!showFiles) continue;
@@ -95,6 +96,7 @@ void FileLister::browse() {
 					if (vfilter.size() > 1 && it->length() == 0 && (int32_t)file.rfind(".") >= 0) continue;
 					if (it->length() <= file.length()) {
 						if (file.compare(file.length() - it->length(), it->length(), *it) == 0) {
+							TRACE("FileLister::browse - adding file : %s", file.c_str());
 							files.push_back(file);
 							break;
 						}
@@ -109,7 +111,7 @@ void FileLister::browse() {
 		if (showDirectories && path != "/" && allowDirUp) 
 			directories.insert(directories.begin(), "..");
 	}
-	TRACE("FileLister::browse - enter");
+	TRACE("FileLister::browse - exit");
 }
 
 uint32_t FileLister::size() {
