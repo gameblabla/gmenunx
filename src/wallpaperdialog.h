@@ -29,10 +29,12 @@ using std::string;
 using std::vector;
 
 class WallpaperDialog : protected Dialog {
+private:
+	string skin;
 protected:
 	string title, description, icon;
 public:
-	WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon);
+	WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &skin, const string &wallpaper);
 	string wallpaper;
 
 	bool exec();

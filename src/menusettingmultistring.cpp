@@ -20,6 +20,7 @@
 #include "menusettingmultistring.h"
 #include "gmenu2x.h"
 #include "iconbutton.h"
+#include "debug.h"
 #include <algorithm>
 using std::find;
 
@@ -31,6 +32,7 @@ MenuSettingMultiString::MenuSettingMultiString(
 	: MenuSettingStringBase(gmenu2x, title, description, value), choices(choices_),
 	onChange(onChange), onSelect(onSelect)
 {
+	TRACE("MenuSettingMultiString::ctor - Initialised with value : %s", (*value).c_str());
 	setSel(find(choices->begin(), choices->end(), *value) - choices->begin());
 
 	if (choices->size() > 1) {
@@ -88,4 +90,5 @@ void MenuSettingMultiString::setSel(int sel)
 	selected = sel;
 
 	setValue((*choices)[sel]);
+	TRACE("MenuSettingMultiString::setSel - current value : %s", (*choices)[sel].c_str());
 }

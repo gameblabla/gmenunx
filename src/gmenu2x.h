@@ -164,11 +164,22 @@ private:
 	void mountSdDialog();
 	string mountSd();
 
+	// private Configuration hashes
+	ConfStrHash confStr;
+	ConfStrHash skinConfStr;
+
 public:
 	GMenu2X();
 	~GMenu2X();
 	void quit();
 	void releaseScreen();
+
+	// public Configuration hashes
+	// TODO - move these to provate as well....
+	RGBAColor skinConfColors[NUM_COLORS];
+	ConfIntHash skinConfInt;
+	ConfIntHash confInt;
+
 
 	/*
 	 * Variables needed for elements disposition
@@ -203,11 +214,7 @@ public:
 	LED *led;
 	// uint32_t tickSuspend; //, tickPowerOff;
 
-	//Configuration hashes
-	ConfStrHash confStr, skinConfStr;
-	ConfIntHash confInt, skinConfInt;
 
-	RGBAColor skinConfColors[NUM_COLORS];
 
 	void setSkin(const string &skin, bool resetWallpaper = true, bool clearSC = true);
 	//firmware type and version

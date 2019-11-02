@@ -1029,7 +1029,7 @@ void GMenu2X::readTmp() {
 		else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
 	}
 	if (TVOut != "NTSC" && TVOut != "PAL") TVOut = "OFF";
-//	udcConnectedOnBoot = 0;
+	//	udcConnectedOnBoot = 0;
 	inf.close();
 	unlink("/tmp/gmenunx.tmp");
 }
@@ -1494,11 +1494,15 @@ void GMenu2X::linkScanner() {
 
 void GMenu2X::changeWallpaper() {
 	TRACE("GMenu2X::changeWallpaper - enter");
-	WallpaperDialog wp(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], "skin:icons/wallpaper.png");
+	WallpaperDialog wp(this, 
+		tr["Wallpaper"], 
+		tr["Select an image to use as a wallpaper"], 
+		"skin:icons/wallpaper.png", 
+		confStr["skin"], 
+		confStr["wallpaper"]);
+
 	if (wp.exec() && confStr["wallpaper"] != wp.wallpaper) {
 		TRACE("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
-		confStr["wallpaper"] = wp.wallpaper;
-		TRACE("GMenu2X::changeWallpaper - set new wallpaper");
 		setWallpaper(wp.wallpaper);
 		TRACE("GMenu2X::changeWallpaper - write config");
 		writeConfig();
@@ -1513,7 +1517,7 @@ void GMenu2X::showManual() {
 	string linkManual = menu->selLinkApp()->getManualPath();
 	string linkBackdrop = menu->selLinkApp()->getBackdropPath();
 
-	if (linkManual == "" || !fileExists(linkManual)) return;
+	if (linkManual.empty() || !fileExists(linkManual)) return;
 
 	string ext = linkManual.substr(linkManual.size() - 4, 4);
 	if (ext == ".png" || ext == ".bmp" || ext == ".jpg" || ext == "jpeg") {
@@ -1975,7 +1979,7 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingString(		this, tr["Title"],			tr["Link title"], &linkTitle, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingString(		this, tr["Description"],	tr["Link description"], &linkDescription, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingMultiString(	this, tr["Section"],		tr["The section this link belongs to"], &newSection, &menu->getSections()));
-	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon, confStr["skin"]));
 	sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, confInt["cpuMenu"], confInt["cpuMin"], confInt["cpuMax"], 6));
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, CARD_ROOT, dialogTitle, dialogIcon));
@@ -1983,7 +1987,7 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, CARD_ROOT, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAliases, ".txt,.dat", CARD_ROOT, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", CARD_ROOT, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", CARD_ROOT, dialogTitle, dialogIcon, confStr["skin"]));
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
 
 #if defined(TARGET_WIZ) || defined(TARGET_CAANOO)
