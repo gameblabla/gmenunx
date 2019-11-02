@@ -234,6 +234,7 @@ GMenu2X::~GMenu2X() {
 void GMenu2X::releaseScreen() {
 	SDL_Quit();
 }
+
 void GMenu2X::quit() {
 	TRACE("GMenu2X::quit - enter");
 	ledOff();
@@ -503,10 +504,20 @@ void GMenu2X::main() {
 				if (i == (uint32_t)menu->selLinkIndex())
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
-				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
+				int padding = 36;
+				if (skinConfInt["showIcons"]) {
+					TRACE("Menu::loadIcons - theme uses icons");
+					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
+						s, 
+						{ix, iy, padding, linkHeight}, 
+						HAlignCenter | VAlignMiddle);
+				} else {
+					padding = 4;
+				}
+				
 				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
-				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
+				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + padding, iy + titlefont->getHeight()/2, VAlignMiddle);
+				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + padding, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
 			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
@@ -520,10 +531,24 @@ void GMenu2X::main() {
 					if (i == (uint32_t)menu->selLinkIndex())
 						s->box(ix, iy, linkWidth, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
-					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, HAlignCenter | VAlignMiddle);
+					int textAlign = HAlignCenter | VAlignBottom;
+					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
 
-					TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-					s->write(font, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkWidth/2, iy + linkHeight - 2, HAlignCenter | VAlignBottom);
+					if (skinConfInt["showIcons"]) {
+						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
+							s, 
+							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
+							HAlignCenter | VAlignMiddle);
+					} else {
+						textAlign = HAlignCenter | VAlignMiddle;
+					}
+
+					TRACE("main :: links - adding : %s", title.c_str());
+					s->write(font, 
+						title, 
+						ix + linkWidth/2, 
+						iy + linkHeight - 2, 
+						textAlign);
 				}
 			}
 		}
@@ -685,6 +710,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 }
 
 void GMenu2X::initLayout() {
+	DEBUG("GMenu2X::initLayout - enter");
 	// LINKS rect
 	linksRect = (SDL_Rect){0, 0, resX, resY};
 	sectionBarRect = (SDL_Rect){0, 0, resX, resY};
@@ -718,6 +744,8 @@ void GMenu2X::initLayout() {
 
 	linkWidth  = (linksRect.w - (linkCols + 1 ) * linkSpacing) / linkCols;
 	linkHeight = (linksRect.h - (linkCols > 1) * (linkRows    + 1 ) * linkSpacing) / linkRows;
+
+	DEBUG("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", linkCols, linkRows, linkWidth, linkHeight);
 }
 
 void GMenu2X::initFont() {
@@ -1158,13 +1186,13 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	
 	confStr["skin"] = skin;
 
-//Clear previous skin settings
+	//Clear previous skin settings
 	TRACE("GMenu2X::setSkin - clear skinConfStr");
 	skinConfStr.clear();
 	TRACE("GMenu2X::setSkin - clear skinConfInt");
 	skinConfInt.clear();
 
-//clear collection and change the skin path
+	//clear collection and change the skin path
 	if (clearSC) {
 		TRACE("GMenu2X::setSkin - clearSC");
 		sc.clear();
@@ -1173,7 +1201,7 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	sc.setSkin(skin);
 	// if (btnContextMenu != NULL) btnContextMenu->setIcon( btnContextMenu->getIcon() );
 
-//reset colors to the default values
+	//reset colors to the default values
 	TRACE("GMenu2X::setSkin - skinFontColors");
 	skinConfColors[COLOR_TOP_BAR_BG] = (RGBAColor){255,255,255,130};
 	skinConfColors[COLOR_LIST_BG] = (RGBAColor){255,255,255,0};
@@ -1187,7 +1215,7 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	skinConfColors[COLOR_FONT_ALT] = (RGBAColor){253,1,252,0};
 	skinConfColors[COLOR_FONT_ALT_OUTLINE] = (RGBAColor){253,1,252,0};
 
-//load skin settings
+	//load skin settings
 	string skinconfname = assets_path + "skins/" + skin + "/skin.conf";
 	TRACE("GMenu2X::setSkin - skinconfname : %s", skinconfname.c_str());
 	if (fileExists(skinconfname)) {
@@ -1206,7 +1234,6 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 					if (value.length() > 1 && value.at(0) == '"' && value.at(value.length() - 1) == '"') {
 							skinConfStr[name] = value.substr(1, value.length() - 2);
 					} else if (value.at(0) == '#') {
-						// skinConfColor[name] = strtorgba( value.substr(1,value.length()) );
 						skinConfColors[stringToColor(name)] = strtorgba(value);
 					} else if (name.length() > 6 && name.substr( name.length() - 6, 5 ) == "Color") {
 						value += name.substr(name.length() - 1);
@@ -1223,22 +1250,27 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 			}
 			skinconf.close();
 
-			if (resetWallpaper && !skinConfStr["wallpaper"].empty() && fileExists("skins/" + skin + "/wallpapers/" + skinConfStr["wallpaper"])) {
-				setWallpaper("skins/" + skin + "/wallpapers/" + skinConfStr["wallpaper"]);
-				// confStr["wallpaper"] = "skins/" + skin + "/wallpapers/" + skinConfStr["wallpaper"];
-				// sc[confStr["wallpaper"]]->blit(bg,0,0);
+			if (resetWallpaper) {
+				string wallpaper = "skins/" + skin + "/wallpapers/" + skinConfStr["wallpaper"];
+				if (fileExists(assets_path + wallpaper)) {
+					TRACE("GMenu2X::setSkin - setting new wallpaper : %s", wallpaper.c_str());
+					setWallpaper(wallpaper);
+					// confStr["wallpaper"] = wallpaper;
+					// sc[confStr["wallpaper"]]->blit(bg,0,0);
+				}
 			}
 		}
 	}
 
-// (poor) HACK: ensure font alt colors have a default value
+	// (poor) HACK: ensure font alt colors have a default value
 	TRACE("GMenu2X::setSkin - skin colors");
 	if (skinConfColors[COLOR_FONT_ALT].r == 253 && skinConfColors[COLOR_FONT_ALT].g == 1 && skinConfColors[COLOR_FONT_ALT].b == 252 && skinConfColors[COLOR_FONT_ALT].a == 0) skinConfColors[COLOR_FONT_ALT] = skinConfColors[COLOR_FONT];
 	if (skinConfColors[COLOR_FONT_ALT_OUTLINE].r == 253 && skinConfColors[COLOR_FONT_ALT_OUTLINE].g == 1 && skinConfColors[COLOR_FONT_ALT_OUTLINE].b == 252 && skinConfColors[COLOR_FONT_ALT_OUTLINE].a == 0) skinConfColors[COLOR_FONT_ALT_OUTLINE] = skinConfColors[COLOR_FONT_OUTLINE];
 
-// prevents breaking current skin until they are updated
+	// prevents breaking current skin until they are updated
 	TRACE("GMenu2X::setSkin - font size tile");
-	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
+	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) 
+		skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
 
 	TRACE("GMenu2X::setSkin - evalIntConf");
 	evalIntConf( &skinConfInt["topBarHeight"], 40, 1, resY);
@@ -1247,13 +1279,14 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	evalIntConf( &skinConfInt["previewWidth"], 142, 1, resX);
 	evalIntConf( &skinConfInt["fontSize"], 12, 6, 60);
 	evalIntConf( &skinConfInt["fontSizeTitle"], 20, 6, 60);
+	evalIntConf( &skinConfInt["showIcons"], 1, 0, 1);
 
-	if (menu != NULL && clearSC) {
+	if (menu != NULL && clearSC && skinConfInt["showIcons"]) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}
 
-//font
+	//font
 	TRACE("GMenu2X::setSkin - init font");
 	initFont();
 	TRACE("GMenu2X::setSkin - exit");

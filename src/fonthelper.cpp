@@ -112,7 +112,7 @@ void FontHelper::write(Surface *surface, vector<string> *text, int x, int y, con
 			ix -= getTextWidth(text->at(i));
 		}
 
-		write(surface, text->at(i), x, y + i * getHeight(), fgColor, bgColor);
+		write(surface, text->at(i), ix, y + i * getHeight(), fgColor, bgColor);
 	}
 }
 

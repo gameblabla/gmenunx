@@ -157,7 +157,7 @@ void Menu::loadIcons() {
 			LinkApp *linkapp = dynamic_cast<LinkApp*>(sectionLinks(i)->at(x));
 
 			if (linkapp != NULL) {
-				TRACE("Menu::loadIcons - link - searching backdrop and mauals");
+				TRACE("Menu::loadIcons - link - searching backdrop and manuals");
 				linkapp->searchBackdrop();
 				linkapp->searchManual();
 			}
@@ -171,7 +171,8 @@ void Menu::loadIcons() {
 					sectionLinks(i)->at(x)->setIconPath(linkIcon);
 
 			} else if (!fileExists(linkIcon)) {
-				if (linkapp != NULL) linkapp->searchIcon();
+				if (linkapp != NULL) 
+					linkapp->searchIcon();
 			}
 		}
 	}
@@ -261,7 +262,7 @@ bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::Fa
 
 bool Menu::addLink(string path, string file, string section) {
 	TRACE("Menu::addLink - enter");
-	if (section == "")
+	if (section.empty())
 		section = selSection();
 	else if (find(sections.begin(), sections.end(), section) == sections.end()) {
 		//section directory doesn't exists
@@ -319,8 +320,7 @@ bool Menu::addLink(string path, string file, string section) {
 		if (isection >= 0 && isection < (int)sections.size()) {
 			INFO("Section: '%s(%i)'", sections[isection].c_str(), isection);
 
-			// TODO :: Clean the comments out after integrating OPK
-			LinkApp *link = new LinkApp(gmenu2x, /*gmenu2x->input,*/ linkpath.c_str(), true);
+			LinkApp *link = new LinkApp(gmenu2x, linkpath.c_str(), true);
 			if (link->targetExists())
 				links[isection].push_back( link );
 			else
@@ -520,8 +520,7 @@ void Menu::readLinks() {
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
 
-			// TODO :: Clean the comments out after integrating OPK
-			LinkApp *link = new LinkApp(gmenu2x, /*gmenu2x->input,*/ linkfiles[x].c_str(), true);
+			LinkApp *link = new LinkApp(gmenu2x, linkfiles[x].c_str(), true);
 			TRACE("Menu::readLinks - link created...");
 			if (link->targetExists()) {
 				TRACE("Menu::readLinks - target exists");
@@ -646,7 +645,8 @@ void Menu::openPackage(string path, bool order) {
 		TRACE("Menu::openPackage : creating new linkapp");
 		link = new LinkApp(gmenu2x, path.c_str(), false, opk, name);
 		TRACE("Menu::openPackage : setting sizes");
-		link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
+		link->setSize(gmenu2x->linkWidth, gmenu2x->linkHeight);
+		//link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
 
 		TRACE("Menu::openPackage : adding category for %S", link->getCategory().c_str());
 		addSection(link->getCategory());
