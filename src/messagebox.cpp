@@ -24,6 +24,7 @@
 #include "messagebox.h"
 #include "powermanager.h"
 #include "debug.h"
+#include "utilities.h"
 
 using namespace std;
 
@@ -183,19 +184,3 @@ int MessageBox::exec() {
 	return result;
 }
 
-string MessageBox::splitInLines(string source, size_t max_width, string whitespace) {
-    size_t  currIndex = max_width - 1;
-    size_t  sizeToElim;
-    while ( currIndex < source.length() ) {
-        currIndex = source.find_last_of(whitespace,currIndex + 1); 
-        if (currIndex == std::string::npos)
-            break;
-        currIndex = source.find_last_not_of(whitespace,currIndex);
-        if (currIndex == std::string::npos)
-            break;
-        sizeToElim = source.find_first_not_of(whitespace,currIndex + 1) - currIndex - 1;
-        source.replace( currIndex + 1, sizeToElim , "\n");
-        currIndex += (max_width + 1); //due to the recently inserted "\n"
-    }
-    return source;
-}
