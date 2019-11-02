@@ -449,7 +449,7 @@ void InputManager::setWakeUpInterval(int ms) {
 }
 
 uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
-	TRACE("InputManager::wakeUp - enter");
+	//TRACE("InputManager::wakeUp - enter");
 	SDL_Event *event = new SDL_Event();
 	event->type = SDL_WAKEUPEVENT;
 	SDL_PushEvent( event );

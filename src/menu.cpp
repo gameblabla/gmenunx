@@ -725,7 +725,7 @@ void Menu::removePackageLink(std::string path) {
 				continue;
 
 			if (app->getOpkFile().compare(0, path.size(), path) == 0) {
-				DEBUG("Removing link corresponding to package %s\n",
+				TRACE("Removing link corresponding to package %s\n",
 							app->getOpkFile().c_str());
 				section->erase(link);
 				if (section - links.begin() == iSection

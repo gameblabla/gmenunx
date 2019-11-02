@@ -293,6 +293,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	//load config data
 	TRACE("GMenu2X::ctor - readConfig");
+	tr.setPath(assets_path);
 	readConfig();
 	if (!firstRun && MIN_CONFIG_VERSION > confInt["version"]) {
 		// we're doing an upgrade
@@ -456,7 +457,7 @@ void GMenu2X::main() {
 	while (!quit) {
 		tickNow = SDL_GetTicks();
 
-		TRACE("main :: setting the box");
+		//TRACE("main :: setting the box");
 		s->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 255});
 		
 		// this is the bomb if not set!!
@@ -466,7 +467,7 @@ void GMenu2X::main() {
 		}
 		
 		// SECTIONS
-		TRACE("main :: sections");
+		//TRACE("main :: sections");
 		if (confInt["sectionBar"]) {
 			s->box(sectionBarRect, skinConfColors[COLOR_TOP_BAR_BG]);
 
@@ -486,14 +487,14 @@ void GMenu2X::main() {
 		}
 
 		// LINKS
-		TRACE("main :: links");
+		//TRACE("main :: links");
 		s->setClipRect(linksRect);
 		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
 
 		i = menu->firstDispRow() * linkCols;
 
 		if (linkCols == 1) {
-			TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
+			//TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
 			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
@@ -503,7 +504,7 @@ void GMenu2X::main() {
 					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
 
 				sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(s, {ix, iy, 36, linkHeight}, HAlignCenter | VAlignMiddle);
-				TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
 				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + 36, iy + titlefont->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + 36, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
@@ -526,7 +527,7 @@ void GMenu2X::main() {
 				}
 			}
 		}
-		TRACE("main :: links - done");
+		//TRACE("main :: links - done");
 		s->clearClipRect();
 
 		drawScrollBar(linkRows, 
@@ -883,6 +884,7 @@ void GMenu2X::settings() {
 			TRACE("GMenu2X::settings - updating language : %s", lang.c_str());
 			confStr["lang"] = lang;
 			tr.setLang(lang);
+			TRACE("GMenu2X::settings - calling inti menu");
 			initMenu();
 		}
 
@@ -891,7 +893,6 @@ void GMenu2X::settings() {
 		screenManager.setScreenTimeout(confInt["backlightTimeout"]);
 
 		writeConfig();
-		//powerManager->setPowerTimeout(confInt["powerTimeout"]);
 
 #if defined(TARGET_GP2X)
 		if (prevgamma != confInt["gamma"]) setGamma(confInt["gamma"]);
@@ -1054,7 +1055,6 @@ void GMenu2X::readConfig() {
 	if (confStr["TVOut"] != "PAL") 
 		confStr["TVOut"] = "NTSC";
 	if (!confStr["lang"].empty()) {
-		tr.setPath(assets_path);
 		tr.setLang(confStr["lang"]);
 	}
 	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) 
@@ -2270,7 +2270,7 @@ const string &GMenu2X::getAssetsPath() {
 
 string GMenu2X::getCurrentSkinPath() {
 	string currentSkin = (confStr["skin"].empty() ? "Default" : confStr["skin"]);
-	DEBUG("GMenu2X::getCurrentSkinPath - current skin looks to be : %s", currentSkin.c_str());
+	TRACE("GMenu2X::getCurrentSkinPath - current skin looks to be : %s", currentSkin.c_str());
 	return assets_path + "skins/" + currentSkin;
 }
 

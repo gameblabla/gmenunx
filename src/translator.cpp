@@ -66,6 +66,7 @@ void Translator::setLang(const string &lang) {
 			translations[ trim(line.substr(0,position)) ] = trim(line.substr(position+1));
 		}
 		infile.close();
+		TRACE("Translator::setLang : read completed");
 		_lang = lang;
 	}
 }

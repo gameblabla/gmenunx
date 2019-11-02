@@ -67,7 +67,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 /* ---------------------------------------------------------------- */
 
 	if (isOPK) {
-		DEBUG("LinkApp::LinkApp - ctor - handling opk :%s", file.c_str());
+		TRACE("LinkApp::LinkApp - ctor - handling opk :%s", file.c_str());
 		// let's override these guys for sure
 		deletable = editable = false;
 
@@ -105,32 +105,32 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				if (pos != category.npos)
 					category = category.substr(0, pos);
 
-				DEBUG("LinkApp::LinkApp - ctor - opk::category : %s", category.c_str());
+				TRACE("LinkApp::LinkApp - ctor - opk::category : %s", category.c_str());
 			} else if ((!strncmp(key, "Name", lkey) && title.empty())
 						|| !strncmp(key, ("Name[" + gmenu2x->tr["Lng"] +
 								"]").c_str(), lkey)) {
 				title = buf;
-				DEBUG("LinkApp::LinkApp - ctor - opk::title : %s", title.c_str());
+				TRACE("LinkApp::LinkApp - ctor - opk::title : %s", title.c_str());
 			} else if ((!strncmp(key, "Comment", lkey) && description.empty())
 						|| !strncmp(key, ("Comment[" +
 								gmenu2x->tr["Lng"] + "]").c_str(), lkey)) {
 				description = buf;
-				DEBUG("LinkApp::LinkApp - ctor - opk::description : %s", description.c_str());
+				TRACE("LinkApp::LinkApp - ctor - opk::description : %s", description.c_str());
 			} else if (!strncmp(key, "Terminal", lkey)) {
 				consoleapp = !strncmp(val, "true", lval);
-				DEBUG("LinkApp::LinkApp - ctor - opk::consoleapp : %i", consoleapp);
+				TRACE("LinkApp::LinkApp - ctor - opk::consoleapp : %i", consoleapp);
 			} else if (!strncmp(key, "X-OD-Manual", lkey)) {
 				manual = buf;
-				DEBUG("LinkApp::LinkApp - ctor - opk::manual : %s", manual.c_str());
+				TRACE("LinkApp::LinkApp - ctor - opk::manual : %s", manual.c_str());
 			} else if (!strncmp(key, "Icon", lkey)) {
 				metaIcon = (string)buf;
-				DEBUG("LinkApp::LinkApp - ctor - opk::icon : %s", metaIcon.c_str());
+				TRACE("LinkApp::LinkApp - ctor - opk::icon : %s", metaIcon.c_str());
 			} else if (!strncmp(key, "Exec", lkey)) {
 				exec = buf;
 				TRACE("LinkApp::LinkApp - ctor - opk::raw exec : %s", exec.c_str());
 				for (auto token : tokens) {
 					if (exec.find(token) != exec.npos) {
-						DEBUG("LinkApp::LinkApp - ctor - opk::exec takes a token");
+						TRACE("LinkApp::LinkApp - ctor - opk::exec takes a token");
 						selectordir = CARD_ROOT;
 						appTakesFileArg = true;
 						break;
@@ -144,36 +144,36 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		// let's sort out icons
 		string shortFileName = metaIcon + ".png";
 		string ip = "icons/" + shortFileName;
-		DEBUG("LinkApp::LinkApp - ctor - looking for icon at : %s", ip.c_str());
+		TRACE("LinkApp::LinkApp - ctor - looking for icon at : %s", ip.c_str());
 		// Read the icon from the OPK if it doesn't exist on the skin
 		searchIcon(metaIcon, false);
 		if (!iconPath.empty()) {
-			DEBUG("LinkApp::LinkApp - ctor - icon found in local skin");
+			TRACE("LinkApp::LinkApp - ctor - icon found in local skin");
 			this->icon = iconPath;
 		} else {
 			// let's extract the image and use for now, and save it locally for the future
-			DEBUG("LinkApp::LinkApp - ctor - icon not found, looking in the opk");
+			TRACE("LinkApp::LinkApp - ctor - icon not found, looking in the opk");
 			string opkImagePath = file + "#" + shortFileName;
-			DEBUG("LinkApp::LinkApp - ctor - loading OPK icon from : %s", opkImagePath.c_str());
+			TRACE("LinkApp::LinkApp - ctor - loading OPK icon from : %s", opkImagePath.c_str());
 			SDL_Surface *tmpIcon = loadPNG(opkImagePath, true);
 			if (tmpIcon) {
-				DEBUG("LinkApp::LinkApp - ctor - loaded opk icon ok");
+				TRACE("LinkApp::LinkApp - ctor - loaded opk icon ok");
 				string outFile = gmenu2x->getCurrentSkinPath() + "/icons/" + basename(shortFileName.c_str());
-				DEBUG("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
+				TRACE("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
 				if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
 					string workingName = "skin:" + ip;
-					DEBUG("LinkApp::LinkApp - ctor - working name is : %s", workingName.c_str());
+					TRACE("LinkApp::LinkApp - ctor - working name is : %s", workingName.c_str());
 					this->icon = workingName;
 				} else {
 					ERROR("LinkApp::LinkApp - ctor - couldn't save icon png");
 				}
 			} else {
-				DEBUG("LinkApp::LinkApp - ctor - loaded opk icon failed");
+				TRACE("LinkApp::LinkApp - ctor - loaded opk icon failed");
 				this->icon = opkImagePath;
 			}
 		}
 
-		DEBUG("LinkApp::LinkApp - ctor - opk::icon set to : %s", this->icon.c_str());
+		TRACE("LinkApp::LinkApp - ctor - opk::icon set to : %s", this->icon.c_str());
 		updateSurfaces();
 
 		// end of icons
@@ -185,7 +185,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	}	// isOPK
 
 	else {
-		DEBUG("LinkApp::LinkApp - ctor - handling normal desktop file :%s", linkfile);
+		TRACE("LinkApp::LinkApp - ctor - handling normal desktop file :%s", linkfile);
 		string line;
 		TRACE("LinkApp::LinkApp - ctor - creating ifstream");
 		ifstream infile (linkfile, ios_base::in);
@@ -213,7 +213,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				} else if (name == "description") {
 					description = value;
 				} else if (name == "icon") {
-					DEBUG("LinkApp::LinkApp - ctor - setting icon value to %s", value.c_str());
+					TRACE("LinkApp::LinkApp - ctor - setting icon value to %s", value.c_str());
 					setIcon(value);
 				} else if (name == "exec") {
 					exec = value;
@@ -249,13 +249,13 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 		// try and find an icon 
 		if (iconPath.empty()) {
-			DEBUG("LinkApp::LinkApp - ctor - searching for icon");
+			TRACE("LinkApp::LinkApp - ctor - searching for icon");
 			searchIcon(exec, true);
 		}
 
 	}	// !opk
 
-	DEBUG("LinkApp::LinkApp - ctor exit : %s", this->toString().c_str());
+	TRACE("LinkApp::LinkApp - ctor exit : %s", this->toString().c_str());
 	edited = false;
 }
 
@@ -317,7 +317,7 @@ const string &LinkApp::searchIcon() {
 }
 
 const string &LinkApp::searchIcon(string path, bool fallBack) {
-	DEBUG("LinkApp::searchIcon - enter - fallback : %i", fallBack);
+	TRACE("LinkApp::searchIcon - enter - fallback : %i", fallBack);
 
 	// get every permutation possible from the metadata opts
 	string execicon = path;
@@ -343,7 +343,7 @@ const string &LinkApp::searchIcon(string path, bool fallBack) {
 		iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
 	}
 
-	DEBUG("LinkApp::searchIcon - exit - iconPath : %s", iconPath.c_str());
+	TRACE("LinkApp::searchIcon - exit - iconPath : %s", iconPath.c_str());
 	return iconPath;
 }
 
@@ -386,20 +386,20 @@ bool LinkApp::save() {
 	out << this->toString();
 
 	if (out.tellp() > 0) {
-		DEBUG("LinkApp::save - saving data : %s", out.str().c_str());
+		TRACE("LinkApp::save - saving data : %s", out.str().c_str());
 		ofstream f(file.c_str());
 		if (f.is_open()) {
 			f << out.str();
 			f.close();
 			sync();
-			DEBUG("LinkApp::save - save success");
+			TRACE("LinkApp::save - save success");
 			return true;
 		} else {
 			ERROR("LinkApp::save - Error while opening the file '%s' for write.\n", file.c_str());
 			return false;
 		}
 	} else {
-		DEBUG("LinkApp::save - Empty app settings: %s\n", file.c_str());
+		TRACE("LinkApp::save - Empty app settings: %s\n", file.c_str());
 		return unlink(file.c_str()) == 0 || errno == ENOENT;
 	}
 }
@@ -496,13 +496,13 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 	if (isOpk()) {
 		commandLine = { "opkrun", "-m", metadata, opkFile };
-		DEBUG("LinkApp::launch - running an opk via : opkrun -m %s %s", metadata.c_str(), opkFile.c_str());
+		TRACE("LinkApp::launch - running an opk via : opkrun -m %s %s", metadata.c_str(), opkFile.c_str());
 		if (!params.empty()) {
-			DEBUG("LinkApp::launch - running an opk with extra params : %s", params.c_str());
+			TRACE("LinkApp::launch - running an opk with extra params : %s", params.c_str());
 			commandLine.push_back(params);
 		}
 	} else {
-		DEBUG("LinkApp::launch - running a standard desktop file");
+		TRACE("LinkApp::launch - running a standard desktop file");
 		// Check to see if permissions are desirable
 		struct stat fstat;
 		if ( stat( exec.c_str(), &fstat ) == 0 ) {
@@ -513,7 +513,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		} // else, well.. we are no worse off :)
 
 		commandLine = { "/bin/sh", "-c", exec + " " + params };
-		DEBUG("LinkApp::launch - standard file cmd lime : %s %s",  exec.c_str(), params.c_str());
+		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  exec.c_str(), params.c_str());
 	}
 	if (gmenu2x->confInt["outputLogs"]) {
 		commandLine.push_back( "2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt");
