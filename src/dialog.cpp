@@ -22,19 +22,33 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 
 	if (i == NULL) i = gmenu2x->sc.skinRes("icons/generic.png");
 
-	i->blit(s, {4, 4, gmenu2x->resX - 8, gmenu2x->skinConfInt["topBarHeight"] - 8}, VAlignMiddle);
+	i->blit(s, {4, 4, gmenu2x->resX - 8, gmenu2x->skin->topBarHeight - 8}, VAlignMiddle);
 	// s->box(4, 4, 32, 32, strtorgba("ffff00ff"));
 }
 
 void Dialog::writeTitle(const std::string &title, Surface *s) {
 	if (s == NULL) s = gmenu2x->s;
-	s->write(gmenu2x->titlefont, title, 40, gmenu2x->titlefont->getHeight()/2, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+	s->write(
+		gmenu2x->titlefont, 
+		title, 
+		40, 
+		gmenu2x->titlefont->getHeight()/2, 
+		VAlignMiddle, 
+		gmenu2x->skin->colours.fontAlt, 
+		gmenu2x->skin->colours.fontAltOutline);
 	// s->box(40, 16 - gmenu2x->titlefont->getHalfHeight(), 15, gmenu2x->titlefont->getHeight(), strtorgba("ff00ffff"));
 }
 
 void Dialog::writeSubTitle(const std::string &subtitle, Surface *s) {
 	if (s == NULL) s = gmenu2x->s;
-	s->write(gmenu2x->font, subtitle, 40, 38, VAlignBottom, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+	s->write(
+		gmenu2x->font, 
+		subtitle, 
+		40, 
+		38, 
+		VAlignBottom, 
+		gmenu2x->skin->colours.fontAlt, 
+		gmenu2x->skin->colours.fontAltOutline);
 	// s->box(40, 32 - gmenu2x->font->getHalfHeight(), 15, gmenu2x->font->getHeight(), strtorgba("00ffffff"));
 }
 
@@ -43,8 +57,8 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 	// Surface *bar = sc.skinRes("imgs/topbar.png");
 	// if (bar != NULL) bar->blit(s, 0, 0);
 	// else
-	s->setClipRect({0, 0, gmenu2x->resX, gmenu2x->skinConfInt["topBarHeight"]});
-	s->box(0, 0, gmenu2x->resX, gmenu2x->skinConfInt["topBarHeight"], gmenu2x->skinConfColors[COLOR_TOP_BAR_BG]);
+	s->setClipRect({0, 0, gmenu2x->resX, gmenu2x->skin->topBarHeight});
+	s->box(0, 0, gmenu2x->resX, gmenu2x->skin->topBarHeight, gmenu2x->skin->colours.topBarBackground);
 	if (!title.empty()) writeTitle(title, s);
 	if (!description.empty()) writeSubTitle(description, s);
 	if (!icon.empty()) drawTitleIcon(icon, s);
@@ -56,5 +70,10 @@ void Dialog::drawBottomBar(Surface *s) {
 	// Surface *bar = sc.skinRes("imgs/bottombar.png");
 	// if (bar != NULL) bar->blit(s, 0, resY-bar->raw->h);
 	// else
-	s->box(0, gmenu2x->resY - gmenu2x->skinConfInt["bottomBarHeight"], gmenu2x->resX, gmenu2x->skinConfInt["bottomBarHeight"], gmenu2x->skinConfColors[COLOR_BOTTOM_BAR_BG]);
+	s->box(
+		0, 
+		gmenu2x->resY - gmenu2x->skin->bottomBarHeight, 
+		gmenu2x->resX, 
+		gmenu2x->skin->bottomBarHeight, 
+		gmenu2x->skin->colours.bottomBarBackground);
 }

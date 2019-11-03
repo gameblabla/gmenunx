@@ -48,8 +48,15 @@ bool SettingsDialog::exec() {
 
 	while (!close) {
 		gmenu2x->initLayout();
-		gmenu2x->font->setSize(gmenu2x->skinConfInt["fontSize"])->setColor(gmenu2x->skinConfColors[COLOR_FONT])->setOutlineColor(gmenu2x->skinConfColors[COLOR_FONT_OUTLINE]);
-		gmenu2x->titlefont->setSize(gmenu2x->skinConfInt["fontSizeTitle"])->setColor(gmenu2x->skinConfColors[COLOR_FONT_ALT])->setOutlineColor(gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+		gmenu2x->font->
+			setSize(gmenu2x->skin->fontSize)->
+			setColor(gmenu2x->skin->colours.font)->
+			setOutlineColor(gmenu2x->skin->colours.fontOutline);
+
+		gmenu2x->titlefont->
+			setSize(gmenu2x->skin->fontSizeTitle)->
+			setColor(gmenu2x->skin->colours.fontAlt)->
+			setOutlineColor(gmenu2x->skin->colours.fontAltOutline);
 
 		rowHeight = gmenu2x->font->getHeight() + 1;
 		numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
@@ -59,7 +66,7 @@ bool SettingsDialog::exec() {
 		// redraw to due to realtime skin
 		drawTopBar(gmenu2x->s, title, voices[selected]->getDescription(), icon);
 		drawBottomBar(gmenu2x->s);
-		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
+		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
@@ -68,7 +75,7 @@ bool SettingsDialog::exec() {
 		iY = gmenu2x->listRect.y + 1;
 		for (i = firstElement; i < voices.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 			if (i == selected) {
-				gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
+				gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
 				voices[selected]->drawSelected(iY);
 			}
 			voices[i]->draw(iY);

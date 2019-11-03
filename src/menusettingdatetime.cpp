@@ -166,7 +166,7 @@ void MenuSettingDateTime::drawSelected(int y) {
 		case 4: x += gmenu2x->font->getTextWidth(year + "-" + month + "-" + day + " " + hour + ":"); w = gmenu2x->font->getTextWidth(minute); break;
 		default: w = gmenu2x->font->getTextWidth(year); break;
 	}
-	gmenu2x->s->box( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
+	gmenu2x->s->box( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, gmenu2x->skin->colours.selectionBackground);
 	gmenu2x->s->rectangle( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
 
 	MenuSetting::drawSelected(y);

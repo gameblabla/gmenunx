@@ -91,7 +91,7 @@ bool WallpaperDialog::exec()
 		TRACE("WallpaperDialog::exec - drawBottomBar");
 		drawBottomBar(gmenu2x->s);
 		TRACE("WallpaperDialog::exec - box");
-		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
+		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 		TRACE("WallpaperDialog::exec - drawButtons");
 		gmenu2x->drawButton(gmenu2x->s, "a", gmenu2x->tr["Select"],
@@ -105,7 +105,7 @@ bool WallpaperDialog::exec()
 		iY = gmenu2x->listRect.y + 1;
 		TRACE("WallpaperDialog::exec - loop dirs");
 		for (i = firstElement; i < wallpapers.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skinConfColors[COLOR_SELECTION_BG]);
+			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
 			gmenu2x->s->write(gmenu2x->font, wallpapers[i], gmenu2x->listRect.x + 5, iY + rowHeight/2, VAlignMiddle);
 		}
 

@@ -31,8 +31,6 @@
 #include <sys/statvfs.h>
 #include <errno.h>
 
-// #include <sys/fcntl.h> //for battery
-
 //for browsing the filesystem
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -72,6 +70,7 @@
 #include "linkscannerdialog.h"
 #include "menusettingdatetime.h"
 #include "debug.h"
+#include "skin.h"
 
 #include <sys/mman.h>
 
@@ -97,6 +96,7 @@ using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
 
+/*
 // Note: Keep this in sync with the enum!
 static const char *colorNames[NUM_COLORS] = {
 	"topBarBg",
@@ -111,7 +111,8 @@ static const char *colorNames[NUM_COLORS] = {
 	"fontAlt",
 	"fontAltOutline"
 };
-
+*/
+/*
 static enum color stringToColor(const string &name) {
 	for (uint32_t i = 0; i < NUM_COLORS; i++) {
 		if (strcmp(colorNames[i], name.c_str()) == 0) {
@@ -124,7 +125,7 @@ static enum color stringToColor(const string &name) {
 static const char *colorToString(enum color c) {
 	return colorNames[c];
 }
-
+*/
 char *hwVersion() {
 	static char buf[10] = { 0 };
 	FILE *f = fopen("/dev/mmcblk0", "r");
@@ -228,6 +229,7 @@ GMenu2X::~GMenu2X() {
 	delete font;
 	delete titlefont;
 	delete led;
+	delete skin;
 	TRACE("GMenu2X::dtor - exit\n\n");
 }
 
@@ -332,8 +334,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - set prefix on surface collection");
 	sc.setPrefix(assets_path);
 
+	this->skin = new Skin(assets_path, confStr["skin"], (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
 	TRACE("GMenu2X::ctor - setWallpaper");
-	setWallpaper(confStr["wallpaper"]);
+	setWallpaper(skin->wallpaper);
 
 	TRACE("GMenu2X::ctor - setSkin");
 	setSkin(confStr["skin"], false, true);
@@ -415,8 +418,9 @@ void GMenu2X::main() {
 	
 	bool quit = false;
 	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
-	uint32_t tickBattery = -4800, tickNow; //, tickMMC = 0; //, tickUSB = 0;
-	string prevBackdrop = confStr["wallpaper"], currBackdrop = confStr["wallpaper"];
+	uint32_t tickBattery = -4800, tickNow;
+	string prevBackdrop = skin->wallpaper;
+	string currBackdrop = skin->wallpaper;
 
 	int8_t brightnessIcon = 5;
 	Surface *iconBrightness[6] = {
@@ -463,34 +467,34 @@ void GMenu2X::main() {
 		
 		// this is the bomb if not set!!
 		if (sc[currBackdrop]) {
-			TRACE("main :: blitting sc[currBackdrop]");
+			//TRACE("main :: blitting sc[currBackdrop]");
 			sc[currBackdrop]->blit(s,0,0);
 		}
 		
 		// SECTIONS
 		//TRACE("main :: sections");
-		if (confInt["sectionBar"]) {
-			s->box(sectionBarRect, skinConfColors[COLOR_TOP_BAR_BG]);
+		if (skin->sectionBar) {
+			s->box(sectionBarRect, skin->colours.topBarBackground);
 
 			x = sectionBarRect.x; y = sectionBarRect.y;
 			for (i = menu->firstDispSection(); i < menu->getSections().size() && i < menu->firstDispSection() + menu->sectionNumItems(); i++) {
-				if (confInt["sectionBar"] == SB_LEFT || confInt["sectionBar"] == SB_RIGHT) {
-					y = (i - menu->firstDispSection()) * skinConfInt["sectionBarSize"];
+				if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
+					y = (i - menu->firstDispSection()) * skin->sectionBarSize;
 				} else {
-					x = (i - menu->firstDispSection()) * skinConfInt["sectionBarSize"];
+					x = (i - menu->firstDispSection()) * skin->sectionBarSize;
 				}
 
 				if (menu->selSectionIndex() == (int)i)
-					s->box(x, y, skinConfInt["sectionBarSize"], skinConfInt["sectionBarSize"], skinConfColors[COLOR_SELECTION_BG]);
+					s->box(x, y, skin->sectionBarSize, skin->sectionBarSize, skin->colours.selectionBackground);
 
-				sc[menu->getSectionIcon(i)]->blit(s, {x, y, skinConfInt["sectionBarSize"], skinConfInt["sectionBarSize"]}, HAlignCenter | VAlignMiddle);
+				sc[menu->getSectionIcon(i)]->blit(s, {x, y, skin->sectionBarSize, skin->sectionBarSize}, HAlignCenter | VAlignMiddle);
 			}
 		}
 
 		// LINKS
 		//TRACE("main :: links");
 		s->setClipRect(linksRect);
-		s->box(linksRect, skinConfColors[COLOR_LIST_BG]);
+		s->box(linksRect, skin->colours.listBackground);
 
 		i = menu->firstDispRow() * linkCols;
 
@@ -502,11 +506,11 @@ void GMenu2X::main() {
 				iy = linksRect.y + y * linkHeight;
 
 				if (i == (uint32_t)menu->selLinkIndex())
-					s->box(ix, iy, linksRect.w, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
+					s->box(ix, iy, linksRect.w, linkHeight, skin->colours.selectionBackground);
 
 				int padding = 36;
-				if (skinConfInt["showIcons"]) {
-					TRACE("Menu::loadIcons - theme uses icons");
+				if (skin->showIcons) {
+					//TRACE("Menu::loadIcons - theme uses icons");
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						s, 
 						{ix, iy, padding, linkHeight}, 
@@ -529,12 +533,12 @@ void GMenu2X::main() {
 					s->setClipRect({ix, iy, linkWidth, linkHeight});
 
 					if (i == (uint32_t)menu->selLinkIndex())
-						s->box(ix, iy, linkWidth, linkHeight, skinConfColors[COLOR_SELECTION_BG]);
+						s->box(ix, iy, linkWidth, linkHeight, skin->colours.selectionBackground);
 
 					int textAlign = HAlignCenter | VAlignBottom;
 					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
 
-					if (skinConfInt["showIcons"]) {
+					if (skin->showIcons) {
 						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 							s, 
 							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
@@ -560,7 +564,7 @@ void GMenu2X::main() {
 			menu->firstDispRow(), 
 			linksRect);
 
-		currBackdrop = confStr["wallpaper"];
+		currBackdrop = skin->wallpaper;
 		if (menu->selLink() != NULL && menu->selLinkApp() != NULL && !menu->selLinkApp()->getBackdropPath().empty() && sc.add(menu->selLinkApp()->getBackdropPath()) != NULL) {
 			TRACE("main :: setting currBackdrop to : %s", menu->selLinkApp()->getBackdropPath().c_str());
 			currBackdrop = menu->selLinkApp()->getBackdropPath();
@@ -575,7 +579,7 @@ void GMenu2X::main() {
 			continue;
 		}
 
-		if (confInt["sectionBar"]) {
+		if (skin->sectionBar) {
 			// TRAY 0,0
 			iconVolume[volumeMode]->blit(s, sectionBarRect.x + sectionBarRect.w - 38, sectionBarRect.y + sectionBarRect.h - 38);
 
@@ -627,8 +631,11 @@ void GMenu2X::main() {
 		bool inputAction = input.update();
 		if (input.combo()) {
 			
-			confInt["sectionBar"] = ((confInt["sectionBar"] + 1) % 5);
-			if (!confInt["sectionBar"]) confInt["sectionBar"]++;
+			skin->sectionBar = (Skin::SectionBar)((skin->sectionBar + 1) % 5);
+			if (!skin->sectionBar) {
+				skin->sectionBar = (Skin::SectionBar)(skin->sectionBar + 1);
+				//((int)skin->sectionBar)++;
+			}
 			initMenu();
 			MessageBox mb(this,tr["CHEATER! ;)"]);
 			mb.setBgAlpha(0);
@@ -686,7 +693,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 	TRACE("GMenu2X::setWallpaper - bg box");
 	bg->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 0});
 
-	confStr["wallpaper"] = wallpaper;
+	skin->wallpaper = wallpaper;
 	TRACE("GMenu2X::setWallpaper - null test");
 	if (wallpaper.empty() || sc.add(wallpaper) == NULL) {
 		string relativePath = "skins/" + confStr["skin"] + "/wallpapers";
@@ -695,13 +702,14 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 		FileLister fl(assets_path + relativePath, false, true);
 		fl.setFilter(".png,.jpg,.jpeg,.bmp");
 		fl.browse();
+		// TODO - simplify this
 		if (fl.getFiles().size() <= 0 && confStr["skin"] != "Default") {
 			TRACE("GMenu2X::setWallpaper - Couldn't find non default skin, falling back to default");
 			fl.setPath(assets_path + "skins/Default/wallpapers", true);// + relativePath, true);
 		}
 		if (fl.getFiles().size() > 0) {
 			TRACE("GMenu2X::setWallpaper - found our wallpaper");
-			confStr["wallpaper"] = fl.getPath() + "/" + fl.getFiles()[0];
+			skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
 		}
 	}
 	TRACE("GMenu2X::setWallpaper - blit");
@@ -715,32 +723,38 @@ void GMenu2X::initLayout() {
 	linksRect = (SDL_Rect){0, 0, resX, resY};
 	sectionBarRect = (SDL_Rect){0, 0, resX, resY};
 
-	if (confInt["sectionBar"]) {
+	if (skin->sectionBar) {
 		// x = 0; y = 0;
-		if (confInt["sectionBar"] == SB_LEFT || confInt["sectionBar"] == SB_RIGHT) {
-			sectionBarRect.x = (confInt["sectionBar"] == SB_RIGHT)*(resX - skinConfInt["sectionBarSize"]);
-			sectionBarRect.w = skinConfInt["sectionBarSize"];
-			linksRect.w = resX - skinConfInt["sectionBarSize"];
+		if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
+			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(resX - skin->sectionBarSize);
+			sectionBarRect.w = skin->sectionBarSize;
+			linksRect.w = resX - skin->sectionBarSize;
 
-			if (confInt["sectionBar"] == SB_LEFT) {
-				linksRect.x = skinConfInt["sectionBarSize"];
+			if (skin->sectionBar == Skin::SB_LEFT) {
+				linksRect.x = skin->sectionBarSize;
 			}
 		} else {
-			sectionBarRect.y = (confInt["sectionBar"] == SB_BOTTOM)*(resY - skinConfInt["sectionBarSize"]);
-			sectionBarRect.h = skinConfInt["sectionBarSize"];
-			linksRect.h = resY - skinConfInt["sectionBarSize"];
+			sectionBarRect.y = (skin->sectionBar == Skin::SB_BOTTOM)*(resY - skin->sectionBarSize);
+			sectionBarRect.h = skin->sectionBarSize;
+			linksRect.h = resY - skin->sectionBarSize;
 
-			if (confInt["sectionBar"] == SB_TOP) {
-				linksRect.y = skinConfInt["sectionBarSize"];
+			if (skin->sectionBar == Skin::SB_TOP) {
+				linksRect.y = skin->sectionBarSize;
 			}
 		}
 	}
 
-	listRect = (SDL_Rect){0, skinConfInt["topBarHeight"], resX, resY - skinConfInt["bottomBarHeight"] - skinConfInt["topBarHeight"]};
+	listRect = (SDL_Rect){
+		0, 
+		skin->topBarHeight, 
+		resX, 
+		resY - skin->bottomBarHeight - skin->topBarHeight};
 
 	// WIP
-	linkCols = confInt["linkCols"];
-	linkRows = confInt["linkRows"];
+	// TODO :: Clear this shit up
+	// and move it into reaad only prop in skin
+	linkCols = skin->numLinkCols;
+	linkRows = skin->numLinkRows;
 
 	linkWidth  = (linksRect.w - (linkCols + 1 ) * linkSpacing) / linkCols;
 	linkHeight = (linksRect.h - (linkCols > 1) * (linkRows    + 1 ) * linkSpacing) / linkRows;
@@ -755,28 +769,34 @@ void GMenu2X::initFont() {
 		delete font;
 	}
 	if (titlefont != NULL) {
-		TRACE("GMenu2X::initFont - delete tile font");
+		TRACE("GMenu2X::initFont - delete title font");
 		delete titlefont;
 	}
 
 	string fontPath = sc.getSkinFilePath("font.ttf");
 	TRACE("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
 	TRACE("GMenu2X::initFont - getFont");
-	font = new FontHelper(fontPath, skinConfInt["fontSize"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
+	font = new FontHelper(fontPath, skin->fontSize, skin->colours.font, skin->colours.fontOutline);
 	TRACE("GMenu2X::initFont - getTileFont");
-	titlefont = new FontHelper(fontPath, skinConfInt["fontSizeTitle"], skinConfColors[COLOR_FONT], skinConfColors[COLOR_FONT_OUTLINE]);
+	titlefont = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
 	TRACE("GMenu2X::initFont - exit");
 }
 
 void GMenu2X::initMenu() {
 	TRACE("GMenu2X::initMenu - enter");
 	if (menu != NULL) delete menu;
+
 	TRACE("GMenu2X::initMenu - initLayout");
 	initLayout();
 
 	//Menu structure handler
 	TRACE("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
+
+	//Skin structure handler
+	TRACE("GMenu2X::initMenu - new skin");
+	skin = new Skin(assets_path, confStr["skin"], (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
+	INFO("SKIN :: %s", skin->toString().c_str());
 
 	TRACE("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
@@ -1085,8 +1105,7 @@ void GMenu2X::readConfig() {
 	if (!confStr["lang"].empty()) {
 		tr.setLang(confStr["lang"]);
 	}
-	if (!confStr["wallpaper"].empty() && !fileExists(confStr["wallpaper"])) 
-		confStr["wallpaper"] = "";
+
 	if (confStr["skin"].empty() || !dirExists(assets_path + "skins/" + confStr["skin"])) 
 		confStr["skin"] = "Default";
 
@@ -1101,9 +1120,6 @@ void GMenu2X::readConfig() {
 	evalIntConf( &confInt["backlight"], 70, 1, 100);
 	evalIntConf( &confInt["minBattery"], 0, 0, 5);
 	evalIntConf( &confInt["maxBattery"], 5, 0, 5);
-	evalIntConf( &confInt["sectionBar"], SB_LEFT, 1, 4);
-	evalIntConf( &confInt["linkCols"], 1, 1, 8);
-	evalIntConf( &confInt["linkRows"], 6, 1, 8);
 	evalIntConf( &confInt["version"], 0, 0, 999);
 
 	if (!confInt["saveSelection"]) {
@@ -1135,7 +1151,7 @@ void GMenu2X::writeConfig() {
 		if (inf.is_open()) {
 			TRACE("GMenu2X::writeConfig - stream open");
 			for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
-				if (curr->first == "sectionBarPosition" || curr->first == "tvoutEncoding") continue;
+				if (curr->first == "tvoutEncoding") continue;
 				TRACE("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
 				inf << curr->first << "=\"" << curr->second << "\"" << endl;
 			}
@@ -1159,38 +1175,22 @@ void GMenu2X::writeConfig() {
 void GMenu2X::writeSkinConfig() {
 	TRACE("GMenu2X::writeSkinConfig - enter");
 	ledOn();
-	string conffile = assets_path + "skins/" + confStr["skin"] + "/skin.conf";
-	ofstream inf(conffile.c_str());
-	if (inf.is_open()) {
-		for (ConfStrHash::iterator curr = skinConfStr.begin(); curr != skinConfStr.end(); curr++)
-			inf << curr->first << "=\"" << curr->second << "\"" << endl;
-
-		for (ConfIntHash::iterator curr = skinConfInt.begin(); curr != skinConfInt.end(); curr++) {
-			if (curr->first == "titleFontSize" || curr->first == "sectionBarHeight" || curr->first == "linkHeight" || curr->first == "selectorPreviewX" || curr->first == "selectorPreviewY" || curr->first == "selectorPreviewWidth" || curr->first == "selectorPreviewHeight" || curr->first == "selectorX" || curr->first == "linkItemHeight" ) continue;
-			inf << curr->first << "=" << curr->second << endl;
-		}
-
-		for (int i = 0; i < NUM_COLORS; ++i) {
-			inf << colorToString((enum color)i) << "=" << rgbatostr(skinConfColors[i]) << endl;
-		}
-
-		inf.close();
-		sync();
-	}
+	skin->save();
 	ledOff();
 	TRACE("GMenu2X::writeSkinConfig - exit");
 }
 
-void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
-	TRACE("GMenu2X::setSkin - enter - %s", skin.c_str());
+void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
+	TRACE("GMenu2X::setSkin - enter - %s", name.c_str());
 	
-	confStr["skin"] = skin;
+	if (name != confStr["skin"]) {
+		// save it into app settings
+		confStr["skin"] = name;
 
-	//Clear previous skin settings
-	TRACE("GMenu2X::setSkin - clear skinConfStr");
-	skinConfStr.clear();
-	TRACE("GMenu2X::setSkin - clear skinConfInt");
-	skinConfInt.clear();
+		// and load the skin
+		if (this->skin) delete this->skin;
+		this->skin = new Skin(assets_path, name, resX, resY);
+	}
 
 	//clear collection and change the skin path
 	if (clearSC) {
@@ -1198,70 +1198,10 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 		sc.clear();
 	}
 	TRACE("GMenu2X::setSkin - sc.setSkin");
-	sc.setSkin(skin);
+	sc.setSkin(name);
 	// if (btnContextMenu != NULL) btnContextMenu->setIcon( btnContextMenu->getIcon() );
 
-	//reset colors to the default values
-	TRACE("GMenu2X::setSkin - skinFontColors");
-	skinConfColors[COLOR_TOP_BAR_BG] = (RGBAColor){255,255,255,130};
-	skinConfColors[COLOR_LIST_BG] = (RGBAColor){255,255,255,0};
-	skinConfColors[COLOR_BOTTOM_BAR_BG] = (RGBAColor){255,255,255,130};
-	skinConfColors[COLOR_SELECTION_BG] = (RGBAColor){255,255,255,130};
-	skinConfColors[COLOR_MESSAGE_BOX_BG] = (RGBAColor){255,255,255,255};
-	skinConfColors[COLOR_MESSAGE_BOX_BORDER] = (RGBAColor){80,80,80,255};
-	skinConfColors[COLOR_MESSAGE_BOX_SELECTION] = (RGBAColor){160,160,160,255};
-	skinConfColors[COLOR_FONT] = (RGBAColor){255,255,255,255};
-	skinConfColors[COLOR_FONT_OUTLINE] = (RGBAColor){0,0,0,200};
-	skinConfColors[COLOR_FONT_ALT] = (RGBAColor){253,1,252,0};
-	skinConfColors[COLOR_FONT_ALT_OUTLINE] = (RGBAColor){253,1,252,0};
-
-	//load skin settings
-	string skinconfname = assets_path + "skins/" + skin + "/skin.conf";
-	TRACE("GMenu2X::setSkin - skinconfname : %s", skinconfname.c_str());
-	if (fileExists(skinconfname)) {
-		TRACE("GMenu2X::setSkin - skinconfname : exists");
-		ifstream skinconf(skinconfname.c_str(), ios_base::in);
-		if (skinconf.is_open()) {
-			string line;
-			while (getline(skinconf, line, '\n')) {
-				line = trim(line);
-				// TRACE("skinconf: '%s'", line.c_str());
-				string::size_type pos = line.find("=");
-				string name = trim(line.substr(0,pos));
-				string value = trim(line.substr(pos+1,line.length()));
-
-				if (value.length() > 0) {
-					if (value.length() > 1 && value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-							skinConfStr[name] = value.substr(1, value.length() - 2);
-					} else if (value.at(0) == '#') {
-						skinConfColors[stringToColor(name)] = strtorgba(value);
-					} else if (name.length() > 6 && name.substr( name.length() - 6, 5 ) == "Color") {
-						value += name.substr(name.length() - 1);
-						name = name.substr(0, name.length() - 6);
-						if (name == "selection" || name == "topBar" || name == "bottomBar" || name == "messageBox") name += "Bg";
-						if (value.substr(value.length() - 1) == "R") skinConfColors[stringToColor(name)].r = atoi(value.c_str());
-						if (value.substr(value.length() - 1) == "G") skinConfColors[stringToColor(name)].g = atoi(value.c_str());
-						if (value.substr(value.length() - 1) == "B") skinConfColors[stringToColor(name)].b = atoi(value.c_str());
-						if (value.substr(value.length() - 1) == "A") skinConfColors[stringToColor(name)].a = atoi(value.c_str());
-					} else {
-						skinConfInt[name] = atoi(value.c_str());
-					}
-				}
-			}
-			skinconf.close();
-
-			if (resetWallpaper) {
-				string wallpaper = "skins/" + skin + "/wallpapers/" + skinConfStr["wallpaper"];
-				if (fileExists(assets_path + wallpaper)) {
-					TRACE("GMenu2X::setSkin - setting new wallpaper : %s", wallpaper.c_str());
-					setWallpaper(wallpaper);
-					// confStr["wallpaper"] = wallpaper;
-					// sc[confStr["wallpaper"]]->blit(bg,0,0);
-				}
-			}
-		}
-	}
-
+/*
 	// (poor) HACK: ensure font alt colors have a default value
 	TRACE("GMenu2X::setSkin - skin colors");
 	if (skinConfColors[COLOR_FONT_ALT].r == 253 && skinConfColors[COLOR_FONT_ALT].g == 1 && skinConfColors[COLOR_FONT_ALT].b == 252 && skinConfColors[COLOR_FONT_ALT].a == 0) skinConfColors[COLOR_FONT_ALT] = skinConfColors[COLOR_FONT];
@@ -1271,7 +1211,8 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	TRACE("GMenu2X::setSkin - font size tile");
 	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) 
 		skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
-
+*/
+/*
 	TRACE("GMenu2X::setSkin - evalIntConf");
 	evalIntConf( &skinConfInt["topBarHeight"], 40, 1, resY);
 	evalIntConf( &skinConfInt["sectionBarSize"], 40, 1, resX);
@@ -1280,8 +1221,8 @@ void GMenu2X::setSkin(const string &skin, bool resetWallpaper, bool clearSC) {
 	evalIntConf( &skinConfInt["fontSize"], 12, 6, 60);
 	evalIntConf( &skinConfInt["fontSizeTitle"], 20, 6, 60);
 	evalIntConf( &skinConfInt["showIcons"], 1, 0, 1);
-
-	if (menu != NULL && clearSC && skinConfInt["showIcons"]) {
+*/
+	if (menu != NULL && clearSC && this->skin->showIcons) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}
@@ -1300,12 +1241,11 @@ void GMenu2X::skinMenu() {
 	TRACE("GMenu2X::skinMenu - enter");
 	bool save = false;
 	int selected = 0;
-	string prevSkin = confStr["skin"];
-	int prevSkinBackdrops = confInt["skinBackdrops"];
 
-	FileLister fl_sk(assets_path + "skins", true, false);
-	fl_sk.addExclude("..");
-	fl_sk.browse();
+	string prevSkin = confStr["skin"];
+	int prevSkinBackdrops = skin->skinBackdrops;
+
+	vector<string> skinList = Skin::getSkins(assets_path);
 
 	vector<string> wpLabel;
 	wpLabel.push_back(">>");
@@ -1317,27 +1257,15 @@ void GMenu2X::skinMenu() {
 	sbStr.push_back("Bottom");
 	sbStr.push_back("Right");
 	sbStr.push_back("Top");
-	int sbPrev = confInt["sectionBar"];
-	string sectionBar = sbStr[confInt["sectionBar"]];
+	int sbPrev = skin->sectionBar;
+	string sectionBar = sbStr[skin->sectionBar];
 
 	do {
 		setSkin(confStr["skin"], false, false);
 
-		FileLister fl_wp(assets_path + "skins/" + confStr["skin"] + "/wallpapers");
-		fl_wp.setFilter(".png,.jpg,.jpeg,.bmp");
-		vector<string> wallpapers;
-		if (dirExists(assets_path + "skins/" + confStr["skin"] + "/wallpapers")) {
-			fl_wp.browse();
-			wallpapers = fl_wp.getFiles();
-		}
-		if (confStr["skin"] != "Default") {
-			fl_wp.setPath(assets_path + "skins/Default/wallpapers", true);
-			for (uint32_t i = 0; i < fl_wp.getFiles().size(); i++)
-				wallpapers.push_back(fl_wp.getFiles()[i]);
-		}
-
-		confStr["wallpaper"] = base_name(confStr["wallpaper"]);
-		string wpPrev = confStr["wallpaper"];
+		vector<string> wallpapers = skin->getWallpapers();
+		string wpPrev = base_name(skin->wallpaper);
+		string wpCurrent = wpPrev;
 
 		sc.del("skin:icons/skin.png");
 		sc.del("skin:imgs/buttons/left.png");
@@ -1347,43 +1275,51 @@ void GMenu2X::skinMenu() {
 		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
 		sd.selected = selected;
 		sd.allowCancel = false;
-		sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenu2X"], &confStr["skin"], &fl_sk.getDirectories(), MakeDelegate(this, &GMenu2X::onChangeSkin)));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &confStr["wallpaper"], &wallpapers, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::changeWallpaper)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenu2X"], &confStr["skin"], &skinList, MakeDelegate(this, &GMenu2X::onChangeSkin)));
+		
+		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::changeWallpaper)));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::skinColors)));
-		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &confInt["skinBackdrops"]));
-		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skinConfInt["fontSize"], 12, 6, 60));
-		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skinConfInt["fontSizeTitle"], 20, 6, 60));
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar"], &skinConfInt["topBarHeight"], 40, 1, resY));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar"], &skinConfInt["bottomBarHeight"], 16, 1, resY));
-		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skinConfInt["sectionBarSize"], 40, 1, resX));
+		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
+		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar"], &skin->topBarHeight, 40, 1, resY));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar"], &skin->bottomBarHeight, 16, 1, resY));
+		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 1, resX));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
-		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &confInt["linkCols"], 1, 1, 8));
-		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &confInt["linkRows"], 6, 1, 8));
+		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
+		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 8));
 		sd.exec();
 
-		if (sc.add(assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"]) != NULL)
-			confStr["wallpaper"] = assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + confStr["wallpaper"];
-		else if (sc.add(assets_path + "skins/Default/wallpapers/" + confStr["wallpaper"]) != NULL)
-			confStr["wallpaper"] = assets_path + "skins/Default/wallpapers/" + confStr["wallpaper"];
+		// if wallpaper has changed, get full path and add it to the sc
+		if (wpCurrent != wpPrev) {
+		//if (skin->wallpaper != wpPrev) {
+			if (sc.add(assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + wpCurrent) != NULL)
+				skin->wallpaper = assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + wpCurrent;
 
-		setWallpaper(confStr["wallpaper"]);
+			setWallpaper(skin->wallpaper);
+		}
 
 		selected = sd.selected;
 		save = sd.save;
 	} while (!save);
 
-	if (sectionBar == "OFF") confInt["sectionBar"] = SB_OFF;
-	else if (sectionBar == "Right") confInt["sectionBar"] = SB_RIGHT;
-	else if (sectionBar == "Top") confInt["sectionBar"] = SB_TOP;
-	else if (sectionBar == "Bottom") confInt["sectionBar"] = SB_BOTTOM;
-	else confInt["sectionBar"] = SB_LEFT;
+	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
+	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
+	else if (sectionBar == "Top") skin->sectionBar = Skin::SB_TOP;
+	else if (sectionBar == "Bottom") skin->sectionBar = Skin::SB_BOTTOM;
+	else skin->sectionBar = Skin::SB_LEFT;
 
+	TRACE("GMenu2X::skinMenu - writing config out");
 	writeSkinConfig();
-	writeConfig();
 
-	if (prevSkinBackdrops != confInt["skinBackdrops"] || prevSkin != confStr["skin"]) restartDialog();
-	if (sbPrev != confInt["sectionBar"]) initMenu();
-	initLayout();
+	TRACE("GMenu2X::skinMenu - checking exit mode");
+	if (prevSkinBackdrops != skin->skinBackdrops) {
+		TRACE("GMenu2X::skinMenu - restarting because backdrops changed");
+		restartDialog(true);
+	} else if (prevSkin != confStr["skin"]) {
+		TRACE("GMenu2X::skinMenu - restarting because skins changed");
+		restartDialog();
+	} else initMenu();
 	TRACE("GMenu2X::skinMenu - exit");
 }
 
@@ -1394,17 +1330,17 @@ void GMenu2X::skinColors() {
 
 		SettingsDialog sd(this, ts, tr["Skin Colors"], "skin:icons/skin.png");
 		sd.allowCancel = false;
-		sd.addSetting(new MenuSettingRGBA(this, tr["Top/Section Bar"], tr["Color of the top and section bar"], &skinConfColors[COLOR_TOP_BAR_BG]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["List Body"], tr["Color of the list body"], &skinConfColors[COLOR_LIST_BG]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Bottom Bar"], tr["Color of the bottom bar"], &skinConfColors[COLOR_BOTTOM_BAR_BG]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Selection"], tr["Color of the selection and other interface details"], &skinConfColors[COLOR_SELECTION_BG]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Message Box"], tr["Background color of the message box"], &skinConfColors[COLOR_MESSAGE_BOX_BG]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Msg Box Border"], tr["Border color of the message box"], &skinConfColors[COLOR_MESSAGE_BOX_BORDER]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Msg Box Selection"], tr["Color of the selection of the message box"], &skinConfColors[COLOR_MESSAGE_BOX_SELECTION]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Font"], tr["Color of the font"], &skinConfColors[COLOR_FONT]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Font Outline"], tr["Color of the font's outline"], &skinConfColors[COLOR_FONT_OUTLINE]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Alt Font"], tr["Color of the alternative font"], &skinConfColors[COLOR_FONT_ALT]));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Alt Font Outline"], tr["Color of the alternative font outline"], &skinConfColors[COLOR_FONT_ALT_OUTLINE]));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Top/Section Bar"], tr["Color of the top and section bar"], &skin->colours.topBarBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["List Body"], tr["Color of the list body"], &skin->colours.listBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Bottom Bar"], tr["Color of the bottom bar"], &skin->colours.bottomBarBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Selection"], tr["Color of the selection and other interface details"], &skin->colours.selectionBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Message Box"], tr["Background color of the message box"], &skin->colours.msgBoxBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Msg Box Border"], tr["Border color of the message box"], &skin->colours.msgBoxBorder));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Msg Box Selection"], tr["Color of the selection of the message box"], &skin->colours.msgBoxSelection));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Font"], tr["Color of the font"], &skin->colours.font));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Font Outline"], tr["Color of the font's outline"], &skin->colours.fontOutline));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Alt Font"], tr["Color of the alternative font"], &skin->colours.fontAlt));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Alt Font Outline"], tr["Color of the alternative font outline"], &skin->colours.fontAltOutline));
 		sd.exec();
 		save = sd.save;
 	} while (!save);
@@ -1499,9 +1435,9 @@ void GMenu2X::changeWallpaper() {
 		tr["Select an image to use as a wallpaper"], 
 		"skin:icons/wallpaper.png", 
 		confStr["skin"], 
-		confStr["wallpaper"]);
+		skin->wallpaper);
 
-	if (wp.exec() && confStr["wallpaper"] != wp.wallpaper) {
+	if (wp.exec() && skin->wallpaper != wp.wallpaper) {
 		TRACE("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
 		setWallpaper(wp.wallpaper);
 		TRACE("GMenu2X::changeWallpaper - write config");
@@ -1906,13 +1842,20 @@ void GMenu2X::contextMenu() {
 		bg.blit(s, 0, 0);
 
 		s->box(0, 0, resX, resY, 0,0,0, fadeAlpha);
-		s->box(box.x, box.y, box.w, box.h, skinConfColors[COLOR_MESSAGE_BOX_BG]);
-		s->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skinConfColors[COLOR_MESSAGE_BOX_BORDER] );
+		s->box(box.x, box.y, box.w, box.h, skin->colours.msgBoxBackground);
+		s->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skin->colours.msgBoxBorder);
 
 		//draw selection rect
-		s->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skinConfColors[COLOR_MESSAGE_BOX_SELECTION] );
+		s->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skin->colours.msgBoxSelection);
 		for (i = 0; i < voices.size(); i++)
-			s->write( font, voices[i].text, box.x + 12, box.y + h2 + 3 + h * i, VAlignMiddle, skinConfColors[COLOR_FONT_ALT], skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+			s->write( 
+				font, 
+				voices[i].text, 
+				box.x + 12, 
+				box.y + h2 + 3 + h * i, 
+				VAlignMiddle, 
+				skin->colours.fontAlt, 
+				skin->colours.fontAltOutline);
 
 		s->flip();
 
@@ -2127,7 +2070,7 @@ void GMenu2X::deleteSection() {
 }
 
 int GMenu2X::getBatteryLevel() {
-	TRACE("GMenu2X::getBatteryLevel - enter");
+	//TRACE("GMenu2X::getBatteryLevel - enter");
 
 	// check if we're plugged in
 	FILE *f = fopen("/sys/class/power_supply/usb/online", "r");
@@ -2139,7 +2082,7 @@ int GMenu2X::getBatteryLevel() {
 	int online;
 	fscanf(f, "%i", &online);
 	fclose(f);
-	TRACE("GMenu2X::getBatteryLevel - online - %i", online);
+	//TRACE("GMenu2X::getBatteryLevel - online - %i", online);
 
 	if (online) {
 		return 6;
@@ -2377,7 +2320,14 @@ int GMenu2X::drawButton(Surface *s, const string &btn, const string &text, int x
 		sc["imgs/buttons/"+btn+".png"]->blit(s, re.x + 8, re.y + 2, HAlignCenter | VAlignMiddle);
 		re.w = sc["imgs/buttons/"+btn+".png"]->raw->w + 3;
 
-		s->write(font, text, re.x + re.w, re.y, VAlignMiddle, skinConfColors[COLOR_FONT_ALT], skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+		s->write(
+			font, 
+			text, 
+			re.x + re.w, 
+			re.y, 
+			VAlignMiddle, 
+			skin->colours.fontAlt, 
+			skin->colours.fontAltOutline);
 		re.w += font->getTextWidth(text);
 	}
 	return x + re.w + 6;
@@ -2390,7 +2340,14 @@ int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, 
 		x -= 16;
 		sc["imgs/buttons/" + btn + ".png"]->blit(s, x + 8, y + 2, HAlignCenter | VAlignMiddle);
 		x -= 3;
-		s->write(font, text, x, y, HAlignRight | VAlignMiddle, skinConfColors[COLOR_FONT_ALT], skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+		s->write(
+			font, 
+			text, 
+			x, 
+			y, 
+			HAlignRight | VAlignMiddle, 
+			skin->colours.fontAlt, 
+			skin->colours.fontAltOutline);
 		return x - 6 - font->getTextWidth(text);
 	}
 	return x - 6;
@@ -2407,8 +2364,8 @@ void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t page
 	by = scrollRect.y + 3 + by;
 	if ( by + bs > scrollRect.y + scrollRect.h - 4) by = scrollRect.y + scrollRect.h - 4 - bs;
 
-	s->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skinConfColors[COLOR_LIST_BG]);
-	s->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skinConfColors[COLOR_SELECTION_BG]);
+	s->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skin->colours.listBackground);
+	s->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skin->colours.selectionBackground);
 }
 
 void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
@@ -2418,13 +2375,18 @@ void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) 
 	val = constrain(val, min, max);
 
 	bg.blit(s,0,0);
-	s->box(box, skinConfColors[COLOR_MESSAGE_BOX_BG]);
-	s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, skinConfColors[COLOR_MESSAGE_BOX_BORDER]);
+	s->box(box, skin->colours.msgBoxBackground);
+	s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, skin->colours.msgBoxBorder);
 
 	icon.blit(s, 28, 28);
 
-	s->box(progress, skinConfColors[COLOR_MESSAGE_BOX_BG]);
-	s->box(progress.x + 1, progress.y + 1, val * (progress.w - 3) / max + 1, progress.h - 2, skinConfColors[COLOR_MESSAGE_BOX_SELECTION]);
+	s->box(progress, skin->colours.msgBoxBackground);
+	s->box(
+		progress.x + 1, 
+		progress.y + 1, 
+		val * (progress.w - 3) / max + 1, 
+		progress.h - 2, 
+		skin->colours.msgBoxSelection);
 	s->flip();
 }
 

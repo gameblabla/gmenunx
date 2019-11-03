@@ -18,7 +18,7 @@ void LinkScannerDialog::exec() {
 
 	drawTopBar(this->bg, title, description, icon);
 	drawBottomBar(this->bg);
-	this->bg->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
+	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
 

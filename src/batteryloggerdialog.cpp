@@ -15,7 +15,7 @@ void BatteryLoggerDialog::exec() {
 
 	drawTopBar(this->bg, title, description, icon);
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
+	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	drawBottomBar(this->bg);
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],

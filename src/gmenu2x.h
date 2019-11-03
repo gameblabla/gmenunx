@@ -34,6 +34,7 @@ class PowerManager;
 #include "surface.h"
 #include "fonthelper.h"
 #include "led.h"
+#include "skin.h"
 
 #include <iostream>
 #include <string>
@@ -52,6 +53,7 @@ extern const char *CARD_ROOT;
 
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 
+
 // Note: Keep this in sync with colorNames!
 enum color {
 	COLOR_TOP_BAR_BG,
@@ -69,6 +71,7 @@ enum color {
 	NUM_COLORS,
 };
 
+/*
 enum sb {
 	SB_OFF,
 	SB_LEFT,
@@ -76,7 +79,7 @@ enum sb {
 	SB_RIGHT,
 	SB_TOP,
 };
-
+*/
 using std::string;
 using std::vector;
 using fastdelegate::FastDelegate0;
@@ -166,7 +169,7 @@ private:
 
 	// private Configuration hashes
 	ConfStrHash confStr;
-	ConfStrHash skinConfStr;
+	//ConfStrHash skinConfStr;
 
 public:
 	GMenu2X();
@@ -175,11 +178,10 @@ public:
 	void releaseScreen();
 
 	// public Configuration hashes
-	// TODO - move these to provate as well....
-	RGBAColor skinConfColors[NUM_COLORS];
-	ConfIntHash skinConfInt;
+	// TODO - move these to private as well....
+	//RGBAColor skinConfColors[NUM_COLORS];
+	//ConfIntHash skinConfInt;
 	ConfIntHash confInt;
-
 
 	/*
 	 * Variables needed for elements disposition
@@ -213,8 +215,6 @@ public:
 
 	LED *led;
 	// uint32_t tickSuspend; //, tickPowerOff;
-
-
 
 	void setSkin(const string &skin, bool resetWallpaper = true, bool clearSC = true);
 	//firmware type and version
@@ -315,6 +315,9 @@ public:
 	void drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect);
 
 	Menu* menu;
+
+	Skin* skin;
+
 };
 
 #endif

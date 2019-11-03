@@ -219,7 +219,9 @@ const string &Menu::selSection() {
 }
 
 int Menu::sectionNumItems() {
-	return gmenu2x->confInt["sectionBar"] == SB_TOP || gmenu2x->confInt["sectionBar"] == SB_BOTTOM ? (gmenu2x->resX - 40)/gmenu2x->skinConfInt["sectionBarSize"] : (gmenu2x->resY - 40)/gmenu2x->skinConfInt["sectionBarSize"];
+	return gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM 
+		? (gmenu2x->resX - 40)/gmenu2x->skin->sectionBarSize 
+		: (gmenu2x->resY - 40)/gmenu2x->skin->sectionBarSize;
 }
 
 void Menu::setSectionIndex(int i) {

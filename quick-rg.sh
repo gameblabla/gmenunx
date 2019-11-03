@@ -1,7 +1,7 @@
 #!/bin/bash
 
 export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
-export DEBUG=4
+export DEBUG=5
 
 RG350_HOME="/media/data/local/home"
 LAUNCHER="/usr/local/sbin/frontend_start"

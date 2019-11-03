@@ -119,7 +119,7 @@ void TextDialog::exec() {
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
 	5))-10);
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skinConfColors[COLOR_LIST_BG]);
+	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	uint32_t firstRow = 0, rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
 	while (!close) {

@@ -106,7 +106,7 @@ int MessageBox::exec() {
 	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
 	int box_w_padding = 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
-	int wrap_size = ((gmenu2x->resX - (box_w_padding / 2)) / gmenu2x->font->getSize()) + 10;
+	int wrap_size = ((gmenu2x->resX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 10);
 	TRACE("MessageBox::exec - wrap size : %i", wrap_size);
 
 	string wrapped_text = splitInLines(text, wrap_size);
@@ -120,16 +120,23 @@ int MessageBox::exec() {
 	box.y = gmenu2x->halfY - box.h/2 - 2;
 
 	//outer box
-	gmenu2x->s->box(box, gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BG]);
+	gmenu2x->s->box(box, gmenu2x->skin->colours.msgBoxBackground);
 	
 	//draw inner rectangle
-	gmenu2x->s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BORDER]);
+	gmenu2x->s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skin->colours.msgBoxBorder);
 
 	//icon+wrapped_text
 	if (gmenu2x->sc[icon] != NULL)
 		gmenu2x->sc[icon]->blit( gmenu2x->s, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
 
-	gmenu2x->s->write(gmenu2x->font, wrapped_text, box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), gmenu2x->halfY - gmenu2x->font->getHeight()/5, VAlignMiddle, gmenu2x->skinConfColors[COLOR_FONT_ALT], gmenu2x->skinConfColors[COLOR_FONT_ALT_OUTLINE]);
+	gmenu2x->s->write(
+		gmenu2x->font, 
+		wrapped_text, 
+		box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), 
+		gmenu2x->halfY - gmenu2x->font->getHeight()/5, 
+		VAlignMiddle, 
+		gmenu2x->skin->colours.fontAlt, 
+		gmenu2x->skin->colours.fontAltOutline);
 
 	if (this->autohide != 0) {
 		gmenu2x->s->flip();
@@ -140,7 +147,12 @@ int MessageBox::exec() {
 		return -1;
 	}
 	//draw buttons rectangle
-	gmenu2x->s->box(box.x, box.y+box.h, box.w, gmenu2x->font->getHeight(), gmenu2x->skinConfColors[COLOR_MESSAGE_BOX_BG]);
+	gmenu2x->s->box(
+		box.x, 
+		box.y+box.h, 
+		box.w, 
+		gmenu2x->font->getHeight(), 
+		gmenu2x->skin->colours.msgBoxBackground);
 
 	int btnX = gmenu2x->halfX+box.w/2-6;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
