@@ -197,7 +197,8 @@ GMenu2X::~GMenu2X() {
 	delete menu;
 	delete s;
 	delete font;
-	delete titlefont;
+	delete fontTitle;
+	delete fontSectionTitle;
 	delete led;
 	delete skin;
 	TRACE("GMenu2X::dtor - exit\n\n");
@@ -448,18 +449,42 @@ void GMenu2X::main() {
 		if (skin->sectionBar) {
 			s->box(sectionBarRect, skin->colours.topBarBackground);
 
-			x = sectionBarRect.x; y = sectionBarRect.y;
-			for (i = menu->firstDispSection(); i < menu->getSections().size() && i < menu->firstDispSection() + menu->sectionNumItems(); i++) {
-				if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
-					y = (i - menu->firstDispSection()) * skin->sectionBarSize;
-				} else {
-					x = (i - menu->firstDispSection()) * skin->sectionBarSize;
+			x = sectionBarRect.x; 
+			y = sectionBarRect.y;
+			
+			if (!skin->showSectionIcons && (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM)) {
+					int padding = 4;
+					string sectionName = menu->selSection();
+					s->write(
+						fontSectionTitle, 
+						"\u00AB " + tr.translate(sectionName) + " \u00BB", 
+						sectionBarRect.w / 2, 
+						sectionBarRect.y, 
+						HAlignCenter);
+
+			} else {
+
+				for (i = menu->firstDispSection(); i < menu->getSections().size() && i < menu->firstDispSection() + menu->sectionNumItems(); i++) {
+					if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
+						y = (i - menu->firstDispSection()) * skin->sectionBarSize;
+					} else {
+						x = (i - menu->firstDispSection()) * skin->sectionBarSize;
+					}
+
+					if (menu->selSectionIndex() == (int)i)
+						s->box(
+							x, 
+							y, 
+							skin->sectionBarSize, 
+							skin->sectionBarSize, 
+							skin->colours.selectionBackground);
+
+
+					sc[menu->getSectionIcon(i)]->blit(
+						s, 
+						{x, y, skin->sectionBarSize, skin->sectionBarSize}, 
+						HAlignCenter | VAlignMiddle);
 				}
-
-				if (menu->selSectionIndex() == (int)i)
-					s->box(x, y, skin->sectionBarSize, skin->sectionBarSize, skin->colours.selectionBackground);
-
-				sc[menu->getSectionIcon(i)]->blit(s, {x, y, skin->sectionBarSize, skin->sectionBarSize}, HAlignCenter | VAlignMiddle);
 			}
 		}
 
@@ -478,10 +503,15 @@ void GMenu2X::main() {
 				iy = linksRect.y + y * linkHeight;
 
 				if (i == (uint32_t)menu->selLinkIndex())
-					s->box(ix, iy, linksRect.w, linkHeight, skin->colours.selectionBackground);
+					s->box(
+						ix, 
+						iy, 
+						linksRect.w, 
+						linkHeight, 
+						skin->colours.selectionBackground);
 
 				int padding = 36;
-				if (skin->showIcons) {
+				if (skin->showLinkIcons) {
 					//TRACE("Menu::loadIcons - theme uses icons");
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						s, 
@@ -492,7 +522,7 @@ void GMenu2X::main() {
 				}
 				
 				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-				s->write(titlefont, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + padding, iy + titlefont->getHeight()/2, VAlignMiddle);
+				s->write(fontTitle, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + padding, iy + fontTitle->getHeight()/2, VAlignMiddle);
 				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + padding, iy + linkHeight - linkSpacing/2, VAlignBottom);
 			}
 		} else {
@@ -510,7 +540,7 @@ void GMenu2X::main() {
 					int textAlign = HAlignCenter | VAlignBottom;
 					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
 
-					if (skin->showIcons) {
+					if (skin->showLinkIcons) {
 						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 							s, 
 							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
@@ -551,50 +581,74 @@ void GMenu2X::main() {
 			continue;
 		}
 
+		// tray helper icons
 		if (skin->sectionBar) {
-			// TRAY 0,0
-			iconVolume[volumeMode]->blit(s, sectionBarRect.x + sectionBarRect.w - 38, sectionBarRect.y + sectionBarRect.h - 38);
+			// TRAY 0, 0
+			iconVolume[volumeMode]->blit(
+				s, 
+				sectionBarRect.x + sectionBarRect.w - 38, 
+				sectionBarRect.y + sectionBarRect.h - 38);
 
-			// TRAY 1,0
+			// TRAY 0, 1
 			if (tickNow - tickBattery >= 5000) {
 				tickBattery = tickNow;
 				batteryIcon = getBatteryLevel();
 			}
 			if (batteryIcon > 5) batteryIcon = 6;
-			iconBattery[batteryIcon]->blit(s, sectionBarRect.x + sectionBarRect.w - 18, sectionBarRect.y + sectionBarRect.h - 38);
+			iconBattery[batteryIcon]->blit(
+				s, 
+				sectionBarRect.x + sectionBarRect.w - 18, 
+				sectionBarRect.y + sectionBarRect.h - 38);
 
 			// TRAY iconTrayShift,1
 			int iconTrayShift = 0;
 			if (curMMCStatus == MMC_MOUNTED) {
-				iconSD->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
+				iconSD->blit(
+					s, 
+					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
+					sectionBarRect.y + sectionBarRect.h - 18);
 				iconTrayShift++;
 			}
 
+			// selected link info
 			if (menu->selLink() != NULL) {
 				if (menu->selLinkApp() != NULL) {
 					if (!menu->selLinkApp()->getManualPath().empty() && iconTrayShift < 2) {
 						// Manual indicator
-						iconManual->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
+						iconManual->blit(
+							s, 
+							sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
+							sectionBarRect.y + sectionBarRect.h - 18);
 						iconTrayShift++;
 					}
 
 					if (menu->selLinkApp()->clock() != confInt["cpuMenu"] && iconTrayShift < 2) {
 						// CPU indicator
-						iconCPU->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
+						iconCPU->blit(
+							s, 
+							sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
+							sectionBarRect.y + sectionBarRect.h - 18);
 						iconTrayShift++;
 					}
 				}
 			}
 
 			if (iconTrayShift < 2) {
-				brightnessIcon = confInt["backlight"]/20;
+				brightnessIcon = confInt["backlight"] / 20;
 				if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-				iconBrightness[brightnessIcon]->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
+				iconBrightness[brightnessIcon]->blit(
+					s, 
+					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
+					sectionBarRect.y + sectionBarRect.h - 18);
 				iconTrayShift++;
 			}
+
 			if (iconTrayShift < 2) {
 				// Menu indicator
-				iconMenu->blit(s, sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, sectionBarRect.y + sectionBarRect.h - 18);
+				iconMenu->blit(
+					s, 
+					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
+					sectionBarRect.y + sectionBarRect.h - 18);
 				iconTrayShift++;
 			}
 		}
@@ -674,11 +728,6 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 		FileLister fl(assets_path + relativePath, false, true);
 		fl.setFilter(".png,.jpg,.jpeg,.bmp");
 		fl.browse();
-		// TODO - simplify this
-		if (fl.getFiles().size() <= 0 && confStr["skin"] != "Default") {
-			TRACE("GMenu2X::setWallpaper - Couldn't find non default skin, falling back to default");
-			fl.setPath(assets_path + "skins/Default/wallpapers", true);// + relativePath, true);
-		}
 		if (fl.getFiles().size() > 0) {
 			TRACE("GMenu2X::setWallpaper - found our wallpaper");
 			skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
@@ -738,9 +787,13 @@ void GMenu2X::initFont() {
 		TRACE("GMenu2X::initFont - delete font");
 		delete font;
 	}
-	if (titlefont != NULL) {
+	if (fontTitle != NULL) {
 		TRACE("GMenu2X::initFont - delete title font");
-		delete titlefont;
+		delete fontTitle;
+	}
+	if (fontSectionTitle != NULL) {
+		TRACE("GMenu2X::initFont - delete title font");
+		delete fontSectionTitle;
 	}
 
 	string fontPath = sc.getSkinFilePath("font.ttf");
@@ -748,7 +801,9 @@ void GMenu2X::initFont() {
 	TRACE("GMenu2X::initFont - getFont");
 	font = new FontHelper(fontPath, skin->fontSize, skin->colours.font, skin->colours.fontOutline);
 	TRACE("GMenu2X::initFont - getTileFont");
-	titlefont = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
+	fontTitle = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
+	TRACE("GMenu2X::initFont - exit");
+	fontSectionTitle = new FontHelper(fontPath, skin->fontSizeSectionTitle, skin->colours.font, skin->colours.fontOutline);
 	TRACE("GMenu2X::initFont - exit");
 }
 
@@ -762,14 +817,6 @@ void GMenu2X::initMenu() {
 	//Menu structure handler
 	TRACE("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
-
-	/*
-	TODO :: KIll this
-	//Skin structure handler
-	TRACE("GMenu2X::initMenu - new skin");
-	skin = new Skin(assets_path, confStr["skin"], (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
-	INFO("SKIN :: %s", skin->toString().c_str());
-	*/
 
 	TRACE("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
@@ -1174,7 +1221,7 @@ void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
 	TRACE("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(name);
 
-	if (menu != NULL && clearSC && this->skin->showIcons) {
+	if (menu != NULL && clearSC && this->skin->showLinkIcons) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}
@@ -1234,10 +1281,14 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
 		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar"], &skin->topBarHeight, 40, 1, resY));
 		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar"], &skin->bottomBarHeight, 16, 1, resY));
 		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 1, resX));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
+		
+		// TODO:: add hide link icons and section icons 
+
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
 		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 8));
 		sd.exec();
@@ -1270,6 +1321,8 @@ void GMenu2X::skinMenu() {
 		restartDialog(true);
 	} else if (prevSkin != confStr["skin"]) {
 		TRACE("GMenu2X::skinMenu - restarting because skins changed");
+		// save the skin setting
+		this->writeConfig();
 		restartDialog();
 	} else initMenu();
 	TRACE("GMenu2X::skinMenu - exit");

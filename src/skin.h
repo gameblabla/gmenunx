@@ -49,6 +49,7 @@ public:
 
     int fontSize;
     int fontSizeTitle;
+    int fontSizeSectionTitle;
     int numLinkRows;
     int numLinkCols;
     int sectionBarSize;
@@ -56,8 +57,9 @@ public:
     int topBarHeight;
     int previewWidth;
 
-    int showIcons;
-    bool skinBackdrops;
+    int showLinkIcons;
+    int showSectionIcons;
+    int skinBackdrops;
     SectionBar sectionBar;
     string wallpaper;
 

@@ -53,8 +53,13 @@ bool SettingsDialog::exec() {
 			setColor(gmenu2x->skin->colours.font)->
 			setOutlineColor(gmenu2x->skin->colours.fontOutline);
 
-		gmenu2x->titlefont->
+		gmenu2x->fontTitle->
 			setSize(gmenu2x->skin->fontSizeTitle)->
+			setColor(gmenu2x->skin->colours.fontAlt)->
+			setOutlineColor(gmenu2x->skin->colours.fontAltOutline);
+
+		gmenu2x->fontSectionTitle->
+			setSize(gmenu2x->skin->fontSizeSectionTitle)->
 			setColor(gmenu2x->skin->colours.fontAlt)->
 			setOutlineColor(gmenu2x->skin->colours.fontAltOutline);
 

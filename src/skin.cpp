@@ -80,6 +80,7 @@ string Skin::toString() {
     vec.push_back("# lines starting with a # are ignored");
     vec.push_back(string_format("fontSize=%i", fontSize));
     vec.push_back(string_format("fontSizeTitle=%i", fontSizeTitle));
+    vec.push_back(string_format("fontSizeSectionTitle=%i", fontSizeSectionTitle));
     vec.push_back(string_format("linkRows=%i", numLinkRows));
     vec.push_back(string_format("linkCols=%i", numLinkCols));
     vec.push_back(string_format("sectionBarSize=%i", sectionBarSize));
@@ -87,7 +88,8 @@ string Skin::toString() {
     vec.push_back(string_format("topBarHeight=%i", topBarHeight));
     vec.push_back(string_format("previewWidth=%i", previewWidth));
 
-    vec.push_back(string_format("showIcons=%i", showIcons));
+    vec.push_back(string_format("showLinkIcons=%i", showLinkIcons));
+    vec.push_back(string_format("showSectionIcons=%i", showSectionIcons));
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
 
     vec.push_back(string_format("sectionBar=%i", sectionBar));
@@ -186,6 +188,7 @@ void Skin::reset() {
     TRACE("Skin::reset - enter");
     fontSize = 12;
     fontSizeTitle = 20;
+    fontSizeSectionTitle = 30;
     numLinkRows = 6;
     numLinkCols = 1;
     sectionBarSize = 40;
@@ -193,7 +196,8 @@ void Skin::reset() {
     topBarHeight = 40;
     previewWidth = 142;
 
-    showIcons = true;
+    showLinkIcons = true;
+    showSectionIcons = true;
     skinBackdrops = false;
     sectionBar = SB_LEFT;
     wallpaper = "";
@@ -223,7 +227,9 @@ void Skin::constrain() {
 	evalIntConf( &this->previewWidth, 142, 1, maxX);
 	evalIntConf( &this->fontSize, 12, 6, 60);
 	evalIntConf( &this->fontSizeTitle, 20, 6, 60);
-	evalIntConf( &this->showIcons, 1, 0, 1);
+    evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
+	evalIntConf( &this->showLinkIcons, 1, 0, 1);
+    evalIntConf( &this->showSectionIcons, 1, 0, 1);
 
 }
 
@@ -257,6 +263,8 @@ bool Skin::fromFile() {
                     this->fontSize = atoi(value.c_str());
                 } else if (name == "fontSizeTitle") {
                     this->fontSizeTitle = atoi(value.c_str());
+                } else if (name == "fontSizeSectionTitle") {
+                    this->fontSizeSectionTitle = atoi(value.c_str());
                 } else if (name == "linkRows") {
                     numLinkRows = atoi(value.c_str());
                 } else if (name == "linkCols") {
@@ -269,8 +277,10 @@ bool Skin::fromFile() {
                     topBarHeight = atoi(value.c_str());
                 } else if (name == "previewWidth") {
                     previewWidth = atoi(value.c_str());
-                } else if (name == "showIcons") {
-                    showIcons = atoi(value.c_str());
+                } else if (name == "showLinkIcons") {
+                    showLinkIcons = atoi(value.c_str());
+                } else if (name == "showSectionIcons") {
+                    showSectionIcons = atoi(value.c_str());
                 } else if (name == "skinBackdrops") {
                     skinBackdrops = atoi(value.c_str());
                 } else if (name == "sectionBar") {

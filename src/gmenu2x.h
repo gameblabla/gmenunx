@@ -222,7 +222,7 @@ public:
 	SurfaceCollection sc;
 	Translator tr;
 	Surface *s, *bg;
-	FontHelper *font = NULL, *titlefont = NULL; //, *bottombarfont;
+	FontHelper *font = NULL, *fontTitle = NULL, *fontSectionTitle = NULL; 
 
 	//Status functions
 	void main();

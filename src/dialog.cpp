@@ -29,10 +29,10 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 void Dialog::writeTitle(const std::string &title, Surface *s) {
 	if (s == NULL) s = gmenu2x->s;
 	s->write(
-		gmenu2x->titlefont, 
+		gmenu2x->fontTitle, 
 		title, 
 		40, 
-		gmenu2x->titlefont->getHeight()/2, 
+		gmenu2x->fontTitle->getHeight()/2, 
 		VAlignMiddle, 
 		gmenu2x->skin->colours.fontAlt, 
 		gmenu2x->skin->colours.fontAltOutline);
