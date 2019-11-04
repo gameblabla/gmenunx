@@ -169,7 +169,6 @@ private:
 
 	// private Configuration hashes
 	ConfStrHash confStr;
-	//ConfStrHash skinConfStr;
 
 public:
 	GMenu2X();
@@ -179,15 +178,12 @@ public:
 
 	// public Configuration hashes
 	// TODO - move these to private as well....
-	//RGBAColor skinConfColors[NUM_COLORS];
-	//ConfIntHash skinConfInt;
 	ConfIntHash confInt;
 
 	/*
 	 * Variables needed for elements disposition
 	 */
 	uint32_t resX, resY, halfX, halfY;
-	// uint32_t bottomBarIconY, bottomBarTextY
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 

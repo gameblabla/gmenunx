@@ -96,36 +96,6 @@ using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
 
-/*
-// Note: Keep this in sync with the enum!
-static const char *colorNames[NUM_COLORS] = {
-	"topBarBg",
-	"listBg",
-	"bottomBarBg",
-	"selectionBg",
-	"messageBoxBg",
-	"messageBoxBorder",
-	"messageBoxSelection",
-	"font",
-	"fontOutline",
-	"fontAlt",
-	"fontAltOutline"
-};
-*/
-/*
-static enum color stringToColor(const string &name) {
-	for (uint32_t i = 0; i < NUM_COLORS; i++) {
-		if (strcmp(colorNames[i], name.c_str()) == 0) {
-			return (enum color)i;
-		}
-	}
-	return (enum color)-1;
-}
-
-static const char *colorToString(enum color c) {
-	return colorNames[c];
-}
-*/
 char *hwVersion() {
 	static char buf[10] = { 0 };
 	FILE *f = fopen("/dev/mmcblk0", "r");
@@ -1203,29 +1173,7 @@ void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
 	}
 	TRACE("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(name);
-	// if (btnContextMenu != NULL) btnContextMenu->setIcon( btnContextMenu->getIcon() );
 
-/*
-	// (poor) HACK: ensure font alt colors have a default value
-	TRACE("GMenu2X::setSkin - skin colors");
-	if (skinConfColors[COLOR_FONT_ALT].r == 253 && skinConfColors[COLOR_FONT_ALT].g == 1 && skinConfColors[COLOR_FONT_ALT].b == 252 && skinConfColors[COLOR_FONT_ALT].a == 0) skinConfColors[COLOR_FONT_ALT] = skinConfColors[COLOR_FONT];
-	if (skinConfColors[COLOR_FONT_ALT_OUTLINE].r == 253 && skinConfColors[COLOR_FONT_ALT_OUTLINE].g == 1 && skinConfColors[COLOR_FONT_ALT_OUTLINE].b == 252 && skinConfColors[COLOR_FONT_ALT_OUTLINE].a == 0) skinConfColors[COLOR_FONT_ALT_OUTLINE] = skinConfColors[COLOR_FONT_OUTLINE];
-
-	// prevents breaking current skin until they are updated
-	TRACE("GMenu2X::setSkin - font size tile");
-	if (!skinConfInt["fontSizeTitle"] && skinConfInt["titleFontSize"] > 0) 
-		skinConfInt["fontSizeTitle"] = skinConfInt["titleFontSize"];
-*/
-/*
-	TRACE("GMenu2X::setSkin - evalIntConf");
-	evalIntConf( &skinConfInt["topBarHeight"], 40, 1, resY);
-	evalIntConf( &skinConfInt["sectionBarSize"], 40, 1, resX);
-	evalIntConf( &skinConfInt["bottomBarHeight"], 16, 1, resY);
-	evalIntConf( &skinConfInt["previewWidth"], 142, 1, resX);
-	evalIntConf( &skinConfInt["fontSize"], 12, 6, 60);
-	evalIntConf( &skinConfInt["fontSizeTitle"], 20, 6, 60);
-	evalIntConf( &skinConfInt["showIcons"], 1, 0, 1);
-*/
 	if (menu != NULL && clearSC && this->skin->showIcons) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
@@ -1493,7 +1441,6 @@ void GMenu2X::explorer() {
 				writeConfig();
 
 			loop = false;
-			//string command = cmdclean(fd.path()+"/"+fd.file) + "; sync & cd "+cmdclean(getExePath())+"; exec ./gmenu2x";
 			string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
 			quit();
@@ -1504,7 +1451,7 @@ void GMenu2X::explorer() {
 			//try relaunching gmenu2x
 			WARNING("Error executing selected application, re-launching gmenu2x");
 			chdir(getExePath().c_str());
-			execlp("./gmenu2x", "./gmenu2x", NULL);
+			execlp("./gmenunx", "./gmenunx", NULL);
 		}
 	}
 	TRACE("GMenu2X::explorer - exit");
