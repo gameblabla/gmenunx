@@ -222,7 +222,7 @@ void Skin::reset() {
 void Skin::constrain() {
 
 	evalIntConf( &this->topBarHeight, 40, 1, maxY);
-	evalIntConf( &this->sectionBarSize, 40, 1, maxX);
+	evalIntConf( &this->sectionBarSize, 40, 18, maxX);
 	evalIntConf( &this->bottomBarHeight, 16, 1, maxY);
 	evalIntConf( &this->previewWidth, 142, 1, maxX);
 	evalIntConf( &this->fontSize, 12, 6, 60);

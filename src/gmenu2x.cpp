@@ -1335,7 +1335,7 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar"], &skin->topBarHeight, 40, 1, resY));
 		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar"], &skin->bottomBarHeight, 16, 1, resY));
-		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 1, resX));
+		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 18, resX));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		
 		// TODO:: add hide link icons and section icons 
