@@ -592,7 +592,7 @@ void GMenu2X::main() {
 			// tray helper icons
 			int helperHeight = 20;
 			int maxRows = (int)(sectionBarRect.h / (float)helperHeight);
-			TRACE("main - max rows for helper icons works out as : %i", maxRows);
+			//TRACE("main - max rows for helper icons works out as : %i", maxRows);
 
 			int iconCounter = 0;
 			int currentXOffset = 0;
@@ -1239,6 +1239,7 @@ void GMenu2X::writeConfig() {
 	}
 	TRACE("GMenu2X::writeConfig - ledOff");
 	ledOff();
+	sync();
 	TRACE("GMenu2X::writeConfig - exit");
 }
 
