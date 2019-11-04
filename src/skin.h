@@ -37,12 +37,13 @@ public:
         SB_TOP,
     };
 
-    Skin(string const &prefix, string const &name, int const &maxX, int const &maxY);
+    Skin(string const &prefix, int const &maxX, int const &maxY);
     ~Skin();
 
     static vector<string> getSkins(string assetsPath) ;
-    vector<string> getWallpapers();
 
+    bool loadSkin(string name);
+    vector<string> getWallpapers();
     string toString();
     bool save();
 

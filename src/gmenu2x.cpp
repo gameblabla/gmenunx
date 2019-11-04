@@ -334,7 +334,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - set prefix on surface collection");
 	sc.setPrefix(assets_path);
 
-	this->skin = new Skin(assets_path, confStr["skin"], (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
+	this->skin = new Skin(assets_path, (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
+	this->skin->loadSkin(confStr["skin"]);
+
 	TRACE("GMenu2X::ctor - setWallpaper");
 	setWallpaper(skin->wallpaper);
 
@@ -496,13 +498,13 @@ void GMenu2X::main() {
 		s->setClipRect(linksRect);
 		s->box(linksRect, skin->colours.listBackground);
 
-		i = menu->firstDispRow() * linkCols;
+		i = menu->firstDispRow() * skin->numLinkCols;
 
-		if (linkCols == 1) {
+		if (skin->numLinkCols == 1) {
 			//TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
 			// LIST
 			ix = linksRect.x;
-			for (y = 0; y < linkRows && i < menu->sectionLinks()->size(); y++, i++) {
+			for (y = 0; y < skin->numLinkRows && i < menu->sectionLinks()->size(); y++, i++) {
 				iy = linksRect.y + y * linkHeight;
 
 				if (i == (uint32_t)menu->selLinkIndex())
@@ -525,8 +527,8 @@ void GMenu2X::main() {
 			}
 		} else {
 			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
-			for (y = 0; y < linkRows; y++) {
-				for (x = 0; x < linkCols && i < menu->sectionLinks()->size(); x++, i++) {
+			for (y = 0; y < skin->numLinkRows; y++) {
+				for (x = 0; x < skin->numLinkCols && i < menu->sectionLinks()->size(); x++, i++) {
 					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
 					iy = linksRect.y + y * linkHeight + (y + 1) * linkSpacing;
 
@@ -559,8 +561,8 @@ void GMenu2X::main() {
 		//TRACE("main :: links - done");
 		s->clearClipRect();
 
-		drawScrollBar(linkRows, 
-			menu->sectionLinks()->size()/linkCols + ((menu->sectionLinks()->size()%linkCols==0) ? 0 : 1), 
+		drawScrollBar(skin->numLinkRows, 
+			menu->sectionLinks()->size() / skin->numLinkCols + ((menu->sectionLinks()->size() % skin->numLinkCols==0) ? 0 : 1), 
 			menu->firstDispRow(), 
 			linksRect);
 
@@ -662,8 +664,8 @@ void GMenu2X::main() {
 		else if ( input[SETTINGS] ) settings();
 		else if ( input[MENU]     ) contextMenu();
 		// LINK NAVIGATION
-		else if ( input[LEFT ] && linkCols == 1) menu->pageUp();
-		else if ( input[RIGHT] && linkCols == 1) menu->pageDown();
+		else if ( input[LEFT ] && skin->numLinkCols == 1) menu->pageUp();
+		else if ( input[RIGHT] && skin->numLinkCols == 1) menu->pageDown();
 		else if ( input[LEFT ] ) menu->linkLeft();
 		else if ( input[RIGHT] ) menu->linkRight();
 		else if ( input[UP   ] ) menu->linkUp();
@@ -750,16 +752,14 @@ void GMenu2X::initLayout() {
 		resX, 
 		resY - skin->bottomBarHeight - skin->topBarHeight};
 
+
 	// WIP
 	// TODO :: Clear this shit up
 	// and move it into reaad only prop in skin
-	linkCols = skin->numLinkCols;
-	linkRows = skin->numLinkRows;
+	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
+	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
 
-	linkWidth  = (linksRect.w - (linkCols + 1 ) * linkSpacing) / linkCols;
-	linkHeight = (linksRect.h - (linkCols > 1) * (linkRows    + 1 ) * linkSpacing) / linkRows;
-
-	DEBUG("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", linkCols, linkRows, linkWidth, linkHeight);
+	DEBUG("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
 }
 
 void GMenu2X::initFont() {
@@ -793,10 +793,13 @@ void GMenu2X::initMenu() {
 	TRACE("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
 
+	/*
+	TODO :: KIll this
 	//Skin structure handler
 	TRACE("GMenu2X::initMenu - new skin");
 	skin = new Skin(assets_path, confStr["skin"], (int)confInt["resolutionX"], (int)confInt["resolutionY"]);
 	INFO("SKIN :: %s", skin->toString().c_str());
+	*/
 
 	TRACE("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
@@ -1187,9 +1190,10 @@ void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
 		// save it into app settings
 		confStr["skin"] = name;
 
-		// and load the skin
-		if (this->skin) delete this->skin;
-		this->skin = new Skin(assets_path, name, resX, resY);
+		if (!this->skin->loadSkin(name)) {
+			ERROR("GMenu2X::setSkin - Couldn't load skin : %s", name.c_str());
+			return;
+		}
 	}
 
 	//clear collection and change the skin path

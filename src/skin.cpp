@@ -22,16 +22,12 @@ using std::ifstream;
 using std::ofstream;
 using std::string;
 
-Skin::Skin(string const &prefix, string const &name, int const &maxX, int const &maxY) {
-    DEBUG("Skin::Skin - enter - prefix : %s, name : %s, maxX : %i, maxY : %i", prefix.c_str(), name.c_str(), maxX, maxY);
-    this->name = name;
+Skin::Skin(string const &prefix, int const &maxX, int const &maxY) {
+    DEBUG("Skin::Skin - enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
+
     this->assetsPrefix = prefix;
     this->maxX = maxX;
     this->maxY = maxY;
-
-    this->reset();
-    this->fromFile();
-    this->constrain();
 
 }
 
@@ -129,6 +125,13 @@ bool Skin::save() {
 
     TRACE("Skin::save - exit");
     return true;
+}
+
+bool Skin::loadSkin(string name) {
+    TRACE("Skin::loadSkin - loading skin : %s", name.c_str());
+    this->name = name;
+    this->reset();
+    return this->fromFile();
 }
 
 vector<string> Skin::getWallpapers() {
@@ -308,6 +311,7 @@ bool Skin::fromFile() {
 
             };
             skinconf.close();
+            this->constrain();
             result = true;
         }
     }
