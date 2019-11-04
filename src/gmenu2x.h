@@ -53,33 +53,6 @@ extern const char *CARD_ROOT;
 
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 
-
-// Note: Keep this in sync with colorNames!
-enum color {
-	COLOR_TOP_BAR_BG,
-	COLOR_LIST_BG,
-	COLOR_BOTTOM_BAR_BG,
-	COLOR_SELECTION_BG,
-	COLOR_MESSAGE_BOX_BG,
-	COLOR_MESSAGE_BOX_BORDER,
-	COLOR_MESSAGE_BOX_SELECTION,
-	COLOR_FONT,
-	COLOR_FONT_OUTLINE,
-	COLOR_FONT_ALT,
-	COLOR_FONT_ALT_OUTLINE,
-
-	NUM_COLORS,
-};
-
-/*
-enum sb {
-	SB_OFF,
-	SB_LEFT,
-	SB_BOTTOM,
-	SB_RIGHT,
-	SB_TOP,
-};
-*/
 using std::string;
 using std::vector;
 using fastdelegate::FastDelegate0;
@@ -87,7 +60,6 @@ using fastdelegate::FastDelegate0;
 typedef FastDelegate0<> MenuAction;
 typedef unordered_map<string, string, std::hash<string> > ConfStrHash;
 typedef unordered_map<string, int, std::hash<string> > ConfIntHash;
-// typedef unordered_map<string, RGBAColor, hash<string> > ConfColorHash;
 
 struct MenuOption {
 	string text;

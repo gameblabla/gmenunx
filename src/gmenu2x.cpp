@@ -581,76 +581,127 @@ void GMenu2X::main() {
 			continue;
 		}
 
-		// tray helper icons
 		if (skin->sectionBar) {
-			// TRAY 0, 0
-			iconVolume[volumeMode]->blit(
-				s, 
-				sectionBarRect.x + sectionBarRect.w - 38, 
-				sectionBarRect.y + sectionBarRect.h - 38);
 
-			// TRAY 0, 1
 			if (tickNow - tickBattery >= 5000) {
 				tickBattery = tickNow;
 				batteryIcon = getBatteryLevel();
 			}
 			if (batteryIcon > 5) batteryIcon = 6;
+
+			// tray helper icons
+			int helperHeight = 20;
+			int maxRows = (int)(sectionBarRect.h / (float)helperHeight);
+			TRACE("main - max rows for helper icons works out as : %i", maxRows);
+
+			int iconCounter = 0;
+			int currentXOffset = 0;
+			int currentYOffset = 0;
+			int rootXPos = sectionBarRect.x + sectionBarRect.w - 18;
+			int rootYPos = sectionBarRect.y + sectionBarRect.h - 18;
+
+			iconVolume[volumeMode]->blit(
+				s, 
+				rootXPos - (currentXOffset * (helperHeight - 2)), 
+				rootYPos - (currentYOffset * (helperHeight - 2))
+			);
+			if (++iconCounter % maxRows == 0) {
+				++currentXOffset;
+				currentYOffset = 0;
+			} else {
+				++currentYOffset;
+			}
+
 			iconBattery[batteryIcon]->blit(
 				s, 
-				sectionBarRect.x + sectionBarRect.w - 18, 
-				sectionBarRect.y + sectionBarRect.h - 38);
+				rootXPos - (currentXOffset * (helperHeight - 2)), 
+				rootYPos - (currentYOffset * (helperHeight - 2))
+			);
+			if (++iconCounter % maxRows == 0) {
+				++currentXOffset;
+				currentYOffset = 0;
+			} else {
+				++currentYOffset;
+			}
 
-			// TRAY iconTrayShift,1
-			int iconTrayShift = 0;
 			if (curMMCStatus == MMC_MOUNTED) {
 				iconSD->blit(
 					s, 
-					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
-					sectionBarRect.y + sectionBarRect.h - 18);
-				iconTrayShift++;
+					rootXPos - (currentXOffset * (helperHeight - 2)), 
+					rootYPos - (currentYOffset * (helperHeight - 2))
+				);
+				if (++iconCounter % maxRows == 0) {
+					++currentXOffset;
+					currentYOffset = 0;
+				} else {
+					++currentYOffset;
+				}
 			}
+
+			brightnessIcon = confInt["backlight"] / 20;
+			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
+			iconBrightness[brightnessIcon]->blit(
+				s, 
+				rootXPos - (currentXOffset * (helperHeight - 2)), 
+				rootYPos - (currentYOffset * (helperHeight - 2))
+			);
+			if (++iconCounter % maxRows == 0) {
+				++currentXOffset;
+				currentYOffset = 0;
+			} else {
+				++currentYOffset;
+			}
+
+			/*
+			// Menu indicator
+			iconMenu->blit(
+				s, 
+				rootXPos - (currentXOffset * (helperHeight - 2)), 
+				rootYPos - (currentYOffset * (helperHeight - 2))
+			);
+			if (++iconCounter % maxRows == 0) {
+				++currentXOffset;
+				currentYOffset = 0;
+			} else {
+				++currentYOffset;
+			}
+			*/
 
 			// selected link info
 			if (menu->selLink() != NULL) {
 				if (menu->selLinkApp() != NULL) {
-					if (!menu->selLinkApp()->getManualPath().empty() && iconTrayShift < 2) {
+					if (!menu->selLinkApp()->getManualPath().empty()) {
 						// Manual indicator
 						iconManual->blit(
 							s, 
-							sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
-							sectionBarRect.y + sectionBarRect.h - 18);
-						iconTrayShift++;
+							rootXPos - (currentXOffset * (helperHeight - 2)), 
+							rootYPos - (currentYOffset * (helperHeight - 2))
+						);
+						if (++iconCounter % maxRows == 0) {
+							++currentXOffset;
+							currentYOffset = 0;
+						} else {
+							++currentYOffset;
+						}
 					}
 
-					if (menu->selLinkApp()->clock() != confInt["cpuMenu"] && iconTrayShift < 2) {
+					if (menu->selLinkApp()->clock() != confInt["cpuMenu"]) {
 						// CPU indicator
 						iconCPU->blit(
 							s, 
-							sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
-							sectionBarRect.y + sectionBarRect.h - 18);
-						iconTrayShift++;
+							rootXPos - (currentXOffset * (helperHeight - 2)), 
+							rootYPos - (currentYOffset * (helperHeight - 2))
+						);
+						if (++iconCounter % maxRows == 0) {
+							++currentXOffset;
+							currentYOffset = 0;
+						} else {
+							++currentYOffset;
+						}
 					}
 				}
 			}
 
-			if (iconTrayShift < 2) {
-				brightnessIcon = confInt["backlight"] / 20;
-				if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-				iconBrightness[brightnessIcon]->blit(
-					s, 
-					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
-					sectionBarRect.y + sectionBarRect.h - 18);
-				iconTrayShift++;
-			}
-
-			if (iconTrayShift < 2) {
-				// Menu indicator
-				iconMenu->blit(
-					s, 
-					sectionBarRect.x + sectionBarRect.w - 38 + iconTrayShift * 20, 
-					sectionBarRect.y + sectionBarRect.h - 18);
-				iconTrayShift++;
-			}
 		}
 		s->flip();
 
@@ -670,7 +721,6 @@ void GMenu2X::main() {
 			input.setWakeUpInterval(1);
 			continue;
 		}
-		// input.setWakeUpInterval(0);
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
 			TRACE("******************RUNNING THIS*******************");
@@ -2251,7 +2301,6 @@ const string &GMenu2X::getExePath() {
 const string &GMenu2X::getAssetsPath() {
 	return USER_PREFIX;
 }
-
 string GMenu2X::getCurrentSkinPath() {
 	string currentSkin = (confStr["skin"].empty() ? "Default" : confStr["skin"]);
 	TRACE("GMenu2X::getCurrentSkinPath - current skin looks to be : %s", currentSkin.c_str());
