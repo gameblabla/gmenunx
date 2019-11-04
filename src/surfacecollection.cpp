@@ -53,6 +53,9 @@ string SurfaceCollection::getSkinFilePath(const string &file) {
 	} else if (fileExists(this->prefix + "skins/Default/" + file)) {
 		TRACE("SurfaceCollection::getSkinFilePath - found file in default skin");
 		result = this->prefix + "skins/Default/" + file;
+	} else if (fileExists(this->prefix + "skins/" + file)) {
+		TRACE("SurfaceCollection::getSkinFilePath - found file in root skin folder");
+		result = this->prefix + "skins/" + file;
 	} else {
 		TRACE("SurfaceCollection::getSkinFilePath - didn't find file anywhere");
 	}
