@@ -477,15 +477,15 @@ void GMenu2X::main() {
 			x = sectionBarRect.x; 
 			y = sectionBarRect.y;
 			
+			// we're in section text mode....
 			if (!skin->showSectionIcons && (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM)) {
-					int padding = 4;
 					string sectionName = menu->selSection();
 					s->write(
 						fontSectionTitle, 
 						"\u00AB " + tr.translate(sectionName) + " \u00BB", 
 						sectionBarRect.w / 2, 
-						sectionBarRect.y, 
-						HAlignCenter);
+						sectionBarRect.y + (sectionBarRect.h / 2),
+						HAlignCenter | VAlignMiddle);
 
 			} else {
 
@@ -547,8 +547,19 @@ void GMenu2X::main() {
 				}
 				
 				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-				s->write(fontTitle, tr.translate(menu->sectionLinks()->at(i)->getTitle()), ix + linkSpacing + padding, iy + fontTitle->getHeight()/2, VAlignMiddle);
-				s->write(font, tr.translate(menu->sectionLinks()->at(i)->getDescription()), ix + linkSpacing + padding, iy + linkHeight - linkSpacing/2, VAlignBottom);
+				s->write(
+					fontTitle, 
+					tr.translate(menu->sectionLinks()->at(i)->getTitle()), 
+					ix + linkSpacing + padding, 
+					iy + fontTitle->getHeight() / 2, 
+					VAlignMiddle);
+				
+				s->write(
+					font, 
+					tr.translate(menu->sectionLinks()->at(i)->getDescription()), 
+					ix + linkSpacing + padding, 
+					iy + linkHeight - linkSpacing / 2, 
+					VAlignBottom);
 			}
 		} else {
 			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
