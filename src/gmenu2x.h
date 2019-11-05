@@ -130,6 +130,8 @@ private:
 
 #endif
 	
+	void layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int rootXPos, int rootYPos, int maxRows);
+
 	//void formatSd();
 	void checkUDC();
 	void umountSdDialog();

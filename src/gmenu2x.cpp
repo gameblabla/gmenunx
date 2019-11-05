@@ -384,6 +384,30 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 }
 
+void GMenu2X::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int rootXPos, int rootYPos, int maxRows) {
+	TRACE("GMenu2X::layoutHelperIcons - enter");
+	int iconCounter = 0;
+	int currentXOffset = 0;
+	int currentYOffset = 0;
+
+	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
+		DEBUG("GMenu2X::layoutHelperIcons - blitting");
+		(*it)->blit(
+			s, 
+			rootXPos - (currentXOffset * (helperHeight - 2)), 
+			rootYPos - (currentYOffset * (helperHeight - 2))
+		);
+		if (++iconCounter % maxRows == 0) {
+			++currentXOffset;
+			currentYOffset = 0;
+		} else {
+			++currentYOffset;
+		}
+	};
+
+	TRACE("GMenu2X::layoutHelperIcons - exit");
+}
+
 void GMenu2X::main() {
 	pthread_t thread_id;
 
@@ -425,6 +449,8 @@ void GMenu2X::main() {
 	Surface *iconSD = sc.skinRes("imgs/sd1.png"),
 			*iconManual = sc.skinRes("imgs/manual.png"),
 			*iconCPU = sc.skinRes("imgs/cpu.png");
+
+	vector<Surface*> helpers;
 
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
@@ -580,6 +606,11 @@ void GMenu2X::main() {
 			continue;
 		}
 
+		/* 
+		 *
+		 * helper icon section
+		 * 
+		 */
 		if (skin->sectionBar) {
 
 			if (tickNow - tickBattery >= 5000) {
@@ -587,6 +618,9 @@ void GMenu2X::main() {
 				batteryIcon = getBatteryLevel();
 			}
 			if (batteryIcon > 5) batteryIcon = 6;
+
+			brightnessIcon = confInt["backlight"] / 20;
+			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
 
 			// tray helper icons
 			int helperHeight = 20;
@@ -596,101 +630,35 @@ void GMenu2X::main() {
 			} else {
 				maxRows = (int)(sectionBarRect.w / (float)helperHeight);
 			}
-
-			int iconCounter = 0;
-			int currentXOffset = 0;
-			int currentYOffset = 0;
 			int rootXPos = sectionBarRect.x + sectionBarRect.w - 18;
 			int rootYPos = sectionBarRect.y + sectionBarRect.h - 18;
 
-			iconVolume[volumeMode]->blit(
-				s, 
-				rootXPos - (currentXOffset * (helperHeight - 2)), 
-				rootYPos - (currentYOffset * (helperHeight - 2))
-			);
-			if (++iconCounter % maxRows == 0) {
-				++currentXOffset;
-				currentYOffset = 0;
-			} else {
-				++currentYOffset;
-			}
+			TRACE("main :: hitting up the helpers");
 
-			iconBattery[batteryIcon]->blit(
-				s, 
-				rootXPos - (currentXOffset * (helperHeight - 2)), 
-				rootYPos - (currentYOffset * (helperHeight - 2))
-			);
-			if (++iconCounter % maxRows == 0) {
-				++currentXOffset;
-				currentYOffset = 0;
-			} else {
-				++currentYOffset;
-			}
-
+			helpers.push_back(iconVolume[volumeMode]);
+			helpers.push_back(iconBattery[batteryIcon]);
 			if (curMMCStatus == MMC_MOUNTED) {
-				iconSD->blit(
-					s, 
-					rootXPos - (currentXOffset * (helperHeight - 2)), 
-					rootYPos - (currentYOffset * (helperHeight - 2))
-				);
-				if (++iconCounter % maxRows == 0) {
-					++currentXOffset;
-					currentYOffset = 0;
-				} else {
-					++currentYOffset;
-				}
+				helpers.push_back(iconSD);
 			}
-
-			brightnessIcon = confInt["backlight"] / 20;
-			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-			iconBrightness[brightnessIcon]->blit(
-				s, 
-				rootXPos - (currentXOffset * (helperHeight - 2)), 
-				rootYPos - (currentYOffset * (helperHeight - 2))
-			);
-			if (++iconCounter % maxRows == 0) {
-				++currentXOffset;
-				currentYOffset = 0;
-			} else {
-				++currentYOffset;
-			}
-
-			// selected link info
+			helpers.push_back(iconBrightness[brightnessIcon]);
 			if (menu->selLink() != NULL) {
 				if (menu->selLinkApp() != NULL) {
 					if (!menu->selLinkApp()->getManualPath().empty()) {
 						// Manual indicator
-						iconManual->blit(
-							s, 
-							rootXPos - (currentXOffset * (helperHeight - 2)), 
-							rootYPos - (currentYOffset * (helperHeight - 2))
-						);
-						if (++iconCounter % maxRows == 0) {
-							++currentXOffset;
-							currentYOffset = 0;
-						} else {
-							++currentYOffset;
-						}
+						helpers.push_back(iconManual);
 					}
-
 					if (menu->selLinkApp()->clock() != confInt["cpuMenu"]) {
 						// CPU indicator
-						iconCPU->blit(
-							s, 
-							rootXPos - (currentXOffset * (helperHeight - 2)), 
-							rootYPos - (currentYOffset * (helperHeight - 2))
-						);
-						if (++iconCounter % maxRows == 0) {
-							++currentXOffset;
-							currentYOffset = 0;
-						} else {
-							++currentYOffset;
-						}
+						helpers.push_back(iconCPU);
 					}
 				}
 			}
-
+			TRACE("main :: layoutHelperIcons");
+			layoutHelperIcons(helpers, s, helperHeight, rootXPos, rootYPos, maxRows);
+			TRACE("main :: helpers.clear()");
+			helpers.clear();
 		}
+
 		s->flip();
 
 		bool inputAction = input.update();
