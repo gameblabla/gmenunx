@@ -65,7 +65,6 @@ dist: dir shared
 	cp -RH assets/skins assets/translations $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
-	cp -RH assets/$(PATH_DIR)/font.ttf $(DISTDIR)/skins/Default
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/gmenunx.png
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
