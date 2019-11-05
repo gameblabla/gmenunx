@@ -103,12 +103,10 @@ private:
 	int lastSelectorElement;
 	void readConfig();
 	void readTmp();
-	// void writeCommonIni();
 
 	void initFont();
 	void initMenu();
 	void showManual();
-	// IconButton *btnContextMenu;
 
 #ifdef TARGET_GP2X
 	typedef struct {

@@ -424,8 +424,7 @@ void GMenu2X::main() {
 
 	Surface *iconSD = sc.skinRes("imgs/sd1.png"),
 			*iconManual = sc.skinRes("imgs/manual.png"),
-			*iconCPU = sc.skinRes("imgs/cpu.png"),
-			*iconMenu = sc.skinRes("imgs/menu.png");
+			*iconCPU = sc.skinRes("imgs/cpu.png");
 
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
@@ -591,8 +590,12 @@ void GMenu2X::main() {
 
 			// tray helper icons
 			int helperHeight = 20;
-			int maxRows = (int)(sectionBarRect.h / (float)helperHeight);
-			//TRACE("main - max rows for helper icons works out as : %i", maxRows);
+			int maxRows = 0;
+			if (sectionBarRect.w > sectionBarRect.h) {
+				maxRows = (int)(sectionBarRect.h / (float)helperHeight);
+			} else {
+				maxRows = (int)(sectionBarRect.w / (float)helperHeight);
+			}
 
 			int iconCounter = 0;
 			int currentXOffset = 0;
@@ -651,21 +654,6 @@ void GMenu2X::main() {
 			} else {
 				++currentYOffset;
 			}
-
-			/*
-			// Menu indicator
-			iconMenu->blit(
-				s, 
-				rootXPos - (currentXOffset * (helperHeight - 2)), 
-				rootYPos - (currentYOffset * (helperHeight - 2))
-			);
-			if (++iconCounter % maxRows == 0) {
-				++currentXOffset;
-				currentYOffset = 0;
-			} else {
-				++currentYOffset;
-			}
-			*/
 
 			// selected link info
 			if (menu->selLink() != NULL) {
