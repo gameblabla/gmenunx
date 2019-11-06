@@ -230,6 +230,8 @@ void Skin::constrain() {
     evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
 	evalIntConf( &this->showLinkIcons, 1, 0, 1);
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
+    evalIntConf( &this->numLinkCols, 1, 1, 10);
+    evalIntConf( &this->numLinkRows, 6, 1, 10);
 
 }
 

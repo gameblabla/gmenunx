@@ -47,6 +47,8 @@ public:
     string toString();
     bool save();
 
+    string name;
+
     int fontSize;
     int fontSizeTitle;
     int fontSizeSectionTitle;
@@ -68,7 +70,6 @@ public:
 private:
 
     string assetsPrefix;
-    string name;
     int maxX, maxY;
 
     void reset();

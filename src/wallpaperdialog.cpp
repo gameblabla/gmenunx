@@ -24,13 +24,12 @@
 
 using namespace std;
 
-WallpaperDialog::WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &skin, const string &wallpaper)
+WallpaperDialog::WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
 	: Dialog(gmenu2x) {
 	this->title = title;
 	this->description = description;
 	this->icon = icon;
-	this->skin = skin;
-	this->wallpaper = wallpaper;
+	this->wallpaper = gmenu2x->skin->wallpaper;
 }
 
 bool WallpaperDialog::exec()
@@ -43,27 +42,12 @@ bool WallpaperDialog::exec()
 	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 	int32_t selected = 0;
 	string assetsPath = gmenu2x->getAssetsPath();
-	string wallpaperPath = assetsPath + "skins/" + skin + "/wallpapers";
+	// TODO :: getthis from skin
+	string wallpaperPath = assetsPath + "skins/" + this->gmenu2x->skin->name + "/wallpapers/";
 
-	FileLister fl(wallpaperPath);
-	fl.setFilter(".png,.jpg,.jpeg,.bmp");
 	vector<string> wallpapers;
+	wallpapers = gmenu2x->skin->getWallpapers();
 	
-	if (dirExists(wallpaperPath)) {
-		TRACE("WallpaperDialog::exec - dir found, calling fl.browse");
-		fl.browse();
-		TRACE("WallpaperDialog::exec - dir found, calling fl.getFiles");
-		wallpapers = fl.getFiles();
-	}
-	
-	// TODO :: can we loose this....?
-	if (skin != "Default") {
-		TRACE("WallpaperDialog::exec - current skin isn't default, adding default wallpapers");
-		fl.setPath(assetsPath + "skins/Default/wallpapers", true);
-		for (uint32_t i = 0; i < fl.getFiles().size(); i++)
-			wallpapers.push_back(fl.getFiles()[i]);
-	}
-
 	wallpaper = base_name(wallpaper);
 	TRACE("WallpaperDialog::exec - wallpaper base name resolved :: %s", wallpaper.c_str());
 
@@ -74,14 +58,8 @@ bool WallpaperDialog::exec()
 	
 	TRACE("WallpaperDialog::exec - looping on user input");
 	while (!close) {
-		//Wallpaper
-		
-		// TODO - this can also be simplified if we loose adding default wallpapers
-		string skinPath;
-		if (selected < wallpapers.size() - fl.getFiles().size())
-			skinPath = assetsPath + "skins/" + skin + "/wallpapers/" + wallpapers[selected];
-		else
-			skinPath = assetsPath + "skins/Default/wallpapers/" + wallpapers[selected];
+
+		string skinPath = wallpaperPath + wallpapers[selected];
 
 		TRACE("WallpaperDialog::exec - blitting surface :: %s", skinPath.c_str());
 		gmenu2x->sc[skinPath]->blit(gmenu2x->s,0,0);
@@ -136,12 +114,8 @@ bool WallpaperDialog::exec()
 				result = false;
 			} else if ( gmenu2x->input[CONFIRM] ) {
 				close = true;
-				// TODO - can also be simplified
 				if (wallpapers.size() > 0) {
-					if (selected < wallpapers.size() - fl.getFiles().size())
-						wallpaper = assetsPath + "skins/" + skin + "/wallpapers/" + wallpapers[selected];
-					else
-						wallpaper = assetsPath + "skins/Default/wallpapers/" + wallpapers[selected];
+					wallpaper = wallpaperPath + wallpapers[selected];
 				} else {
 					result = false;
 				}
@@ -152,18 +126,10 @@ bool WallpaperDialog::exec()
 	
 	TRACE("WallpaperDialog::exec - looping through %i wallpapers", wallpapers.size());
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
-		// TODO - and again!!
-		string skinPath;
-		if (i < wallpapers.size() - fl.getFiles().size())
-			skinPath = assetsPath + "skins/" + skin + "/wallpapers/" + wallpapers[i];
-		else
-			skinPath = assetsPath + "skins/Default/wallpapers/" + wallpapers[i];
-		
+		string skinPath = wallpaperPath + wallpapers[i];
 		TRACE("WallpaperDialog::exec - deleting surface from collection :: %s", skinPath.c_str());
 		gmenu2x->sc.del(skinPath);
 	}
-
-	//gmenu2x->confStr["wallpaper"] = wallpaper;
 	TRACE("WallpaperDialog::exec - exit - %i", result);
 	return result;
 }

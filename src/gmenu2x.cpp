@@ -182,7 +182,7 @@ enum vol_mode_t {
 int16_t volumeMode;
 uint8_t getVolumeMode(uint8_t vol) {
 	if (!vol) return VOLUME_MODE_MUTE;
-	else if (memdev > 0 && !(memregs[0x10300 >> 2] >> 6 & 0b1)) return VOLUME_MODE_PHONES;
+	else if (vol > 0 && vol < 20) return VOLUME_MODE_PHONES;
 	return VOLUME_MODE_NORMAL;
 }
 
@@ -854,38 +854,43 @@ void GMenu2X::initMenu() {
 
 		//Add virtual links in the setting section
 		else if (menu->getSections()[i] == "settings") {
-			menu->addActionLink(i, 
-						tr["Settings"], 
-						MakeDelegate(this, &GMenu2X::settings), 
-						tr["Configure system"], 
-						"skin:icons/configure.png");
+			menu->addActionLink(
+				i, 
+				tr["Settings"], 
+				MakeDelegate(this, &GMenu2X::settings), 
+				tr["Configure system and choose skin"], 
+				"skin:icons/configure.png");
 
-			menu->addActionLink(i, 
-						tr["Skin"], 
-						MakeDelegate(this, &GMenu2X::skinMenu), 
-						tr["Appearance & skin settings"], 
-					   "skin:icons/skin.png");
+			menu->addActionLink(
+				i, 
+				tr["Skin - " + skin->name], 
+				MakeDelegate(this, &GMenu2X::skinMenu), 
+				tr["Adjust skin settings"], 
+				"skin:icons/skin.png");
 
 			if (curMMCStatus == MMC_MOUNTED)
-				menu->addActionLink(i, 
-						tr["Umount"], 
-						MakeDelegate(this, &GMenu2X::umountSdDialog), 
-						tr["Umount external SD"], 
-						"skin:icons/eject.png");
+				menu->addActionLink(
+					i, 
+					tr["Umount"], 
+					MakeDelegate(this, &GMenu2X::umountSdDialog), 
+					tr["Umount external SD"], 
+					"skin:icons/eject.png");
 
 			if (curMMCStatus == MMC_UNMOUNTED)
-				menu->addActionLink(i, 
-						tr["Mount"], 
-						MakeDelegate(this, &GMenu2X::mountSdDialog), 
-						tr["Mount external SD"], 
-						"skin:icons/eject.png");
+				menu->addActionLink(
+					i, 
+					tr["Mount"], 
+					MakeDelegate(this, &GMenu2X::mountSdDialog), 
+					tr["Mount external SD"], 
+					"skin:icons/eject.png");
 
 			if (fileExists(assets_path + "log.txt"))
-				menu->addActionLink(i, 
-						tr["Log Viewer"], 
-						MakeDelegate(this, &GMenu2X::viewLog), 
-						tr["Displays last launched program's output"], 
-						"skin:icons/ebook.png");
+				menu->addActionLink(
+					i, 
+					tr["Log Viewer"], 
+					MakeDelegate(this, &GMenu2X::viewLog), 
+					tr["Displays last launched program's output"], 
+					"skin:icons/ebook.png");
 
 			menu->addActionLink(i, tr["About"], MakeDelegate(this, &GMenu2X::about), tr["Info about system"], "skin:icons/about.png");
 			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "skin:icons/exit.png");
@@ -904,6 +909,8 @@ void GMenu2X::settings() {
 	TRACE("GMenu2X::settings - enter");
 	int curGlobalVolume = confInt["globalVolume"];
 	int curGlobalBrightness = confInt["backlight"];
+	string prevSkin = confStr["skin"];
+	vector<string> skinList = Skin::getSkins(assets_path);
 
 	TRACE("GMenu2X::settings - getting translations");
 	FileLister fl_tr(getAssetsPath() + "translations");
@@ -936,9 +943,11 @@ void GMenu2X::settings() {
 	string prevDateTime = confStr["datetime"] = getDateTime();
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
-	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenu2X"], &lang, &fl_tr.getFiles()));
+	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
 	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &confStr["datetime"]));
 	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &confStr["batteryType"], &batteryType));
+
+	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenuNX"], &confStr["skin"], &skinList));
 
 	sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &confStr["Performance"], &performanceModes));
 
@@ -977,14 +986,15 @@ void GMenu2X::settings() {
 		screenManager.resetScreenTimer();
 		screenManager.setScreenTimeout(confInt["backlightTimeout"]);
 
-		writeConfig();
+		this->writeConfig();
 
-#if defined(TARGET_GP2X)
-		if (prevgamma != confInt["gamma"]) setGamma(confInt["gamma"]);
-#endif
-
-		if (prevDateTime != confStr["datetime"]) 
+		if (prevSkin != confStr["skin"]) {
+			TRACE("GMenu2X::skinMenu - restarting because skins changed");
 			restartDialog();
+		} else if (prevDateTime != confStr["datetime"]) {
+			TRACE("GMenu2X::skinMenu - restarting because datetime changed");
+			restartDialog();
+		}
 	}
 	TRACE("GMenu2X::settings - exit");
 }
@@ -1205,8 +1215,8 @@ void GMenu2X::writeConfig() {
 		}
 	}
 	TRACE("GMenu2X::writeConfig - ledOff");
-	ledOff();
 	sync();
+	ledOff();
 	TRACE("GMenu2X::writeConfig - exit");
 }
 
@@ -1258,11 +1268,7 @@ void GMenu2X::skinMenu() {
 	TRACE("GMenu2X::skinMenu - enter");
 	bool save = false;
 	int selected = 0;
-
-	string prevSkin = confStr["skin"];
 	int prevSkinBackdrops = skin->skinBackdrops;
-
-	vector<string> skinList = Skin::getSkins(assets_path);
 
 	vector<string> wpLabel;
 	wpLabel.push_back(">>");
@@ -1292,28 +1298,29 @@ void GMenu2X::skinMenu() {
 		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
 		sd.selected = selected;
 		sd.allowCancel = false;
-		sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenu2X"], &confStr["skin"], &skinList, MakeDelegate(this, &GMenu2X::onChangeSkin)));
-		
+
 		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::changeWallpaper)));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::skinColors)));
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
-		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar"], &skin->topBarHeight, 40, 1, resY));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar"], &skin->bottomBarHeight, 16, 1, resY));
+
 		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 18, resX));
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->topBarHeight, 40, 1, resY));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->bottomBarHeight, 16, 1, resY));
+
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
-		
-		// TODO:: add hide link icons and section icons 
+		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles between section icons and text in horizontal mode"], &skin->showSectionIcons));
+
+		sd.addSetting(new MenuSettingBool(this, tr["Show link icons"], tr["Toggles link icons on or off"], &skin->showLinkIcons));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
-		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 8));
+		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 10));
 		sd.exec();
 
 		// if wallpaper has changed, get full path and add it to the sc
 		if (wpCurrent != wpPrev) {
-		//if (skin->wallpaper != wpPrev) {
 			if (sc.add(assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + wpCurrent) != NULL)
 				skin->wallpaper = assets_path + "skins/" + confStr["skin"] + "/wallpapers/" + wpCurrent;
 
@@ -1337,11 +1344,6 @@ void GMenu2X::skinMenu() {
 	if (prevSkinBackdrops != skin->skinBackdrops) {
 		TRACE("GMenu2X::skinMenu - restarting because backdrops changed");
 		restartDialog(true);
-	} else if (prevSkin != confStr["skin"]) {
-		TRACE("GMenu2X::skinMenu - restarting because skins changed");
-		// save the skin setting
-		this->writeConfig();
-		restartDialog();
 	} else initMenu();
 	TRACE("GMenu2X::skinMenu - exit");
 }
@@ -1453,18 +1455,17 @@ void GMenu2X::linkScanner() {
 
 void GMenu2X::changeWallpaper() {
 	TRACE("GMenu2X::changeWallpaper - enter");
-	WallpaperDialog wp(this, 
+	WallpaperDialog wp(
+		this, 
 		tr["Wallpaper"], 
 		tr["Select an image to use as a wallpaper"], 
-		"skin:icons/wallpaper.png", 
-		confStr["skin"], 
-		skin->wallpaper);
+		"skin:icons/wallpaper.png");
 
 	if (wp.exec() && skin->wallpaper != wp.wallpaper) {
 		TRACE("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
 		setWallpaper(wp.wallpaper);
 		TRACE("GMenu2X::changeWallpaper - write config");
-		writeConfig();
+		writeSkinConfig();
 	}
 	TRACE("GMenu2X::changeWallpaper - exit");
 }
@@ -1645,6 +1646,7 @@ string GMenu2X::mountSd() {
 	checkUDC();
 	return result;
 }
+
 void GMenu2X::mountSdDialog() {
 	MessageBox mb(this, tr["Mount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1681,6 +1683,7 @@ void GMenu2X::mountSdDialog() {
 		mb.exec();
 	}
 }
+
 string GMenu2X::umountSd() {
 	system("sync");
 	string result = exec("umount -fl /media/sdcard 2>&1");
@@ -1688,6 +1691,7 @@ string GMenu2X::umountSd() {
 	checkUDC();
 	return result;
 }
+
 void GMenu2X::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -2220,7 +2224,6 @@ int GMenu2X::setVolume(int val) {
 	return val;
 }
 
-
 int GMenu2X::getBacklight() {
 	TRACE("GMenu2X::getBacklight - enter");
 	int level = -1;
@@ -2269,6 +2272,7 @@ const string &GMenu2X::getExePath() {
 const string &GMenu2X::getAssetsPath() {
 	return USER_PREFIX;
 }
+
 string GMenu2X::getCurrentSkinPath() {
 	string currentSkin = (confStr["skin"].empty() ? "Default" : confStr["skin"]);
 	TRACE("GMenu2X::getCurrentSkinPath - current skin looks to be : %s", currentSkin.c_str());
@@ -2639,4 +2643,5 @@ void GMenu2X::initServices() {
 		system(services.c_str());
 	}
 }
+
 #endif
