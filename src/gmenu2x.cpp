@@ -1311,9 +1311,9 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->bottomBarHeight, 16, 1, resY));
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
-		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles between section icons and text in horizontal mode"], &skin->showSectionIcons));
+		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 
-		sd.addSetting(new MenuSettingBool(this, tr["Show link icons"], tr["Toggles link icons on or off"], &skin->showLinkIcons));
+		sd.addSetting(new MenuSettingBool(this, tr["Show link icons"], tr["Toggles link icons on/off"], &skin->showLinkIcons));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
 		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 10));
