@@ -462,8 +462,7 @@ void GMenu2X::main() {
 
 		//TRACE("main :: setting the box");
 		s->box((SDL_Rect){0, 0, resX, resY}, (RGBAColor){0, 0, 0, 255});
-		
-		// this is the bomb if not set!!
+
 		if (sc[currBackdrop]) {
 			//TRACE("main :: blitting sc[currBackdrop]");
 			sc[currBackdrop]->blit(s,0,0);
@@ -565,32 +564,45 @@ void GMenu2X::main() {
 			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
 			for (y = 0; y < skin->numLinkRows; y++) {
 				for (x = 0; x < skin->numLinkCols && i < menu->sectionLinks()->size(); x++, i++) {
-					ix = linksRect.x + x * linkWidth  + (x + 1) * linkSpacing;
-					iy = linksRect.y + y * linkHeight + (y + 1) * linkSpacing;
+
+					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
+					// calc cell x && y
+					ix = linksRect.x + (x * linkWidth)  + (x + 1) * linkSpacing;
+					iy = linksRect.y + (y * linkHeight) + (y + 1) * linkSpacing;
 
 					s->setClipRect({ix, iy, linkWidth, linkHeight});
 
-					if (i == (uint32_t)menu->selLinkIndex())
+					// selected link highlight
+					if (i == (uint32_t)menu->selLinkIndex()) {
 						s->box(ix, iy, linkWidth, linkHeight, skin->colours.selectionBackground);
+					}
 
-					int textAlign = HAlignCenter | VAlignBottom;
-					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
+					
 
 					if (skin->showLinkIcons) {
+						TRACE("main :: links - adding icon and text : %s", title.c_str());
 						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 							s, 
 							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
 							HAlignCenter | VAlignMiddle);
+
+						s->write(font, 
+							title, 
+							ix + (linkWidth / 2), 
+							iy + linkHeight - 2, 
+							HAlignCenter | VAlignBottom);
 					} else {
-						textAlign = HAlignCenter | VAlignMiddle;
+						TRACE("main :: links - adding text only : %s", title.c_str());
+
+						s->write(font, 
+							splitInLines(title, 14), 
+							ix + (linkWidth / 2), 
+							iy + (linkHeight / 2), 
+							HAlignCenter | VAlignMiddle);
+
 					}
 
-					TRACE("main :: links - adding : %s", title.c_str());
-					s->write(font, 
-						title, 
-						ix + linkWidth/2, 
-						iy + linkHeight - 2, 
-						textAlign);
+
 				}
 			}
 		}
