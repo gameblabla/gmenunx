@@ -88,7 +88,7 @@ string Skin::toString() {
     vec.push_back(string_format("topBarHeight=%i", topBarHeight));
     vec.push_back(string_format("previewWidth=%i", previewWidth));
 
-    vec.push_back(string_format("showLinkIcons=%i", showLinkIcons));
+    vec.push_back(string_format("linkDisplayMode=%i", linkDisplayMode));
     vec.push_back(string_format("showSectionIcons=%i", showSectionIcons));
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
 
@@ -196,7 +196,7 @@ void Skin::reset() {
     topBarHeight = 40;
     previewWidth = 142;
 
-    showLinkIcons = true;
+    linkDisplayMode = LinkDisplayModes::ICON_AND_TEXT;
     showSectionIcons = true;
     skinBackdrops = false;
     sectionBar = SB_LEFT;
@@ -228,10 +228,10 @@ void Skin::constrain() {
 	evalIntConf( &this->fontSize, 12, 6, 60);
 	evalIntConf( &this->fontSizeTitle, 20, 6, 60);
     evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
-	evalIntConf( &this->showLinkIcons, 1, 0, 1);
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
     evalIntConf( &this->numLinkCols, 1, 1, 10);
     evalIntConf( &this->numLinkRows, 6, 1, 10);
+    evalIntConf( (int)&this->linkDisplayMode, ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
 
 }
 
@@ -279,8 +279,8 @@ bool Skin::fromFile() {
                     topBarHeight = atoi(value.c_str());
                 } else if (name == "previewWidth") {
                     previewWidth = atoi(value.c_str());
-                } else if (name == "showLinkIcons") {
-                    showLinkIcons = atoi(value.c_str());
+                } else if (name == "linkDisplayMode") {
+                    linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
                 } else if (name == "showSectionIcons") {
                     showSectionIcons = atoi(value.c_str());
                 } else if (name == "skinBackdrops") {

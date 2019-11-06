@@ -526,6 +526,7 @@ void GMenu2X::main() {
 			for (y = 0; y < skin->numLinkRows && i < menu->sectionLinks()->size(); y++, i++) {
 				iy = linksRect.y + y * linkHeight;
 
+				// highlight selected link
 				if (i == (uint32_t)menu->selLinkIndex())
 					s->box(
 						ix, 
@@ -534,8 +535,9 @@ void GMenu2X::main() {
 						linkHeight, 
 						skin->colours.selectionBackground);
 
+				// todo :: support all 3 modes
 				int padding = 36;
-				if (skin->showLinkIcons) {
+				if (skin->linkDisplayMode == Skin::ICON_AND_TEXT || skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("Menu::loadIcons - theme uses icons");
 					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						s, 
@@ -576,21 +578,22 @@ void GMenu2X::main() {
 					if (i == (uint32_t)menu->selLinkIndex()) {
 						s->box(ix, iy, linkWidth, linkHeight, skin->colours.selectionBackground);
 					}
-
 					
-
-					if (skin->showLinkIcons) {
+					// todo :: support all modes properly
+					if (skin->linkDisplayMode == Skin::ICON || skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
 						TRACE("main :: links - adding icon and text : %s", title.c_str());
 						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 							s, 
 							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
 							HAlignCenter | VAlignMiddle);
 
-						s->write(font, 
-							title, 
-							ix + (linkWidth / 2), 
-							iy + linkHeight - 2, 
-							HAlignCenter | VAlignBottom);
+						if (skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
+							s->write(font, 
+								title, 
+								ix + (linkWidth / 2), 
+								iy + linkHeight - 2, 
+								HAlignCenter | VAlignBottom);
+						}
 					} else {
 						TRACE("main :: links - adding text only : %s", title.c_str());
 
@@ -1261,7 +1264,7 @@ void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
 	TRACE("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(name);
 
-	if (menu != NULL && clearSC && this->skin->showLinkIcons) {
+	if (menu != NULL && clearSC && (this->skin->linkDisplayMode == Skin::ICON_AND_TEXT | Skin::ICON)) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}
@@ -1292,8 +1295,13 @@ void GMenu2X::skinMenu() {
 	sbStr.push_back("Bottom");
 	sbStr.push_back("Right");
 	sbStr.push_back("Top");
-	int sbPrev = skin->sectionBar;
 	string sectionBar = sbStr[skin->sectionBar];
+	
+	vector<string> linkDisplayModesList;
+	linkDisplayModesList.push_back("Icon & text");
+	linkDisplayModesList.push_back("Icon");
+	linkDisplayModesList.push_back("Text");
+    string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
 
 	do {
 		setSkin(confStr["skin"], false, false);
@@ -1325,7 +1333,7 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 
-		sd.addSetting(new MenuSettingBool(this, tr["Show link icons"], tr["Toggles link icons on/off"], &skin->showLinkIcons));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
 		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 10));
@@ -1341,6 +1349,8 @@ void GMenu2X::skinMenu() {
 
 		selected = sd.selected;
 		save = sd.save;
+
+
 	} while (!save);
 
 	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
@@ -1348,6 +1358,12 @@ void GMenu2X::skinMenu() {
 	else if (sectionBar == "Top") skin->sectionBar = Skin::SB_TOP;
 	else if (sectionBar == "Bottom") skin->sectionBar = Skin::SB_BOTTOM;
 	else skin->sectionBar = Skin::SB_LEFT;
+
+	if (linkDisplayModeCurrent == "Icon & text") {
+		skin->linkDisplayMode = Skin::ICON_AND_TEXT;
+	} else if (linkDisplayModeCurrent == "Icon") {
+		skin->linkDisplayMode = Skin::ICON;
+	} else skin->linkDisplayMode = Skin::TEXT;
 
 	TRACE("GMenu2X::skinMenu - writing config out");
 	writeSkinConfig();

@@ -37,6 +37,13 @@ public:
         SB_TOP,
     };
 
+
+    enum LinkDisplayModes {
+        ICON_AND_TEXT, 
+        ICON, 
+        TEXT
+    };
+
     Skin(string const &prefix, int const &maxX, int const &maxY);
     ~Skin();
 
@@ -59,7 +66,8 @@ public:
     int topBarHeight;
     int previewWidth;
 
-    int showLinkIcons;
+    LinkDisplayModes linkDisplayMode;
+
     int showSectionIcons;
     int skinBackdrops;
     SectionBar sectionBar;
