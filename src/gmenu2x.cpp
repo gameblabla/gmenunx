@@ -1392,7 +1392,7 @@ void GMenu2X::about() {
 	temp = tr["Build date: "] + __DATE__ + "\n";
 	temp += tr["Uptime: "] + hms + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";	
-	temp += tr["Storage used:"];
+	temp += tr["Storage free:"];
 	temp += "\n    " + tr["Internal: "] + getDiskFree("/media/data");
 
 	checkUDC();
