@@ -569,6 +569,18 @@ void GMenu2X::main() {
 				for (x = 0; x < skin->numLinkCols && i < menu->sectionLinks()->size(); x++, i++) {
 
 					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
+					int textWidth = font->getTextWidth(title);
+					TRACE("SCALE::TEXT-WIDTH: %i, TEXT-LENGTH: %i, LINK-WIDTH: %i", 
+							textWidth, 
+							title.size(), 
+							linkWidth);
+					if (textWidth > linkWidth) {
+						int wrapFactor = textWidth / linkWidth;
+						int wrapMax = title.size() / wrapFactor;
+						title = splitInLines(title, wrapMax);
+						TRACE("SCALE::WRAP::number of wraps needed: %i, wrap at max chars: %i, title: %s", wrapFactor, wrapMax, title.c_str());
+					}
+
 					// calc cell x && y
 					ix = linksRect.x + (x * linkWidth)  + (x + 1) * linkSpacing;
 					iy = linksRect.y + (y * linkHeight) + (y + 1) * linkSpacing;
@@ -579,27 +591,32 @@ void GMenu2X::main() {
 					if (i == (uint32_t)menu->selLinkIndex()) {
 						s->box(ix, iy, linkWidth, linkHeight, skin->colours.selectionBackground);
 					}
-					
-					// todo :: support all modes properly
-					if (skin->linkDisplayMode == Skin::ICON || skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
+
+					if (skin->linkDisplayMode == Skin::ICON) {
 						TRACE("main :: links - adding icon and text : %s", title.c_str());
 						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
 							s, 
 							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
 							HAlignCenter | VAlignMiddle);
 
-						if (skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
-							s->write(font, 
-								title, 
-								ix + (linkWidth / 2), 
-								iy + linkHeight - 2, 
-								HAlignCenter | VAlignBottom);
-						}
+					} else if (skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
+
+						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
+							s, 
+							{ix + 2, iy, linkWidth - 4, linkHeight}, 
+							HAlignCenter | VAlignTop);
+
+						s->write(font, 
+							title, 
+							ix + (linkWidth / 2), 
+							iy + linkHeight,
+							HAlignCenter | VAlignBottom);
+
 					} else {
 						TRACE("main :: links - adding text only : %s", title.c_str());
 
 						s->write(font, 
-							splitInLines(title, 14), 
+							title, 
 							ix + (linkWidth / 2), 
 							iy + (linkHeight / 2), 
 							HAlignCenter | VAlignMiddle);
