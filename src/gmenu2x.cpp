@@ -535,7 +535,6 @@ void GMenu2X::main() {
 						linkHeight, 
 						skin->colours.selectionBackground);
 
-				// todo :: support all 3 modes
 				int padding = 36;
 				if (skin->linkDisplayMode == Skin::ICON_AND_TEXT || skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("Menu::loadIcons - theme uses icons");
@@ -547,20 +546,22 @@ void GMenu2X::main() {
 					padding = 4;
 				}
 				
-				//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-				s->write(
-					fontTitle, 
-					tr.translate(menu->sectionLinks()->at(i)->getTitle()), 
-					ix + linkSpacing + padding, 
-					iy + fontTitle->getHeight() / 2, 
-					VAlignMiddle);
-				
-				s->write(
-					font, 
-					tr.translate(menu->sectionLinks()->at(i)->getDescription()), 
-					ix + linkSpacing + padding, 
-					iy + linkHeight - linkSpacing / 2, 
-					VAlignBottom);
+				if (skin->linkDisplayMode == Skin::ICON_AND_TEXT || skin->linkDisplayMode == Skin::TEXT) {
+					//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
+					s->write(
+						fontTitle, 
+						tr.translate(menu->sectionLinks()->at(i)->getTitle()), 
+						ix + linkSpacing + padding, 
+						iy + fontTitle->getHeight() / 2, 
+						VAlignMiddle);
+					
+					s->write(
+						font, 
+						tr.translate(menu->sectionLinks()->at(i)->getDescription()), 
+						ix + linkSpacing + padding, 
+						iy + linkHeight - linkSpacing / 2, 
+						VAlignBottom);
+				}
 			}
 		} else {
 			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
@@ -802,7 +803,6 @@ void GMenu2X::initLayout() {
 		skin->topBarHeight, 
 		resX, 
 		resY - skin->bottomBarHeight - skin->topBarHeight};
-
 
 	// WIP
 	// TODO :: Clear this shit up
