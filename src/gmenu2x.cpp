@@ -179,8 +179,9 @@ bool getTVOutStatus() {
 enum vol_mode_t {
 	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
 };
-int16_t volumeMode;
+
 uint8_t getVolumeMode(uint8_t vol) {
+	TRACE("getVolumeMode - enter : %i", vol);
 	if (!vol) return VOLUME_MODE_MUTE;
 	else if (vol > 0 && vol < 20) return VOLUME_MODE_PHONES;
 	return VOLUME_MODE_NORMAL;
@@ -340,6 +341,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - setPerformanceMode");
 	setPerformanceMode();
 
+	TRACE("GMenu2X::ctor - setVolume");
+	setVolume(confInt["globalVolume"]);
+
 	TRACE("GMenu2X::ctor - checkUDC");
 	checkUDC();
 
@@ -350,9 +354,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
 
-	TRACE("GMenu2X::ctor - volume");
-	volumeMode = getVolumeMode(confInt["globalVolume"]);
-	
 	TRACE("GMenu2X::ctor - menu");
 	initMenu();
 
@@ -416,6 +417,7 @@ void GMenu2X::main() {
 	bool quit = false;
 	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
 	uint32_t tickBattery = -4800, tickNow;
+	uint8_t currentVolumeMode = 0;
 	string prevBackdrop = skin->wallpaper;
 	string currBackdrop = skin->wallpaper;
 
@@ -613,6 +615,7 @@ void GMenu2X::main() {
 							HAlignCenter | VAlignBottom);
 
 					} else {
+
 						TRACE("main :: links - adding text only : %s", title.c_str());
 
 						s->write(font, 
@@ -657,14 +660,19 @@ void GMenu2X::main() {
 		 */
 		if (skin->sectionBar) {
 
-			if (tickNow - tickBattery >= 5000) {
+			// update helper icons every 1 secs
+			if (tickNow - tickBattery >= 1000) {
 				tickBattery = tickNow;
 				batteryIcon = getBatteryLevel();
-			}
-			if (batteryIcon > 5) batteryIcon = 6;
+				if (batteryIcon > 5) batteryIcon = 6;
 
-			brightnessIcon = confInt["backlight"] / 20;
-			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
+				brightnessIcon = getBacklight() / 51;
+				if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
+
+				int currentVolume = getVolume();
+				currentVolumeMode = getVolumeMode(currentVolume);
+
+			}
 
 			// tray helper icons
 			int helperHeight = 20;
@@ -679,7 +687,7 @@ void GMenu2X::main() {
 
 			TRACE("main :: hitting up the helpers");
 
-			helpers.push_back(iconVolume[volumeMode]);
+			helpers.push_back(iconVolume[currentVolumeMode]);
 			helpers.push_back(iconBattery[batteryIcon]);
 			if (curMMCStatus == MMC_MOUNTED) {
 				helpers.push_back(iconSD);
@@ -2246,6 +2254,8 @@ int GMenu2X::getVolume() {
 	if (result.length() > 0) {
 		vol = atoi(trim(result).c_str());
 	}
+	// scale 0 - 31, turn to percent
+	vol = vol * 100 / 31;
 	TRACE("GMenu2X::getVolume - exit : %i", vol);
 	return vol;
 }
@@ -2254,10 +2264,10 @@ int GMenu2X::setVolume(int val) {
 	TRACE("GMenu2X::setVolume - enter - %i", val);
 	if (val < 0) val = 100;
 	else if (val > 100) val = 0;
+	if (val == getVolume()) 
+		return val;
 	int rg350val = (int)(val * (31.0f/100));
 	TRACE("GMenu2X::setVolume - rg350 value : %i", rg350val);
-	if (rg350val == getVolume()) 
-		return val;
 	stringstream ss;
 	string cmd;
 	ss << RG350_SET_VOLUME_PATH << rg350val;
@@ -2265,7 +2275,6 @@ int GMenu2X::setVolume(int val) {
 	TRACE("GMenu2X::setVolume - cmd : %s", cmd.c_str());
 	string result = exec(cmd.c_str());
 	TRACE("GMenu2X::setVolume - result : %s", result.c_str());
-	volumeMode = getVolumeMode(val);
 	return val;
 }
 
@@ -2276,6 +2285,7 @@ int GMenu2X::getBacklight() {
 	if (result.length() > 0) {
 		level = atoi(trim(result).c_str());
 	}
+	// scale 0 - 255
 	TRACE("GMenu2X::getBacklight - exit : %i", level);
 	return level;
 }
