@@ -1,9 +1,6 @@
-
-
 #include <memory>
 #include <stdarg.h>
-
-#include <string>
+#include <string.h>
 #include <fstream>
 #include <stdlib.h>
 #include <sys/stat.h>

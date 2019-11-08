@@ -417,7 +417,7 @@ void GMenu2X::main() {
 	bool quit = false;
 	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
 	uint32_t tickBattery = -4800, tickNow;
-	uint8_t currentVolumeMode = 0;
+	uint8_t currentVolumeMode = VOLUME_MODE_MUTE;
 	string prevBackdrop = skin->wallpaper;
 	string currBackdrop = skin->wallpaper;
 
