@@ -23,6 +23,8 @@ public:
     string tvOutMode; //="NTSC"
     string lang; //=""
     string batteryType; //="BL-5B"
+    string sectionFilter; //="applications,foo"
+
     int buttonRepeatRate; //=10
     int resolutionX; //=320
     int resolutionY; //=240

@@ -172,7 +172,6 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				} else {
 					ERROR("LinkApp::LinkApp - ctor - directory doesn't exist : %s", outPath.c_str());
 				}
-
 			} else {
 				TRACE("LinkApp::LinkApp - ctor - loaded opk icon failed");
 				this->icon = opkImagePath;

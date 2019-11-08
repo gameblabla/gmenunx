@@ -43,6 +43,7 @@ string Config::toString() {
     vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode.c_str()));
     vec.push_back(string_format("lang=\"%s\"", this->lang.c_str()));
     vec.push_back(string_format("batteryType=\"%s\"", this->batteryType.c_str()));
+    vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter.c_str()));
 
     // ints
     vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate));
@@ -217,7 +218,10 @@ bool Config::fromFile() {
                     this->lang = stripQuotes(value);
                 } else if (name == "batteryType") {
                     this->batteryType = stripQuotes(value);
-                }
+                } else if (name == "sectionFilter") {
+                    this->sectionFilter = stripQuotes(value);
+                } 
+
                 // ints
                 else if (name == "buttonRepeatRate") {
                     this->buttonRepeatRate = atoi(value.c_str());

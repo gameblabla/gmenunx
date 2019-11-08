@@ -51,26 +51,41 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	struct dirent *dptr;
 	string filepath;
 
+	vector<string> filter;
+	split(filter, this->gmenu2x->config->sectionFilter, ",");
+	TRACE("Menu :: ctor - got %i filter sections", filter.size());
+
 	TRACE("Menu :: ctor - opening sections");
-	string resolvedPath = this->gmenu2x->getAssetsPath()+"sections/";
+	string resolvedPath = this->gmenu2x->getAssetsPath() + "sections/";
 	TRACE("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
 	TRACE("Menu :: ctor - readdir : %i", dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
+		string dirName = string(dptr->d_name);
 		TRACE("Menu :: ctor - reading : %s", dptr->d_name);
-		filepath = (string)(resolvedPath + dptr->d_name);
+		filepath = resolvedPath + dirName;
 		TRACE("Menu :: ctor - checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
 		TRACE("Menu :: ctor - reading stat : %i", statRet);
 		if (!S_ISDIR(st.st_mode)) continue;
 		if (statRet != -1) {
-			TRACE("Menu :: ctor - adding section : %s", dptr->d_name);
-			sections.push_back((string)dptr->d_name);
-			// add a new link list to the links collection
-			linklist ll;
-			links.push_back(ll);
+			// check the filters
+			bool filtered = false;
+			for (vector<string>::iterator it = filter.begin(); it != filter.end(); ++it) {
+				string filterName = (*it);
+				if (dirName.compare(filterName) == 0) {
+					filtered = true;
+					break;
+				}
+			}
+			if (!filtered) {
+				TRACE("Menu :: ctor - adding section : %s", dptr->d_name);
+				sections.push_back((string)dptr->d_name);
+				linklist ll;
+				links.push_back(ll);
+			}
 		}
 	}
 	TRACE("Menu :: ctor - dirp has been read");
