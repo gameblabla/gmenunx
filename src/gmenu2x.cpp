@@ -933,6 +933,7 @@ void GMenu2X::settings() {
 	TRACE("GMenu2X::settings - enter");
 	int curGlobalVolume = config->globalVolume;
 	int curGlobalBrightness = config->backlightLevel;
+	bool unhideSections = false;
 	string prevSkin = config->skin;
 	vector<string> skinList = Skin::getSkins(assets_path);
 
@@ -975,6 +976,10 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &config->performance, &performanceModes));
 
 	sd.addSetting(new MenuSettingBool(this, tr["Save last selection"], tr["Save the last selected link and section on exit"], &config->saveSelection));
+	if (!config->sectionFilter.empty()) {
+		sd.addSetting(new MenuSettingBool(this, tr["Unhide all sections"], tr["Remove the hide sections filter"], &unhideSections));
+	}
+	
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &config->outputLogs));
 	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &config->backlightTimeout, 60, 0, 120));
 	
@@ -989,6 +994,7 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
+		bool refreshNeeded = false;
 		TRACE("GMenu2X::settings - updating the settings");
 		if (curGlobalVolume != config->globalVolume) {
 			curGlobalVolume = setVolume(config->globalVolume);
@@ -1001,7 +1007,16 @@ void GMenu2X::settings() {
 			TRACE("GMenu2X::settings - updating language : %s", lang.c_str());
 			config->lang = lang;
 			tr.setLang(lang);
-			TRACE("GMenu2X::settings - calling inti menu");
+			refreshNeeded = true;
+		}
+		if (unhideSections) {
+			config->sectionFilter = "";
+			this->menu->setSectionIndex(0);
+			this->menu->setLinkIndex(0);
+			refreshNeeded = true;
+		}
+		if (refreshNeeded) {
+			TRACE("GMenu2X::settings - calling init menu");
 			initMenu();
 		}
 
