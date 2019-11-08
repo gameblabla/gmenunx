@@ -76,8 +76,8 @@ void BatteryLoggerDialog::exec() {
 			int rowY, j = log.size() - i - 1;
 			if (log.at(j) == "----") { // draw a line
 				rowY = 42 + (int)((i - firstRow + 0.5) * gmenu2x->font->getHeight());
-				gmenu2x->s->box(5, rowY, gmenu2x->resX - 16, 1, 255, 255, 255, 130);
-				gmenu2x->s->box(5, rowY + 1, gmenu2x->resX - 16, 1, 0, 0, 0, 130);
+				gmenu2x->s->box(5, rowY, gmenu2x->config->resolutionX - 16, 1, 255, 255, 255, 130);
+				gmenu2x->s->box(5, rowY + 1, gmenu2x->config->resolutionX - 16, 1, 0, 0, 0, 130);
 			} else {
 				rowY = 42 + (i - firstRow) * gmenu2x->font->getHeight();
 				gmenu2x->font->write(gmenu2x->s, log.at(j), 5, rowY);
@@ -112,5 +112,5 @@ void BatteryLoggerDialog::exec() {
 			}
 		}
 	}
-	gmenu2x->setBacklight(gmenu2x->confInt["backlight"]);
+	gmenu2x->setBacklight(gmenu2x->config->backlightLevel);
 }

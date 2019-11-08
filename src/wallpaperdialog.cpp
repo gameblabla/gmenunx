@@ -41,9 +41,7 @@ bool WallpaperDialog::exec()
 	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
 	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 	int32_t selected = 0;
-	string assetsPath = gmenu2x->getAssetsPath();
-	// TODO :: getthis from skin
-	string wallpaperPath = assetsPath + "skins/" + this->gmenu2x->skin->name + "/wallpapers/";
+	string wallpaperPath = this->gmenu2x->skin->currentSkinPath() + "/wallpapers/";
 
 	vector<string> wallpapers;
 	wallpapers = gmenu2x->skin->getWallpapers();

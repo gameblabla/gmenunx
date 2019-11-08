@@ -101,12 +101,12 @@ int MessageBox::exec() {
 
 	// Surface bg(gmenu2x->s);
 	//Darken background
-	gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->resX, gmenu2x->resY}, (RGBAColor){0,0,0,bgalpha});
-	TRACE("MessageBox::exec - resx : %i", gmenu2x->resX);
+	gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0,0,0,bgalpha});
+	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX);
 	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
 	int box_w_padding = 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
-	int wrap_size = ((gmenu2x->resX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 10);
+	int wrap_size = ((gmenu2x->config->resolutionX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 10);
 	TRACE("MessageBox::exec - wrap size : %i", wrap_size);
 
 	string wrapped_text = splitInLines(text, wrap_size);

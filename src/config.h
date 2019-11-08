@@ -17,14 +17,6 @@ public:
     Config(string const &prefix);
     ~Config();
 
-    bool loadConfig();
-    string toString();
-    string now();
-    bool save();
-
-private:
-
-    string prefix;
 
     string skin; //="Default"
     string datetime; //="1970-01-01 00:00"
@@ -50,6 +42,15 @@ private:
     int powerTimeout; //=10
     int outputLogs; //=1
     int version; //=1
+
+    bool loadConfig();
+    string toString();
+    string now();
+    bool save();
+
+private:
+
+    string prefix;
 
     void reset();
     bool fromFile();

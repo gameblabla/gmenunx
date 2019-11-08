@@ -47,7 +47,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	file = linkfile;
 
 	TRACE("LinkApp::LinkApp - ctor - setCPU");
-	setCPU(gmenu2x->confInt["cpuMenu"]);
+	setCPU(gmenu2x->config->cpuMenu);
 
 	selectordir = "";
 	selectorfilter = "";
@@ -158,15 +158,21 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			SDL_Surface *tmpIcon = loadPNG(opkImagePath, true);
 			if (tmpIcon) {
 				TRACE("LinkApp::LinkApp - ctor - loaded opk icon ok");
-				string outFile = gmenu2x->getCurrentSkinPath() + "/icons/" + basename(shortFileName.c_str());
-				TRACE("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
-				if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
-					string workingName = "skin:" + ip;
-					TRACE("LinkApp::LinkApp - ctor - working name is : %s", workingName.c_str());
-					this->icon = workingName;
+				string outPath = gmenu2x->skin->currentSkinPath() + "/icons";
+				if (dirExists(outPath)) {
+					string outFile = outPath + "/" + basename(shortFileName.c_str());
+					TRACE("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
+					if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
+						string workingName = "skin:" + ip;
+						TRACE("LinkApp::LinkApp - ctor - working name is : %s", workingName.c_str());
+						this->icon = workingName;
+					} else {
+						ERROR("LinkApp::LinkApp - ctor - couldn't save icon png");
+					}
 				} else {
-					ERROR("LinkApp::LinkApp - ctor - couldn't save icon png");
+					ERROR("LinkApp::LinkApp - ctor - directory doesn't exist : %s", outPath.c_str());
 				}
+
 			} else {
 				TRACE("LinkApp::LinkApp - ctor - loaded opk icon failed");
 				this->icon = opkImagePath;
@@ -285,7 +291,7 @@ const string &LinkApp::searchManual() {
 }
 
 const string &LinkApp::searchBackdrop() {
-	if (!backdropPath.empty() || !gmenu2x->confInt["skinBackdrops"]) return backdropPath;
+	if (!backdropPath.empty() || !gmenu2x->skin->skinBackdrops) return backdropPath;
 	string execicon = exec;
 	string::size_type pos = exec.rfind(".");
 	if (pos != string::npos) execicon = exec.substr(0, pos);
@@ -353,7 +359,7 @@ int LinkApp::clock() {
 
 void LinkApp::setCPU(int mhz) {
 	iclock = mhz;
-	if (iclock != 0) iclock = constrain(iclock, gmenu2x->confInt["cpuMin"], gmenu2x->confInt["cpuMax"]);
+	if (iclock != 0) iclock = constrain(iclock, gmenu2x->config->cpuMin, gmenu2x->config->cpuMax);
 	edited = true;
 }
 
@@ -487,7 +493,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		}
 	}
 
-	if (gmenu2x->confInt["saveSelection"] && (gmenu2x->confInt["section"] != gmenu2x->menu->selSectionIndex() || gmenu2x->confInt["link"] != gmenu2x->menu->selLinkIndex())) {
+	if (gmenu2x->config->saveSelection && (gmenu2x->config->section != gmenu2x->menu->selSectionIndex() || gmenu2x->config->link != gmenu2x->menu->selLinkIndex())) {
 		TRACE("LinkApp::launch - saving selection");
 		gmenu2x->writeConfig();
 	}
@@ -515,7 +521,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		commandLine = { "/bin/sh", "-c", exec + " " + params };
 		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  exec.c_str(), params.c_str());
 	}
-	if (gmenu2x->confInt["outputLogs"]) {
+	if (gmenu2x->config->outputLogs) {
 		commandLine.push_back( "2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt");
 		TRACE("LinkApp::launch - adding logging");
 	}

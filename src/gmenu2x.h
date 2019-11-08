@@ -35,6 +35,7 @@ class PowerManager;
 #include "fonthelper.h"
 #include "led.h"
 #include "skin.h"
+#include "config.h"
 
 #include <iostream>
 #include <string>
@@ -139,23 +140,16 @@ private:
 	void mountSdDialog();
 	string mountSd();
 
-	// private Configuration hashes
-	ConfStrHash confStr;
-
 public:
 	GMenu2X();
 	~GMenu2X();
 	void quit();
 	void releaseScreen();
 
-	// public Configuration hashes
-	// TODO - move these to private as well....
-	ConfIntHash confInt;
-
 	/*
 	 * Variables needed for elements disposition
 	 */
-	uint32_t resX, resY, halfX, halfY;
+	uint32_t halfX, halfY;
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 
@@ -173,8 +167,6 @@ public:
 	@return String containing the parent directory
 	*/
 	const string &getAssetsPath();
-
-	string getCurrentSkinPath();
 
 	bool copyAssets();
 
@@ -284,8 +276,8 @@ public:
 	void drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect);
 
 	Menu* menu;
-
 	Skin* skin;
+	Config* config;
 
 };
 

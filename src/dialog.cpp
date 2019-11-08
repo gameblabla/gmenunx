@@ -22,7 +22,7 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 
 	if (i == NULL) i = gmenu2x->sc.skinRes("icons/generic.png");
 
-	i->blit(s, {4, 4, gmenu2x->resX - 8, gmenu2x->skin->topBarHeight - 8}, VAlignMiddle);
+	i->blit(s, {4, 4, gmenu2x->config->resolutionX - 8, gmenu2x->skin->topBarHeight - 8}, VAlignMiddle);
 	// s->box(4, 4, 32, 32, strtorgba("ffff00ff"));
 }
 
@@ -57,8 +57,8 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 	// Surface *bar = sc.skinRes("imgs/topbar.png");
 	// if (bar != NULL) bar->blit(s, 0, 0);
 	// else
-	s->setClipRect({0, 0, gmenu2x->resX, gmenu2x->skin->topBarHeight});
-	s->box(0, 0, gmenu2x->resX, gmenu2x->skin->topBarHeight, gmenu2x->skin->colours.topBarBackground);
+	s->setClipRect({0, 0, gmenu2x->config->resolutionX, gmenu2x->skin->topBarHeight});
+	s->box(0, 0, gmenu2x->config->resolutionX, gmenu2x->skin->topBarHeight, gmenu2x->skin->colours.topBarBackground);
 	if (!title.empty()) writeTitle(title, s);
 	if (!description.empty()) writeSubTitle(description, s);
 	if (!icon.empty()) drawTitleIcon(icon, s);
@@ -72,8 +72,8 @@ void Dialog::drawBottomBar(Surface *s) {
 	// else
 	s->box(
 		0, 
-		gmenu2x->resY - gmenu2x->skin->bottomBarHeight, 
-		gmenu2x->resX, 
+		gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight, 
+		gmenu2x->config->resolutionX, 
 		gmenu2x->skin->bottomBarHeight, 
 		gmenu2x->skin->colours.bottomBarBackground);
 }

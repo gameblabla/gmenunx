@@ -49,9 +49,10 @@ public:
 
     static vector<string> getSkins(string assetsPath) ;
 
+    std::string currentSkinPath();
     bool loadSkin(string name);
     vector<string> getWallpapers();
-    string toString();
+    std::string toString();
     bool save();
 
     string name;

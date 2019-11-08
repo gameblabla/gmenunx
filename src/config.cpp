@@ -167,6 +167,16 @@ void Config::constrain() {
 	evalIntConf( &this->maxBattery, 5, 0, 5);
 	evalIntConf( &this->version, CONFIG_CURRENT_VERSION, 1, 999);
 
+    if (!this->saveSelection) {
+        this->section = 0;
+        this->link = 0;
+    }
+
+	if (this->performance != "Performance") 
+		this->performance = "On demand";
+	if (this->tvOutMode != "PAL") 
+		this->tvOutMode = "NTSC";
+
 }
 
 bool Config::fromFile() {

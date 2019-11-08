@@ -178,6 +178,10 @@ vector<string> Skin::getWallpapers() {
     TRACE("Skin::getWallpapers - exit - found %i wallpapers for skin %s", results.size(), this->name.c_str());
 }
 
+std::string Skin::currentSkinPath() {
+    return this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
+}
+
 /* Private methods */
 
 void Skin::reset() {
