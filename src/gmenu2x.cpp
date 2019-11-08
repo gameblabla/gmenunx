@@ -19,26 +19,29 @@
  ***************************************************************************/
 
 #include <iostream>
-#include <iomanip>
+//#include <iomanip>
 #include <sstream>
-#include <fstream>
+//#include <fstream>
 #include <algorithm>
-#include <stdlib.h>
-#include <unistd.h>
-#include <math.h>
+//#include <stdlib.h>
+//#include <unistd.h>
+//#include <math.h>
 #include <signal.h>
-
 #include <sys/statvfs.h>
-#include <errno.h>
+//#include <errno.h>
 
 //for browsing the filesystem
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
+//#include <sys/stat.h>
+//#include <sys/types.h>
+//#include <dirent.h>
 
 //for soundcard
-#include <sys/ioctl.h>
-#include <linux/soundcard.h>
+//#include <sys/ioctl.h>
+//#include <linux/soundcard.h>
+
+//#include <sys/mman.h>
+//#include <ctime>
+#include <sys/time.h>
 
 #include "linkapp.h"
 #include "menu.h"
@@ -72,10 +75,6 @@
 #include "debug.h"
 #include "skin.h"
 #include "config.h"
-
-#include <sys/mman.h>
-#include <ctime>
-#include <sys/time.h>
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__

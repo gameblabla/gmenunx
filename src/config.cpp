@@ -122,6 +122,7 @@ void Config::reset() {
     this->tvOutMode = "NTSC";
     this->lang = "";
     this->batteryType = "BL-5B";
+    this->sectionFilter = "";
 
     // ints
     this->buttonRepeatRate = 10;
