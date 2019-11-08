@@ -17,7 +17,6 @@ public:
     Config(string const &prefix);
     ~Config();
 
-
     string skin; //="Default"
     string datetime; //="1970-01-01 00:00"
     string performance; //="On demand"
@@ -47,6 +46,8 @@ public:
     string toString();
     string now();
     bool save();
+    int halfX() { return this->resolutionX / 2; }
+    int halfY() { return this->resolutionY / 2; }
 
 private:
 

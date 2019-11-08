@@ -116,8 +116,8 @@ int MessageBox::exec() {
 	box.h = gmenu2x->font->getTextHeight(wrapped_text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
 	if (gmenu2x->sc[icon] != NULL && box.h < 40) box.h = 48;
 	box.w = gmenu2x->font->getTextWidth(wrapped_text) + box_w_padding;
-	box.x = gmenu2x->halfX - box.w/2 - 2;
-	box.y = gmenu2x->halfY - box.h/2 - 2;
+	box.x = gmenu2x->config->halfX() - box.w/2 - 2;
+	box.y = gmenu2x->config->halfY() - box.h/2 - 2;
 
 	//outer box
 	gmenu2x->s->box(box, gmenu2x->skin->colours.msgBoxBackground);
@@ -133,7 +133,7 @@ int MessageBox::exec() {
 		gmenu2x->font, 
 		wrapped_text, 
 		box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), 
-		gmenu2x->halfY - gmenu2x->font->getHeight()/5, 
+		gmenu2x->config->halfY() - gmenu2x->font->getHeight()/5, 
 		VAlignMiddle, 
 		gmenu2x->skin->colours.fontAlt, 
 		gmenu2x->skin->colours.fontAltOutline);
@@ -154,7 +154,7 @@ int MessageBox::exec() {
 		gmenu2x->font->getHeight(), 
 		gmenu2x->skin->colours.msgBoxBackground);
 
-	int btnX = gmenu2x->halfX+box.w/2-6;
+	int btnX = gmenu2x->config->halfX()+box.w/2-6;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
 		if (buttons[i] != "") {
 			buttonPositions[i].y = box.y+box.h+gmenu2x->font->getHalfHeight();

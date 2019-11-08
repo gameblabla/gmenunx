@@ -265,11 +265,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - backlight");
 	setBacklight(config->backlightLevel);
 
-	// now we can create sdl surfaces
-	// TODO :: can we delete these too?
-	halfX = config->resolutionX/2;
-	halfY = config->resolutionY/2;
-
 	TRACE("GMenu2X::ctor - setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
@@ -286,7 +281,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - surface");
 	s = new Surface();
 
-	// TODO :: can these be config->resolutionXY
 	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX, config->resolutionY, config->videoBpp);
 	s->raw = SDL_SetVideoMode(config->resolutionX, config->resolutionY, config->videoBpp, SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
@@ -817,9 +811,6 @@ void GMenu2X::initLayout() {
 		config->resolutionX, 
 		config->resolutionY - skin->bottomBarHeight - skin->topBarHeight};
 
-	// WIP
-	// TODO :: Clear this shit up
-	// and move it into reaad only prop in skin
 	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
 	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
 
@@ -972,8 +963,7 @@ void GMenu2X::settings() {
 	performanceModes.push_back("On demand");
 	performanceModes.push_back("Performance");
 
-	// TODO :: config->now()
-	string prevDateTime = config->datetime = getDateTime();
+	string prevDateTime = config->datetime = config->now();
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
@@ -1861,11 +1851,11 @@ void GMenu2X::contextMenu() {
 		if (w > box.w) box.w = w;
 	}
 	box.w += 23;
-	box.x = halfX - box.w / 2;
-	box.y = halfY - box.h / 2;
+	box.x = this->config->halfX() - box.w / 2;
+	box.y = this->config->halfY() - box.h / 2;
 
 	TRACE("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  config->resolutionX, config->resolutionY, halfX, halfY);
+	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  config->resolutionX, config->resolutionY, this->config->halfX(), this->config->halfY());
 	
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
