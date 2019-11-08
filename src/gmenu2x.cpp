@@ -1850,6 +1850,7 @@ void GMenu2X::contextMenu() {
 	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &GMenu2X::addLink)});
 	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &GMenu2X::addSection)});
 	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &GMenu2X::renameSection)});
+	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &GMenu2X::hideSection)});
 	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &GMenu2X::deleteSection)});
 	voices.push_back((MenuOption){tr["Link scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
 
@@ -2061,6 +2062,16 @@ void GMenu2X::addSection() {
 	}
 }
 
+void GMenu2X::hideSection() {
+	string section = menu->selSection();
+	if (this->config->sectionFilter.empty()) {
+		this->config->sectionFilter = section;
+	} else {
+		this->config->sectionFilter += "," + section;
+	}
+	initMenu();
+}
+
 void GMenu2X::renameSection() {
 	InputDialog id(this, ts, tr["Insert a new name for this section"], menu->selSection(), tr["Rename section"], menu->getSectionIcon(menu->selSectionIndex()));
 	if (id.exec()) {
@@ -2097,7 +2108,7 @@ void GMenu2X::deleteSection() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		ledOn();
-		if (rmtree(assets_path+"sections/"+menu->selSection())) {
+		if (rmtree(assets_path + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}
