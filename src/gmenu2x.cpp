@@ -447,8 +447,9 @@ void GMenu2X::main() {
 		s->box((SDL_Rect){0, 0, config->resolutionX, config->resolutionY}, (RGBAColor){0, 0, 0, 255});
 
 		if (sc[currBackdrop]) {
-			//TRACE("main :: blitting sc[currBackdrop]");
 			sc[currBackdrop]->blit(s,0,0);
+		} else {
+			s->box((SDL_Rect){0, 0, config->resolutionX, config->resolutionY}, skin->colours.background);
 		}
 		
 		// SECTIONS
@@ -760,20 +761,34 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 
 	skin->wallpaper = wallpaper;
 	TRACE("GMenu2X::setWallpaper - null test");
-	if (wallpaper.empty() || sc.add(wallpaper) == NULL) {
-		string relativePath = "skins/" + this->skin->name + "/wallpapers";
-		TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
+	if (wallpaper.empty()) {
+		TRACE("GMenu2X::setWallpaper - simple background mode");
+		
+		SDL_FillRect(	bg->raw, 
+						NULL, 
+						SDL_MapRGBA(
+							bg->raw->format, 
+							skin->colours.background.r, 
+							skin->colours.background.g, 
+							skin->colours.background.b, 
+							skin->colours.background.a));
+		
+	} else {
+		if(sc.add(wallpaper) == NULL) {
+			string relativePath = "skins/" + this->skin->name + "/wallpapers";
+			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
 
-		FileLister fl(assets_path + relativePath, false, true);
-		fl.setFilter(".png,.jpg,.jpeg,.bmp");
-		fl.browse();
-		if (fl.getFiles().size() > 0) {
-			TRACE("GMenu2X::setWallpaper - found our wallpaper");
-			skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
+			FileLister fl(assets_path + relativePath, false, true);
+			fl.setFilter(".png,.jpg,.jpeg,.bmp");
+			fl.browse();
+			if (fl.getFiles().size() > 0) {
+				TRACE("GMenu2X::setWallpaper - found our wallpaper");
+				skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
+			}
 		}
+		TRACE("GMenu2X::setWallpaper - blit");
+		sc[skin->wallpaper]->blit(bg, 0, 0);
 	}
-	TRACE("GMenu2X::setWallpaper - blit");
-	sc[wallpaper]->blit(bg, 0, 0);
 	TRACE("GMenu2X::setWallpaper - exit");
 }
 
@@ -1285,10 +1300,13 @@ void GMenu2X::skinMenu() {
 	linkDisplayModesList.push_back("Text");
     string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
 
+	vector<string> wallpapers = skin->getWallpapers();
+	std::vector<string>::iterator it;
+	it = wallpapers.begin();
+	wallpapers.insert(it, "None");
+
 	do {
 		setSkin(config->skin, false, false);
-
-		vector<string> wallpapers = skin->getWallpapers();
 		string wpPrev = base_name(skin->wallpaper);
 		string wpCurrent = wpPrev;
 
@@ -1322,10 +1340,12 @@ void GMenu2X::skinMenu() {
 		sd.exec();
 
 		// if wallpaper has changed, get full path and add it to the sc
+		// unless we have chosen 'None'
 		if (wpCurrent != wpPrev) {
-			if (sc.add(assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
-				skin->wallpaper = assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
-
+			if (wpCurrent != "None") {
+				if (sc.add(assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
+					skin->wallpaper = assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
+			} else skin->wallpaper = "";
 			setWallpaper(skin->wallpaper);
 		}
 
@@ -1364,6 +1384,7 @@ void GMenu2X::skinColors() {
 
 		SettingsDialog sd(this, ts, tr["Skin Colors"], "skin:icons/skin.png");
 		sd.allowCancel = false;
+		sd.addSetting(new MenuSettingRGBA(this, tr["Background"], tr["Background colour if no wallpaper"], &skin->colours.background));
 		sd.addSetting(new MenuSettingRGBA(this, tr["Top/Section Bar"], tr["Color of the top and section bar"], &skin->colours.topBarBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["List Body"], tr["Color of the list body"], &skin->colours.listBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["Bottom Bar"], tr["Color of the bottom bar"], &skin->colours.bottomBarBackground));

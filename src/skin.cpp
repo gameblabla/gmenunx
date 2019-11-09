@@ -93,6 +93,7 @@ string Skin::toString() {
     vec.push_back(string_format("wallpaper=\"%s\"", wallpaper.c_str()));
 
     vec.push_back("# colours section starts");
+    vec.push_back(string_format("background=%s", rgbatostr(colours.background).c_str()));
     vec.push_back(string_format("topBarBg=%s", rgbatostr(colours.topBarBackground).c_str()));
     vec.push_back(string_format("listBg=%s", rgbatostr(colours.listBackground).c_str()));
     vec.push_back(string_format("bottomBarBg=%s", rgbatostr(colours.bottomBarBackground).c_str()));
@@ -204,6 +205,7 @@ void Skin::reset() {
     wallpaper = "";
 
 	TRACE("Skin::reset - skinFontColors");
+    colours.background = (RGBAColor){125,55,125,200};
     colours.topBarBackground = (RGBAColor){255,255,255,130};
     colours.listBackground = (RGBAColor){255,255,255,0};
     colours.bottomBarBackground = (RGBAColor){255,255,255,130};
@@ -296,6 +298,8 @@ bool Skin::fromFile() {
                     if (wallpaper == base_name(wallpaper)) {
                         wallpaper = skinPath + "wallpapers/" + wallpaper;
                     }
+                } else if (name == "background") {
+                    colours.background = strtorgba(value);
                 } else if (name == "topBarBg") {
                     colours.topBarBackground = strtorgba(value);
                 } else if (name == "listBg") {

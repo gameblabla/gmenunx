@@ -16,6 +16,7 @@ class Skin {
 public:
 
     struct Colours {
+        RGBAColor background;
         RGBAColor topBarBackground;
         RGBAColor listBackground;
         RGBAColor bottomBarBackground;
