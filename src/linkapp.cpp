@@ -452,6 +452,8 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		}
 	}
 
+	string launchArgs;
+
 	// selectedFile means a rom or some kind of data file..
 	if (!selectedFile.empty()) {
 		TRACE("LinkApp::launch - we have a selected file to work with : %s", selectedFile.c_str());
@@ -479,16 +481,16 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		TRACE("LinkApp::launch - dir : %s", dir.c_str());
 
 		if (params.empty()) {
-			//params = cmdclean(dir + selectedFile);
-			params = dir + selectedFile;
-			TRACE("LinkApp::launch - no params, so cleaned to : %s", params.c_str());
+			launchArgs = "\"" + dir + selectedFile + "\"";
+			TRACE("LinkApp::launch - no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
-			string origParams = params;
-			params = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
-			params = strreplace(params, "[selPath]", cmdclean(dir));
-			params = strreplace(params, "[selFile]", cmdclean(selectedFileName));
-			params = strreplace(params, "[selExt]", cmdclean(selectedFileExtension));
-			if (params == origParams) params += " " + cmdclean(dir + selectedFile);
+			launchArgs = params;
+			launchArgs = strreplace(launchArgs, "[selFullPath]", cmdclean(dir + selectedFile));
+			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
+			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
+			launchArgs = strreplace(launchArgs, "[selExt]", cmdclean(selectedFileExtension));
+			if (params == launchArgs) launchArgs += " " + cmdclean(dir + selectedFile);
+			launchArgs = "\"" + launchArgs + "\"";
 		}
 	}
 
@@ -498,13 +500,15 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 	}
 
 	vector<string> commandLine;
+	commandLine = { "/bin/sh", "-c" };
+	string execute;
 
 	if (isOpk()) {
-		commandLine = { "opkrun", "-m", metadata, opkFile };
-		TRACE("LinkApp::launch - running an opk via : opkrun -m %s %s", metadata.c_str(), opkFile.c_str());
-		if (!params.empty()) {
-			TRACE("LinkApp::launch - running an opk with extra params : %s", params.c_str());
-			commandLine.push_back(params);
+		execute = "/usr/bin/opkrun -m " + metadata + " " + opkFile;
+		TRACE("LinkApp::launch - running an opk via : %s", execute.c_str());
+		if (!launchArgs.empty()) {
+			TRACE("LinkApp::launch - running an opk with extra params : %s", launchArgs.c_str());
+			execute += " " + launchArgs;
 		}
 	} else {
 		TRACE("LinkApp::launch - running a standard desktop file");
@@ -517,13 +521,15 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
 		} // else, well.. we are no worse off :)
 
-		commandLine = { "/bin/sh", "-c", exec + " " + params };
-		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  exec.c_str(), params.c_str());
+		execute = exec + " " + launchArgs;
+		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  execute.c_str());
 	}
 	if (gmenu2x->config->outputLogs) {
-		commandLine.push_back( "2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt");
+		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
 		TRACE("LinkApp::launch - adding logging");
 	}
+	TRACE("LinkApp::launch - Final command : %s", execute.c_str());
+	commandLine.push_back(execute);
 
 	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
 	if (toLaunch) {

@@ -1,5 +1,4 @@
 #include "launcher.h"
-
 #include "debug.h"
 
 #include <cerrno>
