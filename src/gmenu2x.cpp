@@ -173,7 +173,6 @@ uint8_t getVolumeMode(uint8_t vol) {
 
 GMenu2X::~GMenu2X() {
 	TRACE("GMenu2X::dtor - enter\n\n");
-    this->config->datetime = this->config->now();
 	writeConfig();
 	quit();
 	delete menu;
@@ -328,9 +327,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("GMenu2X::ctor - checkUDC");
 	checkUDC();
 
-	TRACE("GMenu2X::ctor - setDateTime");
-	setDateTime();
-
 	TRACE("GMenu2X::ctor - input");
 	input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
@@ -436,6 +432,8 @@ void GMenu2X::main() {
 
 	vector<Surface*> helpers;
 
+	RTC *rtc = new RTC();
+
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
@@ -470,6 +468,13 @@ void GMenu2X::main() {
 						sectionBarRect.w / 2, 
 						sectionBarRect.y + (sectionBarRect.h / 2),
 						HAlignCenter | VAlignMiddle);
+					
+					s->write(
+						fontSectionTitle, 
+						rtc->getClockTime(), 
+						4, 
+						sectionBarRect.y + (sectionBarRect.h / 2),
+						HAlignLeft | VAlignMiddle);
 
 			} else {
 
@@ -655,6 +660,8 @@ void GMenu2X::main() {
 				int currentVolume = getVolume();
 				currentVolumeMode = getVolumeMode(currentVolume);
 
+				rtc->refresh();
+
 			}
 
 			// tray helper icons
@@ -744,6 +751,7 @@ void GMenu2X::main() {
 			showManual();
 	}
 
+	delete rtc;
 	exitMainThread = true;
 	pthread_join(thread_id, NULL);
 	// delete btnContextMenu;
@@ -979,14 +987,13 @@ void GMenu2X::settings() {
 	performanceModes.push_back("On demand");
 	performanceModes.push_back("Performance");
 
-	string prevDateTime = config->datetime = RTC::getTime();//config->now();
-	TRACE("GMenu2X::settings - prevdatetime : %s, config->datetime : %s", 
-		prevDateTime.c_str(), 
-		config->datetime.c_str());
+	RTC *rtc = new RTC();
+	string currentDatetime = rtc->getDateTime();
+	string prevDateTime = currentDatetime;
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
-	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &config->datetime));
+	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &currentDatetime));
 	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &config->batteryType, &batteryType));
 
 	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenuNX"], &config->skin, &skinList));
@@ -1044,14 +1051,19 @@ void GMenu2X::settings() {
 
 		this->writeConfig();
 
+		if (prevDateTime != currentDatetime) {
+			TRACE("GMenu2X::skinMenu - updating datetime");
+			MessageBox mb(this, tr["Updating system time"]);
+			mb.setAutoHide(500);
+			mb.exec();
+			rtc->setTime(currentDatetime);
+		}
 		if (prevSkin != config->skin) {
 			TRACE("GMenu2X::skinMenu - restarting because skins changed");
 			restartDialog();
-		} else if (prevDateTime != config->datetime) {
-			TRACE("GMenu2X::skinMenu - updating datetime");
-			RTC::setTime(config->datetime);
 		}
 	}
+	delete rtc;
 	TRACE("GMenu2X::settings - exit");
 }
 
@@ -1571,40 +1583,6 @@ void GMenu2X::ledOn() {
 void GMenu2X::ledOff() {
 	TRACE("ledOff");
 	led->reset();
-}
-
-const string GMenu2X::getDateTime() {
-	char       buf[80];
-	time_t     now = time(0);
-	struct tm  tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%F %R", &tstruct);
-	return buf;
-}
-
-void GMenu2X::setDateTime() {
-	int imonth, iday, iyear, ihour, iminute;
-	string value = config->datetime;
-
-	sscanf(value.c_str(), "%d-%d-%d %d:%d", &iyear, &imonth, &iday, &ihour, &iminute);
-
-	struct tm datetime = { 0 };
-
-	datetime.tm_year = iyear - 1900;
-	datetime.tm_mon  = imonth - 1;
-	datetime.tm_mday = iday;
-	datetime.tm_hour = ihour;
-	datetime.tm_min  = iminute;
-	datetime.tm_sec  = 0;
-
-	if (datetime.tm_year < 0) datetime.tm_year = 0;
-
-	time_t t = mktime(&datetime);
-
-	struct timeval newtime = { t, 0 };
-
-#if !defined(TARGET_PC)
-	settimeofday(&newtime, NULL);
-#endif
 }
 
 bool GMenu2X::saveScreenshot() {

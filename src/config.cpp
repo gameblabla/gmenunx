@@ -38,7 +38,6 @@ string Config::toString() {
 
     // strings
     vec.push_back(string_format("skin=\"%s\"", this->skin.c_str()));
-    vec.push_back(string_format("datetime=\"%s\"", this->datetime.c_str()));
     vec.push_back(string_format("performance=\"%s\"", this->performance.c_str()));
     vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode.c_str()));
     vec.push_back(string_format("lang=\"%s\"", this->lang.c_str()));
@@ -98,18 +97,6 @@ bool Config::loadConfig() {
     return this->fromFile();
 }
 
-std::string Config::now() {
-    time_t now = time(0);
-    tm *ltm = localtime(&now);
-    int year = 1900  + ltm->tm_year;
-    int month = 1 + ltm->tm_mon;
-    std::ostringstream ss;
-    ss << year << "-" << month << "-" << ltm->tm_mday << " " << ltm->tm_hour << ":" << ltm->tm_min;
-    // << ":" << ltm->tm_sec;
-    // "1970-01-01 00:00"
-    return ss.str();
-}
-
 /* Private methods */
 
 void Config::reset() {
@@ -117,7 +104,6 @@ void Config::reset() {
 
      //strings
     this->skin = "Default";
-    this->datetime = this->now();
     this->performance = "On demand";
     this->tvOutMode = "NTSC";
     this->lang = "";
@@ -209,8 +195,6 @@ bool Config::fromFile() {
                 // strings
                 if (name == "skin") {
                     this->skin = stripQuotes(value);
-                } else if (name == "datetime") {
-                    this->datetime = stripQuotes(value);
                 } else if (name == "performance") {
                     this->performance = stripQuotes(value);
                 } else if (name == "tvOutMode") {

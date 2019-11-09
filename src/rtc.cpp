@@ -12,34 +12,48 @@
 
 using std::string;
 
-std::string RTC::getTime() {
-    TRACE("RTC::getTime - enter");
+RTC::RTC() {
+    this->refresh();
+}
+RTC::~RTC() {
+    
+}
+
+void RTC::refresh() {
+    TRACE("RTC::refresh - enter");
     int fd;
-    struct rtc_time rt;
     fd = open("/dev/rtc", O_RDONLY);
     ioctl(fd, RTC_RD_TIME, &rt);
     close(fd);
+    TRACE("RTC::refresh - exit");
+}
 
-/*
-    struct       rtc_time {
-        int         tm_sec;
-        int         tm_min;
-        int         tm_hour;
-        int         tm_mday;
-        int         tm_mon;
-        int         tm_year;
-        int         tm_wday;
-        int         tm_yday;
-        int         tm_isdst;
-    };
-*/
+int RTC::getHours() {
+    return this->rt.tm_hour + (this->rt.tm_isdst ? 1 : 0);
+}
+int RTC::getMinutes() {
+    return this->rt.tm_min;
+}
 
+std::string RTC::getClockTime(bool is24hr) {
+    int hours = this->getHours();
+	bool pm = (hours >= 12);
+	if (!is24hr && pm)
+		hours -= 12;
+
+	char buf[9];
+	sprintf(buf, "%02i:%02i%s", hours, this->rt.tm_min, is24hr ? "" : (pm ? "pm" : "am"));
+	return std::string(buf);
+}
+
+std::string RTC::getDateTime() {
+    TRACE("RTC::getTime - enter");
     string result = string_format(
         "%i-%i-%i %i:%i", 
         1900 + rt.tm_year, 
         1 + rt.tm_mon, 
         rt.tm_mday, 
-        rt.tm_hour + (rt.tm_isdst ? 1 : 0), 
+        this->getHours(), 
         rt.tm_min);
     TRACE("RTC::getTime - dst : %i", rt.tm_isdst);
     TRACE("RTC::getTime - exit : %s", result.c_str());
