@@ -475,7 +475,7 @@ void GMenu2X::main() {
 				if (skin->showClock) {	
 					s->write(
 						fontSectionTitle, 
-						rtc->getClockTime(), 
+						rtc->getClockTime(true), 
 						4, 
 						sectionBarRect.y + (sectionBarRect.h / 2),
 						HAlignLeft | VAlignMiddle);
