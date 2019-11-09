@@ -19,28 +19,10 @@
  ***************************************************************************/
 
 #include <iostream>
-//#include <iomanip>
 #include <sstream>
-//#include <fstream>
 #include <algorithm>
-//#include <stdlib.h>
-//#include <unistd.h>
-//#include <math.h>
 #include <signal.h>
 #include <sys/statvfs.h>
-//#include <errno.h>
-
-//for browsing the filesystem
-//#include <sys/stat.h>
-//#include <sys/types.h>
-//#include <dirent.h>
-
-//for soundcard
-//#include <sys/ioctl.h>
-//#include <linux/soundcard.h>
-
-//#include <sys/mman.h>
-//#include <ctime>
 #include <sys/time.h>
 
 #include "linkapp.h"
@@ -76,6 +58,7 @@
 #include "skin.h"
 #include "config.h"
 #include "rtc.h"
+#include "renderer.h"
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -152,23 +135,10 @@ enum mmc_status {
 	MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
 };
 
-int16_t curMMCStatus;
-
 int16_t tvOutPrev = false, tvOutConnected;
 bool getTVOutStatus() {
 	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
 	return false;
-}
-
-enum vol_mode_t {
-	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
-};
-
-uint8_t getVolumeMode(uint8_t vol) {
-	TRACE("getVolumeMode - enter : %i", vol);
-	if (!vol) return VOLUME_MODE_MUTE;
-	else if (vol > 0 && vol < 20) return VOLUME_MODE_PHONES;
-	return VOLUME_MODE_NORMAL;
 }
 
 GMenu2X::~GMenu2X() {
@@ -363,392 +333,31 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 }
 
-void GMenu2X::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow) {
-	TRACE("GMenu2X::layoutHelperIcons - enter - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
-	int iconCounter = 0;
-	int currentXOffset = 0;
-	int currentYOffset = 0;
-	int rootXPos = *rootXPosPtr;
-	int rootYPos = *rootYPosPtr;
-
-	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
-		DEBUG("GMenu2X::layoutHelperIcons - blitting");
-		(*it)->blit(
-			s, 
-			rootXPos - (currentXOffset * (helperHeight - 2)), 
-			rootYPos - (currentYOffset * (helperHeight - 2))
-		);
-		if (++iconCounter % iconsPerRow == 0) {
-			++currentXOffset;
-			currentYOffset = 0;
-		} else {
-			++currentYOffset;
-		}
-	};
-	*rootXPosPtr = rootXPos - (currentXOffset * (helperHeight - 2));
-	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
-	TRACE("GMenu2X::layoutHelperIcons - exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
-}
-
 void GMenu2X::main() {
-	pthread_t thread_id;
-
-	TRACE("main");
 	
+	TRACE("main - enter");
 	bool quit = false;
-	int i = 0, x = 0, y = 0, ix = 0, iy = 0;
-	uint32_t tickBattery = -4800, tickNow;
-	uint8_t currentVolumeMode = VOLUME_MODE_MUTE;
-	string prevBackdrop = skin->wallpaper;
-	string currBackdrop = skin->wallpaper;
-
-	int8_t brightnessIcon = 5;
-	Surface *iconBrightness[6] = {
-		sc.skinRes("imgs/brightness/0.png"),
-		sc.skinRes("imgs/brightness/1.png"),
-		sc.skinRes("imgs/brightness/2.png"),
-		sc.skinRes("imgs/brightness/3.png"),
-		sc.skinRes("imgs/brightness/4.png"),
-		sc.skinRes("imgs/brightness.png"),
-	};
-
-	int8_t batteryIcon = 3;
-	Surface *iconBattery[7] = {
-		sc.skinRes("imgs/battery/0.png"),
-		sc.skinRes("imgs/battery/1.png"),
-		sc.skinRes("imgs/battery/2.png"),
-		sc.skinRes("imgs/battery/3.png"),
-		sc.skinRes("imgs/battery/4.png"),
-		sc.skinRes("imgs/battery/5.png"),
-		sc.skinRes("imgs/battery/ac.png"),
-	};
-
-	Surface *iconVolume[3] = {
-		sc.skinRes("imgs/mute.png"),
-		sc.skinRes("imgs/phones.png"),
-		sc.skinRes("imgs/volume.png"),
-	};
-
-	Surface *iconSD = sc.skinRes("imgs/sd1.png"),
-			*iconManual = sc.skinRes("imgs/manual.png"),
-			*iconCPU = sc.skinRes("imgs/cpu.png");
-
-	vector<Surface*> helpers;
-
-	RTC *rtc = new RTC();
-
+/*
+	TRACE("main :: pthread");
+	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
+*/
+	TRACE("main :: new renderer");
+	Renderer *renderer = new Renderer(this);
 
 	TRACE("main :: loop");
 	while (!quit) {
-		tickNow = SDL_GetTicks();
 
-		//TRACE("main :: setting the box");
-		s->box((SDL_Rect){0, 0, config->resolutionX, config->resolutionY}, (RGBAColor){0, 0, 0, 255});
-
-		if (sc[currBackdrop]) {
-			sc[currBackdrop]->blit(s,0,0);
-		} else {
-			s->box((SDL_Rect){0, 0, config->resolutionX, config->resolutionY}, skin->colours.background);
+		TRACE("main :: render");
+		try {
+			renderer->render();
+		} catch (int e) {
+			ERROR("main :: render - e : %i", e);
 		}
-		
-		// SECTIONS
-		//TRACE("main :: sections");
-		if (skin->sectionBar) {
-			s->box(sectionBarRect, skin->colours.topBarBackground);
-
-			x = sectionBarRect.x; 
-			y = sectionBarRect.y;
-			
-			// we're in section text mode....
-			if (!skin->showSectionIcons && (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM)) {
-				string sectionName = menu->selSection();
-				s->write(
-					fontSectionTitle, 
-					"\u00AB " + tr.translate(sectionName) + " \u00BB", 
-					sectionBarRect.w / 2, 
-					sectionBarRect.y + (sectionBarRect.h / 2),
-					HAlignCenter | VAlignMiddle);
-
-				if (skin->showClock) {	
-					s->write(
-						fontSectionTitle, 
-						rtc->getClockTime(true), 
-						4, 
-						sectionBarRect.y + (sectionBarRect.h / 2),
-						HAlignLeft | VAlignMiddle);
-				}
-
-			} else {
-
-				for (i = menu->firstDispSection(); i < menu->getSections().size() && i < menu->firstDispSection() + menu->sectionNumItems(); i++) {
-					if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
-						y = (i - menu->firstDispSection()) * skin->sectionBarSize;
-					} else {
-						x = (i - menu->firstDispSection()) * skin->sectionBarSize;
-					}
-
-					if (menu->selSectionIndex() == (int)i)
-						s->box(
-							x, 
-							y, 
-							skin->sectionBarSize, 
-							skin->sectionBarSize, 
-							skin->colours.selectionBackground);
-
-					sc[menu->getSectionIcon(i)]->blit(
-						s, 
-						{x, y, skin->sectionBarSize, skin->sectionBarSize}, 
-						HAlignCenter | VAlignMiddle);
-				}
-			}
-		}
-
-		// LINKS
-		//TRACE("main :: links");
-		s->setClipRect(linksRect);
-		s->box(linksRect, skin->colours.listBackground);
-
-		i = menu->firstDispRow() * skin->numLinkCols;
-
-		if (skin->numLinkCols == 1) {
-			//TRACE("main :: links - column mode : %i", menu->sectionLinks()->size());
-			// LIST
-			ix = linksRect.x;
-			for (y = 0; y < skin->numLinkRows && i < menu->sectionLinks()->size(); y++, i++) {
-				iy = linksRect.y + y * linkHeight;
-
-				// highlight selected link
-				if (i == (uint32_t)menu->selLinkIndex())
-					s->box(
-						ix, 
-						iy, 
-						linksRect.w, 
-						linkHeight, 
-						skin->colours.selectionBackground);
-
-				int padding = 36;
-				if (skin->linkDisplayMode == Skin::ICON_AND_TEXT || skin->linkDisplayMode == Skin::ICON) {
-					//TRACE("Menu::loadIcons - theme uses icons");
-					sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
-						s, 
-						{ix, iy, padding, linkHeight}, 
-						HAlignCenter | VAlignMiddle);
-				} else {
-					padding = 4;
-				}
-				
-				if (skin->linkDisplayMode == Skin::ICON_AND_TEXT || skin->linkDisplayMode == Skin::TEXT) {
-					//TRACE("main :: links - adding : %s", menu->sectionLinks()->at(i)->getTitle().c_str());
-					s->write(
-						fontTitle, 
-						tr.translate(menu->sectionLinks()->at(i)->getTitle()), 
-						ix + linkSpacing + padding, 
-						iy + fontTitle->getHeight() / 2, 
-						VAlignMiddle);
-					
-					s->write(
-						font, 
-						tr.translate(menu->sectionLinks()->at(i)->getDescription()), 
-						ix + linkSpacing + padding, 
-						iy + linkHeight - linkSpacing / 2, 
-						VAlignBottom);
-				}
-			}
-		} else {
-			TRACE("main :: links - row mode : %i", menu->sectionLinks()->size());
-			for (y = 0; y < skin->numLinkRows; y++) {
-				for (x = 0; x < skin->numLinkCols && i < menu->sectionLinks()->size(); x++, i++) {
-
-					string title =  tr.translate(menu->sectionLinks()->at(i)->getTitle());
-					int textWidth = font->getTextWidth(title);
-					TRACE("SCALE::TEXT-WIDTH: %i, TEXT-LENGTH: %i, LINK-WIDTH: %i", 
-							textWidth, 
-							title.size(), 
-							linkWidth);
-					if (textWidth > linkWidth) {
-						int wrapFactor = textWidth / linkWidth;
-						int wrapMax = title.size() / wrapFactor;
-						title = splitInLines(title, wrapMax);
-						TRACE("SCALE::WRAP::number of wraps needed: %i, wrap at max chars: %i, title: %s", wrapFactor, wrapMax, title.c_str());
-					}
-
-					// calc cell x && y
-					ix = linksRect.x + (x * linkWidth)  + (x + 1) * linkSpacing;
-					iy = linksRect.y + (y * linkHeight) + (y + 1) * linkSpacing;
-
-					s->setClipRect({ix, iy, linkWidth, linkHeight});
-
-					// selected link highlight
-					if (i == (uint32_t)menu->selLinkIndex()) {
-						s->box(ix, iy, linkWidth, linkHeight, skin->colours.selectionBackground);
-					}
-
-					if (skin->linkDisplayMode == Skin::ICON) {
-						TRACE("main :: links - adding icon and text : %s", title.c_str());
-						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
-							s, 
-							{ix + 2, iy + 2, linkWidth - 4, linkHeight - 4}, 
-							HAlignCenter | VAlignMiddle);
-
-					} else if (skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
-
-						sc[menu->sectionLinks()->at(i)->getIconPath()]->blit(
-							s, 
-							{ix + 2, iy, linkWidth - 4, linkHeight}, 
-							HAlignCenter | VAlignTop);
-
-						s->write(font, 
-							title, 
-							ix + (linkWidth / 2), 
-							iy + linkHeight,
-							HAlignCenter | VAlignBottom);
-
-					} else {
-
-						TRACE("main :: links - adding text only : %s", title.c_str());
-
-						s->write(font, 
-							title, 
-							ix + (linkWidth / 2), 
-							iy + (linkHeight / 2), 
-							HAlignCenter | VAlignMiddle);
-
-					}
-
-
-				}
-			}
-		}
-		//TRACE("main :: links - done");
-		s->clearClipRect();
-
-		drawScrollBar(skin->numLinkRows, 
-			menu->sectionLinks()->size() / skin->numLinkCols + ((menu->sectionLinks()->size() % skin->numLinkCols==0) ? 0 : 1), 
-			menu->firstDispRow(), 
-			linksRect);
-
-		currBackdrop = skin->wallpaper;
-		if (menu->selLink() != NULL && menu->selLinkApp() != NULL && !menu->selLinkApp()->getBackdropPath().empty() && sc.add(menu->selLinkApp()->getBackdropPath()) != NULL) {
-			TRACE("main :: setting currBackdrop to : %s", menu->selLinkApp()->getBackdropPath().c_str());
-			currBackdrop = menu->selLinkApp()->getBackdropPath();
-		}
-
-		//Background
-		if (prevBackdrop != currBackdrop) {
-			INFO("New backdrop: %s", currBackdrop.c_str());
-			sc.del(prevBackdrop);
-			prevBackdrop = currBackdrop;
-			// input.setWakeUpInterval(1);
-			continue;
-		}
-
-		/* 
-		 *
-		 * helper icon section
-		 * 
-		 */
-		if (skin->sectionBar) {
-
-			// update helper icons every 1 secs
-			if (tickNow - tickBattery >= 1000) {
-				tickBattery = tickNow;
-				batteryIcon = getBatteryLevel();
-				if (batteryIcon > 5) batteryIcon = 6;
-
-				brightnessIcon = getBacklight() / 51;
-				if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-
-				int currentVolume = getVolume();
-				currentVolumeMode = getVolumeMode(currentVolume);
-
-				rtc->refresh();
-
-			}
-
-			// tray helper icons
-			int helperHeight = 20;
-			int maxItemsPerRow = 0;
-			if (sectionBarRect.w > sectionBarRect.h) {
-				maxItemsPerRow = (int)(sectionBarRect.h / (float)helperHeight);
-			} else {
-				maxItemsPerRow = (int)(sectionBarRect.w / (float)helperHeight);
-			}
-			int rootXPos = sectionBarRect.x + sectionBarRect.w - 18;
-			int rootYPos = sectionBarRect.y + sectionBarRect.h - 18;
-
-			TRACE("main :: hitting up the helpers");
-
-			helpers.push_back(iconVolume[currentVolumeMode]);
-			helpers.push_back(iconBattery[batteryIcon]);
-			if (curMMCStatus == MMC_MOUNTED) {
-				helpers.push_back(iconSD);
-			}
-			helpers.push_back(iconBrightness[brightnessIcon]);
-			if (menu->selLink() != NULL) {
-				if (menu->selLinkApp() != NULL) {
-					if (!menu->selLinkApp()->getManualPath().empty()) {
-						// Manual indicator
-						helpers.push_back(iconManual);
-					}
-					if (menu->selLinkApp()->clock() != config->cpuMenu) {
-						// CPU indicator
-						helpers.push_back(iconCPU);
-					}
-				}
-			}
-			TRACE("main :: layoutHelperIcons");
-			int * xPosPtr = & rootXPos;
-			int * yPosPtr = & rootYPos;
-			layoutHelperIcons(helpers, s, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
-			TRACE("main :: helpers.clear()");
-			helpers.clear();
-
-			if (skin->showClock) {
-				if (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM) {
-					if (skin->showSectionIcons) {
-						// grab the new x offset and write the clock
-						string time = rtc->getClockTime(true);
-						s->write(
-							fontSectionTitle, 
-							time, 
-							*(xPosPtr) - (fontSectionTitle->getTextWidth(time) / 2), 
-							sectionBarRect.y + (sectionBarRect.h / 2),
-							VAlignMiddle);
-					}
-				} else {
-					// grab the new y offset and write the clock
-					s->write(
-						fontSectionTitle, 
-						rtc->getClockTime(true), 
-						sectionBarRect.x + 4, 
-						*(yPosPtr),
-						HAlignLeft | VAlignTop);
-
-				}
-			}
-		}
-
-		s->flip();
 
 		bool inputAction = input.update();
-		if (input.combo()) {
-			
-			skin->sectionBar = (Skin::SectionBar)((skin->sectionBar + 1) % 5);
-			if (!skin->sectionBar) {
-				skin->sectionBar = (Skin::SectionBar)(skin->sectionBar + 1);
-				//((int)skin->sectionBar)++;
-			}
-			initMenu();
-			MessageBox mb(this,tr["CHEATER! ;)"]);
-			mb.setBgAlpha(0);
-			mb.setAutoHide(200);
-			mb.exec();
-			input.setWakeUpInterval(1);
-			continue;
-		}
 
 		if ( input[CONFIRM] && menu->selLink() != NULL ) {
 			TRACE("******************RUNNING THIS*******************");
@@ -781,11 +390,11 @@ void GMenu2X::main() {
 			showManual();
 	}
 
-	delete rtc;
-	exitMainThread = true;
-	pthread_join(thread_id, NULL);
-	// delete btnContextMenu;
-	// btnContextMenu = NULL;
+	delete renderer;
+
+	//exitMainThread = true;
+	//pthread_join(thread_id, NULL);
+
 	TRACE("main :: exit");
 }
 
@@ -2427,6 +2036,7 @@ int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, 
 	}
 	return x - 6;
 }
+
 
 void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect) {
 	if (totalsize <= pagesize) return;

@@ -13,18 +13,24 @@
 using std::string;
 
 RTC::RTC() {
+    TRACE("RTC::RTC");
     this->refresh();
 }
 RTC::~RTC() {
-    
+    TRACE("RTC::~RTC");
 }
 
 void RTC::refresh() {
     TRACE("RTC::refresh - enter");
+
     int fd;
     fd = open("/dev/rtc", O_RDONLY);
-    ioctl(fd, RTC_RD_TIME, &rt);
-    close(fd);
+    if (fd) {
+        ioctl(fd, RTC_RD_TIME, &this->rt);
+        close(fd);
+        TRACE("RTC::refresh - successful read");
+        TRACE("RTC::refresh - hour raw = %i", this->rt.tm_hour);
+    }
     TRACE("RTC::refresh - exit");
 }
 
@@ -36,14 +42,19 @@ int RTC::getMinutes() {
 }
 
 std::string RTC::getClockTime(bool is24hr) {
+    TRACE("RTC::getClockTime - enter - is24hr : %i", is24hr);
     int hours = this->getHours();
+    TRACE("RTC::getClockTime - hours are : %i", hours);
+
 	bool pm = (hours >= 12);
 	if (!is24hr && pm)
 		hours -= 12;
 
 	char buf[9];
 	sprintf(buf, "%02i:%02i%s", hours, this->rt.tm_min, is24hr ? "" : (pm ? " pm" : " am"));
-	return std::string(buf);
+    string result = string(buf);
+    TRACE("RTC::getClockTime - exit - %s", result.c_str());
+	return result;
 }
 
 std::string RTC::getDateTime() {

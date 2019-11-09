@@ -73,8 +73,6 @@ class Menu;
 
 class GMenu2X {
 private:
-	int getBacklight();
-	int getVolume();
 
 	string exe_path; //!< Contains the working directory of GMenu2X
 	string assets_path; // Contains the assets path
@@ -130,8 +128,6 @@ private:
 	void initServices();
 
 #endif
-	
-	void layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPos, int * rootYPos, int maxRows);
 
 	//void formatSd();
 	void checkUDC();
@@ -146,10 +142,10 @@ public:
 	void quit();
 	void releaseScreen();
 
-	/*
-	 * Variables needed for elements disposition
-	 */
 
+	int getBacklight();
+	int getVolume();
+	int16_t curMMCStatus;
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 
@@ -247,7 +243,6 @@ public:
 	const string getDateTime();
 	void setDateTime();
 
-	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
 	bool saveScreenshot();
 	int setVolume(int val);
 	int setBacklight(int val);
@@ -271,6 +266,7 @@ public:
 
 	void setWallpaper(const string &wallpaper = "");
 
+	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
 	int drawButton(Button *btn, int x=5, int y=-10);
 	int drawButton(Surface *s, const string &btn, const string &text, int x=5, int y=-10);
 	int drawButtonRight(Surface *s, const string &btn, const string &text, int x=5, int y=-10);
