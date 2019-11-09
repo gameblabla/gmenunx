@@ -75,6 +75,7 @@
 #include "debug.h"
 #include "skin.h"
 #include "config.h"
+#include "rtc.h"
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -978,7 +979,10 @@ void GMenu2X::settings() {
 	performanceModes.push_back("On demand");
 	performanceModes.push_back("Performance");
 
-	string prevDateTime = config->datetime = config->now();
+	string prevDateTime = config->datetime = RTC::getTime();//config->now();
+	TRACE("GMenu2X::settings - prevdatetime : %s, config->datetime : %s", 
+		prevDateTime.c_str(), 
+		config->datetime.c_str());
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
@@ -1044,8 +1048,8 @@ void GMenu2X::settings() {
 			TRACE("GMenu2X::skinMenu - restarting because skins changed");
 			restartDialog();
 		} else if (prevDateTime != config->datetime) {
-			TRACE("GMenu2X::skinMenu - restarting because datetime changed");
-			restartDialog();
+			TRACE("GMenu2X::skinMenu - updating datetime");
+			RTC::setTime(config->datetime);
 		}
 	}
 	TRACE("GMenu2X::settings - exit");

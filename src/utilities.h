@@ -81,4 +81,6 @@ string procReader(string path);
 
 string splitInLines(string source, size_t max_width, string whitespace = " \t\r");
 
+string string_format(const std::string fmt_str, ...);
+
 #endif

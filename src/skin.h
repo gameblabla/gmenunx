@@ -86,8 +86,6 @@ private:
     bool fromFile();
     void constrain();
 
-    std::string string_format(const std::string fmt_str, ...);
-
 };
 
 #endif
