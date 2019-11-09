@@ -13,8 +13,6 @@ SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 #@echo "cross = $(CROSS_COMPILE) *******************************************"
 DEBUG ?= 2
 CFLAGS = -ggdb \
-	-DTARGET_RG350 \
-	-DPLATFORM_RG350 \
 	-DTARGET=$(PATH_DIR) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \

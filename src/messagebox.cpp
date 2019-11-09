@@ -53,13 +53,9 @@ MessageBox::MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon)
 	buttonLabels[LEFT] = "left";
 	buttonLabels[RIGHT] = "right";
 	buttonLabels[MODIFIER] = "a";
-#if defined(TARGET_RS97) || defined(TARGET_RG350)
+
 	buttonLabels[CONFIRM] = "a";
 	buttonLabels[CANCEL] = "b";
-#else
-	buttonLabels[CONFIRM] = "b";
-	buttonLabels[CANCEL] = "x";
-#endif
 	buttonLabels[MANUAL] = "y";
 	buttonLabels[DEC] = "x";
 	buttonLabels[INC] = "y";
