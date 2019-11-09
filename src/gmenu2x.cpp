@@ -293,7 +293,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	setWallpaper(skin->wallpaper);
 
 	TRACE("GMenu2X::ctor - setSkin");
-	setSkin(this->skin->name, false, true);
+	setSkin(this->skin->name, false, false);
 
 	TRACE("GMenu2X::ctor - screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout);
@@ -751,7 +751,7 @@ void GMenu2X::main() {
 }
 
 void GMenu2X::setWallpaper(const string &wallpaper) {
-	TRACE("GMenu2X::setWallpaper - enter");
+	TRACE("GMenu2X::setWallpaper - enter : %s", wallpaper.c_str());
 	if (bg != NULL) delete bg;
 
 	TRACE("GMenu2X::setWallpaper - new surface");
@@ -1261,7 +1261,7 @@ void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
 	TRACE("GMenu2X::setSkin - sc.setSkin");
 	sc.setSkin(name);
 
-	if (menu != NULL && clearSC && (this->skin->linkDisplayMode == Skin::ICON_AND_TEXT | Skin::ICON)) {
+	if (menu != NULL && clearSC) {
 		TRACE("GMenu2X::setSkin - loadIcons");
 		menu->loadIcons();
 	}

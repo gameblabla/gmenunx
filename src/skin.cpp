@@ -295,7 +295,7 @@ bool Skin::fromFile() {
                     if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
                         wallpaper = value.substr(1, value.length() - 2);
                     } else wallpaper = value;
-                    if (wallpaper == base_name(wallpaper)) {
+                    if (!wallpaper.empty() && wallpaper == base_name(wallpaper)) {
                         wallpaper = skinPath + "wallpapers/" + wallpaper;
                     }
                 } else if (name == "background") {
