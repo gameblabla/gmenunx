@@ -71,6 +71,7 @@ public:
     LinkDisplayModes linkDisplayMode;
 
     int showSectionIcons;
+    int showClock;
     int skinBackdrops;
     SectionBar sectionBar;
     string wallpaper;

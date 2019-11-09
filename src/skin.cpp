@@ -87,6 +87,7 @@ string Skin::toString() {
 
     vec.push_back(string_format("linkDisplayMode=%i", linkDisplayMode));
     vec.push_back(string_format("showSectionIcons=%i", showSectionIcons));
+    vec.push_back(string_format("showClock=%i", showClock));
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
 
     vec.push_back(string_format("sectionBar=%i", sectionBar));
@@ -200,6 +201,7 @@ void Skin::reset() {
 
     linkDisplayMode = LinkDisplayModes::ICON_AND_TEXT;
     showSectionIcons = true;
+    showClock = true;
     skinBackdrops = false;
     sectionBar = SB_LEFT;
     wallpaper = "";
@@ -286,6 +288,8 @@ bool Skin::fromFile() {
                     linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
                 } else if (name == "showSectionIcons") {
                     showSectionIcons = atoi(value.c_str());
+                } else if (name == "showClock") {
+                    showClock = atoi(value.c_str());
                 } else if (name == "skinBackdrops") {
                     skinBackdrops = atoi(value.c_str());
                 } else if (name == "sectionBar") {

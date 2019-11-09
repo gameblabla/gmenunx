@@ -363,11 +363,13 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 }
 
-void GMenu2X::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int rootXPos, int rootYPos, int maxRows) {
-	TRACE("GMenu2X::layoutHelperIcons - enter");
+void GMenu2X::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow) {
+	TRACE("GMenu2X::layoutHelperIcons - enter - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 	int iconCounter = 0;
 	int currentXOffset = 0;
 	int currentYOffset = 0;
+	int rootXPos = *rootXPosPtr;
+	int rootYPos = *rootYPosPtr;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
 		DEBUG("GMenu2X::layoutHelperIcons - blitting");
@@ -376,15 +378,16 @@ void GMenu2X::layoutHelperIcons(vector<Surface*> icons, Surface *target, int hel
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
 			rootYPos - (currentYOffset * (helperHeight - 2))
 		);
-		if (++iconCounter % maxRows == 0) {
+		if (++iconCounter % iconsPerRow == 0) {
 			++currentXOffset;
 			currentYOffset = 0;
 		} else {
 			++currentYOffset;
 		}
 	};
-
-	TRACE("GMenu2X::layoutHelperIcons - exit");
+	*rootXPosPtr = rootXPos - (currentXOffset * (helperHeight - 2));
+	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
+	TRACE("GMenu2X::layoutHelperIcons - exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 }
 
 void GMenu2X::main() {
@@ -461,20 +464,22 @@ void GMenu2X::main() {
 			
 			// we're in section text mode....
 			if (!skin->showSectionIcons && (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM)) {
-					string sectionName = menu->selSection();
-					s->write(
-						fontSectionTitle, 
-						"\u00AB " + tr.translate(sectionName) + " \u00BB", 
-						sectionBarRect.w / 2, 
-						sectionBarRect.y + (sectionBarRect.h / 2),
-						HAlignCenter | VAlignMiddle);
-					
+				string sectionName = menu->selSection();
+				s->write(
+					fontSectionTitle, 
+					"\u00AB " + tr.translate(sectionName) + " \u00BB", 
+					sectionBarRect.w / 2, 
+					sectionBarRect.y + (sectionBarRect.h / 2),
+					HAlignCenter | VAlignMiddle);
+
+				if (skin->showClock) {	
 					s->write(
 						fontSectionTitle, 
 						rtc->getClockTime(), 
 						4, 
 						sectionBarRect.y + (sectionBarRect.h / 2),
 						HAlignLeft | VAlignMiddle);
+				}
 
 			} else {
 
@@ -492,7 +497,6 @@ void GMenu2X::main() {
 							skin->sectionBarSize, 
 							skin->sectionBarSize, 
 							skin->colours.selectionBackground);
-
 
 					sc[menu->getSectionIcon(i)]->blit(
 						s, 
@@ -666,11 +670,11 @@ void GMenu2X::main() {
 
 			// tray helper icons
 			int helperHeight = 20;
-			int maxRows = 0;
+			int maxItemsPerRow = 0;
 			if (sectionBarRect.w > sectionBarRect.h) {
-				maxRows = (int)(sectionBarRect.h / (float)helperHeight);
+				maxItemsPerRow = (int)(sectionBarRect.h / (float)helperHeight);
 			} else {
-				maxRows = (int)(sectionBarRect.w / (float)helperHeight);
+				maxItemsPerRow = (int)(sectionBarRect.w / (float)helperHeight);
 			}
 			int rootXPos = sectionBarRect.x + sectionBarRect.w - 18;
 			int rootYPos = sectionBarRect.y + sectionBarRect.h - 18;
@@ -696,9 +700,35 @@ void GMenu2X::main() {
 				}
 			}
 			TRACE("main :: layoutHelperIcons");
-			layoutHelperIcons(helpers, s, helperHeight, rootXPos, rootYPos, maxRows);
+			int * xPosPtr = & rootXPos;
+			int * yPosPtr = & rootYPos;
+			layoutHelperIcons(helpers, s, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
 			TRACE("main :: helpers.clear()");
 			helpers.clear();
+
+			if (skin->showClock) {
+				if (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM) {
+					if (skin->showSectionIcons) {
+						// grab the new x offset and write the clock
+						string time = rtc->getClockTime(true);
+						s->write(
+							fontSectionTitle, 
+							time, 
+							*(xPosPtr) - (fontSectionTitle->getTextWidth(time) / 2), 
+							sectionBarRect.y + (sectionBarRect.h / 2),
+							VAlignMiddle);
+					}
+				} else {
+					// grab the new y offset and write the clock
+					s->write(
+						fontSectionTitle, 
+						rtc->getClockTime(true), 
+						sectionBarRect.x + 4, 
+						*(yPosPtr),
+						HAlignLeft | VAlignTop);
+
+				}
+			}
 		}
 
 		s->flip();
@@ -1348,6 +1378,7 @@ void GMenu2X::skinMenu() {
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
+		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 

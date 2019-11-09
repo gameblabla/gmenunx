@@ -42,7 +42,7 @@ std::string RTC::getClockTime(bool is24hr) {
 		hours -= 12;
 
 	char buf[9];
-	sprintf(buf, "%02i:%02i%s", hours, this->rt.tm_min, is24hr ? "" : (pm ? "pm" : "am"));
+	sprintf(buf, "%02i:%02i%s", hours, this->rt.tm_min, is24hr ? "" : (pm ? " pm" : " am"));
 	return std::string(buf);
 }
 
