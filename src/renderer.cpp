@@ -74,9 +74,9 @@ void Renderer::render() {
     int ix = 0;
     int iy = 0;
 
-	tickNow = SDL_GetTicks();
-
 	if (gmenu2x->skin->sectionBar) {
+
+		tickNow = SDL_GetTicks();
 		// update helper icons every 1 secs
 		if (tickNow - tickBattery >= 1000) {
 			tickBattery = tickNow;
@@ -202,19 +202,35 @@ void Renderer::render() {
 				
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::TEXT) {
 					//TRACE("Renderer::links - adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getTitle().c_str());
+					int localXpos = ix + gmenu2x->linkSpacing + padding;
+					int localAlignTitle = VAlignMiddle;
+					int totalFontHeight = gmenu2x->fontTitle->getHeight() + gmenu2x->font->getHeight();
+					TRACE("Renderer::total Font Height : %i, linkHeight: %i", totalFontHeight, gmenu2x->linkHeight);
+
+					if (gmenu2x->skin->sectionBar == Skin::SB_BOTTOM || gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_OFF) {
+						TRACE("Renderer::HITTING MIDDLE ALIGN");
+						localXpos = gmenu2x->linksRect.w / 2;
+						if (totalFontHeight >= gmenu2x->linkHeight) {
+							localAlignTitle = HAlignCenter | VAlignTop;
+						} else {
+							localAlignTitle = HAlignCenter | VAlignMiddle;
+						}
+					}
 					gmenu2x->s->write(
 						gmenu2x->fontTitle, 
 						gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle()), 
-						ix + gmenu2x->linkSpacing + padding, 
-						iy + gmenu2x->fontTitle->getHeight() / 2, 
-						VAlignMiddle);
+						localXpos, 
+						iy + (gmenu2x->fontTitle->getHeight() / 2), 
+						localAlignTitle);
 					
-					gmenu2x->s->write(
-						gmenu2x->font, 
-						gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDescription()), 
-						ix + gmenu2x->linkSpacing + padding, 
-						iy + gmenu2x->linkHeight - gmenu2x->linkSpacing / 2, 
-						VAlignBottom);
+					if (totalFontHeight < gmenu2x->linkHeight) {
+						gmenu2x->s->write(
+							gmenu2x->font, 
+							gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDescription()), 
+							ix + gmenu2x->linkSpacing + padding, 
+							iy + gmenu2x->linkHeight - (gmenu2x->linkSpacing / 2), 
+							VAlignBottom);
+					}
 				}
 			}
 		} else {
