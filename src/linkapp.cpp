@@ -496,10 +496,9 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 
 
 	if (gmenu2x->config->saveSelection && (gmenu2x->config->section != gmenu2x->menu->selSectionIndex() || gmenu2x->config->link != gmenu2x->menu->selLinkIndex())) {
-		TRACE("LinkApp::launch - saving selection");
+		TRACE("LinkApp::launch - updating selections");
 		gmenu2x->config->section = gmenu2x->menu->selSectionIndex();
 		gmenu2x->config->link != gmenu2x->menu->selLinkIndex();
-		gmenu2x->writeConfig();
 	}
 
 	vector<string> commandLine;

@@ -57,6 +57,8 @@ public:
 	void     clear();
 	void     move(const std::string &from, const std::string &to);
 	bool     exists(const std::string &path);
+	int      size();
+	bool     empty();
 
 	Surface *operator[](const std::string &);
 	Surface *skinRes(const std::string &);

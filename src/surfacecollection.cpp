@@ -131,6 +131,14 @@ void SurfaceCollection::del(const string &path) {
 	}
 }
 
+int SurfaceCollection::size() {
+	return surfaces.size();
+}
+
+bool SurfaceCollection::empty() {
+	return surfaces.empty();
+}
+
 void SurfaceCollection::clear() {
 	while (surfaces.size() > 0) {
 		delete surfaces.begin()->second;

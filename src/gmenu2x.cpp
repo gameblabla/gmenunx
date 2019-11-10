@@ -143,7 +143,6 @@ bool getTVOutStatus() {
 
 GMenu2X::~GMenu2X() {
 	TRACE("GMenu2X::dtor - enter\n\n");
-	writeConfig();
 	quit();
 	delete menu;
 	delete s;
@@ -162,11 +161,15 @@ void GMenu2X::releaseScreen() {
 
 void GMenu2X::quit() {
 	TRACE("GMenu2X::quit - enter");
-	ledOff();
-	fflush(NULL);
-	sc.clear();
-	s->free();
-	releaseScreen();
+	if (!sc.empty()) {
+		TRACE("GMenu2X::quit - SURFACE EXISTED");
+		writeConfig();
+		ledOff();
+		fflush(NULL);
+		sc.clear();
+		s->free();
+		releaseScreen();
+	}
 	TRACE("GMenu2X::quit - exit");
 }
 
