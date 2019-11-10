@@ -12,7 +12,7 @@ echo ${OPK_NAME}
 # create default.gcw0.desktop
 cat > default.gcw0.desktop <<EOF
 [Desktop Entry]
-Name=RunGmenuNX
+Name=Run GmenuNX
 Comment=GmenuNX
 Exec=gmenunx
 Terminal=false
