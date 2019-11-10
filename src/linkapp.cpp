@@ -138,6 +138,8 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				}
 
 				continue;
+			} else {
+				WARNING("Unrecognized OPK link option: '%s'\n", key);
 			}
 		}
 
@@ -211,41 +213,35 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				setSelectorDir( value );
 			} else if (name == "selectorbrowser") {
 				selectorbrowser = (value == "true" ? true : false);
-			} else if (!isOpk()) {
-
-				if (name == "title") {
+			} else if (name == "title") {
 					title = value;
-				} else if (name == "description") {
+			} else if (name == "description") {
 					description = value;
-				} else if (name == "icon") {
+			} else if (name == "icon") {
 					TRACE("LinkApp::LinkApp - ctor - setting icon value to %s", value.c_str());
 					setIcon(value);
-				} else if (name == "exec") {
+			} else if (name == "exec") {
 					exec = value;
-				} else if (name == "params") {
+			} else if (name == "params") {
 					params = value;
-				} else if (name == "workdir") {
+			} else if (name == "workdir") {
 					workdir = value;
-				} else if (name == "manual") {
+			} else if (name == "manual") {
 					setManual(value);
-				} else if (name == "consoleapp") {
+			} else if (name == "consoleapp") {
 					consoleapp = (value == "true" ? true : false);
-				} else if (name == "selectorfilter") {
+			} else if (name == "selectorfilter") {
 					setSelectorFilter( value );
-				} else if (name == "selectorscreens") {
+			} else if (name == "selectorscreens") {
 					setSelectorScreens( value );
-				} else if (name == "selectoraliases") {
+			} else if (name == "selectoraliases") {
 					setAliasFile( value );
-				} else if (name == "backdrop") {
+			} else if (name == "backdrop") {
 					setBackdrop(value);
 					// WARNING("BACKDROP: '%s'", backdrop.c_str());
-				} else {
-					WARNING("Unrecognized native link option: '%s'", name.c_str());
-					break;
-				}
-
 			} else {
-				WARNING("Unrecognized OPK link option: '%s'\n", name.c_str());
+				WARNING("Unrecognized native link option: '%s'", name.c_str());
+				break;
 			}
 
 		}
