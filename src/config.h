@@ -9,6 +9,8 @@ using std::vector;
 
 static const string CONFIG_FILE_NAME = "gmenunx.conf";
 static const int CONFIG_CURRENT_VERSION = 1;
+static const string EXTERNAL_LAUNCHER_PATH = "/media/sdcard/ROMS";
+static const string HOME_DIR = "/media/home";
 
 class Config {
 
@@ -23,6 +25,7 @@ public:
     string lang; //=""
     string batteryType; //="BL-5B"
     string sectionFilter; //="applications,foo"
+    string launcherPath; //="/media/sdcard/ROMS"
 
     int buttonRepeatRate; //=10
     int resolutionX; //=320
@@ -59,7 +62,6 @@ private:
     void constrain();
 
     std::string stripQuotes(std::string const &input);
-    std::string string_format(const std::string fmt_str, ...);
 
 };
 

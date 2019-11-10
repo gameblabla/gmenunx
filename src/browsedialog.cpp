@@ -1,6 +1,6 @@
 #include "browsedialog.h"
 #include "FastDelegate.h"
-// #include "debug.h"
+#include "debug.h"
 #include <algorithm>
 
 using namespace fastdelegate;
@@ -8,6 +8,8 @@ using namespace std;
 
 BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
 : Dialog(gmenu2x), title(title), description(description), icon(icon) {
+	
+	TRACE("BrowseDialog::BrowseDialog - enter");
 	fl = new FileLister(CARD_ROOT, true, false);
 }
 
@@ -16,6 +18,7 @@ BrowseDialog::~BrowseDialog() {
 }
 
 bool BrowseDialog::exec() {
+	TRACE("BrowseDialog::exec - enter");
 	if (!fl) return false;
 
 	this->bg = new Surface(gmenu2x->bg); // needed to redraw on child screen return
@@ -161,6 +164,7 @@ bool BrowseDialog::exec() {
 }
 
 uint32_t BrowseDialog::getAction() {
+	TRACE("BrowseDialog::getAction");
 	uint32_t action = BD_NO_ACTION;
 
 	if (gmenu2x->input[SETTINGS]) action = BD_ACTION_CLOSE;

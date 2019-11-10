@@ -43,6 +43,7 @@ string Config::toString() {
     vec.push_back(string_format("lang=\"%s\"", this->lang.c_str()));
     vec.push_back(string_format("batteryType=\"%s\"", this->batteryType.c_str()));
     vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter.c_str()));
+    vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath.c_str()));
 
     // ints
     vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate));
@@ -110,6 +111,10 @@ void Config::reset() {
     this->batteryType = "BL-5B";
     this->sectionFilter = "";
 
+    if (dirExists(EXTERNAL_LAUNCHER_PATH)) {
+        this->launcherPath = EXTERNAL_LAUNCHER_PATH;
+    } else this->launcherPath = HOME_DIR;
+
     // ints
     this->buttonRepeatRate = 10;
     this->resolutionX = 320;
@@ -164,6 +169,9 @@ void Config::constrain() {
 		this->performance = "On demand";
 	if (this->tvOutMode != "PAL") 
 		this->tvOutMode = "NTSC";
+    if (!dirExists(this->launcherPath)) {
+        this->launcherPath = HOME_DIR;
+    }
 
 }
 
@@ -205,6 +213,8 @@ bool Config::fromFile() {
                     this->batteryType = stripQuotes(value);
                 } else if (name == "sectionFilter") {
                     this->sectionFilter = stripQuotes(value);
+                } else if (name == "launcherPath") {
+                    this->launcherPath = stripQuotes(value);
                 } 
 
                 // ints
@@ -264,20 +274,3 @@ std::string Config::stripQuotes(std::string const &input) {
     return result;
 }
 
-std::string Config::string_format(const std::string fmt_str, ...) {
-    int final_n, n = ((int)fmt_str.size()) * 2; /* Reserve two times as much as the length of the fmt_str */
-    std::unique_ptr<char[]> formatted;
-    va_list ap;
-    while(1) {
-        formatted.reset(new char[n]); /* Wrap the plain char array into the unique_ptr */
-        strcpy(&formatted[0], fmt_str.c_str());
-        va_start(ap, fmt_str);
-        final_n = vsnprintf(&formatted[0], n, fmt_str.c_str(), ap);
-        va_end(ap);
-        if (final_n < 0 || final_n >= n)
-            n += abs(final_n - n + 1);
-        else
-            break;
-    }
-    return std::string(formatted.get());
-}

@@ -37,10 +37,11 @@ string screendir;
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
 Dialog(gmenu2x)
 {
+	TRACE("Selector::Selector - enter : %s", selectorDir.c_str());
 	this->link = link;
 	loadAliases();
 	selRow = 0;
-	if (selectorDir == "")
+	if (selectorDir.empty())
 		dir = link->getSelectorDir();
 	else
 		dir = selectorDir;
@@ -48,6 +49,7 @@ Dialog(gmenu2x)
 }
 
 int Selector::exec(int startSelection) {
+	TRACE("Selector::exec - enter - startSelection : %i", startSelection);
 	if (gmenu2x->sc[link->getBackdrop()] != NULL) gmenu2x->sc[link->getBackdrop()]->blit(this->bg,0,0);
 
 	bool close = false, result = true, inputAction = false;
@@ -208,6 +210,7 @@ int Selector::exec(int startSelection) {
 }
 
 void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *titles) {
+	TRACE("Selector::prepare - enter");
 	fl->setPath(dir);
 	freeScreenshots(screens);
 	screens->resize(fl->getFiles().size());
@@ -254,6 +257,7 @@ void Selector::freeScreenshots(vector<string> *screens) {
 }
 
 void Selector::loadAliases() {
+	TRACE("Selector::loadAliases - enter");
 	aliases.clear();
 	if (fileExists(link->getAliasFile())) {
 		string line;
@@ -269,6 +273,7 @@ void Selector::loadAliases() {
 }
 
 string Selector::getAlias(const string &key, const string &fname) {
+	TRACE("Selector::getAlias - enter");
 	unordered_map<string, string>::iterator i = aliases.find(key);
 	if (i == aliases.end())
 		return fname;

@@ -418,6 +418,7 @@ bool LinkApp::save() {
  */
 
 void LinkApp::run() {
+	TRACE("LinkApp::run - enter");
 	if (!selectordir.empty()) {
 		selector();
 	} else {
@@ -429,8 +430,11 @@ void LinkApp::run() {
  * lauches a supporting file selector if needed
  */
 void LinkApp::selector(int startSelection, const string &selectorDir) {
+	TRACE("LinkApp::selector - enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
 	//Run selector interface
-	Selector sel(gmenu2x, this, selectorDir);
+	string myDir = selectorDir.empty() ? this->gmenu2x->config->launcherPath : selectorDir;
+
+	Selector sel(gmenu2x, this, myDir);
 	int selection = sel.exec(startSelection);
 	if (selection != -1) {
 		gmenu2x->writeTmp(selection, sel.getDir());
@@ -492,10 +496,12 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			if (params == launchArgs) launchArgs += " " + cmdclean(dir + selectedFile);
 			launchArgs = "\"" + launchArgs + "\"";
 		}
+		// save the last dir
+		gmenu2x->config->launcherPath = dir;
 	} else launchArgs = params;
 
 
-	if (gmenu2x->config->saveSelection && (gmenu2x->config->section != gmenu2x->menu->selSectionIndex() || gmenu2x->config->link != gmenu2x->menu->selLinkIndex())) {
+	if (gmenu2x->config->saveSelection) {
 		TRACE("LinkApp::launch - updating selections");
 		gmenu2x->config->section = gmenu2x->menu->selSectionIndex();
 		gmenu2x->config->link != gmenu2x->menu->selLinkIndex();

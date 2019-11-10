@@ -1228,27 +1228,6 @@ void GMenu2X::ledOff() {
 	led->reset();
 }
 
-bool GMenu2X::saveScreenshot() {
-	ledOn();
-	uint32_t x = 0;
-	string fname;
-
-	mkdir("screenshots/", 0777);
-
-	do {
-		x++;
-		// fname = "";
-		stringstream ss;
-		ss << x;
-		ss >> fname;
-		fname = "screenshots/screen" + fname + ".bmp";
-	} while (fileExists(fname));
-	x = SDL_SaveBMP(s->raw, fname.c_str());
-	sync();
-	ledOff();
-	return x == 0;
-}
-
 void GMenu2X::restartDialog(bool showDialog) {
 	if (showDialog) {
 		MessageBox mb(this, tr["GMenuNX will restart to apply\nthe settings. Continue?"], "skin:icons/exit.png");
@@ -1764,39 +1743,23 @@ void GMenu2X::deleteSection() {
 int GMenu2X::getBatteryLevel() {
 	//TRACE("GMenu2X::getBatteryLevel - enter");
 
-	// check if we're plugged in
-	FILE *f = fopen("/sys/class/power_supply/usb/online", "r");
-	if (!f) {
-		ERROR("Unable to open /sys/class/power_supply/usb/online file");
-		return -1;
-	}
-
-	int online;
-	fscanf(f, "%i", &online);
-	fclose(f);
-	//TRACE("GMenu2X::getBatteryLevel - online - %i", online);
-
+	int online, result = 0;
+	sscanf(procReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
 	if (online) {
-		return 6;
+		result = 6;
 	} else {
-		// now get the battery level
-		FILE *f = fopen("/sys/class/power_supply/battery/capacity", "r");
-		if (!f) {
-			ERROR("Unable to open /sys/class/power_supply/battery/capacity file");
-			return -1;
-		}
-
-		int battery_level;
-		fscanf(f, "%i", &battery_level);
-		fclose(f);
-		TRACE("GMenu2X::getBatteryLevel - battery level - %i", battery_level);
-		if (battery_level >= 100) return 5;
-		else if (battery_level > 80) return 4;
-		else if (battery_level > 60) return 3;
-		else if (battery_level > 40) return 2;
-		else if (battery_level > 20) return 1;
-		return 0;
+		int battery_level = 0;
+		sscanf(procReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
+		TRACE("GMenu2X::getBatteryLevel - raw battery level - %i", battery_level);
+		if (battery_level >= 100) result = 5;
+		else if (battery_level > 80) result = 4;
+		else if (battery_level > 60) result = 3;
+		else if (battery_level > 40) result = 2;
+		else if (battery_level > 20) result = 1;
+		result = 0;
 	}
+	TRACE("GMenu2X::getBatteryLevel - scaled battery level : %i", result);
+	return result;
 }
 
 void GMenu2X::setInputSpeed() {

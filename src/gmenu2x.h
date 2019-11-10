@@ -242,8 +242,6 @@ public:
 	void setCPU(uint32_t mhz);
 	const string getDateTime();
 	void setDateTime();
-
-	bool saveScreenshot();
 	int setVolume(int val);
 	int setBacklight(int val);
 
