@@ -418,7 +418,7 @@ bool LinkApp::save() {
  */
 
 void LinkApp::run() {
-	if (selectordir != "") {
+	if (!selectordir.empty()) {
 		selector();
 	} else {
 		launch();
@@ -484,7 +484,7 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			launchArgs = "\"" + dir + selectedFile + "\"";
 			TRACE("LinkApp::launch - no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
-			launchArgs = params;
+			
 			launchArgs = strreplace(launchArgs, "[selFullPath]", cmdclean(dir + selectedFile));
 			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
 			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
@@ -492,10 +492,13 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			if (params == launchArgs) launchArgs += " " + cmdclean(dir + selectedFile);
 			launchArgs = "\"" + launchArgs + "\"";
 		}
-	}
+	} else launchArgs = params;
+
 
 	if (gmenu2x->config->saveSelection && (gmenu2x->config->section != gmenu2x->menu->selSectionIndex() || gmenu2x->config->link != gmenu2x->menu->selLinkIndex())) {
 		TRACE("LinkApp::launch - saving selection");
+		gmenu2x->config->section = gmenu2x->menu->selSectionIndex();
+		gmenu2x->config->link != gmenu2x->menu->selLinkIndex();
 		gmenu2x->writeConfig();
 	}
 

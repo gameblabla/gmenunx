@@ -19,7 +19,7 @@ uint8_t Renderer::getVolumeMode(uint8_t vol) {
 	return VOLUME_MODE_NORMAL;
 }
 
-Renderer::Renderer(GMenu2X *gmenu2x_) : gmenu2x(gmenu2x_), 
+Renderer::Renderer(GMenu2X *gmenu2x) : 
     iconBrightness {
 		gmenu2x->sc.skinRes("imgs/brightness/0.png"),
 		gmenu2x->sc.skinRes("imgs/brightness/1.png"),
@@ -41,6 +41,7 @@ Renderer::Renderer(GMenu2X *gmenu2x_) : gmenu2x(gmenu2x_),
 		gmenu2x->sc.skinRes("imgs/volume.png"),
 	} {
 
+	this->gmenu2x = gmenu2x;
     this->rtc.refresh();
 
     this->tickBattery = -4800;
