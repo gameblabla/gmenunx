@@ -33,6 +33,7 @@
 using namespace std;
 
 string screendir;
+const string PREVIEWS_DIR = ".previews";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
 Dialog(gmenu2x)
@@ -80,15 +81,11 @@ int Selector::exec(int startSelection) {
 
 	if (link->getSelectorBrowser()) {
 		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
-		/* Gameblabla */
 		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"])
-		/*gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Folder up"],
-		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5))*/
 		);
 	} else {
 		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
 		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"], 5)
-		/*gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"], 5)*/);
 	}
 
 	prepare(&fl, &screens, &titles);
@@ -98,10 +95,8 @@ int Selector::exec(int startSelection) {
 	Surface *iconGoUp = gmenu2x->sc.skinRes("imgs/go-up.png");
 	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
 	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
-	// Surface *iconPreview = gmenu2x->sc.skinRes("imgs/preview.png");
 
 	gmenu2x->sc.defaultAlpha = false;
-	// gmenu2x->input.setWakeUpInterval(1); // refresh on load
 	uint32_t tickStart = SDL_GetTicks();
 
 	// kick off the chooser loop
@@ -201,7 +196,6 @@ int Selector::exec(int startSelection) {
 					}
 				}
 			}
-
 			gmenu2x->input.setWakeUpInterval(1000);
 			gmenu2x->s->clearClipRect();
 			gmenu2x->drawScrollBar(numRows, fl.size(), firstElement, gmenu2x->listRect);
@@ -228,8 +222,6 @@ int Selector::exec(int startSelection) {
 			} else if ( gmenu2x->input[SETTINGS] ) {
 				close = true;
 				result = false;
-			// } else if ( gmenu2x->input[MENU] ) {
-				// gmenu2x->editLink();
 			} else if ( gmenu2x->input[CANCEL] && link->getSelectorBrowser()) {
 				string::size_type p = dir.rfind("/", dir.size() - 2);
 				dir = dir.substr(0, p + 1);
@@ -267,7 +259,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	string fname, noext, realdir;
 	string::size_type pos;
 	string realPath = real_path(fl->getPath());
-	bool screenshotDirExists = dirExists(realPath + "screenshots");
+	bool previewsDirExists = dirExists(realPath + PREVIEWS_DIR);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -300,12 +292,12 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 				continue;
 			}
 		}
-		// fallback - always search for filename.png and jpg in a screenshots folder inside the current path
-		if (screenshotDirExists) {
-			if (fileExists(realPath + "screenshots/" + noext + ".png"))
-				screens->at(i) = realPath + "screenshots/" + noext + ".png";
-			else if (fileExists(realPath + "screenshots/" + noext + ".jpg"))
-				screens->at(i) = realPath + "screenshots/" + noext + ".jpg";
+		// fallback - always search for filename.png and jpg in a .previews folder inside the current path
+		if (previewsDirExists) {
+			if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
+				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
+			else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
+				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
 			else
 				screens->at(i) = "";
 		} else screens->at(i) = "";
