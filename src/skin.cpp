@@ -229,13 +229,13 @@ void Skin::constrain() {
 	evalIntConf( &this->topBarHeight, 40, 1, maxY);
 	evalIntConf( &this->sectionBarSize, 40, 18, maxX);
 	evalIntConf( &this->bottomBarHeight, 16, 1, maxY);
-	evalIntConf( &this->previewWidth, 142, 1, maxX);
+	evalIntConf( &this->previewWidth, 142, 0, maxX);
 	evalIntConf( &this->fontSize, 12, 6, 60);
 	evalIntConf( &this->fontSizeTitle, 20, 6, 60);
     evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
     evalIntConf( &this->numLinkCols, 1, 1, 10);
-    evalIntConf( &this->numLinkRows, 6, 1, 10);
+    evalIntConf( &this->numLinkRows, 6, 1, 16);
     evalIntConf( (int)&this->linkDisplayMode, ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
 
 }
