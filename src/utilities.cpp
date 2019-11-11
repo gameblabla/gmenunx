@@ -178,6 +178,9 @@ const string &evalStrConf(string *val, const string &def) {
 bool split(vector<string> &vec, const string &str, const string &delim, bool destructive) {
 	vec.clear();
 
+	if (str.empty())
+		return false;
+
 	if (delim.empty()) {
 		vec.push_back(str);
 		return false;

@@ -58,9 +58,11 @@ int Selector::exec(int startSelection) {
 	bool close = false, result = true, inputAction = false;
 	vector<string> screens, titles;
 
+	TRACE("Selector::exec - starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
 	fl.setFilter(link->getSelectorFilter());
 	fl.browse();
+	TRACE("Selector::exec - found %i files and dirs", fl.size());
 
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
@@ -265,7 +267,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	string fname, noext, realdir;
 	string::size_type pos;
 	string realPath = real_path(fl->getPath());
-	bool screenshotDirExists = dirExists(realPath + "/screenshots");
+	bool screenshotDirExists = dirExists(realPath + "screenshots");
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -286,7 +288,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		if (!screendir.empty()) {
 			if (screendir[0] == '.') {
 				// allow "." as "current directory", therefore, relative paths
-				realdir = realPath + "/" + screendir + "/";
+				realdir = realPath + screendir + "/";
 			} else realdir = real_path(screendir) + "/";
 
 			// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
@@ -300,15 +302,16 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		}
 		// fallback - always search for filename.png and jpg in a screenshots folder inside the current path
 		if (screenshotDirExists) {
-			if (fileExists(realPath + "/screenshots/" + noext + ".png"))
-				screens->at(i) = realPath + "/screenshots/" + noext + ".png";
-			else if (fileExists(realPath + "/screenshots/" + noext + ".jpg"))
-				screens->at(i) = realPath + "/screenshots/" + noext + ".jpg";
+			if (fileExists(realPath + "screenshots/" + noext + ".png"))
+				screens->at(i) = realPath + "screenshots/" + noext + ".png";
+			else if (fileExists(realPath + "screenshots/" + noext + ".jpg"))
+				screens->at(i) = realPath + "screenshots/" + noext + ".jpg";
 			else
 				screens->at(i) = "";
 		} else screens->at(i) = "";
+		TRACE("Selector::prepare - name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
 	}
-	TRACE("Selector::prepare - exit");
+	TRACE("Selector::prepare - exit - loaded %i screens", screens->size());
 }
 
 void Selector::freeScreenshots(vector<string> *screens) {
@@ -332,7 +335,7 @@ void Selector::loadAliases() {
 		}
 		infile.close();
 	}
-	TRACE("Selector::loadAliases - exit : loaded %i", aliases.size());
+	TRACE("Selector::loadAliases - exit : loaded %i aliases", aliases.size());
 }
 
 string Selector::getAlias(const string &key, const string &fname) {

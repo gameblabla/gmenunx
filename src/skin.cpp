@@ -59,7 +59,7 @@ vector<string> Skin::getSkins(string assetsPath) {
 				continue;
 			}
 			if (S_ISDIR(st.st_mode)) {
-				TRACE("Error: Skin::getSkins - adding directory : %s", folder.c_str());
+				TRACE("Skin::getSkins - adding directory : %s", folder.c_str());
 				result.push_back(folder);
             }
         }

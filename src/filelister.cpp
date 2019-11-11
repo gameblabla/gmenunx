@@ -52,7 +52,8 @@ const string &FileLister::getFilter() {
 	return filter;
 }
 void FileLister::setFilter(const string &filter) {
-	this->filter = filter;
+	TRACE("FileLister::setFilter - %s", filter.c_str());
+	this->filter = trim(filter);
 }
 
 void FileLister::browse() {
@@ -68,23 +69,32 @@ void FileLister::browse() {
 		}
 
 		vector<string> vfilter;
-		split(vfilter, getFilter(), ",");
+		split(vfilter, this->getFilter(), ",");
 
 		string filepath, file;
 		struct stat st;
 		struct dirent *dptr;
+		bool anyExcludes = excludes.empty();
 
 		while ((dptr = readdir(dirp))) {
 			file = dptr->d_name;
+			TRACE("FileLister::browse - raw result : %s", file.c_str());
+			// skip self and hidden dirs
 			if (file[0] == '.') continue;
+			// checked supressed list
+			if (anyExcludes) {
+				if (find(excludes.begin(), excludes.end(), file) != excludes.end())
+					continue;
+			}
+
+			TRACE("FileLister::browse - raw result : %s - post excludes", file.c_str());
 			filepath = path + "/" + file;
 			int statRet = stat(filepath.c_str(), &st);
 			if (statRet == -1) {
 				ERROR("Stat failed on '%s' with error '%s'", filepath.c_str(), strerror(errno));
 				continue;
 			}
-			if (find(excludes.begin(), excludes.end(), file) != excludes.end())
-				continue;
+			TRACE("FileLister::browse - raw result : %s - post stat", file.c_str());
 
 			if (S_ISDIR(st.st_mode)) {
 				if (!showDirectories) continue;
@@ -92,10 +102,26 @@ void FileLister::browse() {
 				directories.push_back(file);
 			} else {
 				if (!showFiles) continue;
-				for (vector<string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
-					if (vfilter.size() > 1 && it->length() == 0 && (int32_t)file.rfind(".") >= 0) continue;
-					if (it->length() <= file.length()) {
-						if (file.compare(file.length() - it->length(), it->length(), *it) == 0) {
+				if (vfilter.empty()) {
+					TRACE("FileLister::browse - no filters, so adding file : %s", file.c_str());
+					files.push_back(file);
+					continue;
+				} else {
+					//loop through each filter and check the end of the file for a match
+					TRACE("FileLister::browse - raw result : %s - checking filters", file.c_str());
+					for (vector<string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
+						// skip any empty filters...
+						TRACE("FileLister::browse - itterator is : %s", (*it).c_str());
+						int filterLength = (*it).length();
+						TRACE("FileLister::browse - itterator length test : %i", filterLength);
+						if (0 == filterLength) continue;
+						// skip testing any files shorter than the filter size
+						TRACE("FileLister::browse - file length test : %i < %i", file.length(), filterLength);
+						if (file.length() < filterLength) continue;
+
+						TRACE("FileLister::browse - ends with test");
+						// the real test, does the end match our filter
+						if (file.compare(file.length() - filterLength, filterLength, *it) == 0) {
 							TRACE("FileLister::browse - adding file : %s", file.c_str());
 							files.push_back(file);
 							break;
@@ -104,13 +130,16 @@ void FileLister::browse() {
 				}
 			}
 		}
-
 		closedir(dirp);
-		sort(files.begin(), files.end(), case_less());
-		sort(directories.begin(), directories.end(), case_less());
+		TRACE("FileLister::browse - sort starts");
+		std::sort(files.begin(), files.end(), case_less());
+		std::sort(directories.begin(), directories.end(), case_less());
+		TRACE("FileLister::browse - sort ended");
+		// add a dir up option at the front if not excluded
 		if (showDirectories && path != "/" && allowDirUp) 
 			directories.insert(directories.begin(), "..");
 	}
+
 	TRACE("FileLister::browse - exit");
 }
 
