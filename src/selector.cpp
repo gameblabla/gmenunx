@@ -152,7 +152,7 @@ int Selector::exec(int startSelection) {
 			// screenshot logic
 			int currentFileIndex = selected - fl.dirCount();
 			if (currentFileIndex >= 0) {
-				// we're in the files section
+				// we're in the files section and there's some art to deal with
 				if (!screens[currentFileIndex].empty()) {
 					gmenu2x->s->box(
 						gmenu2x->config->resolutionX - animation, 
@@ -259,7 +259,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	string fname, noext, realdir;
 	string::size_type pos;
 	string realPath = real_path(fl->getPath());
-	bool previewsDirExists = dirExists(realPath + PREVIEWS_DIR);
+	bool previewsDirExists = dirExists(realPath + "/" + PREVIEWS_DIR);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -294,10 +294,10 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		}
 		// fallback - always search for filename.png and jpg in a .previews folder inside the current path
 		if (previewsDirExists) {
-			if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
-				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
-			else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
-				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
+			if (fileExists(realPath + "/" + PREVIEWS_DIR + "/" + noext + ".png"))
+				screens->at(i) = realPath + "/" + PREVIEWS_DIR + "/" + noext + ".png";
+			else if (fileExists(realPath + "/" + PREVIEWS_DIR + "/" + noext + ".jpg"))
+				screens->at(i) = realPath + "/" + PREVIEWS_DIR + "/" + noext + ".jpg";
 			else
 				screens->at(i) = "";
 		} else screens->at(i) = "";
