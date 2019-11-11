@@ -79,13 +79,8 @@ int Selector::exec(int startSelection) {
 
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
-	if (link->getSelectorBrowser()) {
-		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"]));
-	} else {
-		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"]));
-	}
+	gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
+	gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Exit"]));
 
 	prepare(&fl, &screens, &titles);
 	int selected = constrain(startSelection, 0, fl.size() - 1);
@@ -218,12 +213,18 @@ int Selector::exec(int startSelection) {
 			} else if ( gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT] ) {
 				selected += numRows;
 				if (selected >= fl.size()) selected = fl.size() - 1;
+			} else if (gmenu2x->input[SECTION_PREV]) {
+				selected = 0;
+			} else if (gmenu2x->input[SECTION_NEXT]) {
+				selected = fl.size() -1;
 			} else if ( gmenu2x->input[SETTINGS] ) {
 				close = true;
 				result = false;
 			} else if ( gmenu2x->input[CANCEL] && link->getSelectorBrowser()) {
 				string::size_type p = dir.rfind("/", dir.size() - 2);
 				dir = dir.substr(0, p + 1);
+				selected = 0;
+				firstElement = 0;
 				prepare(&fl, &screens, &titles);
 			} else if ( gmenu2x->input[CONFIRM] ) {
 				// file selected or dir selected
