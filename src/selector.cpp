@@ -84,7 +84,7 @@ int Selector::exec(int startSelection) {
 		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"]));
 	} else {
 		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"], 5));
+		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Exit"]));
 	}
 
 	prepare(&fl, &screens, &titles);
