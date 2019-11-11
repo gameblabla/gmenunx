@@ -91,7 +91,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		TRACE("LinkApp::LinkApp - ctor - reading pairs from meta begins");
 		while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
 			if (ret < 0) {
-				ERROR("Unable to read meta-data\n");
+				ERROR("Unable to read meta-data");
 				break;
 			}
 
@@ -100,20 +100,14 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 			if (!strncmp(key, "Categories", lkey)) {
 				category = buf;
-
 				pos = category.find(';');
 				if (pos != category.npos)
 					category = category.substr(0, pos);
-
 				TRACE("LinkApp::LinkApp - ctor - opk::category : %s", category.c_str());
-			} else if ((!strncmp(key, "Name", lkey) && title.empty())
-						|| !strncmp(key, ("Name[" + gmenu2x->tr["Lng"] +
-								"]").c_str(), lkey)) {
+			} else if (!strncmp(key, "Name", lkey)) {
 				title = buf;
 				TRACE("LinkApp::LinkApp - ctor - opk::title : %s", title.c_str());
-			} else if ((!strncmp(key, "Comment", lkey) && description.empty())
-						|| !strncmp(key, ("Comment[" +
-								gmenu2x->tr["Lng"] + "]").c_str(), lkey)) {
+			} else if (!strncmp(key, "Comment", lkey) && description.empty()) {
 				description = buf;
 				TRACE("LinkApp::LinkApp - ctor - opk::description : %s", description.c_str());
 			} else if (!strncmp(key, "Terminal", lkey)) {
@@ -136,10 +130,15 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 						break;
 					}
 				}
-
 				continue;
+			} else if (!strncmp(key, "selectorbrowser", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::selector browser : %s", buf);
+				setSelectorBrowser(buf);
+			} else if (!strncmp(key, "selectorfilter", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::selector filter : %s", buf);
+				setSelectorFilter(buf);
 			} else {
-				WARNING("Unrecognized OPK link option: '%s'\n", key);
+				WARNING("Unrecognized OPK link option: '%s'", key);
 			}
 		}
 
@@ -296,7 +295,7 @@ const string &LinkApp::searchBackdrop() {
 	pos = linktitle.rfind(".");
 	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
 
-// auto backdrop
+	// auto backdrop
 	if (!gmenu2x->sc.getSkinFilePath("backdrops/" + linktitle + ".png").empty())
 		backdropPath = gmenu2x->sc.getSkinFilePath("backdrops/" + linktitle + ".png");
 	else if (!gmenu2x->sc.getSkinFilePath("backdrops/" + linktitle + ".jpg").empty())
