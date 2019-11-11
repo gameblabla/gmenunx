@@ -2,6 +2,8 @@
 #ifndef DEBUG_H
 #define DEBUG_H
 
+#include <time.h>
+
 #define NODEBUG_L 0
 #define ERROR_L 1
 #define WARNING_L 2
@@ -35,10 +37,10 @@
 #if (LOG_LEVEL >= TRACE_L)
 # ifdef COLOR_TRACE
 #  define TRACE(str, ...) \
-    fprintf(stdout, COLOR_TRACE "[D] %s:%d %s: " str COLOR_END "\n", __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
+    fprintf(stdout, COLOR_TRACE "[D] - %d -  %s:%d %s: " str COLOR_END "\n", time (NULL), __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
 # else
 #  define TRACE(str, ...) \
-    fprintf(stdout, "TRACE: " str "\n", ##__VA_ARGS__)
+    fprintf(stdout, "TRACE: - " time (NULL) " - " str "\n", ##__VA_ARGS__)
 # endif
 #else
 # define TRACE(...)
