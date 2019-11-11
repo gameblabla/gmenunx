@@ -12,17 +12,25 @@ SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 
 #@echo "cross = $(CROSS_COMPILE) *******************************************"
 DEBUG ?= 2
-CFLAGS = -ggdb \
+CFLAGS = \
+	-ggdb \
 	-DTARGET=$(PATH_DIR) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
     -Wno-narrowing \
-    -g3 $(SDL_CFLAGS)
+    -g3 $(SDL_CFLAGS) \
+    -O2 \
+    -finline-functions \
+    -mips32r2 \
+    -fPIC \
+    -mplt \
+    -msym32 \
+	-funroll-loops \
+	-fomit-frame-pointer
 
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk -lpng
-
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx
