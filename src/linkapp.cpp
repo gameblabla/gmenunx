@@ -131,9 +131,9 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 					}
 				}
 				continue;
-			} else if (!strncmp(key, "selectorbrowser", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::selector browser : %s", buf);
-				setSelectorBrowser(buf);
+			} else if (!strncmp(key, "selectordir", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::selector dir : %s", buf);
+				setSelectorDir(buf);
 			} else if (!strncmp(key, "selectorfilter", lkey)) {
 				TRACE("LinkApp::LinkApp - ctor - opk::selector filter : %s", buf);
 				setSelectorFilter(buf);
