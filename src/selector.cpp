@@ -229,16 +229,46 @@ int Selector::exec(int startSelection) {
 			} else if ( gmenu2x->input[DOWN] ) {
 				selected += 1;
 				if (selected >= fl.size()) selected = 0;
-			} else if ( gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT] ) {
+			} else if ( gmenu2x->input[LEFT] ) {
 				selected -= numRows;
 				if (selected < 0) selected = 0;
-			} else if ( gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT] ) {
+			} else if ( gmenu2x->input[RIGHT] ) {
 				selected += numRows;
 				if (selected >= fl.size()) selected = fl.size() - 1;
 			} else if (gmenu2x->input[SECTION_PREV]) {
 				selected = 0;
 			} else if (gmenu2x->input[SECTION_NEXT]) {
 				selected = fl.size() -1;
+			} else if (gmenu2x->input[PAGEUP]) {
+				// loop thru the titles collection until first char doesn't match
+				//std::vector<string>::iterator start = titles.begin();
+				char currentStartChar = titles.at(selected)[0];
+				int offset = 0;
+				bool found = false;
+				for(std::vector<string>::iterator current = titles.begin() + selected; current != titles.begin(); current--) {
+					--offset;
+					if (currentStartChar != (*current)[0]) {
+						selected += offset + 1;
+						found = true;
+						break;
+					}
+				}
+				if (!found) selected = fl.size() -1;
+			} else if (gmenu2x->input[PAGEDOWN]) {
+				// reverse loop thru the titles collectino until first char doesn't match
+				//std::vector<string>::iterator end = titles.end();
+				char currentStartChar = titles.at(selected)[0];
+				int offset = 0;
+				bool found = false;
+				for(std::vector<string>::iterator current = titles.begin() + selected; current != titles.end(); current++) {
+					++offset;
+					if (currentStartChar != (*current)[0]) {
+						selected += offset - 1;
+						found = true;
+						break;
+					}
+				}
+				if (!found) selected = 0;
 			} else if ( gmenu2x->input[SETTINGS] ) {
 				close = true;
 				result = false;
