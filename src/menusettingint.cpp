@@ -57,7 +57,7 @@ MenuSettingInt::MenuSettingInt(GMenu2X *gmenu2x, const string &title, const stri
 
 void MenuSettingInt::draw(int y) {
 	MenuSetting::draw(y);
-	gmenu2x->s->write( gmenu2x->font, strvalue, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, strvalue, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingInt::manageInput() {

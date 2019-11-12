@@ -97,7 +97,7 @@ int MessageBox::exec() {
 
 	// Surface bg(gmenu2x->s);
 	//Darken background
-	gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0,0,0,bgalpha});
+	gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0,0,0,bgalpha});
 	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX);
 	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
@@ -133,16 +133,16 @@ int MessageBox::exec() {
 	box.y = gmenu2x->config->halfY() - box.h/2 - 2;
 
 	//outer box
-	gmenu2x->s->box(box, gmenu2x->skin->colours.msgBoxBackground);
+	gmenu2x->screen->box(box, gmenu2x->skin->colours.msgBoxBackground);
 	
 	//draw inner rectangle
-	gmenu2x->s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skin->colours.msgBoxBorder);
+	gmenu2x->screen->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skin->colours.msgBoxBorder);
 
 	//icon+wrapped_text
 	if (gmenu2x->sc[icon] != NULL)
-		gmenu2x->sc[icon]->blit( gmenu2x->s, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
+		gmenu2x->sc[icon]->blit( gmenu2x->screen, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
 
-	gmenu2x->s->write(
+	gmenu2x->screen->write(
 		gmenu2x->font, 
 		wrapped_text, 
 		box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), 
@@ -152,7 +152,7 @@ int MessageBox::exec() {
 		gmenu2x->skin->colours.fontAltOutline);
 
 	if (this->autohide != 0) {
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 		if (this->autohide > 0) {
 			SDL_Delay(this->autohide);
 			gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
@@ -161,7 +161,7 @@ int MessageBox::exec() {
 	}
 
 	//draw buttons rectangle
-	gmenu2x->s->box(
+	gmenu2x->screen->box(
 		box.x, 
 		box.y+box.h, 
 		box.w, 
@@ -174,13 +174,13 @@ int MessageBox::exec() {
 			buttonPositions[i].y = box.y+box.h+gmenu2x->font->getHalfHeight();
 			buttonPositions[i].w = btnX;
 
-			btnX = gmenu2x->drawButtonRight(gmenu2x->s, buttonLabels[i], buttons[i], btnX, buttonPositions[i].y);
+			btnX = gmenu2x->drawButtonRight(gmenu2x->screen, buttonLabels[i], buttons[i], btnX, buttonPositions[i].y);
 
 			buttonPositions[i].x = btnX;
 			buttonPositions[i].w = buttonPositions[i].x-btnX-6;
 		}
 	}
-	gmenu2x->s->flip();
+	gmenu2x->screen->flip();
 
 	while (result < 0) {
 		//touchscreen

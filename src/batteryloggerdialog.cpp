@@ -23,11 +23,11 @@ void BatteryLoggerDialog::exec() {
 	gmenu2x->drawButton(this->bg, "down", gmenu2x->tr["Scroll"],
 	gmenu2x->drawButton(this->bg, "up", "", 5)-10)));
 
-	this->bg->blit(gmenu2x->s,0,0);
+	this->bg->blit(gmenu2x->screen,0,0);
 
 	gmenu2x->setBacklight(100);
 
-	gmenu2x->s->flip();
+	gmenu2x->screen->flip();
 
 	MessageBox mb(gmenu2x, gmenu2x->tr["Welcome to the Battery Logger.\nMake sure the battery is fully charged.\nAfter pressing OK, leave the device ON until\nthe battery has been fully discharged.\nThe log will be saved in 'battery.csv'."]);
 	mb.exec();
@@ -70,23 +70,23 @@ void BatteryLoggerDialog::exec() {
 			inf.close();
 		}
 
-		this->bg->blit(gmenu2x->s,0,0);
+		this->bg->blit(gmenu2x->screen,0,0);
 
 		for (uint32_t i = firstRow; i < firstRow + rowsPerPage && i < log.size(); i++) {
 			int rowY, j = log.size() - i - 1;
 			if (log.at(j) == "----") { // draw a line
 				rowY = 42 + (int)((i - firstRow + 0.5) * gmenu2x->font->getHeight());
-				gmenu2x->s->box(5, rowY, gmenu2x->config->resolutionX - 16, 1, 255, 255, 255, 130);
-				gmenu2x->s->box(5, rowY + 1, gmenu2x->config->resolutionX - 16, 1, 0, 0, 0, 130);
+				gmenu2x->screen->box(5, rowY, gmenu2x->config->resolutionX - 16, 1, 255, 255, 255, 130);
+				gmenu2x->screen->box(5, rowY + 1, gmenu2x->config->resolutionX - 16, 1, 0, 0, 0, 130);
 			} else {
 				rowY = 42 + (i - firstRow) * gmenu2x->font->getHeight();
-				gmenu2x->font->write(gmenu2x->s, log.at(j), 5, rowY);
+				gmenu2x->font->write(gmenu2x->screen, log.at(j), 5, rowY);
 			}
 		}
 
 		gmenu2x->drawScrollBar(rowsPerPage, log.size(), firstRow, gmenu2x->listRect);
 
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 
 		bool inputAction = gmenu2x->input.update(false);
 		

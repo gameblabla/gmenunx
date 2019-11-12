@@ -59,7 +59,7 @@ bool BrowseDialog::exec() {
 
 	uint32_t tickStart = SDL_GetTicks();
 	while (!close) {
-		this->bg->blit(gmenu2x->s,0,0);
+		this->bg->blit(gmenu2x->screen,0,0);
 		// buttonBox.paint(5);
 
 		//Selection
@@ -69,16 +69,16 @@ bool BrowseDialog::exec() {
 		//Files & Directories
 		iY = gmenu2x->listRect.y + 1;
 		for (i = firstElement; i < fl->size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
+			if (i == selected) gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
 			if (fl->isDirectory(i)) {
 				if ((*fl)[i] == "..")
-					iconGoUp->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+					iconGoUp->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 				else
-					iconFolder->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+					iconFolder->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 			} else {
-				iconFile->blit(gmenu2x->s, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+				iconFile->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 			}
-			gmenu2x->s->write(gmenu2x->font, (*fl)[i], gmenu2x->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
+			gmenu2x->screen->write(gmenu2x->font, (*fl)[i], gmenu2x->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
 		}
 
 		// preview
@@ -86,22 +86,22 @@ bool BrowseDialog::exec() {
 		string ext = getExt();
 
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
-			gmenu2x->s->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
+			gmenu2x->screen->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
 
 			gmenu2x->sc[filename]->softStretch(gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding, true, false);
-			gmenu2x->sc[filename]->blit(gmenu2x->s, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
+			gmenu2x->sc[filename]->blit(gmenu2x->screen, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
 
 			if (animation < gmenu2x->skin->previewWidth) {
 				animation = intTransition(0, gmenu2x->skin->previewWidth, tickStart, 110);
-				gmenu2x->s->flip();
+				gmenu2x->screen->flip();
 				gmenu2x->input.setWakeUpInterval(45);
 				continue;
 			}
 		} else {
 			if (animation > 0) {
-				gmenu2x->s->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
+				gmenu2x->screen->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
 				animation = gmenu2x->skin->previewWidth - intTransition(0, gmenu2x->skin->previewWidth, tickStart, 80);
-				gmenu2x->s->flip();
+				gmenu2x->screen->flip();
 				gmenu2x->input.setWakeUpInterval(45);
 				continue;
 			}
@@ -109,7 +109,7 @@ bool BrowseDialog::exec() {
 		gmenu2x->input.setWakeUpInterval(1000);
 
 		gmenu2x->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 
 		do {
 			inputAction = gmenu2x->input.update();

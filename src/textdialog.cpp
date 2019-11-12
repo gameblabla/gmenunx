@@ -79,21 +79,21 @@ void TextDialog::preProcess() {
 }
 
 void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage) {
-	gmenu2x->s->setClipRect(gmenu2x->listRect);
+	gmenu2x->screen->setClipRect(gmenu2x->listRect);
 
 	for (uint32_t i = firstRow; i < firstRow + rowsPerPage && i < text->size(); i++) {
 		int rowY;
 		if (text->at(i)=="----") { //draw a line
 			rowY = gmenu2x->listRect.y + (int)((i - firstRow + 0.5) * gmenu2x->font->getHeight());
-			gmenu2x->s->box(5, rowY, gmenu2x->config->resolutionX - 16, 1, 255, 255, 255, 130);
-			gmenu2x->s->box(5, rowY + 1, gmenu2x->config->resolutionX - 16, 1, 0, 0, 0, 130);
+			gmenu2x->screen->box(5, rowY, gmenu2x->config->resolutionX - 16, 1, 255, 255, 255, 130);
+			gmenu2x->screen->box(5, rowY + 1, gmenu2x->config->resolutionX - 16, 1, 0, 0, 0, 130);
 		} else {
 			rowY = gmenu2x->listRect.y + (i - firstRow) * gmenu2x->font->getHeight();
-			gmenu2x->font->write(gmenu2x->s, text->at(i), 5, rowY);
+			gmenu2x->font->write(gmenu2x->screen, text->at(i), 5, rowY);
 		}
 	}
 
-	gmenu2x->s->clearClipRect();
+	gmenu2x->screen->clearClipRect();
 	gmenu2x->drawScrollBar(rowsPerPage, text->size(), firstRow, gmenu2x->listRect);
 }
 
@@ -123,9 +123,9 @@ void TextDialog::exec() {
 
 	uint32_t firstRow = 0, rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
 	while (!close) {
-		this->bg->blit(gmenu2x->s,0,0);
+		this->bg->blit(gmenu2x->screen,0,0);
 		drawText(&text, firstRow, rowsPerPage);
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 
 		do {
 			inputAction = gmenu2x->input.update();

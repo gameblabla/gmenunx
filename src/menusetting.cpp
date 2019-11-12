@@ -27,7 +27,7 @@ MenuSetting::MenuSetting(GMenu2X *gmenu2x, const string &title, const string &de
 MenuSetting::~MenuSetting() {}
 
 void MenuSetting::draw(int y) {
-	gmenu2x->s->write( gmenu2x->font, title, 5, y + gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, title, 5, y + gmenu2x->font->getHalfHeight(), VAlignMiddle );
 }
 
 void MenuSetting::handleTS() {

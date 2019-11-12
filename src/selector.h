@@ -35,10 +35,20 @@ using std::vector;
 class Selector : protected Dialog {
 private:
 	int selRow;
+	uint32_t animation;
+	uint32_t tickStart;
+	uint32_t firstElement;
+	uint32_t numRows;
+	string screendir;
+	int numDirs;
+	int numFiles;
+	vector<string> screens;
+
 	LinkApp *link;
 
 	string file, dir;
 	unordered_map<string, string> aliases;
+	bool handlePreview(vector<string> *screens, int selected, bool background = false);
 	void loadAliases();
 	string getAlias(const string &key, const string &fname);
 	void prepare(FileLister *fl, vector<string> *screens, vector<string> *titles);

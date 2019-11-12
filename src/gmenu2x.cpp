@@ -145,7 +145,7 @@ GMenu2X::~GMenu2X() {
 	TRACE("GMenu2X::dtor - enter\n\n");
 	quit();
 	delete menu;
-	delete s;
+	delete screen;
 	delete font;
 	delete fontTitle;
 	delete fontSectionTitle;
@@ -167,7 +167,7 @@ void GMenu2X::quit() {
 		ledOff();
 		fflush(NULL);
 		sc.clear();
-		s->free();
+		screen->free();
 		releaseScreen();
 	}
 	TRACE("GMenu2X::quit - exit");
@@ -251,10 +251,10 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	SDL_ShowCursor(SDL_DISABLE);
 
 	TRACE("GMenu2X::ctor - surface");
-	s = new Surface();
+	this->screen = new Surface();
 
 	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX, config->resolutionY, config->videoBpp);
-	s->raw = SDL_SetVideoMode(config->resolutionX, config->resolutionY, config->videoBpp, SDL_HWSURFACE|SDL_DOUBLEBUF);
+	this->screen->raw = SDL_SetVideoMode(config->resolutionX, config->resolutionY, config->videoBpp, SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
 	TRACE("GMenu2X::ctor - set prefix on surface collection");
 	sc.setPrefix(assets_path);
@@ -341,6 +341,7 @@ void GMenu2X::main() {
 	TRACE("main - enter");
 	bool quit = false;
 /*
+	TODO :: put me back in...?
 	TRACE("main :: pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
@@ -406,7 +407,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 	if (bg != NULL) delete bg;
 
 	TRACE("GMenu2X::setWallpaper - new surface");
-	bg = new Surface(s);
+	bg = new Surface(screen);
 	TRACE("GMenu2X::setWallpaper - bg box");
 	bg->box((SDL_Rect){0, 0, config->resolutionX, config->resolutionY}, (RGBAColor){0, 0, 0, 0});
 
@@ -851,36 +852,6 @@ void GMenu2X::writeConfig() {
 			config->link = menu->selLinkIndex();
 		}
 		config->save();
-
-		/*
-		if (confInt["saveSelection"] && menu != NULL) {
-			TRACE("GMenu2X::writeConfig - save selection");
-			confInt["section"] = menu->selSectionIndex();
-			confInt["link"] = menu->selLinkIndex();
-		}
-
-		string conffile = assets_path + "gmenunx.conf";
-		TRACE("GMenu2X::writeConfig - saving to : %s", conffile.c_str());
-		ofstream inf(conffile.c_str());
-		if (inf.is_open()) {
-			TRACE("GMenu2X::writeConfig - stream open");
-			for (ConfStrHash::iterator curr = confStr.begin(); curr != confStr.end(); curr++) {
-				if (curr->first == "tvoutEncoding") continue;
-				TRACE("GMenu2X::writeConfig - writing string : %s=%s", curr->first.c_str(), curr->second.c_str());
-				inf << curr->first << "=\"" << curr->second << "\"" << endl;
-			}
-
-			for (ConfIntHash::iterator curr = confInt.begin(); curr != confInt.end(); curr++) {
-				if (curr->first == "batteryLog" || curr->first == "maxClock" || curr->first == "minClock" || curr->first == "menuClock") continue;
-				TRACE("GMenu2X::writeConfig - writing int : %s=%i", curr->first.c_str(), curr->second);
-				inf << curr->first << "=" << curr->second << endl;
-			}
-			TRACE("GMenu2X::writeConfig - close");
-			inf.close();
-			TRACE("GMenu2X::writeConfig - sync");
-			sync();
-		}
-		*/
 	}
 	TRACE("GMenu2X::writeConfig - ledOff");
 	//sync();
@@ -1478,7 +1449,7 @@ void GMenu2X::contextMenu() {
 	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &GMenu2X::deleteSection)});
 	voices.push_back((MenuOption){tr["Link scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
 
-	Surface bg(s);
+	Surface bg(screen);
 	bool close = false, inputAction = false;
 	int sel = 0;
 	uint32_t i, fadeAlpha = 0, h = font->getHeight(), h2 = font->getHalfHeight();
@@ -1500,16 +1471,16 @@ void GMenu2X::contextMenu() {
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
 	while (!close) {
-		bg.blit(s, 0, 0);
+		bg.blit(screen, 0, 0);
 
-		s->box(0, 0, config->resolutionX, config->resolutionY, 0,0,0, fadeAlpha);
-		s->box(box.x, box.y, box.w, box.h, skin->colours.msgBoxBackground);
-		s->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skin->colours.msgBoxBorder);
+		screen->box(0, 0, config->resolutionX, config->resolutionY, 0,0,0, fadeAlpha);
+		screen->box(box.x, box.y, box.w, box.h, skin->colours.msgBoxBackground);
+		screen->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skin->colours.msgBoxBorder);
 
 		//draw selection rect
-		s->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skin->colours.msgBoxSelection);
+		screen->box( box.x + 4, box.y + 4 + h * sel, box.w - 8, h, skin->colours.msgBoxSelection);
 		for (i = 0; i < voices.size(); i++)
-			s->write( 
+			screen->write( 
 				font, 
 				voices[i].text, 
 				box.x + 12, 
@@ -1518,7 +1489,7 @@ void GMenu2X::contextMenu() {
 				skin->colours.fontAlt, 
 				skin->colours.fontAltOutline);
 
-		s->flip();
+		screen->flip();
 
 		if (fadeAlpha < 200) {
 			fadeAlpha = intTransition(0, 200, tickStart, 200);
@@ -1762,6 +1733,7 @@ int GMenu2X::getBatteryLevel() {
 	return result;
 }
 
+// TODO :: Investigate consumers
 void GMenu2X::setInputSpeed() {
 	input.setInterval(180);
 	input.setInterval(1000, SETTINGS);
@@ -2015,8 +1987,8 @@ void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t page
 	by = scrollRect.y + 3 + by;
 	if ( by + bs > scrollRect.y + scrollRect.h - 4) by = scrollRect.y + scrollRect.h - 4 - bs;
 
-	s->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skin->colours.listBackground);
-	s->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skin->colours.selectionBackground);
+	screen->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skin->colours.listBackground);
+	screen->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skin->colours.selectionBackground);
 }
 
 void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
@@ -2025,20 +1997,20 @@ void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) 
 
 	val = constrain(val, min, max);
 
-	bg.blit(s,0,0);
-	s->box(box, skin->colours.msgBoxBackground);
-	s->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, skin->colours.msgBoxBorder);
+	bg.blit(screen,0,0);
+	screen->box(box, skin->colours.msgBoxBackground);
+	screen->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, skin->colours.msgBoxBorder);
 
-	icon.blit(s, 28, 28);
+	icon.blit(screen, 28, 28);
 
-	s->box(progress, skin->colours.msgBoxBackground);
-	s->box(
+	screen->box(progress, skin->colours.msgBoxBackground);
+	screen->box(
 		progress.x + 1, 
 		progress.y + 1, 
 		val * (progress.w - 3) / max + 1, 
 		progress.h - 2, 
 		skin->colours.msgBoxSelection);
-	s->flip();
+	screen->flip();
 }
 
 #if defined(TARGET_GP2X)

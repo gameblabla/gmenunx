@@ -181,7 +181,7 @@ public:
 
 	SurfaceCollection sc;
 	Translator tr;
-	Surface *s, *bg;
+	Surface *screen, *bg;
 	FontHelper *font = NULL, *fontTitle = NULL, *fontSectionTitle = NULL; 
 
 	//Status functions

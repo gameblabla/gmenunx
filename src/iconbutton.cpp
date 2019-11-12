@@ -31,9 +31,9 @@ void IconButton::setPosition(int x, int y) {
 
 void IconButton::paint() {
 	if (iconSurface != NULL)
-		iconSurface->blit(gmenu2x->s, iconRect);
+		iconSurface->blit(gmenu2x->screen, iconRect);
 	if (!label.empty()) {
-		gmenu2x->s->write(
+		gmenu2x->screen->write(
 			gmenu2x->font, 
 			label, 
 			labelRect.x, 

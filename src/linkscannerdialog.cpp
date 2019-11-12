@@ -22,19 +22,19 @@ void LinkScannerDialog::exec() {
 
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
 
-	this->bg->blit(gmenu2x->s,0,0);
+	this->bg->blit(gmenu2x->screen,0,0);
 
-	gmenu2x->s->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, lineY);
 
 	lineY += gmenu2x->font->getHeight();
-	gmenu2x->s->write(gmenu2x->font, gmenu2x->tr["/mnt/int_sd"], gmenu2x->listRect.x + 4, lineY);
-	gmenu2x->s->flip();
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/mnt/int_sd"], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->flip();
 
 	scanPath("/mnt/int_sd", &files);
 
 	lineY += gmenu2x->font->getHeight();
-	gmenu2x->s->write(gmenu2x->font, gmenu2x->tr["/mnt/ext_sd"], gmenu2x->listRect.x + 4, lineY);
-	gmenu2x->s->flip();
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/mnt/ext_sd"], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->flip();
 
 	scanPath("/mnt/ext_sd", &files);
 
@@ -42,14 +42,14 @@ void LinkScannerDialog::exec() {
 	ss >> str;
 
 	lineY += gmenu2x->font->getHeight();
-	gmenu2x->s->write(gmenu2x->font, gmenu2x->tr.translate("$1 files found.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
-	gmenu2x->s->flip();
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr.translate("$1 files found.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->flip();
 
 	if (files.size() > 0) {
 
 		lineY += gmenu2x->font->getHeight();
-		gmenu2x->s->write(gmenu2x->font, gmenu2x->tr["Creating links..."], gmenu2x->listRect.x + 4, lineY);
-		gmenu2x->s->flip();
+		gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Creating links..."], gmenu2x->listRect.x + 4, lineY);
+		gmenu2x->screen->flip();
 
 		string path, file;
 		string::size_type pos;
@@ -73,8 +73,8 @@ void LinkScannerDialog::exec() {
 
 		lineY += gmenu2x->font->getHeight();
 
-		gmenu2x->s->write(gmenu2x->font, gmenu2x->tr.translate("$1 links created.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
-		gmenu2x->s->flip();
+		gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr.translate("$1 links created.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
+		gmenu2x->screen->flip();
 	}
 
 	sync();

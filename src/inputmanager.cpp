@@ -218,7 +218,7 @@ void InputManager::setActionsCount(int count) {
 }
 
 bool InputManager::update(bool wait) {
-	//TRACE("InputManager::update started");
+	//TRACE("InputManager::update started : wait = %i", wait);
 	bool anyactions = false;
 	SDL_JoystickUpdate();
 

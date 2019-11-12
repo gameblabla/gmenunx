@@ -61,7 +61,7 @@ MenuSettingDateTime::MenuSettingDateTime(GMenu2X *gmenu2x, const string &title, 
 void MenuSettingDateTime::draw(int y) {
 	this->y = y;
 	MenuSetting::draw(y);
-	gmenu2x->s->write( gmenu2x->font, year + "-" + month + "-" + day + " " + hour + ":" + minute, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, year + "-" + month + "-" + day + " " + hour + ":" + minute, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingDateTime::manageInput() {
@@ -166,8 +166,8 @@ void MenuSettingDateTime::drawSelected(int y) {
 		case 4: x += gmenu2x->font->getTextWidth(year + "-" + month + "-" + day + " " + hour + ":"); w = gmenu2x->font->getTextWidth(minute); break;
 		default: w = gmenu2x->font->getTextWidth(year); break;
 	}
-	gmenu2x->s->box( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, gmenu2x->skin->colours.selectionBackground);
-	gmenu2x->s->rectangle( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
+	gmenu2x->screen->box( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, gmenu2x->skin->colours.selectionBackground);
+	gmenu2x->screen->rectangle( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
 
 	MenuSetting::drawSelected(y);
 }

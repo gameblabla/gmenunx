@@ -12,7 +12,7 @@ Dialog::~Dialog() {
 }
 
 void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
-	if (s == NULL) s = gmenu2x->s;
+	if (s == NULL) s = gmenu2x->screen;
 
 	Surface *i = NULL;
 	if (!icon.empty()) {
@@ -27,7 +27,7 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 }
 
 void Dialog::writeTitle(const std::string &title, Surface *s) {
-	if (s == NULL) s = gmenu2x->s;
+	if (s == NULL) s = gmenu2x->screen;
 	s->write(
 		gmenu2x->fontTitle, 
 		title, 
@@ -40,7 +40,7 @@ void Dialog::writeTitle(const std::string &title, Surface *s) {
 }
 
 void Dialog::writeSubTitle(const std::string &subtitle, Surface *s) {
-	if (s == NULL) s = gmenu2x->s;
+	if (s == NULL) s = gmenu2x->screen;
 	s->write(
 		gmenu2x->font, 
 		subtitle, 
@@ -53,7 +53,7 @@ void Dialog::writeSubTitle(const std::string &subtitle, Surface *s) {
 }
 
 void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::string &description, const std::string &icon) {
-	if (s == NULL) s = gmenu2x->s;
+	if (s == NULL) s = gmenu2x->screen;
 	// Surface *bar = sc.skinRes("imgs/topbar.png");
 	// if (bar != NULL) bar->blit(s, 0, 0);
 	// else
@@ -66,7 +66,7 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 }
 
 void Dialog::drawBottomBar(Surface *s) {
-	if (s == NULL) s = gmenu2x->s;
+	if (s == NULL) s = gmenu2x->screen;
 	// Surface *bar = sc.skinRes("imgs/bottombar.png");
 	// if (bar != NULL) bar->blit(s, 0, resY-bar->raw->h);
 	// else

@@ -60,18 +60,18 @@ bool WallpaperDialog::exec()
 		string skinPath = wallpaperPath + wallpapers[selected];
 
 		TRACE("WallpaperDialog::exec - blitting surface :: %s", skinPath.c_str());
-		gmenu2x->sc[skinPath]->blit(gmenu2x->s,0,0);
+		gmenu2x->sc[skinPath]->blit(gmenu2x->screen,0,0);
 
 		TRACE("WallpaperDialog::exec - drawTopBar");
-		drawTopBar(gmenu2x->s, title, description, icon);
+		drawTopBar(gmenu2x->screen, title, description, icon);
 		TRACE("WallpaperDialog::exec - drawBottomBar");
-		drawBottomBar(gmenu2x->s);
+		drawBottomBar(gmenu2x->screen);
 		TRACE("WallpaperDialog::exec - box");
-		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+		gmenu2x->screen->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 		TRACE("WallpaperDialog::exec - drawButtons");
-		gmenu2x->drawButton(gmenu2x->s, "a", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(gmenu2x->s, "start", gmenu2x->tr["Exit"],5));
+		gmenu2x->drawButton(gmenu2x->screen, "a", gmenu2x->tr["Select"],
+		gmenu2x->drawButton(gmenu2x->screen, "start", gmenu2x->tr["Exit"],5));
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
@@ -81,14 +81,14 @@ bool WallpaperDialog::exec()
 		iY = gmenu2x->listRect.y + 1;
 		TRACE("WallpaperDialog::exec - loop dirs");
 		for (i = firstElement; i < wallpapers.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-			if (i == selected) gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
-			gmenu2x->s->write(gmenu2x->font, wallpapers[i], gmenu2x->listRect.x + 5, iY + rowHeight/2, VAlignMiddle);
+			if (i == selected) gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
+			gmenu2x->screen->write(gmenu2x->font, wallpapers[i], gmenu2x->listRect.x + 5, iY + rowHeight/2, VAlignMiddle);
 		}
 
 		TRACE("WallpaperDialog::exec - drawScrollBar");
 		gmenu2x->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
 		TRACE("WallpaperDialog::exec - flip");
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 
 		TRACE("WallpaperDialog::exec - loop");
 		do {

@@ -609,7 +609,7 @@ const string &LinkApp::getSelectorDir() {
 void LinkApp::setSelectorDir(const string &selectordir) {
 	this->selectordir = selectordir;
 	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
-	if (this->selectordir != "") this->selectordir = real_path(this->selectordir);
+	if (!this->selectordir.empty()) this->selectordir = real_path(this->selectordir);
 	edited = true;
 }
 

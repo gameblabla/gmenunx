@@ -21,14 +21,14 @@ void ImageViewerDialog::exec() {
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
 	5))-12)-14)-12);
 
-	this->bg->blit(gmenu2x->s,0,0);
+	this->bg->blit(gmenu2x->screen,0,0);
 
 	while (!close) {
-			this->bg->blit(gmenu2x->s, 0, 0);
-			gmenu2x->s->setClipRect(gmenu2x->listRect);
-			image.blit(gmenu2x->s, gmenu2x->listRect.x + offsetX, gmenu2x->listRect.y + offsetY);
-			gmenu2x->s->flip();
-			gmenu2x->s->clearClipRect();
+			this->bg->blit(gmenu2x->screen, 0, 0);
+			gmenu2x->screen->setClipRect(gmenu2x->listRect);
+			image.blit(gmenu2x->screen, gmenu2x->listRect.x + offsetX, gmenu2x->listRect.y + offsetY);
+			gmenu2x->screen->flip();
+			gmenu2x->screen->clearClipRect();
 
 		do {
 			inputAction = gmenu2x->input.update();

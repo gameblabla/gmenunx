@@ -93,19 +93,19 @@ void Renderer::render() {
     }
 
     TRACE("Renderer::setting the box");
-		gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0, 0, 0, 255});
+		gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0, 0, 0, 255});
 
 		if (gmenu2x->sc[currBackdrop]) {
-			gmenu2x->sc[currBackdrop]->blit(gmenu2x->s,0,0);
+			gmenu2x->sc[currBackdrop]->blit(gmenu2x->screen,0,0);
 		} else {
-			gmenu2x->s->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, gmenu2x->skin->colours.background);
+			gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, gmenu2x->skin->colours.background);
 		}
 
 		// SECTIONS
 		TRACE("Renderer::sections");
 		if (gmenu2x->skin->sectionBar) {
 
-			gmenu2x->s->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.topBarBackground);
+			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.topBarBackground);
 
 			x = gmenu2x->sectionBarRect.x; 
 			y = gmenu2x->sectionBarRect.y;
@@ -117,7 +117,7 @@ void Renderer::render() {
                 string sectionName = gmenu2x->menu->selSection();
 
                 TRACE("Renderer::sections - section text mode - writing title");
-				gmenu2x->s->write(
+				gmenu2x->screen->write(
 					gmenu2x->fontSectionTitle, 
 					"\u00AB " + gmenu2x->tr.translate(sectionName) + " \u00BB", 
 					gmenu2x->sectionBarRect.w / 2, 
@@ -130,7 +130,7 @@ void Renderer::render() {
                     TRACE("Renderer::sections - section text mode - writing clock");
                     string clockTime = rtc.getClockTime(true);
                     TRACE("Renderer::sections - section text mode - got clock time : %s", clockTime.c_str());
-					gmenu2x->s->write(
+					gmenu2x->screen->write(
 						gmenu2x->fontSectionTitle, 
 						clockTime, 
 						4, 
@@ -150,7 +150,7 @@ void Renderer::render() {
                     //TRACE("Renderer::sections - icon mode - got x and y");
 					if (gmenu2x->menu->selSectionIndex() == (int)i) {
                         //TRACE("Renderer::sections - icon mode - applying highlight");
-						gmenu2x->s->box(
+						gmenu2x->screen->box(
 							x, 
 							y, 
 							gmenu2x->skin->sectionBarSize, 
@@ -159,7 +159,7 @@ void Renderer::render() {
                     }
                     //TRACE("Renderer::sections - icon mode - blit");
 					gmenu2x->sc[gmenu2x->menu->getSectionIcon(i)]->blit(
-						gmenu2x->s, 
+						gmenu2x->screen, 
 						{x, y, gmenu2x->skin->sectionBarSize, gmenu2x->skin->sectionBarSize}, 
 						HAlignCenter | VAlignMiddle);
 				}
@@ -168,8 +168,8 @@ void Renderer::render() {
 
 		// LINKS
 		//TRACE("Renderer::links");
-		gmenu2x->s->setClipRect(gmenu2x->linksRect);
-		gmenu2x->s->box(gmenu2x->linksRect, gmenu2x->skin->colours.listBackground);
+		gmenu2x->screen->setClipRect(gmenu2x->linksRect);
+		gmenu2x->screen->box(gmenu2x->linksRect, gmenu2x->skin->colours.listBackground);
 
 		int i = gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols;
 
@@ -182,7 +182,7 @@ void Renderer::render() {
 
 				// highlight selected link
 				if (i == (uint32_t)gmenu2x->menu->selLinkIndex())
-					gmenu2x->s->box(
+					gmenu2x->screen->box(
 						ix, 
 						iy, 
 						gmenu2x->linksRect.w, 
@@ -193,7 +193,7 @@ void Renderer::render() {
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("Menu::loadIcons - theme uses icons");
 					gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
-						gmenu2x->s, 
+						gmenu2x->screen, 
 						{ix, iy, padding, gmenu2x->linkHeight}, 
 						HAlignCenter | VAlignMiddle);
 				} else {
@@ -216,7 +216,7 @@ void Renderer::render() {
 							localAlignTitle = HAlignCenter | VAlignMiddle;
 						}
 					}
-					gmenu2x->s->write(
+					gmenu2x->screen->write(
 						gmenu2x->fontTitle, 
 						gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle()), 
 						localXpos, 
@@ -224,7 +224,7 @@ void Renderer::render() {
 						localAlignTitle);
 					
 					if (totalFontHeight < gmenu2x->linkHeight) {
-						gmenu2x->s->write(
+						gmenu2x->screen->write(
 							gmenu2x->font, 
 							gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDescription()), 
 							ix + gmenu2x->linkSpacing + padding, 
@@ -258,28 +258,28 @@ void Renderer::render() {
 					ix = gmenu2x->linksRect.x + (x * gmenu2x->linkWidth)  + (x + 1) * gmenu2x->linkSpacing;
 					iy = gmenu2x->linksRect.y + (y * gmenu2x->linkHeight) + (y + 1) * gmenu2x->linkSpacing;
 
-					gmenu2x->s->setClipRect({ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight});
+					gmenu2x->screen->setClipRect({ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight});
 
 					// selected link highlight
 					if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
-						gmenu2x->s->box(ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight, gmenu2x->skin->colours.selectionBackground);
+						gmenu2x->screen->box(ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight, gmenu2x->skin->colours.selectionBackground);
 					}
 
 					if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 						//TRACE("Renderer::links - adding icon and text : %s", title.c_str());
 						gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
-							gmenu2x->s, 
+							gmenu2x->screen, 
 							{ix + 2, iy + 2, gmenu2x->linkWidth - 4, gmenu2x->linkHeight - 4}, 
 							HAlignCenter | VAlignMiddle);
 
 					} else if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
 
 						gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
-							gmenu2x->s, 
+							gmenu2x->screen, 
 							{ix + 2, iy, gmenu2x->linkWidth - 4, gmenu2x->linkHeight}, 
 							HAlignCenter | VAlignTop);
 
-						gmenu2x->s->write(gmenu2x->font, 
+						gmenu2x->screen->write(gmenu2x->font, 
 							title, 
 							ix + (gmenu2x->linkWidth / 2), 
 							iy + gmenu2x->linkHeight,
@@ -289,7 +289,7 @@ void Renderer::render() {
 
 						//TRACE("Renderer::links - adding text only : %s", title.c_str());
 
-						gmenu2x->s->write(gmenu2x->font, 
+						gmenu2x->screen->write(gmenu2x->font, 
 							title, 
 							ix + (gmenu2x->linkWidth / 2), 
 							iy + (gmenu2x->linkHeight / 2), 
@@ -302,7 +302,7 @@ void Renderer::render() {
 			}
 		}
 		//TRACE("Renderer::links - done");
-		gmenu2x->s->clearClipRect();
+		gmenu2x->screen->clearClipRect();
 
 		gmenu2x->drawScrollBar(gmenu2x->skin->numLinkRows, 
 			gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
@@ -364,7 +364,7 @@ void Renderer::render() {
 			TRACE("Renderer::layoutHelperIcons");
 			int * xPosPtr = & rootXPos;
 			int * yPosPtr = & rootYPos;
-			layoutHelperIcons(helpers, gmenu2x->s, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
+			layoutHelperIcons(helpers, gmenu2x->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
 			TRACE("Renderer::helpers.clear()");
 			helpers.clear();
 
@@ -373,7 +373,7 @@ void Renderer::render() {
 					if (gmenu2x->skin->showSectionIcons) {
 						// grab the new x offset and write the clock
 						string time = rtc.getClockTime(true);
-						gmenu2x->s->write(
+						gmenu2x->screen->write(
 							gmenu2x->fontSectionTitle, 
 							time, 
 							*(xPosPtr) - (gmenu2x->fontSectionTitle->getTextWidth(time) / 2), 
@@ -382,7 +382,7 @@ void Renderer::render() {
 					}
 				} else {
 					// grab the new y offset and write the clock
-					gmenu2x->s->write(
+					gmenu2x->screen->write(
 						gmenu2x->fontSectionTitle, 
 						rtc.getClockTime(true), 
 						gmenu2x->sectionBarRect.x + 4, 
@@ -394,7 +394,7 @@ void Renderer::render() {
 		}
 
         TRACE("Renderer::flip"); 
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 
         TRACE("Renderer::exit"); 
  
@@ -411,7 +411,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
 		TRACE("Renderer::layoutHelperIcons - blitting");
 		(*it)->blit(
-			gmenu2x->s, 
+			gmenu2x->screen, 
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
 			rootYPos - (currentYOffset * (helperHeight - 2))
 		);

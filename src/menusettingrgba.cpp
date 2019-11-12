@@ -56,12 +56,12 @@ MenuSettingRGBA::MenuSettingRGBA(GMenu2X *gmenu2x, const string &title, const st
 void MenuSettingRGBA::draw(int y) {
 	this->y = y;
 	MenuSetting::draw(y);
-	gmenu2x->s->box(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, value() );
-	gmenu2x->s->rectangle(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, 0, 0, 0, 255);
-	gmenu2x->s->write( gmenu2x->font, /*"R: "+*/strR, 169, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->s->write( gmenu2x->font, /*"G: "+*/strG, 205, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->s->write( gmenu2x->font, /*"B: "+*/strB, 241, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->s->write( gmenu2x->font, /*"A: "+*/strA, 277, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->box(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, value() );
+	gmenu2x->screen->rectangle(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, 0, 0, 0, 255);
+	gmenu2x->screen->write( gmenu2x->font, /*"R: "+*/strR, 169, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, /*"G: "+*/strG, 205, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, /*"B: "+*/strB, 241, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	gmenu2x->screen->write( gmenu2x->font, /*"A: "+*/strA, 277, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
 }
 
 void MenuSettingRGBA::handleTS() {
@@ -166,8 +166,8 @@ void MenuSettingRGBA::drawSelected(int y) {
 		case 2: color = (RGBAColor){  0,   0, 255, 255}; break;
 		default: color = gmenu2x->skin->colours.selectionBackground; break;
 	}
-	gmenu2x->s->box( x, y, 36, gmenu2x->font->getHeight() + 1, color );
-	gmenu2x->s->rectangle( x, y, 36, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
+	gmenu2x->screen->box( x, y, 36, gmenu2x->font->getHeight() + 1, color );
+	gmenu2x->screen->rectangle( x, y, 36, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
 	MenuSetting::drawSelected(y);
 }
 

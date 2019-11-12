@@ -66,12 +66,12 @@ bool SettingsDialog::exec() {
 		rowHeight = gmenu2x->font->getHeight() + 1;
 		numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
 
-		this->bg->blit(gmenu2x->s,0,0);
+		this->bg->blit(gmenu2x->screen,0,0);
 
 		// redraw to due to realtime skin
-		drawTopBar(gmenu2x->s, title, voices[selected]->getDescription(), icon);
-		drawBottomBar(gmenu2x->s);
-		gmenu2x->s->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+		drawTopBar(gmenu2x->screen, title, voices[selected]->getDescription(), icon);
+		drawBottomBar(gmenu2x->screen);
+		gmenu2x->screen->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
@@ -80,7 +80,7 @@ bool SettingsDialog::exec() {
 		iY = gmenu2x->listRect.y + 1;
 		for (i = firstElement; i < voices.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 			if (i == selected) {
-				gmenu2x->s->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
+				gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
 				voices[selected]->drawSelected(iY);
 			}
 			voices[i]->draw(iY);
@@ -88,7 +88,7 @@ bool SettingsDialog::exec() {
 
 		gmenu2x->drawScrollBar(numRows, voices.size(), firstElement, gmenu2x->listRect);
 
-		gmenu2x->s->flip();
+		gmenu2x->screen->flip();
 		do {
 			inputAction = gmenu2x->input.update();
 

@@ -32,7 +32,6 @@
 
 using namespace std;
 
-string screendir;
 const string PREVIEWS_DIR = ".previews";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
@@ -46,7 +45,117 @@ Dialog(gmenu2x)
 		dir = link->getSelectorDir();
 	else
 		dir = selectorDir;
-	if (dir[dir.length() - 1] != '/') dir += "/";
+
+	if (dir.length() > 0) {
+		if (0 != dir.compare(dir.length() -1, 1, "/")) 
+			dir += "/";
+	} else dir = "/";
+}
+
+bool Selector::handlePreview(vector<string> *screens, int selected, bool background) {
+	TRACE("Selector::handlePreview - enter - selected : %i", selected);
+
+	int padding = 6;
+	int currentFileIndex = selected - this->numDirs;
+	if (currentFileIndex >= 0) {
+		TRACE("Selector::handlePreview - we're on a normal file");
+		// we're in the files section and there's some art to deal with
+		string screenPath = screens->at(currentFileIndex);
+
+		if (!screenPath.empty()) {
+			TRACE("Selector::handlePreview - handle the preview : %s", screenPath.c_str());
+			if (background) {
+				TRACE("Selector::handlePreview - blitting the background");
+				/*
+				gmenu2x->screen->box(
+					gmenu2x->linksRect.x, 
+					gmenu2x->linksRect.y,
+					gmenu2x->linksRect.w, 
+					gmenu2x->linksRect.h, 
+					gmenu2x->skin->colours.background
+				);
+				*/
+				/*
+				gmenu2x->sc[screenPath]->blit(
+					gmenu2x->s,
+					{
+						gmenu2x->linksRect.x, 
+						gmenu2x->linksRect.y,
+						gmenu2x->linksRect.w, 
+						gmenu2x->linksRect.h
+					},
+					HAlignCenter | VAlignMiddle,
+					120);
+				*/
+				this->bg = gmenu2x->sc[screenPath];
+				//gmenu2x->screen->flip();
+				return true;
+			} else {
+				gmenu2x->screen->box(
+					gmenu2x->config->resolutionX - animation,
+					gmenu2x->listRect.y,
+					gmenu2x->skin->previewWidth,
+					gmenu2x->listRect.h,
+					gmenu2x->skin->colours.topBarBackground);
+
+				gmenu2x->sc[screenPath]->blit(
+					gmenu2x->screen,
+					{
+						gmenu2x->config->resolutionX - animation + padding,
+						gmenu2x->listRect.y + padding,
+						gmenu2x->skin->previewWidth - 2 * padding,
+						gmenu2x->listRect.h - 2 * padding
+					},
+					HAlignCenter | VAlignMiddle,
+					220);
+
+				if (this->animation < gmenu2x->skin->previewWidth) {
+					this->animation = intTransition(0, gmenu2x->skin->previewWidth, this->tickStart, 110);
+					//gmenu2x->screen->flip();
+					gmenu2x->input.setWakeUpInterval(45);
+					return true;
+				}
+			}
+
+		} else {
+			if (background) {
+				this->bg = gmenu2x->bg;
+				//gmenu2x->screen->flip();
+				return true;
+			}
+			if (!background && this->animation > 0) {
+				TRACE("Selector::handlePreview - clearing up animations, animation : %i", this->animation);
+				// we only come in here if we had a screenshot before
+				// and we need to clean it up
+				gmenu2x->screen->box(
+					gmenu2x->config->resolutionX - this->animation,
+					gmenu2x->listRect.y,
+					gmenu2x->skin->previewWidth,
+					gmenu2x->listRect.h,
+					gmenu2x->skin->colours.topBarBackground);
+
+				this->animation = gmenu2x->skin->previewWidth - intTransition(
+					0, 
+					gmenu2x->skin->previewWidth, 
+					this->tickStart, 
+					80);
+
+				//gmenu2x->screen->flip();
+				gmenu2x->input.setWakeUpInterval(45);
+				return true;
+			}
+		}
+	}
+	if (background) { 
+		return false;
+	} 
+	TRACE("Selector::handlePreview - sub zero animation : ");
+	gmenu2x->input.setWakeUpInterval(1000);
+	gmenu2x->screen->clearClipRect();
+	gmenu2x->drawScrollBar(this->numRows, (this->numFiles + this->numDirs), firstElement, gmenu2x->listRect);
+	//gmenu2x->screen->flip();
+	return false;
+
 }
 
 int Selector::exec(int startSelection) {
@@ -62,17 +171,19 @@ int Selector::exec(int startSelection) {
 	TRACE("Selector::exec - starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
 	fl.setFilter(link->getSelectorFilter());
-	fl.browse();
-	TRACE("Selector::exec - found %i files and dirs", fl.size());
 
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
-	screendir = link->getSelectorScreens();
+	this->screendir = link->getSelectorScreens();
+	this->tickStart = SDL_GetTicks();
+	this->animation = 0;
+	this->firstElement = 0;
 
-	uint32_t i, firstElement = 0, iY, animation = 0, padding = 6;
+	uint32_t i, iY, padding = 6;
 	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
 	uint32_t halfRowHeight = (rowHeight / 2);
-	uint32_t numRows = ((gmenu2x->listRect.h - 2) / rowHeight) - 1;
+
+	this->numRows = ((gmenu2x->listRect.h - 2) / rowHeight) - 1;
 
 	drawTopBar(this->bg, link->getTitle(), link->getDescription(), link->getIconPath());
 	drawBottomBar(this->bg);
@@ -91,13 +202,13 @@ int Selector::exec(int startSelection) {
 	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
 
 	gmenu2x->sc.defaultAlpha = false;
-	uint32_t tickStart = SDL_GetTicks();
 
 	// kick off the chooser loop
 	while (!close) {
 
 		// bang the background in
-		this->bg->blit(gmenu2x->s, 0, 0);
+		int currentFileIndex = selected - fl.dirCount();
+		this->bg->blit(gmenu2x->screen, 0, 0);
 
 		if (!fl.size()) {
 			MessageBox mb(gmenu2x, gmenu2x->tr["This directory is empty"]);
@@ -109,12 +220,30 @@ int Selector::exec(int startSelection) {
 			if (selected >= firstElement + numRows) firstElement = selected - numRows;
 			if (selected < firstElement) firstElement = selected;
 
+			if  (-1 == gmenu2x->skin->previewWidth  && currentFileIndex >= 0) {
+				// we are doing a full background thing
+				string screenPath = screens.at(currentFileIndex);
+				if (!screenPath.empty()) {
+					// line it up with the text
+					SDL_Rect bgArea {
+						0, 
+						gmenu2x->skin->topBarHeight, 
+						gmenu2x->config->resolutionX, 
+						gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight };
+
+					gmenu2x->sc[screenPath]->blit(
+						gmenu2x->screen, 
+						bgArea, 
+						HAlignLeft | VAlignBottom, 
+						255);
+				}
+			}
 			//Draw files & Directories
 			iY = gmenu2x->listRect.y + 1;
 			for (i = firstElement; i < fl.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 				if (i == selected) {
 					// slected item highlight
-					gmenu2x->s->box(
+					gmenu2x->screen->box(
 						gmenu2x->listRect.x, 
 						iY, 
 						gmenu2x->listRect.w, 
@@ -124,24 +253,24 @@ int Selector::exec(int startSelection) {
 				if (fl.isDirectory(i)) {
 					if (fl[i] == "..")
 						iconGoUp->blit(
-							gmenu2x->s, 
+							gmenu2x->screen, 
 							gmenu2x->listRect.x + 10, 
 							iY + halfRowHeight, 
 							HAlignCenter | VAlignMiddle);
 					else
 						iconFolder->blit(
-							gmenu2x->s, 
+							gmenu2x->screen, 
 							gmenu2x->listRect.x + 10, 
 							iY + halfRowHeight, 
 							HAlignCenter | VAlignMiddle);
 				} else {
 					iconFile->blit(
-						gmenu2x->s, 
+						gmenu2x->screen, 
 						gmenu2x->listRect.x + 10, 
 						iY + halfRowHeight, 
 						HAlignCenter | VAlignMiddle);
 				}
-				gmenu2x->s->write(
+				gmenu2x->screen->write(
 					gmenu2x->font, 
 					titles[i], 
 					gmenu2x->listRect.x + 21, 
@@ -150,11 +279,10 @@ int Selector::exec(int startSelection) {
 			}
 
 			// screenshot logic
-			int currentFileIndex = selected - fl.dirCount();
-			if (currentFileIndex >= 0) {
+			if (gmenu2x->skin->previewWidth > 0 && currentFileIndex >= 0) {
 				// we're in the files section and there's some art to deal with
 				if (!screens[currentFileIndex].empty()) {
-					gmenu2x->s->box(
+					gmenu2x->screen->box(
 						gmenu2x->config->resolutionX - animation, 
 						gmenu2x->listRect.y, 
 						gmenu2x->skin->previewWidth, 
@@ -162,7 +290,7 @@ int Selector::exec(int startSelection) {
 						gmenu2x->skin->colours.topBarBackground);
 
 					gmenu2x->sc[screens[selected - fl.dirCount()]]->blit(
-						gmenu2x->s, 
+						gmenu2x->screen, 
 						{	gmenu2x->config->resolutionX - animation + padding, 
 							gmenu2x->listRect.y + padding, 
 							gmenu2x->skin->previewWidth - 2 * padding, 
@@ -173,7 +301,7 @@ int Selector::exec(int startSelection) {
 
 					if (animation < gmenu2x->skin->previewWidth) {
 						animation = intTransition(0, gmenu2x->skin->previewWidth, tickStart, 110);
-						gmenu2x->s->flip();
+						gmenu2x->screen->flip();
 						gmenu2x->input.setWakeUpInterval(45);
 						continue;
 					}
@@ -182,24 +310,24 @@ int Selector::exec(int startSelection) {
 					if (animation > 0) {
 						// we only come in here if we had a screenshot before
 						// and we need to clean it up
-						gmenu2x->s->box(gmenu2x->config->resolutionX - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
+						gmenu2x->screen->box(gmenu2x->config->resolutionX - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
 						animation = gmenu2x->skin->previewWidth - intTransition(0, gmenu2x->skin->previewWidth, tickStart, 80);
-						gmenu2x->s->flip();
+						gmenu2x->screen->flip();
 						gmenu2x->input.setWakeUpInterval(45);
 						continue;
 					}
 				}
 			}
 			gmenu2x->input.setWakeUpInterval(1000);
-			gmenu2x->s->clearClipRect();
+			gmenu2x->screen->clearClipRect();
 			gmenu2x->drawScrollBar(numRows, fl.size(), firstElement, gmenu2x->listRect);
-			gmenu2x->s->flip();
+			gmenu2x->screen->flip();
 		}
 
 		// handle input
 		do {
 			inputAction = gmenu2x->input.update();
-			if (inputAction) tickStart = SDL_GetTicks();
+			if (inputAction) this->tickStart = SDL_GetTicks();
 
 			if ( gmenu2x->input[UP] ) {
 				selected -= 1;
@@ -221,10 +349,10 @@ int Selector::exec(int startSelection) {
 				close = true;
 				result = false;
 			} else if ( gmenu2x->input[CANCEL] && link->getSelectorBrowser()) {
-				string::size_type p = dir.rfind("/", dir.size() - 2);
-				dir = dir.substr(0, p + 1);
+				string::size_type p = this->dir.rfind("/", this->dir.size() - 2);
+				this->dir = this->dir.substr(0, p + 1);
 				selected = 0;
-				firstElement = 0;
+				this->firstElement = 0;
 				prepare(&fl, &screens, &titles);
 			} else if ( gmenu2x->input[CONFIRM] ) {
 				// file selected or dir selected
@@ -232,9 +360,9 @@ int Selector::exec(int startSelection) {
 					file = fl[selected];
 					close = true;
 				} else {
-					dir = real_path(dir + "/" + fl[selected]);
+					this->dir = real_path(dir + "/" + fl[selected]);
 					selected = 0;
-					firstElement = 0;
+					this->firstElement = 0;
 					prepare(&fl, &screens, &titles);
 				}
 			}
@@ -252,14 +380,24 @@ int Selector::exec(int startSelection) {
 void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *titles) {
 	TRACE("Selector::prepare - enter");
 	fl->setPath(dir);
+	fl->browse();
 	freeScreenshots(screens);
+	TRACE("Selector::exec - found %i files and dirs", fl->size());
+	this->numDirs = fl->dirCount();
+	this->numFiles = fl->fileCount();
+
 	screens->resize(fl->getFiles().size());
 	titles->resize(fl->dirCount() + fl->getFiles().size());
 
 	string fname, noext, realdir;
 	string::size_type pos;
 	string realPath = real_path(fl->getPath());
-	bool previewsDirExists = dirExists(realPath + "/" + PREVIEWS_DIR);
+	if (realPath.length() > 0) {
+		if (0 != realPath.compare(realPath.length() -1, 1, "/")) 
+			realPath += "/";
+	} else realPath = "/";
+	bool previewsDirExists = dirExists(realPath + PREVIEWS_DIR);
+	TRACE("Selector::prepare - realPath : %s, exists : %i", realPath.c_str(), previewsDirExists);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -277,7 +415,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		titles->at(fl->dirCount() + i) = getAlias(noext, fname);
 
 		// are we looking for screen shots
-		if (!screendir.empty()) {
+		if (!screendir.empty() && 0 != gmenu2x->skin->previewWidth) {
 			if (screendir[0] == '.') {
 				// allow "." as "current directory", therefore, relative paths
 				realdir = realPath + screendir + "/";
@@ -293,15 +431,17 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 			}
 		}
 		// fallback - always search for filename.png and jpg in a .previews folder inside the current path
-		if (previewsDirExists) {
-			if (fileExists(realPath + "/" + PREVIEWS_DIR + "/" + noext + ".png"))
-				screens->at(i) = realPath + "/" + PREVIEWS_DIR + "/" + noext + ".png";
-			else if (fileExists(realPath + "/" + PREVIEWS_DIR + "/" + noext + ".jpg"))
-				screens->at(i) = realPath + "/" + PREVIEWS_DIR + "/" + noext + ".jpg";
+		if (previewsDirExists && 0 != gmenu2x->skin->previewWidth) {
+			if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
+				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
+			else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
+				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
 			else
 				screens->at(i) = "";
 		} else screens->at(i) = "";
-		TRACE("Selector::prepare - name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+		if (!screens->at(i).empty()) {
+			TRACE("Selector::prepare - name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+		}
 	}
 	TRACE("Selector::prepare - exit - loaded %i screens", screens->size());
 }
@@ -331,7 +471,7 @@ void Selector::loadAliases() {
 }
 
 string Selector::getAlias(const string &key, const string &fname) {
-	TRACE("Selector::getAlias - enter");
+	//TRACE("Selector::getAlias - enter");
 	if (aliases.empty()) return fname;
 	unordered_map<string, string>::iterator i = aliases.find(key);
 	if (i == aliases.end())
