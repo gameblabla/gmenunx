@@ -48,7 +48,6 @@ private:
 
 	string file, dir;
 	unordered_map<string, string> aliases;
-	bool handlePreview(vector<string> *screens, int selected, bool background = false);
 	void loadAliases();
 	string getAlias(const string &key, const string &fname);
 	void prepare(FileLister *fl, vector<string> *screens, vector<string> *titles);
