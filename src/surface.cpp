@@ -144,13 +144,18 @@ void Surface::load(const string &img, bool alpha, const string &skin) {
 		skinpath = img;
 	}
 
-	raw = IMG_Load(skinpath.c_str());
-	if (raw != NULL) {
-		// TODO :: optimizedImage = SDL_DisplayFormat( loadedImage );
-		// more likely we want :: SDL_DisplayFormatAlpha()
-		// http://lazyfoo.net/SDL_tutorials/lesson03/linux/cli/index.php
-		if (alpha)
-			enableAlpha();
+	SDL_Surface* loadedImage = NULL;
+	loadedImage = IMG_Load(skinpath.c_str());
+	if (loadedImage != NULL) {
+		raw = SDL_DisplayFormatAlpha( loadedImage );
+		if (raw != NULL) {
+			//Free the old image
+			SDL_FreeSurface( loadedImage );
+			if (alpha)
+				enableAlpha();
+		} else {
+		ERROR("Couldn't optimise surface '%s'", img.c_str());
+	}
 	} else {
 		ERROR("Couldn't load surface '%s'", img.c_str());
 	}
