@@ -77,7 +77,7 @@ string base_name(const string &path);
 
 bool procWriter(string path, string value);
 bool procWriter(string path, int value);
-string procReader(string path);
+string fileReader(string path);
 
 string splitInLines(string source, size_t max_width, string whitespace = " \t\r");
 

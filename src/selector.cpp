@@ -33,6 +33,7 @@
 using namespace std;
 
 const string PREVIEWS_DIR = ".previews";
+const string FILTER_FILE = ".filter";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
 Dialog(gmenu2x)
@@ -64,7 +65,13 @@ int Selector::exec(int startSelection) {
 
 	TRACE("Selector::exec - starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
-	fl.setFilter(link->getSelectorFilter());
+	TRACE("Selector::exec - setting filter");
+	string filter = link->getSelectorFilter();
+	if (fileExists(FILTER_FILE)) {
+		if (filter.length() > 0) filter += ",";
+		filter += fileReader(FILTER_FILE);
+	}
+	fl.setFilter(filter);
 
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
@@ -364,7 +371,15 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 				screens->at(i) = "";
 		} else screens->at(i) = "";
 		if (!screens->at(i).empty()) {
-			TRACE("Selector::prepare - name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+			/*
+			TRACE("Selector::prepare - stretching screen path : %s", screens->at(i).c_str());
+			gmenu2x->sc[screens->at(i)]->softStretch(
+				gmenu2x->config->resolutionX, 
+				gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
+				true, 
+				true);
+			*/
+			TRACE("Selector::prepare - adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
 		}
 	}
 	TRACE("Selector::prepare - exit - loaded %i screens", screens->size());

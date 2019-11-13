@@ -1416,7 +1416,7 @@ string GMenu2X::getPerformanceMode() {
 	TRACE("GMenu2X::getPerformanceMode - enter");
 	string result = "ondemand";
 	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-		result = procReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+		result = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 	}
 	TRACE("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
 	return full_trim(result);
@@ -1715,12 +1715,12 @@ int GMenu2X::getBatteryLevel() {
 	//TRACE("GMenu2X::getBatteryLevel - enter");
 
 	int online, result = 0;
-	sscanf(procReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
+	sscanf(fileReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
 	if (online) {
 		result = 6;
 	} else {
 		int battery_level = 0;
-		sscanf(procReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
+		sscanf(fileReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
 		TRACE("GMenu2X::getBatteryLevel - raw battery level - %i", battery_level);
 		if (battery_level >= 100) result = 5;
 		else if (battery_level > 80) result = 4;
@@ -1829,7 +1829,7 @@ int GMenu2X::setVolume(int val) {
 int GMenu2X::getBacklight() {
 	TRACE("GMenu2X::getBacklight - enter");
 	int level = -1;
-	string result = procReader(RG350_BACKLIGHT_PATH);
+	string result = fileReader(RG350_BACKLIGHT_PATH);
 	if (result.length() > 0) {
 		level = atoi(trim(result).c_str());
 	}

@@ -14,7 +14,7 @@ using namespace std;
 
 LED::LED() {
 	TRACE("LED::ctor");
-	max_brightness = procReader(MAX_BRIGHTNESS_PATH);
+	max_brightness = fileReader(MAX_BRIGHTNESS_PATH);
 	TRACE("LED::ctor max : %s", max_brightness.c_str());
 }
 LED::~LED() {

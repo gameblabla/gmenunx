@@ -112,12 +112,6 @@ void Surface::enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha) {
 		raw = SDL_DisplayFormat(dblbuffer);
 }
 
-void Surface::enableAlpha() {
-	SDL_Surface *alpha_surface = SDL_DisplayFormatAlpha(raw);
-	SDL_FreeSurface(raw);
-	raw = alpha_surface;
-}
-
 void Surface::free() {
 	SDL_FreeSurface( raw );
 	SDL_FreeSurface( dblbuffer );
@@ -151,8 +145,6 @@ void Surface::load(const string &img, bool alpha, const string &skin) {
 		if (raw != NULL) {
 			//Free the old image
 			SDL_FreeSurface( loadedImage );
-			if (alpha)
-				enableAlpha();
 		} else {
 		ERROR("Couldn't optimise surface '%s'", img.c_str());
 	}
@@ -179,24 +171,7 @@ void Surface::unlock() {
 }
 
 void Surface::flip() {
-	// if (dblbuffer != NULL) {
-		// this->blit(dblbuffer,0,0);
-		// SDL_Flip(dblbuffer);
-	// } else 
-	{
-#if defined(TARGET_ARCADEMINI)
-	SDL_BlitSurface(raw, NULL, ScreenSurface, NULL);
-	SDL_Flip(ScreenSurface);
-#elif defined(TARGET_RS97)
-	// SDL_SoftStretch(raw, NULL, ScreenSurface, NULL);
-	// SDL_Flip(ScreenSurface);
-	uint32_t *s = (uint32_t*)raw->pixels;
-	uint32_t *d = (uint32_t*)ScreenSurface->pixels;
-	for(uint8_t y = 0; y < 240; y++, s += 160, d += 320) memmove(d, s, 1280);
-#else
 	SDL_Flip(raw);
-#endif
-	}
 }
 
 void Surface::putPixel(int x, int y, RGBAColor color) {
@@ -473,6 +448,7 @@ void Surface::softStretch(uint16_t x, uint16_t y, bool keep_aspect, bool maximiz
 	Surface *outSurface = new Surface(x, y);
 	SDL_BlitSurface(raw, NULL, thisSurface->raw, NULL);
 	SDL_SoftStretch(thisSurface->raw, NULL, outSurface->raw, NULL);
+	//delete thisSurface;
 	raw = outSurface->raw;
 }
 

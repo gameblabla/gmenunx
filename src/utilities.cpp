@@ -48,20 +48,17 @@ bool case_less::operator()(const string &left, const string &right) const {
 	return strcasecmp(left.c_str(), right.c_str()) < 0;
 }
 
-string& ltrim(string& str, const string& chars)
-{
+string& ltrim(string& str, const string& chars) {
     str.erase(0, str.find_first_not_of(chars));
     return str;
 }
  
-string& rtrim(string& str, const string& chars)
-{
+string& rtrim(string& str, const string& chars) {
     str.erase(str.find_last_not_of(chars) + 1);
     return str;
 }
 
-string& full_trim(string& str, const string& chars)
-{
+string& full_trim(string& str, const string& chars) {
     return ltrim(rtrim(str, chars), chars);
 }
 
@@ -297,7 +294,7 @@ bool procWriter(string path, int value) {
 	std::getline(ss, strVal);
 	return procWriter(path, strVal);
 }
-string procReader(string path) {
+string fileReader(string path) {
 	if (fileExists(path)) {
 		ifstream str(path);
 		stringstream buf;
