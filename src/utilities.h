@@ -79,7 +79,7 @@ bool procWriter(string path, string value);
 bool procWriter(string path, int value);
 string fileReader(string path);
 
-string splitInLines(string source, size_t max_width, string whitespace = " \t\r");
+string splitInLines(string source, std::size_t max_width, string whitespace = " \t\r");
 
 string string_format(const std::string fmt_str, ...);
 

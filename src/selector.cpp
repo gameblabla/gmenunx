@@ -36,8 +36,7 @@ const string PREVIEWS_DIR = ".previews";
 const string FILTER_FILE = ".filter";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
-Dialog(gmenu2x)
-{
+Dialog(gmenu2x) {
 	TRACE("Selector::Selector - enter : %s", selectorDir.c_str());
 	this->link = link;
 	loadAliases();
@@ -47,10 +46,6 @@ Dialog(gmenu2x)
 	else
 		dir = selectorDir;
 
-	if (dir.length() > 0) {
-		if (0 != dir.compare(dir.length() -1, 1, "/")) 
-			dir += "/";
-	} else dir = "/";
 }
 
 int Selector::exec(int startSelection) {
@@ -65,13 +60,6 @@ int Selector::exec(int startSelection) {
 
 	TRACE("Selector::exec - starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
-	TRACE("Selector::exec - setting filter");
-	string filter = link->getSelectorFilter();
-	if (fileExists(FILTER_FILE)) {
-		if (filter.length() > 0) filter += ",";
-		filter += fileReader(FILTER_FILE);
-	}
-	fl.setFilter(filter);
 
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
@@ -102,6 +90,7 @@ int Selector::exec(int startSelection) {
 	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
 	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
 
+	// TODO :: this should probably be true for png's
 	gmenu2x->sc.defaultAlpha = false;
 
 	// kick off the chooser loop
@@ -132,10 +121,20 @@ int Selector::exec(int startSelection) {
 						gmenu2x->config->resolutionX, 
 						gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight };
 
+					// only stretch it once if possible
+					if (!gmenu2x->sc.exists(screenPath)) {
+						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
+						gmenu2x->sc[screenPath]->softStretch(
+							gmenu2x->config->resolutionX, 
+							gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
+							true, 
+							true);
+					}
+
 					gmenu2x->sc[screenPath]->blit(
 						gmenu2x->screen, 
 						bgArea, 
-						HAlignLeft | VAlignBottom, 
+						HAlignCenter | VAlignMiddle, 
 						255);
 				}
 			}
@@ -262,7 +261,7 @@ int Selector::exec(int startSelection) {
 				}
 				if (!found) selected = fl.size() -1;
 			} else if (gmenu2x->input[PAGEDOWN]) {
-				// reverse loop thru the titles collectino until first char doesn't match
+				// reverse loop thru the titles collection until first char doesn't match
 				//std::vector<string>::iterator end = titles.end();
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
@@ -300,6 +299,7 @@ int Selector::exec(int startSelection) {
 		} while (!inputAction);
 	}
 
+	// TODO :: Probably loose this if we loose the previous setter
 	gmenu2x->sc.defaultAlpha = true;
 	freeScreenshots(&screens);
 
@@ -310,7 +310,25 @@ int Selector::exec(int startSelection) {
 // checks for screen shots etc
 void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *titles) {
 	TRACE("Selector::prepare - enter");
-	fl->setPath(dir);
+
+	if (this->dir.length() > 0) {
+		if (0 != this->dir.compare(dir.length() -1, 1, "/")) 
+			this->dir += "/";
+	} else this->dir = "/";
+	fl->setPath(this->dir);
+
+	TRACE("Selector::exec - setting filter");
+	string filter = link->getSelectorFilter();
+	string filterFile = this->dir + FILTER_FILE;
+	TRACE("Selector::exec - looking for a filter file at : %s", filterFile.c_str());
+	if (fileExists(filterFile)) {
+		TRACE("Selector::exec - found a filter file at : %s", filterFile.c_str());
+		if (filter.length() > 0) filter += ",";
+		filter += fileReader(filterFile);
+	}
+	fl->setFilter(filter);
+	TRACE("Selector::exec - filter : %s", filter.c_str());
+
 	fl->browse();
 	freeScreenshots(screens);
 	TRACE("Selector::exec - found %i files and dirs", fl->size());
@@ -355,30 +373,20 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 			// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
 			if (fileExists(realdir + noext + ".jpg")) {
 				screens->at(i) = realdir + noext + ".jpg";
-				continue;
 			} else if (fileExists(realdir + noext + ".png")){
 				screens->at(i) = realdir + noext + ".png";
-				continue;
 			}
 		}
-		// fallback - always search for filename.png and jpg in a .previews folder inside the current path
-		if (previewsDirExists && 0 != gmenu2x->skin->previewWidth) {
-			if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
-				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
-			else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
-				screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
-			else
-				screens->at(i) = "";
-		} else screens->at(i) = "";
+		if (screens->at(i).empty()) {
+			// fallback - always search for filename.png and jpg in a .previews folder inside the current path
+			if (previewsDirExists && 0 != gmenu2x->skin->previewWidth) {
+				if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
+					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
+				else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
+					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
+			}
+		}
 		if (!screens->at(i).empty()) {
-			/*
-			TRACE("Selector::prepare - stretching screen path : %s", screens->at(i).c_str());
-			gmenu2x->sc[screens->at(i)]->softStretch(
-				gmenu2x->config->resolutionX, 
-				gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
-				true, 
-				true);
-			*/
 			TRACE("Selector::prepare - adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
 		}
 	}
@@ -387,7 +395,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 
 void Selector::freeScreenshots(vector<string> *screens) {
 	for (uint32_t i = 0; i < screens->size(); i++) {
-		if (screens->at(i) != "")
+		if (!screens->at(i).empty())
 			gmenu2x->sc.del(screens->at(i));
 	}
 }
