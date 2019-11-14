@@ -84,7 +84,7 @@ Surface *SurfaceCollection::add(const string &path, bool alpha) {
 	TRACE("SurfaceCollection::add - enter - %s", path.c_str());
 	if (path.empty()) return NULL;
 	TRACE("SurfaceCollection::add - path exists test");
-	if (exists(path)) return surfaces[path]; //del(path);
+	if (exists(path)) return surfaces[path];
 
 	string filePath = path;
 	if (filePath.substr(0,5)=="skin:") {
@@ -99,7 +99,7 @@ Surface *SurfaceCollection::add(const string &path, bool alpha) {
 	}
 
 	TRACE("Adding surface: '%s'", path.c_str());
-	Surface *s = new Surface(filePath,alpha);
+	Surface *s = new Surface(filePath, alpha);
 	if (s != NULL) {
 		TRACE("SurfaceCollection::add - adding surface to collection");
 		surfaces[path] = s;

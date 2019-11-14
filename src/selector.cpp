@@ -182,6 +182,17 @@ int Selector::exec(int startSelection) {
 			if (gmenu2x->skin->previewWidth > 0 && currentFileIndex >= 0) {
 				// we're in the files section and there's some art to deal with
 				if (!screens[currentFileIndex].empty()) {
+
+					string screenPath = screens.at(currentFileIndex);
+					if (!gmenu2x->sc.exists(screenPath)) {
+						TRACE("Selector::exec - 1st load windowed - stretching screen path : %s", screenPath.c_str());
+						gmenu2x->sc[screenPath]->softStretch(
+							gmenu2x->skin->previewWidth - 3 * padding, 
+							gmenu2x->listRect.h - 3 * padding, 
+							true, 
+							true);
+					}
+
 					gmenu2x->screen->box(
 						gmenu2x->config->resolutionX - animation, 
 						gmenu2x->listRect.y, 
