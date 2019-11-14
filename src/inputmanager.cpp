@@ -45,8 +45,8 @@
 	Y               KEY_LEFTSHIFT,		304
 	L1              KEY_TAB,			9
 	R1              KEY_BACKSPACE,		8
-	L2              KEY_PAGEUP,
-	R2              KEY_PAGEDOWN,
+	L2              KEY_PAGEUP,			280
+	R2              KEY_PAGEDOWN,		281
 	L3              KEY_KPSLASH,
 	R3              KEY_KPDOT,
 	START           KEY_ENTER,
