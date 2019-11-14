@@ -291,14 +291,8 @@ bool Menu::addLink(string path, string file, string section) {
 	// bool wrapper = true;
 
 	//strip the extension from the filename
-	string title = file;
-	string::size_type pos = title.rfind(".");
-	if (pos != string::npos && pos > 0) {
-		string ext = title.substr(pos, title.length());
-		transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower);
-		// if (ext == ".gpu" || ext == ".gpe") wrapper = false;
-		title = title.substr(0, pos);
-	}
+	string title = fileBaseName(file);
+	string ext = fileExtension(file);
 
 	string linkpath = gmenu2x->getAssetsPath() + "sections/" + section + "/" + title;
 	int x = 2;
@@ -349,7 +343,6 @@ bool Menu::addLink(string path, string file, string section) {
 	}
 
 	setLinkIndex(links[isection].size() - 1);
-
 	TRACE("Menu::addLink - exit");
 	return true;
 }
