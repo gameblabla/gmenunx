@@ -6,7 +6,7 @@ View releases [changelog](ChangeLog.md).
 
 ## Installation
 
-Copy the latest [Release](https://github.com/podulator/GMenuNX/releases/) to your RG-350, and you will have 3 choices ...
+Copy the latest [Release](https://github.com/podulator/GMenuNX/releases/) opk to your RG-350, and you will have 3 choices ...
 
 - run it without setting it as your permenant launcher
 - install it as your default launcher
@@ -48,6 +48,7 @@ In settings:
 ## How to create battery logs
 
 To get data of your battery charge and discharge cycle:
+
 - Enter the Battery Logger;
 - Do a full charge;
 -* After charged, remove the cable;
@@ -58,6 +59,7 @@ Repeat how many times you wish and can.
 New data will be printed on screen every minute and will be saved in file **battery.csv** located in your **.gmenunx** folder.
 
 The fields logged are:
+
 - Time: Time in milliseconds since GMenuNX started;
 - BatteryStatus: Computed battery status, from 0 (discharged) to 4 (charged) and 5 (charging);
 - BatteryLevel: Raw battery level as given by system.

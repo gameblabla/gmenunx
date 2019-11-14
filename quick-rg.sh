@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 export DEBUG=5
-
 RG350_HOME="/media/data/local/home"
 LAUNCHER="/usr/local/sbin/frontend_start"
 RG350_IP="root@10.1.1.2"
@@ -125,6 +123,7 @@ while getopts ":hfqiul" opt; do
 		exit 0
       ;;
     l )
+		export CROSS_COMPILE=
 		myMake "Makefile.linux clean all dist"
 		binaryDeploy
 		exit 0
