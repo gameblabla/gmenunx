@@ -25,7 +25,7 @@ CFLAGS = \
     -finline-functions \
     -mips32r2 \
     -fPIC \
-	-fLTO \
+	-flto \
     -mplt \
     -msym32 \
 	-funroll-loops \
