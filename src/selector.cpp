@@ -67,6 +67,7 @@ int Selector::exec(int startSelection) {
 	this->tickStart = SDL_GetTicks();
 	this->animation = 0;
 	this->firstElement = 0;
+	this->favourited = false;
 
 	uint32_t i, iY, padding = 6;
 	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
@@ -80,7 +81,8 @@ int Selector::exec(int startSelection) {
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
-	gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Exit"]));
+	gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Exit"], 
+	gmenu2x->drawButton(this->bg, "x", gmenu2x->tr["Favourite"])));
 
 	prepare(&fl, &screens, &titles);
 	int selected = constrain(startSelection, 0, fl.size() - 1);
@@ -258,7 +260,6 @@ int Selector::exec(int startSelection) {
 				selected = fl.size() -1;
 			} else if (gmenu2x->input[PAGEUP]) {
 				// loop thru the titles collection until first char doesn't match
-				//std::vector<string>::iterator start = titles.begin();
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
 				bool found = false;
@@ -273,7 +274,6 @@ int Selector::exec(int startSelection) {
 				if (!found) selected = fl.size() -1;
 			} else if (gmenu2x->input[PAGEDOWN]) {
 				// reverse loop thru the titles collection until first char doesn't match
-				//std::vector<string>::iterator end = titles.end();
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
 				bool found = false;
@@ -305,6 +305,14 @@ int Selector::exec(int startSelection) {
 					selected = 0;
 					this->firstElement = 0;
 					prepare(&fl, &screens, &titles);
+				}
+			} else if ( gmenu2x->input[INC] ) {
+				// favourite
+				if (fl.isFile(selected)) {
+					TRACE("Selector::exec - Favourite : %s", fl[selected].c_str());
+					this->favourited = true;
+					file = fl[selected];
+					close = true;
 				}
 			}
 		} while (!inputAction);

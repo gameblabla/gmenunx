@@ -275,6 +275,21 @@ string base_name(const string &path) {
 	return path.substr(p + 1, path.length());
 }
 
+string fileBaseName(const string & filename) {
+	string::size_type i = filename.rfind(".");
+	if (i != string::npos) {
+		return filename.substr(0,i);
+	}
+	return filename;
+}
+string fileExtension(const string & filename) {
+	string::size_type i = filename.rfind(".");
+	if (i != string::npos) {
+		return filename.substr(i, filename.length());
+	}
+	return "";
+}
+
 bool procWriter(string path, string value) {
 	TRACE("procWriter:: - %s - %s", path.c_str(), value.c_str());
 	if (fileExists(path)) {

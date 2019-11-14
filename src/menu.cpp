@@ -561,6 +561,10 @@ void Menu::renameSection(int index, const string &name) {
 	sections[index] = name;
 }
 
+bool Menu::sectionExists(const string &name) {
+	return std::find(sections.begin(), sections.end(), name)!=sections.end();
+}
+
 int Menu::getSectionIndex(const string &name) {
 	return distance(sections.begin(), find(sections.begin(), sections.end(), name));
 }
@@ -573,8 +577,7 @@ const string Menu::getSectionIcon(int i) {
 	return sectionIcon;
 }
 
-static bool compare_links(Link *a, Link *b)
-{
+static bool compare_links(Link *a, Link *b) {
 	LinkApp *app1 = dynamic_cast<LinkApp *>(a);
 	LinkApp *app2 = dynamic_cast<LinkApp *>(b);
 	bool app1_is_opk = app1 && app1->isOpk(),

@@ -74,13 +74,14 @@ string exec(const char* cmd);
 string real_path(const string &path);
 string dir_name(const string &path);
 string base_name(const string &path);
+string fileBaseName(const string & filename);
+string fileExtension(const string & filename);
 
 bool procWriter(string path, string value);
 bool procWriter(string path, int value);
 string fileReader(string path);
 
 string splitInLines(string source, std::size_t max_width, string whitespace = " \t\r");
-
 string string_format(const std::string fmt_str, ...);
 
 #endif

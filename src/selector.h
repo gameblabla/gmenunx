@@ -35,6 +35,7 @@ using std::vector;
 class Selector : protected Dialog {
 private:
 	int selRow;
+	bool favourited;
 	uint32_t animation;
 	uint32_t tickStart;
 	uint32_t firstElement;
@@ -60,6 +61,8 @@ public:
 	
 	const string &getFile() { return file; }
 	const string &getDir() { return dir; }
+	const bool &isFavourited() { return favourited; }
+
 };
 
 #endif /*SELECTOR_H_*/

@@ -27,6 +27,7 @@
 #include <array>
 #include <cerrno>
 
+#include "messagebox.h"
 #include "linkapp.h"
 #include "launcher.h"
 #include "menu.h"
@@ -37,11 +38,12 @@
 using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
+static const string OPKRUN_PATH = "/usr/bin/opkrun";
 
 LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
-	inputMgr(gmenu2x->input)
-{
+	inputMgr(gmenu2x->input) {
+
 	TRACE("LinkApp::LinkApp - ctor - enter - linkfile : %s", linkfile);
 	manual = manualPath = "";
 	file = linkfile;
@@ -417,7 +419,8 @@ void LinkApp::run() {
 	if (!selectordir.empty()) {
 		selector();
 	} else {
-		launch();
+		string launchArgs = resolveArgs();
+		launch(launchArgs);
 	}
 }
 
@@ -431,25 +434,58 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 
 	Selector sel(gmenu2x, this, myDir);
 	int selection = sel.exec(startSelection);
+	// we got a file
 	if (selection != -1) {
-		gmenu2x->writeTmp(selection, sel.getDir());
-		launch(sel.getFile(), sel.getDir());
+
+		string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
+
+		if (sel.isFavourited()) {
+			TRACE("LinkApp::selector - we're saving a favourite");
+			// need to make a new favourite
+			string romFile = sel.getDir() + sel.getFile();
+			string path = this->gmenu2x->getAssetsPath() + "sections/favourites";
+			if (!this->gmenu2x->menu->sectionExists("favourites")) {
+				if (!this->gmenu2x->menu->addSection("favourites")) {
+					 ERROR("LinkApp::selector - Couldn't make favourites folder : $s", path.c_str());
+					 return;
+				}
+			}
+			if (this->isOPK) {
+				string cleanRom = fileBaseName(base_name(romFile));
+				string favePath = path + "/" + this->title + "-" + cleanRom + ".desktop";
+				if (fileExists(favePath)) {
+					TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
+					unlink(favePath.c_str());
+				}
+				TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
+				LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
+				fave->setTitle(cleanRom);
+				fave->setExec(OPKRUN_PATH);
+				fave->setIcon(this->icon);
+				fave->setParams("-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs);
+				fave->setDescription(this->description + " - " + cleanRom);
+				fave->consoleapp = this->consoleapp;
+				MessageBox mb(
+					this->gmenu2x, 
+					"Savinging favourite - " + cleanRom,  
+					this->icon);
+				mb.setAutoHide(500);
+				mb.exec();
+				if (fave->save()) {
+					int secIndex = this->gmenu2x->menu->getSectionIndex("favourites");
+					this->gmenu2x->menu->setSectionIndex(secIndex);
+					this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
+					TRACE("LinkApp::selector - opk favourite saved");
+				} else delete fave;
+			}
+		} else {
+			gmenu2x->writeTmp(selection, sel.getDir());
+			launch(launchArgs, sel.isFavourited());
+		}
 	}
 }
 
-void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
-	TRACE("LinkApp::launch - enter : %s - %s", selectedDir.c_str(), selectedFile.c_str());
-
-	if (!isOpk()) {
-		TRACE("LinkApp::launch - not an opk");
-		//Set correct working directory
-		string wd = getRealWorkdir();
-		TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
-		if (!wd.empty()) {
-			chdir(wd.c_str());
-			TRACE("LinkApp::launch - changed into wrkdir");
-		}
-	}
+string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDir) {
 
 	string launchArgs;
 
@@ -460,11 +496,9 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		string selectedFileExtension;
 		string selectedFileName;
 		string dir;
-		string::size_type i = selectedFile.rfind(".");
-		if (i != string::npos) {
-			selectedFileExtension = selectedFile.substr(i,selectedFile.length());
-			selectedFileName = selectedFile.substr(0,i);
-		}
+
+		selectedFileExtension = fileExtension(selectedFile);
+		selectedFileName = fileBaseName(selectedFile);
 
 		TRACE("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
 		if (selectedDir.empty())
@@ -495,6 +529,23 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 		gmenu2x->config->launcherPath = dir;
 	} else launchArgs = params;
 
+	return launchArgs;
+
+}
+
+void LinkApp::launch(string launchArgs, bool writeFavourite) {
+	TRACE("LinkApp::launch - enter - args: %s - favourite : %i", launchArgs.c_str(), writeFavourite);
+
+	if (!isOpk()) {
+		TRACE("LinkApp::launch - not an opk");
+		//Set correct working directory
+		string wd = getRealWorkdir();
+		TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
+		if (!wd.empty()) {
+			chdir(wd.c_str());
+			TRACE("LinkApp::launch - changed into wrkdir");
+		}
+	}
 
 	if (gmenu2x->config->saveSelection) {
 		TRACE("LinkApp::launch - updating selections");
@@ -513,6 +564,12 @@ void LinkApp::launch(const string &selectedFile, const string &selectedDir) {
 			TRACE("LinkApp::launch - running an opk with extra params : %s", launchArgs.c_str());
 			execute += " " + launchArgs;
 		}
+		// by here we can save a favourite out ....
+
+
+
+
+
 	} else {
 		TRACE("LinkApp::launch - running a standard desktop file");
 		// Check to see if permissions are desirable

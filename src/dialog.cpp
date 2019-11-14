@@ -67,9 +67,6 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 
 void Dialog::drawBottomBar(Surface *s) {
 	if (s == NULL) s = gmenu2x->screen;
-	// Surface *bar = sc.skinRes("imgs/bottombar.png");
-	// if (bar != NULL) bar->blit(s, 0, resY-bar->raw->h);
-	// else
 	s->box(
 		0, 
 		gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight, 

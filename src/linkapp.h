@@ -49,6 +49,9 @@ private:
 
 	string aliasfile;
 	string file;
+	
+	void launch(string launchArgs = "", bool writeFavourite = false);
+	string resolveArgs(const string &selectedFile = "", const string &selectedDir = "");
 
 public:
 
@@ -93,7 +96,6 @@ public:
 	void run();
 	// void showManual();
 	void selector(int startSelection=0, const string &selectorDir="");
-	void launch(const string &selectedFile="", const string &selectedDir="");
 	bool targetExists();
 
 	const string &getFile() { return file; }
