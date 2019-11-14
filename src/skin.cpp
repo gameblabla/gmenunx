@@ -236,7 +236,7 @@ void Skin::constrain() {
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
     evalIntConf( &this->numLinkCols, 1, 1, 10);
     evalIntConf( &this->numLinkRows, 6, 1, 16);
-    evalIntConf( (int)&this->linkDisplayMode, ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
+    evalIntConf( (int)*(&this->linkDisplayMode), ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
 
 }
 
