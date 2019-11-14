@@ -10,22 +10,20 @@ SDL_CONFIG  := $(SYSROOT)/usr/bin/sdl-config
 SDL_CFLAGS  := $(shell $(SDL_CONFIG) --cflags)
 SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 
-#@echo "cross = $(CROSS_COMPILE) *******************************************"
 DEBUG ?= 2
 CFLAGS = -ggdb \
+	$(SDL_CFLAGS) \
     -I/usr/local/include/ \
-	-DTARGET_PC \
-	-DPLATFORM_PC \
+    -std=gnu++11 \
 	-DTARGET=$(PATH_DIR) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
     -Wno-narrowing \
-    -g3 \
-    $(SDL_CFLAGS)
+    -g3
 
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lpthread -lopk -lpng
+LDFLAGS = -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk -lpng $(SDL_LIBS) 
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx

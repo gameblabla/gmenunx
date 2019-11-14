@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
+#export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 export DEBUG=5
 
 RG350_HOME="/media/data/local/home"
@@ -112,12 +112,14 @@ while getopts ":hfqiul" opt; do
 		exit 0
       ;;
     f )
+		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 		myMake "Makefile.rg-350 clean all dist"
 		fullDeploy
 		installLaunchLink
 		exit 0
       ;;
     q )
+		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 		myMake "Makefile.rg-350 all"
 		binaryDeploy
 		exit 0

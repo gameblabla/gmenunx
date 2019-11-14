@@ -19,7 +19,8 @@ CFLAGS = \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
     -Wno-narrowing \
-    -g3 $(SDL_CFLAGS) \
+    -g3 \
+	$(SDL_CFLAGS) \
     -O2 \
     -finline-functions \
     -mips32r2 \
