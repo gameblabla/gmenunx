@@ -227,11 +227,14 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	this->config = new Config(assets_path);
 	readConfig();
 
+/*
+	TODO :: check this properly
 	if (!firstRun && MIN_CONFIG_VERSION > config->version) {
 		// we're doing an upgrade
 		TRACE("GMenu2X::ctor - upgrade requested from %i to %i", config->version, MIN_CONFIG_VERSION);
 		firstRun = true;
 	}
+*/
 
 	// set this ASAP
 	TRACE("GMenu2X::ctor - backlight");
@@ -1565,17 +1568,6 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", CARD_ROOT, dialogTitle, dialogIcon, skin->name));
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
 
-#if defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-	bool linkUseGinge = menu->selLinkApp()->getUseGinge();
-	string ginge_prep = getExePath() + "/ginge/ginge_prep";
-	if (fileExists(ginge_prep))
-		sd.addSetting(new MenuSettingBool(        this, tr["Use Ginge"],            tr["Compatibility layer for running GP2X applications"], &linkUseGinge ));
-#elif defined(TARGET_GP2X)
-	//G
-	int linkGamma = menu->selLinkApp()->gamma();
-	sd.addSetting(new MenuSettingInt(         this, tr["Gamma (default: 0)"],   tr["Gamma value to set when launching this link"], &linkGamma, 0, 100 ));
-#endif
-
 	if (sd.exec() && sd.edited() && sd.save) {
 		ledOn();
 
@@ -1592,12 +1584,6 @@ void GMenu2X::editLink() {
 		menu->selLinkApp()->setAliasFile(linkSelAliases);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
 		menu->selLinkApp()->setCPU(linkClock);
-		//G
-#if defined(TARGET_GP2X)
-		menu->selLinkApp()->setGamma(linkGamma);
-#elif defined(TARGET_WIZ) || defined(TARGET_CAANOO)
-		menu->selLinkApp()->setUseGinge(linkUseGinge);
-#endif
 
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {

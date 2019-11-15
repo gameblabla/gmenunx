@@ -193,8 +193,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	}	// isOPK
 
 	else {
-		this->deletable = deletable;
-		this->editable = true;
+		this->editable = this->deletable = deletable;
 		TRACE("LinkApp::LinkApp - ctor - handling normal desktop file :%s", linkfile);
 		string line;
 		TRACE("LinkApp::LinkApp - ctor - creating ifstream");

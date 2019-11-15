@@ -335,24 +335,28 @@ bool InputManager::update(bool wait) {
 			return false;
 		}
 
-		if (event.type == SDL_KEYUP) anyactions = true;
-		SDL_Event evcopy = event;
-		events.push_back(evcopy);
+		if (event.type == SDL_KEYUP) {
+			anyactions = true;
+			SDL_Event evcopy = event;
+			events.push_back(evcopy);
+		}
 		
 	}
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_KEYUP) anyactions = true;
-		SDL_Event evcopy = event;
-		events.push_back(evcopy);
+		if (event.type == SDL_KEYUP) {
+			anyactions = true;
+			SDL_Event evcopy = event;
+			events.push_back(evcopy);
+		}
 	}
 
 	int32_t now = SDL_GetTicks();
 	for (uint32_t x = 0; x < actions.size(); x++) {
 		actions[x].active = isActive(x);
 		if (actions[x].active) {
-			memcpy(input_combo, input_combo + 1, sizeof(input_combo) - 1); // eegg
-			input_combo[sizeof(input_combo) - 1] = x; // eegg
-			if (actions[x].timer == NULL) actions[x].timer = SDL_AddTimer(actions[x].interval, wakeUp, NULL);
+			if (actions[x].timer == NULL) {
+				actions[x].timer = SDL_AddTimer(actions[x].interval, wakeUp, NULL);
+			}
 			anyactions = true;
 			// actions[x].last = now;
 		} else {
@@ -369,10 +373,6 @@ bool InputManager::update(bool wait) {
 
 	//TRACE("InputManager::update completed");
 	return anyactions;
-}
-
-bool InputManager::combo() { // eegg
-	return !memcmp(input_combo, konami, sizeof(input_combo));
 }
 
 void InputManager::dropEvents() {

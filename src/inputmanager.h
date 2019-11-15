@@ -83,9 +83,6 @@ private:
 	static uint32_t wakeUp(uint32_t interval, void *_data);
 	SDL_Event *fakeEventForAction(int action);
 
-	const char konami[10] = {UP, UP, DOWN, DOWN, LEFT, RIGHT, LEFT, RIGHT, CANCEL, CONFIRM}; // eegg
-	char input_combo[10] = {POWER}; // eegg
-
 public:
 	static const int MAPPING_TYPE_UNDEFINED = -1;
 	static const int MAPPING_TYPE_BUTTON = 0;
@@ -100,7 +97,7 @@ public:
 	void initJoysticks();
 	bool readConfFile(const string &conffile = "input.conf");
 
-	bool update(bool wait=true);
+	bool update(bool wait = true);
 	bool combo();
 	void dropEvents();
 	int count();
