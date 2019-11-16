@@ -106,11 +106,14 @@ int MessageBox::exec() {
 	// let's see how big our buttons add up to
 	int buttonWidth = 0;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
-		buttonWidth += buttonLabels[i].length();
+		if (!buttons[i].empty()) {
+			TRACE("MessageBox::exec - button width being added for : %s", buttonLabels[i].c_str());
+			buttonWidth += buttonLabels[i].length() + 2;
+		}
 	}
 	TRACE("MessageBox::exec - button width : %i", buttonWidth);
 
-	int wrap_size = ((gmenu2x->config->resolutionX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 10);
+	int wrap_size = ((gmenu2x->config->resolutionX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
 	TRACE("MessageBox::exec - initial wrap size : %i", wrap_size);
 	if (wrap_size < buttonWidth) {
 		wrap_size = buttonWidth;
@@ -118,9 +121,9 @@ int MessageBox::exec() {
 	TRACE("MessageBox::exec - final wrap size : %i", wrap_size);
 
 	string wrapped_text = splitInLines(text, wrap_size);
-	int textWidth = gmenu2x->font->getTextWidth(wrapped_text);
-	if (textWidth + box_w_padding > gmenu2x->config->resolutionX) {
-		textWidth = gmenu2x->config->resolutionX; 
+	int textWidthPx = gmenu2x->font->getTextWidth(wrapped_text);
+	if (textWidthPx + box_w_padding > gmenu2x->config->resolutionX) {
+		textWidthPx = gmenu2x->config->resolutionX; 
 	}
 	TRACE("MessageBox::exec - wrap text : %s", wrapped_text.c_str());
 
@@ -128,7 +131,7 @@ int MessageBox::exec() {
 	SDL_Rect box;
 	box.h = gmenu2x->font->getTextHeight(wrapped_text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
 	if (gmenu2x->sc[icon] != NULL && box.h < 40) box.h = 48;
-	box.w = textWidth + box_w_padding;
+	box.w = textWidthPx + box_w_padding;
 	box.x = gmenu2x->config->halfX() - box.w/2 - 2;
 	box.y = gmenu2x->config->halfY() - box.h/2 - 2;
 
