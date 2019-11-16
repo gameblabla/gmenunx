@@ -53,6 +53,7 @@
 #include "imageviewerdialog.h"
 #include "batteryloggerdialog.h"
 #include "linkscannerdialog.h"
+#include "linkapp.h"
 #include "menusettingdatetime.h"
 #include "debug.h"
 #include "skin.h"
@@ -161,13 +162,13 @@ void GMenu2X::releaseScreen() {
 
 void GMenu2X::quit() {
 	TRACE("GMenu2X::quit - enter");
-	if (!sc.empty()) {
+	if (!this->sc.empty()) {
 		TRACE("GMenu2X::quit - SURFACE EXISTED");
 		writeConfig();
 		ledOff();
 		fflush(NULL);
-		sc.clear();
-		screen->free();
+		this->sc.clear();
+		this->screen->free();
 		releaseScreen();
 	}
 	TRACE("GMenu2X::quit - exit");
@@ -377,6 +378,9 @@ void GMenu2X::main() {
 
 			TRACE("******************RUNNING THIS -- RUN*******************");
 			menu->selLink()->run();
+		} else if ( input[INC] ) {
+			TRACE("******************favouriting an app THIS*******************");
+			menu->selLinkApp()->makeFavourite();
 		}
 
 		else if ( input[SETTINGS] ) settings();
@@ -1450,7 +1454,7 @@ void GMenu2X::contextMenu() {
 	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &GMenu2X::renameSection)});
 	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &GMenu2X::hideSection)});
 	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &GMenu2X::deleteSection)});
-	voices.push_back((MenuOption){tr["Link scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
+	//voices.push_back((MenuOption){tr["Link scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
 
 	Surface bg(screen);
 	bool close = false, inputAction = false;
@@ -1545,9 +1549,9 @@ void GMenu2X::editLink() {
 	string linkSelFilter = menu->selLinkApp()->getSelectorFilter();
 	string linkSelDir = menu->selLinkApp()->getSelectorDir();
 	bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
-	string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
+	//string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
 	string linkSelAliases = menu->selLinkApp()->getAliasFile();
-	int linkClock = menu->selLinkApp()->clock();
+	//int linkClock = menu->selLinkApp()->clock();
 	string linkBackdrop = menu->selLinkApp()->getBackdrop();
 	string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
 	string dialogIcon = menu->selLinkApp()->getIconPath();
@@ -1556,14 +1560,17 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingFile(			this, tr["Executable"],		tr["Application this link points to"], &linkExec, ".dge,.gpu,.gpe,.sh,.bin,.elf,", CARD_ROOT, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingString(		this, tr["Title"],			tr["Link title"], &linkTitle, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingString(		this, tr["Description"],	tr["Link description"], &linkDescription, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingMultiString(	this, tr["Section"],		tr["The section this link belongs to"], &newSection, &menu->getSections()));
+	
+	if (oldSection != menu->selLinkApp()->getFavouriteFolder()) {
+		sd.addSetting(new MenuSettingMultiString(	this, tr["Section"],		tr["The section this link belongs to"], &newSection, &menu->getSections()));
+	}
 	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon, skin->name));
-	sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, config->cpuMenu, config->cpuMin, config->cpuMax, 6));
+	//sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, config->cpuMenu, config->cpuMin, config->cpuMax, 6));
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, CARD_ROOT, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, CARD_ROOT, dialogTitle, dialogIcon));
+	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, CARD_ROOT, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAliases, ".txt,.dat", CARD_ROOT, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", CARD_ROOT, dialogTitle, dialogIcon, skin->name));
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
@@ -1580,10 +1587,10 @@ void GMenu2X::editLink() {
 		menu->selLinkApp()->setSelectorFilter(linkSelFilter);
 		menu->selLinkApp()->setSelectorDir(linkSelDir);
 		menu->selLinkApp()->setSelectorBrowser(linkSelBrowser);
-		menu->selLinkApp()->setSelectorScreens(linkSelScreens);
+		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAliases);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		menu->selLinkApp()->setCPU(linkClock);
+		//menu->selLinkApp()->setCPU(linkClock);
 
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {

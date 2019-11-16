@@ -38,6 +38,7 @@ Parses links files.
 class LinkApp : public Link {
 private:
 	InputManager &inputMgr;
+	static const string FAVOURITE_FOLDER;
 
 	int iclock = 0;
 
@@ -50,13 +51,15 @@ private:
 	string aliasfile;
 	string file;
 	
-	void launch(string launchArgs = "", bool writeFavourite = false);
+	void launch(string launchArgs = "");
 	string resolveArgs(const string &selectedFile = "", const string &selectedDir = "");
+	void favourite(string launchArgs, string supportingFile = "");
 
 public:
 
 	LinkApp(GMenu2X *gmenu2x, const char* linkfile, bool deletable, struct OPK *opk = NULL, const char *metadata = NULL);
 
+	const std::string getFavouriteFolder() { return FAVOURITE_FOLDER; }
 	const std::string &getCategory() { return category; }
 	bool isOpk() { return isOPK; }
 	const std::string &getOpkFile() { return opkFile; }
@@ -94,6 +97,8 @@ public:
 
 	bool save();
 	void run();
+	void makeFavourite();
+
 	// void showManual();
 	void selector(int startSelection=0, const string &selectorDir="");
 	bool targetExists();

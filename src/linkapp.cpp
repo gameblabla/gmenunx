@@ -39,6 +39,7 @@ using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 static const string OPKRUN_PATH = "/usr/bin/opkrun";
+const string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
@@ -407,6 +408,56 @@ bool LinkApp::save() {
 	}
 }
 
+void LinkApp::favourite(string launchArgs, string supportingFile) {
+
+	// need to make a new favourite
+	string path = this->gmenu2x->getAssetsPath() + "sections/" + FAVOURITE_FOLDER;
+	if (!this->gmenu2x->menu->sectionExists(FAVOURITE_FOLDER)) {
+		if (!this->gmenu2x->menu->addSection(FAVOURITE_FOLDER)) {
+			 ERROR("LinkApp::selector - Couldn't make favourites folder : $s", path.c_str());
+			 return;
+		}
+	}
+	if (this->isOPK) {
+
+		string cleanTitle = this->title;
+		string description = this->description;
+		if (!supportingFile.empty()) {
+			cleanTitle = fileBaseName(base_name(supportingFile));
+			description = this->description + " - " + cleanTitle;
+		}
+		string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
+		if (fileExists(favePath)) {
+			TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
+			unlink(favePath.c_str());
+		}
+		TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
+		LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
+		fave->setTitle(cleanTitle);
+		fave->setExec(OPKRUN_PATH);
+		fave->setIcon(this->icon);
+		fave->setParams("-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs);
+		fave->setDescription(description);
+		fave->consoleapp = this->consoleapp;
+		MessageBox mb(
+			this->gmenu2x, 
+			"Savinging favourite - " + cleanTitle,  
+			this->icon);
+		mb.setAutoHide(500);
+		mb.exec();
+		if (fave->save()) {
+			int secIndex = this->gmenu2x->menu->getSectionIndex(FAVOURITE_FOLDER);
+			this->gmenu2x->menu->setSectionIndex(secIndex);
+			this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
+			TRACE("LinkApp::selector - opk favourite saved");
+		} else delete fave;
+	}
+}
+
+void LinkApp::makeFavourite() {
+	string launchArgs = resolveArgs();
+	favourite(launchArgs);
+}
 /*
  * entry point for running
  * checks to see if we want a supporting file arg
@@ -430,8 +481,15 @@ void LinkApp::run() {
  */
 void LinkApp::selector(int startSelection, const string &selectorDir) {
 	TRACE("LinkApp::selector - enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
-	//Run selector interface
-	string myDir = selectorDir.empty() ? this->gmenu2x->config->launcherPath : selectorDir;
+
+	//Run selector interface - this is the order of specificity
+	string myDir = selectorDir;
+	if (myDir.empty()) {
+		myDir = this->selectordir;
+		if (myDir.empty()) {
+			myDir = this->gmenu2x->config->launcherPath;
+		}
+	}
 
 	Selector sel(gmenu2x, this, myDir);
 	int selection = sel.exec(startSelection);
@@ -442,46 +500,12 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 
 		if (sel.isFavourited()) {
 			TRACE("LinkApp::selector - we're saving a favourite");
-			// need to make a new favourite
 			string romFile = sel.getDir() + sel.getFile();
-			string path = this->gmenu2x->getAssetsPath() + "sections/favourites";
-			if (!this->gmenu2x->menu->sectionExists("favourites")) {
-				if (!this->gmenu2x->menu->addSection("favourites")) {
-					 ERROR("LinkApp::selector - Couldn't make favourites folder : $s", path.c_str());
-					 return;
-				}
-			}
-			if (this->isOPK) {
-				string cleanRom = fileBaseName(base_name(romFile));
-				string favePath = path + "/" + this->title + "-" + cleanRom + ".desktop";
-				if (fileExists(favePath)) {
-					TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
-					unlink(favePath.c_str());
-				}
-				TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
-				LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
-				fave->setTitle(cleanRom);
-				fave->setExec(OPKRUN_PATH);
-				fave->setIcon(this->icon);
-				fave->setParams("-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs);
-				fave->setDescription(this->description + " - " + cleanRom);
-				fave->consoleapp = this->consoleapp;
-				MessageBox mb(
-					this->gmenu2x, 
-					"Savinging favourite - " + cleanRom,  
-					this->icon);
-				mb.setAutoHide(500);
-				mb.exec();
-				if (fave->save()) {
-					int secIndex = this->gmenu2x->menu->getSectionIndex("favourites");
-					this->gmenu2x->menu->setSectionIndex(secIndex);
-					this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
-					TRACE("LinkApp::selector - opk favourite saved");
-				} else delete fave;
-			}
+			favourite(launchArgs, romFile);
+
 		} else {
 			gmenu2x->writeTmp(selection, sel.getDir());
-			launch(launchArgs, sel.isFavourited());
+			launch(launchArgs);
 		}
 	}
 }
@@ -493,7 +517,7 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 	// selectedFile means a rom or some kind of data file..
 	if (!selectedFile.empty()) {
 		TRACE("LinkApp::launch - we have a selected file to work with : %s", selectedFile.c_str());
-		// gbreak out the dir, filename and extension
+		// break out the dir, filename and extension
 		string selectedFileExtension;
 		string selectedFileName;
 		string dir;
@@ -519,12 +543,14 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 			TRACE("LinkApp::launch - no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
 			
-			launchArgs = strreplace(launchArgs, "[selFullPath]", cmdclean(dir + selectedFile));
+			launchArgs = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
 			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
 			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
 			launchArgs = strreplace(launchArgs, "[selExt]", cmdclean(selectedFileExtension));
-			if (params == launchArgs) launchArgs += " " + cmdclean(dir + selectedFile);
-			launchArgs = "\"" + launchArgs + "\"";
+			// if this is true, then we've made no subs, so we still need to add the selected file
+			if (params == launchArgs) 
+				launchArgs += " \"" + dir + selectedFile + "\"";
+
 		}
 		// save the last dir
 		gmenu2x->config->launcherPath = dir;
@@ -534,8 +560,8 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 
 }
 
-void LinkApp::launch(string launchArgs, bool writeFavourite) {
-	TRACE("LinkApp::launch - enter - args: %s - favourite : %i", launchArgs.c_str(), writeFavourite);
+void LinkApp::launch(string launchArgs) {
+	TRACE("LinkApp::launch - enter - args: %si", launchArgs.c_str());
 
 	if (!isOpk()) {
 		TRACE("LinkApp::launch - not an opk");
@@ -565,11 +591,6 @@ void LinkApp::launch(string launchArgs, bool writeFavourite) {
 			TRACE("LinkApp::launch - running an opk with extra params : %s", launchArgs.c_str());
 			execute += " " + launchArgs;
 		}
-		// by here we can save a favourite out ....
-
-
-
-
 
 	} else {
 		TRACE("LinkApp::launch - running a standard desktop file");
