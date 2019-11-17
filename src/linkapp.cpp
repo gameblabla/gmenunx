@@ -427,10 +427,20 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 			description = this->description + " - " + cleanTitle;
 		}
 		string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
+
+		uint32_t x = 1;
+		while (fileExists(favePath)) {
+			string id = "";
+			stringstream ss; ss << x; ss >> id;
+			favePath = path + "/" + this->title + "-" + cleanTitle + "." + id + ".desktop";
+			x++;
+		}
+		/*
 		if (fileExists(favePath)) {
 			TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
 			unlink(favePath.c_str());
 		}
+		*/
 		TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
 		LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
 		fave->setTitle(cleanTitle);
