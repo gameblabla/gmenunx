@@ -168,7 +168,7 @@ bool InputDialog::exec() {
 		else if ( gmenu2x->input[LEFT]     ) action = ID_ACTION_LEFT;
 		else if ( gmenu2x->input[RIGHT]    ) action = ID_ACTION_RIGHT;
 		else if ( gmenu2x->input[CONFIRM]  ) action = ID_ACTION_SELECT;
-		else if ( gmenu2x->input[MANUAL]   ) action = ID_ACTION_KB_CHANGE;
+		else if ( gmenu2x->input[DEC]   ) action = ID_ACTION_KB_CHANGE;
 		else if ( gmenu2x->input[SECTION_PREV] ) action = ID_ACTION_BACKSPACE;
 		else if ( gmenu2x->input[SECTION_NEXT] ) action = ID_ACTION_SPACE;
 
