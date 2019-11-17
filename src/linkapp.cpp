@@ -595,7 +595,7 @@ void LinkApp::launch(string launchArgs) {
 	string execute;
 
 	if (isOpk()) {
-		execute = "/usr/bin/opkrun -m " + metadata + " " + opkFile;
+		execute = "/usr/bin/opkrun -m " + metadata + " \"" + opkFile + "\"";
 		TRACE("LinkApp::launch - running an opk via : %s", execute.c_str());
 		if (!launchArgs.empty()) {
 			TRACE("LinkApp::launch - running an opk with extra params : %s", launchArgs.c_str());
