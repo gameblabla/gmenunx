@@ -52,7 +52,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	string filepath;
 
 	vector<string> filter;
-	split(filter, this->gmenu2x->config->sectionFilter, ",");
+	split(filter, this->gmenu2x->config->sectionFilter(), ",");
 	TRACE("Menu :: ctor - got %i filter sections", filter.size());
 
 	TRACE("Menu :: ctor - opening sections");
@@ -235,8 +235,8 @@ const string &Menu::selSection() {
 
 int Menu::sectionNumItems() {
 	return gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM 
-		? (gmenu2x->config->resolutionX - 40)/gmenu2x->skin->sectionBarSize 
-		: (gmenu2x->config->resolutionY - 40)/gmenu2x->skin->sectionBarSize;
+		? (gmenu2x->config->resolutionX() - 40)/gmenu2x->skin->sectionBarSize 
+		: (gmenu2x->config->resolutionY() - 40)/gmenu2x->skin->sectionBarSize;
 }
 
 void Menu::setSectionIndex(int i) {

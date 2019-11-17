@@ -120,15 +120,15 @@ int Selector::exec(int startSelection) {
 					SDL_Rect bgArea {
 						0, 
 						gmenu2x->skin->topBarHeight, 
-						gmenu2x->config->resolutionX, 
-						gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight };
+						gmenu2x->config->resolutionX(), 
+						gmenu2x->config->resolutionY() - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight };
 
 					// only stretch it once if possible
 					if (!gmenu2x->sc.exists(screenPath)) {
 						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
 						gmenu2x->sc[screenPath]->softStretch(
-							gmenu2x->config->resolutionX, 
-							gmenu2x->config->resolutionY - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
+							gmenu2x->config->resolutionX(), 
+							gmenu2x->config->resolutionY() - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
 							true, 
 							true);
 					}
@@ -196,7 +196,7 @@ int Selector::exec(int startSelection) {
 					}
 
 					gmenu2x->screen->box(
-						gmenu2x->config->resolutionX - animation, 
+						gmenu2x->config->resolutionX() - animation, 
 						gmenu2x->listRect.y, 
 						gmenu2x->skin->previewWidth, 
 						gmenu2x->listRect.h, 
@@ -204,7 +204,7 @@ int Selector::exec(int startSelection) {
 
 					gmenu2x->sc[screens[selected - fl.dirCount()]]->blit(
 						gmenu2x->screen, 
-						{	gmenu2x->config->resolutionX - animation + padding, 
+						{	gmenu2x->config->resolutionX() - animation + padding, 
 							gmenu2x->listRect.y + padding, 
 							gmenu2x->skin->previewWidth - 2 * padding, 
 							gmenu2x->listRect.h - 2 * padding
@@ -223,7 +223,7 @@ int Selector::exec(int startSelection) {
 					if (animation > 0) {
 						// we only come in here if we had a screenshot before
 						// and we need to clean it up
-						gmenu2x->screen->box(gmenu2x->config->resolutionX - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
+						gmenu2x->screen->box(gmenu2x->config->resolutionX() - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
 						animation = gmenu2x->skin->previewWidth - intTransition(0, gmenu2x->skin->previewWidth, tickStart, 80);
 						gmenu2x->screen->flip();
 						gmenu2x->input.setWakeUpInterval(45);

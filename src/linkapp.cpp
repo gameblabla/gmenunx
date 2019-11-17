@@ -50,7 +50,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	file = linkfile;
 
 	TRACE("LinkApp::LinkApp - ctor - setCPU");
-	setCPU(gmenu2x->config->cpuMenu);
+	setCPU(gmenu2x->config->cpuMenu());
 
 	selectordir = "";
 	selectorfilter = "";
@@ -357,7 +357,7 @@ int LinkApp::clock() {
 
 void LinkApp::setCPU(int mhz) {
 	iclock = mhz;
-	if (iclock != 0) iclock = constrain(iclock, gmenu2x->config->cpuMin, gmenu2x->config->cpuMax);
+	if (iclock != 0) iclock = constrain(iclock, gmenu2x->config->cpuMin(), gmenu2x->config->cpuMax());
 	edited = true;
 }
 
@@ -487,7 +487,7 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 	if (myDir.empty()) {
 		myDir = this->selectordir;
 		if (myDir.empty()) {
-			myDir = this->gmenu2x->config->launcherPath;
+			myDir = this->gmenu2x->config->launcherPath();
 		}
 	}
 
@@ -553,7 +553,7 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 
 		}
 		// save the last dir
-		gmenu2x->config->launcherPath = dir;
+		gmenu2x->config->launcherPath(dir);
 	} else launchArgs = params;
 
 	return launchArgs;
@@ -574,10 +574,10 @@ void LinkApp::launch(string launchArgs) {
 		}
 	}
 
-	if (gmenu2x->config->saveSelection) {
+	if (gmenu2x->config->saveSelection()) {
 		TRACE("LinkApp::launch - updating selections");
-		gmenu2x->config->section = gmenu2x->menu->selSectionIndex();
-		gmenu2x->config->link != gmenu2x->menu->selLinkIndex();
+		gmenu2x->config->section(gmenu2x->menu->selSectionIndex());
+		gmenu2x->config->link(gmenu2x->menu->selLinkIndex());
 	}
 
 	vector<string> commandLine;
@@ -606,7 +606,7 @@ void LinkApp::launch(string launchArgs) {
 		execute = exec + " " + launchArgs;
 		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  execute.c_str());
 	}
-	if (gmenu2x->config->outputLogs) {
+	if (gmenu2x->config->outputLogs()) {
 		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
 		TRACE("LinkApp::launch - adding logging");
 	}

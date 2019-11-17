@@ -97,8 +97,8 @@ int MessageBox::exec() {
 
 	// Surface bg(gmenu2x->s);
 	//Darken background
-	gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0,0,0,bgalpha});
-	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX);
+	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0,0,0,bgalpha});
+	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX());
 	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
 	int box_w_padding = 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
@@ -113,7 +113,7 @@ int MessageBox::exec() {
 	}
 	TRACE("MessageBox::exec - button width : %i", buttonWidth);
 
-	int wrap_size = ((gmenu2x->config->resolutionX - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
+	int wrap_size = ((gmenu2x->config->resolutionX() - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
 	TRACE("MessageBox::exec - initial wrap size : %i", wrap_size);
 	if (wrap_size < buttonWidth) {
 		wrap_size = buttonWidth;
@@ -122,8 +122,8 @@ int MessageBox::exec() {
 
 	string wrapped_text = splitInLines(text, wrap_size);
 	int textWidthPx = gmenu2x->font->getTextWidth(wrapped_text);
-	if (textWidthPx + box_w_padding > gmenu2x->config->resolutionX) {
-		textWidthPx = gmenu2x->config->resolutionX; 
+	if (textWidthPx + box_w_padding > gmenu2x->config->resolutionX()) {
+		textWidthPx = gmenu2x->config->resolutionX(); 
 	}
 	TRACE("MessageBox::exec - wrap text : %s", wrapped_text.c_str());
 

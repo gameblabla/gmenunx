@@ -23,6 +23,7 @@ using std::string;
 Config::Config(string const &prefix) {
     DEBUG("Config::Skin - enter - prefix : %s", prefix.c_str());
     this->prefix = prefix;
+    this->isDirty = false;
 }
 
 Config::~Config() {
@@ -37,39 +38,39 @@ string Config::toString() {
     vec.push_back("# lines starting with a # are ignored");
 
     // strings
-    vec.push_back(string_format("skin=\"%s\"", this->skin.c_str()));
-    vec.push_back(string_format("performance=\"%s\"", this->performance.c_str()));
-    vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode.c_str()));
-    vec.push_back(string_format("lang=\"%s\"", this->lang.c_str()));
-    vec.push_back(string_format("batteryType=\"%s\"", this->batteryType.c_str()));
-    vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter.c_str()));
-    vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath.c_str()));
+    vec.push_back(string_format("skin=\"%s\"", this->skin().c_str()));
+    vec.push_back(string_format("performance=\"%s\"", this->performance().c_str()));
+    vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode().c_str()));
+    vec.push_back(string_format("lang=\"%s\"", this->lang().c_str()));
+    vec.push_back(string_format("batteryType=\"%s\"", this->batteryType().c_str()));
+    vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
+    vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
 
     // ints
-    vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate));
-    vec.push_back(string_format("resolutionX=%i", this->resolutionX));
-    vec.push_back(string_format("resolutionY=%i", this->resolutionY));
-    vec.push_back(string_format("videoBpp=%i", this->videoBpp));
+    vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate()));
+    vec.push_back(string_format("resolutionX=%i", this->resolutionX()));
+    vec.push_back(string_format("resolutionY=%i", this->resolutionY()));
+    vec.push_back(string_format("videoBpp=%i", this->videoBpp()));
 
-    vec.push_back(string_format("backlightLevel=%i", this->backlightLevel));
-    vec.push_back(string_format("backlightTimeout=%i", this->backlightTimeout));
-    vec.push_back(string_format("powerTimeout=%i", this->powerTimeout));
+    vec.push_back(string_format("backlightLevel=%i", this->backlightLevel()));
+    vec.push_back(string_format("backlightTimeout=%i", this->backlightTimeout()));
+    vec.push_back(string_format("powerTimeout=%i", this->powerTimeout()));
 
-    vec.push_back(string_format("minBattery=%i", this->minBattery));
-    vec.push_back(string_format("maxBattery=%i", this->maxBattery));
+    vec.push_back(string_format("minBattery=%i", this->minBattery()));
+    vec.push_back(string_format("maxBattery=%i", this->maxBattery()));
 
-    vec.push_back(string_format("cpuMin=%i", this->cpuMin));
-    vec.push_back(string_format("cpuMax=%i", this->cpuMax));
-    vec.push_back(string_format("cpuMenu=%i", this->cpuMenu));
+    vec.push_back(string_format("cpuMin=%i", this->cpuMin()));
+    vec.push_back(string_format("cpuMax=%i", this->cpuMax()));
+    vec.push_back(string_format("cpuMenu=%i", this->cpuMenu()));
 
-    vec.push_back(string_format("globalVolume=%i", this->globalVolume));
-    vec.push_back(string_format("outputLogs=%i", this->outputLogs));
+    vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
+    vec.push_back(string_format("outputLogs=%i", this->outputLogs()));
 
-    vec.push_back(string_format("saveSelection=%i", this->saveSelection));
-    vec.push_back(string_format("section=%i", this->section));
-    vec.push_back(string_format("link=%i", this->link));
+    vec.push_back(string_format("saveSelection=%i", this->saveSelection()));
+    vec.push_back(string_format("section=%i", this->section()));
+    vec.push_back(string_format("link=%i", this->link()));
 
-    vec.push_back(string_format("version=%i", this->version));
+    vec.push_back(string_format("version=%i", this->version()));
     
     std::string s;
     for (const auto &piece : vec) s += (piece + "\n");
@@ -78,16 +79,17 @@ string Config::toString() {
     
 bool Config::save() {
     TRACE("Config::save - enter");
-    string fileName = this->prefix + CONFIG_FILE_NAME;
-    TRACE("Config::save - saving to : %s", fileName.c_str());
-
-	std::ofstream config(fileName.c_str());
-	if (config.is_open()) {
-		config << this->toString();
-		config.close();
-		sync();
-	}
-
+    if (this->isDirty) {
+        string fileName = this->prefix + CONFIG_FILE_NAME;
+        TRACE("Config::save - saving to : %s", fileName.c_str());
+        std::ofstream config(fileName.c_str());
+        if (config.is_open()) {
+            config << this->toString();
+            config.close();
+            sync();
+            this->isDirty = false;
+        }
+    }
     TRACE("Config::save - exit");
     return true;
 }
@@ -95,7 +97,12 @@ bool Config::save() {
 bool Config::loadConfig() {
     TRACE("Config::loadConfig - enter");
     this->reset();
-    return this->fromFile();
+    if (this->fromFile()) {
+        this->constrain();
+        isDirty = false;
+        return true;
+    }
+    return false;
 }
 
 /* Private methods */
@@ -104,42 +111,42 @@ void Config::reset() {
     TRACE("Config::reset - enter");
 
      //strings
-    this->skin = "Default";
-    this->performance = "On demand";
-    this->tvOutMode = "NTSC";
-    this->lang = "";
-    this->batteryType = "BL-5B";
-    this->sectionFilter = "";
+    this->skin_ = "Default";
+    this->performance_ = "On demand";
+    this->tvOutMode_ = "NTSC";
+    this->lang_ = "";
+    this->batteryType_ = "BL-5B";
+    this->sectionFilter_ = "";
 
     if (dirExists(EXTERNAL_LAUNCHER_PATH)) {
-        this->launcherPath = EXTERNAL_LAUNCHER_PATH;
-    } else this->launcherPath = HOME_DIR;
+        this->launcherPath(EXTERNAL_LAUNCHER_PATH);
+    } else this->launcherPath(HOME_DIR);
 
     // ints
-    this->buttonRepeatRate = 10;
-    this->resolutionX = 320;
-    this->resolutionY = 240;
-    this->videoBpp = 32;
+    this->buttonRepeatRate_ = 10;
+    this->resolutionX_ = 320;
+    this->resolutionY_ = 240;
+    this->videoBpp_ = 32;
 
-    this->powerTimeout = 10;
-    this->backlightTimeout = 30;
-    this->backlightLevel = 70;
+    this->powerTimeout_ = 10;
+    this->backlightTimeout_ = 30;
+    this->backlightLevel_ = 70;
 
-    this->minBattery = 0;
-    this->maxBattery = 5;
+    this->minBattery_ = 0;
+    this->maxBattery_ = 5;
 
-    this->cpuMin = 342;
-    this->cpuMax = 996;
-    this->cpuMenu = 600;
+    this->cpuMin_ = 342;
+    this->cpuMax_ = 996;
+    this->cpuMenu_ = 600;
 
-    this->globalVolume = 60;
-    this->outputLogs = 0;
+    this->globalVolume_ = 60;
+    this->outputLogs_ = 0;
 
-    this->saveSelection = 1;
-    this->section = 1;
-    this->link = 1;
+    this->saveSelection_ = 1;
+    this->section_ = 1;
+    this->link_ = 1;
 
-    this->version = CONFIG_CURRENT_VERSION;
+    this->version_ = CONFIG_CURRENT_VERSION;
 
     TRACE("Config::reset - exit");
     return;
@@ -147,30 +154,30 @@ void Config::reset() {
 
 void Config::constrain() {
 
-	evalIntConf( &this->backlightTimeout, 30, 10, 300);
-	evalIntConf( &this->powerTimeout, 10, 1, 300);
-	evalIntConf( &this->outputLogs, 0, 0, 1 );
-	evalIntConf( &this->cpuMax, 642, 200, 1200 );
-	evalIntConf( &this->cpuMin, 342, 200, 1200 );
-	evalIntConf( &this->cpuMenu, 600, 200, 1200 );
-	evalIntConf( &this->globalVolume, 60, 1, 100 );
-	evalIntConf( &this->videoBpp, 16, 8, 32 );
-	evalIntConf( &this->backlightLevel, 70, 1, 100);
-	evalIntConf( &this->minBattery, 0, 0, 5);
-	evalIntConf( &this->maxBattery, 5, 0, 5);
-	evalIntConf( &this->version, CONFIG_CURRENT_VERSION, 1, 999);
+	evalIntConf( &this->backlightTimeout_, 30, 10, 300);
+	evalIntConf( &this->powerTimeout_, 10, 1, 300);
+	evalIntConf( &this->outputLogs_, 0, 0, 1 );
+	evalIntConf( &this->cpuMax_, 642, 200, 1200 );
+	evalIntConf( &this->cpuMin_, 342, 200, 1200 );
+	evalIntConf( &this->cpuMenu_, 600, 200, 1200 );
+	evalIntConf( &this->globalVolume_, 60, 1, 100 );
+	evalIntConf( &this->videoBpp_, 16, 8, 32 );
+	evalIntConf( &this->backlightLevel_, 70, 1, 100);
+	evalIntConf( &this->minBattery_, 0, 0, 5);
+	evalIntConf( &this->maxBattery_, 5, 0, 5);
+	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
 
-    if (!this->saveSelection) {
-        this->section = 0;
-        this->link = 0;
+    if (!this->saveSelection()) {
+        this->section(0);
+        this->link(0);
     }
 
-	if (this->performance != "Performance") 
-		this->performance = "On demand";
-	if (this->tvOutMode != "PAL") 
-		this->tvOutMode = "NTSC";
-    if (!dirExists(this->launcherPath)) {
-        this->launcherPath = HOME_DIR;
+	if (this->performance() != "Performance") 
+		this->performance("On demand");
+	if (this->tvOutMode() != "PAL") 
+		this->tvOutMode("NTSC");
+    if (!dirExists(this->launcherPath())) {
+        this->launcherPath(HOME_DIR);
     }
 
 }
@@ -202,63 +209,62 @@ bool Config::fromFile() {
 
                 // strings
                 if (name == "skin") {
-                    this->skin = stripQuotes(value);
+                    this->skin(stripQuotes(value));
                 } else if (name == "performance") {
-                    this->performance = stripQuotes(value);
+                    this->performance(stripQuotes(value));
                 } else if (name == "tvOutMode") {
-                    this->tvOutMode = stripQuotes(value);
+                    this->tvOutMode(stripQuotes(value));
                 } else if (name == "lang") {
-                    this->lang = stripQuotes(value);
+                    this->lang(stripQuotes(value));
                 } else if (name == "batteryType") {
-                    this->batteryType = stripQuotes(value);
+                    this->batteryType(stripQuotes(value));
                 } else if (name == "sectionFilter") {
-                    this->sectionFilter = stripQuotes(value);
+                    this->sectionFilter(stripQuotes(value));
                 } else if (name == "launcherPath") {
-                    this->launcherPath = stripQuotes(value);
+                    this->launcherPath(stripQuotes(value));
                 } 
 
                 // ints
                 else if (name == "buttonRepeatRate") {
-                    this->buttonRepeatRate = atoi(value.c_str());
+                    this->buttonRepeatRate(atoi(value.c_str()));
                 } else if (name == "resolutionX") {
-                    this->resolutionX = atoi(value.c_str());
+                    this->resolutionX(atoi(value.c_str()));
                 } else if (name == "resolutionY") {
-                    this->resolutionY = atoi(value.c_str());
+                    this->resolutionY(atoi(value.c_str()));
                 } else if (name == "videoBpp") {
-                    this->videoBpp = atoi(value.c_str());
+                    this->videoBpp(atoi(value.c_str()));
                 } else if (name == "backlightLevel") {
-                    this->backlightLevel = atoi(value.c_str());
+                    this->backlightLevel(atoi(value.c_str()));
                 } else if (name == "backlightTimeout") {
-                    this->backlightTimeout = atoi(value.c_str());
+                    this->backlightTimeout(atoi(value.c_str()));
                 } else if (name == "powerTimeout") {
-                    this->powerTimeout = atoi(value.c_str());
+                    this->powerTimeout(atoi(value.c_str()));
                 } else if (name == "minBattery") {
-                    this->minBattery = atoi(value.c_str());
+                    this->minBattery(atoi(value.c_str()));
                 } else if (name == "maxBattery") {
-                    this->maxBattery = atoi(value.c_str());
+                    this->maxBattery(atoi(value.c_str()));
                 } else if (name == "cpuMin") {
-                    this->cpuMin = atoi(value.c_str());
+                    this->cpuMin(atoi(value.c_str()));
                 } else if (name == "cpuMax") {
-                    this->cpuMax = atoi(value.c_str());
+                    this->cpuMax(atoi(value.c_str()));
                 } else if (name == "cpuMenu") {
-                    this->cpuMenu = atoi(value.c_str());
+                    this->cpuMenu(atoi(value.c_str()));
                 } else if (name == "globalVolume") {
-                    this->globalVolume = atoi(value.c_str());
+                    this->globalVolume(atoi(value.c_str()));
                 } else if (name == "outputLogs") {
-                    this->outputLogs = atoi(value.c_str());
+                    this->outputLogs(atoi(value.c_str()));
                 } else if (name == "saveSelection") {
-                    this->saveSelection = atoi(value.c_str());
+                    this->saveSelection(atoi(value.c_str()));
                 } else if (name == "section") {
-                    this->section = atoi(value.c_str());
+                    this->section(atoi(value.c_str()));
                 } else if (name == "link") {
-                    this->link = atoi(value.c_str());
+                    this->link(atoi(value.c_str()));
                 } else if (name == "version") {
-                    this->version = atoi(value.c_str());
+                    this->version(atoi(value.c_str()));
                 }
 
             };
             confstream.close();
-            this->constrain();
             result = true;
         }
     }

@@ -93,12 +93,12 @@ void Renderer::render() {
     }
 
     TRACE("Renderer::setting the box");
-		gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, (RGBAColor){0, 0, 0, 255});
+		gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0, 0, 0, 255});
 
 		if (gmenu2x->sc[currBackdrop]) {
 			gmenu2x->sc[currBackdrop]->blit(gmenu2x->screen,0,0);
 		} else {
-			gmenu2x->screen->box((SDL_Rect){0, 0, gmenu2x->config->resolutionX, gmenu2x->config->resolutionY}, gmenu2x->skin->colours.background);
+			gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, gmenu2x->skin->colours.background);
 		}
 
 		// SECTIONS
@@ -355,7 +355,7 @@ void Renderer::render() {
 						// Manual indicator
 						helpers.push_back(iconManual);
 					}
-					if (gmenu2x->menu->selLinkApp()->clock() != gmenu2x->config->cpuMenu) {
+					if (gmenu2x->menu->selLinkApp()->clock() != gmenu2x->config->cpuMenu()) {
 						// CPU indicator
 						helpers.push_back(iconCPU);
 					}
