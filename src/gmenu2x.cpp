@@ -1926,27 +1926,27 @@ bool GMenu2X::doUpgrade(bool upgradeConfig) {
 
 	stringstream ss;
 	if (!dirExists(destination + "scripts")) {
-		ss << "cp -arp " << source + "scripts"  << " " << destination << " && sync";
+		ss << "cp -arp \"" << source + "scripts"  << "\" " << destination << " && sync";
 		string call = ss.str();
 		system(call.c_str());
 	}
 	if (!dirExists(destination + "sections")) {
-		ss << "cp -arp " << source + "sections"  << " " << destination << " && sync";
+		ss << "cp -arp \"" << source + "sections"  << "\" " << destination << " && sync";
 		string call = ss.str();
 		system(call.c_str());
 	}
 	if (!dirExists(destination + "skins")) {
-		ss << "cp -arp " << source + "skins"  << " " << destination << " && sync";
+		ss << "cp -arp \"" << source + "skins"  << "\" " << destination << " && sync";
 		string call = ss.str();
 		system(call.c_str());
 	}
 	if (!dirExists(destination + "skins/Default")) {
-		ss << "cp -arp " << source + "skins/Default"  << " " << destination + "skins/" << " && sync";
+		ss << "cp -arp \"" << source + "skins/Default"  << "\" " << destination + "skins/" << " && sync";
 		string call = ss.str();
 		system(call.c_str());
 	}
 	if (!dirExists(destination + "translations")) {
-		ss << "cp -arp " << source + "translations"  << " " << destination << " && sync";
+		ss << "cp -arp \"" << source + "translations"  << "\" " << destination << " && sync";
 		string call = ss.str();
 		system(call.c_str());
 	}
@@ -1971,7 +1971,7 @@ bool GMenu2X::doInstall() {
 	if (fullCopy) {
 		INFO("GMenu2X::doInstall - doing a full copy");
 		stringstream ss;
-		ss << "cp -arp " << source << " " << destination << " && sync";
+		ss << "cp -arp \"" << source << "\" " << destination << " && sync";
 		string call = ss.str();
 		INFO("GMenu2X::doInstall - going to run :: %s", call.c_str());
 		system(call.c_str());
