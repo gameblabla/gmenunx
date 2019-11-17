@@ -20,7 +20,7 @@ using std::ofstream;
 using std::string;
 
 Skin::Skin(string const &prefix, int const &maxX, int const &maxY) {
-    DEBUG("Skin::Skin - enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
+    TRACE("Skin::Skin - enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
 
     this->assetsPrefix = prefix;
     this->maxX = maxX;

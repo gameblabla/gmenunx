@@ -48,7 +48,7 @@ bool ScreenManager::isAsleep() {
 }
 
 void ScreenManager::setScreenTimeout(unsigned int seconds) {
-	INFO("ScreenManager::setScreenTimeout : %i", seconds);
+	TRACE("ScreenManager::setScreenTimeout : %i", seconds);
 	screenTimeout = seconds;
 	resetScreenTimer();
 }

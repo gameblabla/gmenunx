@@ -237,6 +237,20 @@ int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t
 	return min((int)round(elapsed * (to - from)), (int)max(from, to));
 }
 
+bool copyFile(string from, string to) {
+	if (!fileExists(from)) {
+		ERROR("Copy file : Source doesn't exist : %s", from.c_str());
+		return false;
+	}
+	if (fileExists(to)) {
+		unlink(to.c_str());
+	}
+	std::ifstream  src(from, std::ios::binary);
+    std::ofstream  dst(to,   std::ios::binary);
+    dst << src.rdbuf();
+	return fileExists(to);
+}
+
 string exec(const char* cmd) {
 	TRACE("exec - enter : %s", cmd);
 	FILE* pipe = popen(cmd, "r");

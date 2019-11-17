@@ -3,6 +3,7 @@
 #define DEBUG_H
 
 #include <time.h>
+#include <cstdio>
 
 #define NODEBUG_L 0
 #define ERROR_L 1

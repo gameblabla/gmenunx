@@ -161,7 +161,7 @@ void GMenu2X::releaseScreen() {
 }
 
 void GMenu2X::quit() {
-	TRACE("GMenu2X::quit - enter");
+	TRACE("GMenunX::quit - enter");
 	if (!this->sc.empty()) {
 		TRACE("GMenu2X::quit - SURFACE EXISTED");
 		writeConfig();
@@ -171,20 +171,33 @@ void GMenu2X::quit() {
 		this->screen->free();
 		releaseScreen();
 	}
-	TRACE("GMenu2X::quit - exit");
+	TRACE("GMenuNX::quit - exit");
 }
 
-int main(int /*argc*/, char * /*argv*/[]) {
-	INFO("GMenu2X starting: If you read this message in the logs, check http://mtorromeo.github.com/gmenu2x/troubleshooting.html for a solution");
-	INFO("GMenu2X starting: Build Date - %s - %s", __DATE__, __TIME__);
+int main(int argc, char * argv[]) {
+	INFO("GMenuNX starting: Build Date - %s - %s", __DATE__, __TIME__);
 
-	TRACE("Signals");
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
-	TRACE("New app");
-	app = new GMenu2X();
+	// handle cmd args
+    int opt = opterr = 0;
+	bool install = false;
+
+    // Retrieve the options:
+    while ( (opt = getopt(argc, argv, "ih")) != -1 ) {
+        switch ( opt ) {
+            case 'i':
+				install = true;
+				break;
+			case 'h':
+				cout << "run with -i to install dependencies to writeable path";
+				exit(0);
+		};
+	};
+
+	app = new GMenu2X(install);
 	TRACE("Starting app->main()");
 	app->main();
 
@@ -200,52 +213,42 @@ void* mainThread(void* param) {
 	return NULL;
 }
 
-GMenu2X::GMenu2X() : input(screenManager) {
+GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
-	TRACE("GMenu2X::ctor - enter");
-
+	TRACE("GMenu2X::ctor - enter - install flag : %i", install);
 	TRACE("GMenu2X::ctor - creating LED instance");
 	led = new LED();
 	
 	TRACE("GMenu2X::ctor - ledOn");
 	ledOn();
 
+	TRACE("GMenu2X::ctor - getExePath");
+	exe_path = getExePath();
+
 	bool firstRun = !dirExists(getAssetsPath());
 	if (firstRun) {
-		assets_path = getExePath();
+		assets_path = exe_path;
 	} else {
 		assets_path = getAssetsPath();
 	}
 	TRACE("GMenu2X::ctor - first run : %i, assets_path : %s", firstRun, assets_path.c_str());
-	
-	TRACE("GMenu2X::ctor - getExePath");
-	exe_path = getExePath();
 
 	TRACE("GMenu2X::ctor - init translations");
 	tr.setPath(assets_path);
 
-	TRACE("GMenu2X::ctor - readConfig");
+	TRACE("GMenu2X::ctor - readConfig from : %s", assets_path.c_str());
 	this->config = new Config(assets_path);
 	readConfig();
-
-/*
-	TODO :: check this properly
-	if (!firstRun && MIN_CONFIG_VERSION > config->version) {
-		// we're doing an upgrade
-		TRACE("GMenu2X::ctor - upgrade requested from %i to %i", config->version, MIN_CONFIG_VERSION);
-		firstRun = true;
-	}
-*/
 
 	// set this ASAP
 	TRACE("GMenu2X::ctor - backlight");
 	setBacklight(config->backlightLevel);
 
+	//Screen
 	TRACE("GMenu2X::ctor - setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 
-	//Screen
 	TRACE("GMenu2X::ctor - sdl_init");
 	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
@@ -264,7 +267,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	sc.setPrefix(assets_path);
 
 	this->skin = new Skin(assets_path, config->resolutionX,  config->resolutionY);
-	this->skin->loadSkin( config->skin);
+	if (!this->skin->loadSkin( config->skin)) {
+		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
+	}
 
 	TRACE("GMenu2X::ctor - setWallpaper");
 	setWallpaper(skin->wallpaper);
@@ -279,21 +284,45 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	powerManager = new PowerManager(this,  config->backlightTimeout, config->powerTimeout);
 
 	if (firstRun) {
-		TRACE("GMenu2X::ctor - first run, copying skins/");
+		int exitCode = 0;
+		INFO("GMenu2X::ctor - first run, copying data");
 		MessageBox mb(this, "Copying data for first run...", assets_path + "gmenunx.png");
 		mb.setAutoHide(-1);
 		mb.exec();
-		if (copyAssets()) {
+		if (doInstall()) {
 			mb.fadeOut(500);
 			ledOff();
 			quit();
+			exitCode = 0;
+		} else {
+			ERROR("Fatal, can't copy core files");
+			exitCode = 1;
 		}
-	} else {
-		TRACE("GMenu2X::ctor - not first run - loading");
-		MessageBox mb(this, tr["Loading"]);
-		mb.setAutoHide(1);
+		quit_all(exitCode);
+	} else 	if (install || MIN_CONFIG_VERSION > config->version) {
+		// we're doing an upgrade
+		int exitCode = 0;
+		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version, MIN_CONFIG_VERSION);
+		assets_path = getExePath();
+		MessageBox mb(this, "Upgrading new install...", assets_path + "gmenunx.png");
+		mb.setAutoHide(-1);
 		mb.exec();
+		if (doUpgrade(MIN_CONFIG_VERSION > config->version)) {
+			mb.fadeOut(500);
+			ledOff();
+			quit();
+			exitCode = 0;
+		} else {
+			ERROR("Fatal, can't upgrade core files");
+			exitCode = 2;
+		}
+		quit_all(exitCode);
 	}
+
+	TRACE("GMenu2X::ctor - not first run - loading");
+	MessageBox mb(this, tr["Loading"]);
+	mb.setAutoHide(1);
+	mb.exec();
 
 	TRACE("GMenu2X::ctor - setPerformanceMode");
 	setPerformanceMode();
@@ -325,7 +354,6 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	readTmp();
 
 	//recover last session
-	// TODO :: clean this up
 	TRACE("GMenu2X::ctor - recoverSession test");
 	if (lastSelectorElement >- 1 && \
 		menu->selLinkApp() != NULL && \
@@ -434,6 +462,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 		
 	} else {
 		if(sc.add(wallpaper) == NULL) {
+			// try and add a default one
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
 
@@ -441,12 +470,14 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 			fl.setFilter(".png,.jpg,.jpeg,.bmp");
 			fl.browse();
 			if (fl.getFiles().size() > 0) {
-				TRACE("GMenu2X::setWallpaper - found our wallpaper");
+				TRACE("GMenu2X::setWallpaper - found a wallpaper");
 				skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
 			}
 		}
-		TRACE("GMenu2X::setWallpaper - blit");
-		sc[skin->wallpaper]->blit(bg, 0, 0);
+		if (sc[skin->wallpaper]) {
+			TRACE("GMenu2X::setWallpaper - blit");
+			sc[skin->wallpaper]->blit(bg, 0, 0);
+		}
 	}
 	TRACE("GMenu2X::setWallpaper - exit");
 }
@@ -492,27 +523,33 @@ void GMenu2X::initLayout() {
 
 void GMenu2X::initFont() {
 	TRACE("GMenu2X::initFont - enter");
-	if (font != NULL) {
-		TRACE("GMenu2X::initFont - delete font");
-		delete font;
-	}
-	if (fontTitle != NULL) {
-		TRACE("GMenu2X::initFont - delete title font");
-		delete fontTitle;
-	}
-	if (fontSectionTitle != NULL) {
-		TRACE("GMenu2X::initFont - delete title font");
-		delete fontSectionTitle;
-	}
 
 	string fontPath = sc.getSkinFilePath("font.ttf");
 	TRACE("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
-	TRACE("GMenu2X::initFont - getFont");
-	font = new FontHelper(fontPath, skin->fontSize, skin->colours.font, skin->colours.fontOutline);
-	TRACE("GMenu2X::initFont - getTileFont");
-	fontTitle = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
-	TRACE("GMenu2X::initFont - exit");
-	fontSectionTitle = new FontHelper(fontPath, skin->fontSizeSectionTitle, skin->colours.font, skin->colours.fontOutline);
+
+	if (fileExists(fontPath)) {
+		TRACE("GMenu2X::initFont - font file exists");
+		if (font != NULL) {
+			TRACE("GMenu2X::initFont - delete font");
+			delete font;
+		}
+		if (fontTitle != NULL) {
+			TRACE("GMenu2X::initFont - delete title font");
+			delete fontTitle;
+		}
+		if (fontSectionTitle != NULL) {
+			TRACE("GMenu2X::initFont - delete title font");
+			delete fontSectionTitle;
+		}
+		TRACE("GMenu2X::initFont - getFont");
+		font = new FontHelper(fontPath, skin->fontSize, skin->colours.font, skin->colours.fontOutline);
+		TRACE("GMenu2X::initFont - getTileFont");
+		fontTitle = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
+		TRACE("GMenu2X::initFont - exit");
+		fontSectionTitle = new FontHelper(fontPath, skin->fontSizeSectionTitle, skin->colours.font, skin->colours.fontOutline);
+	} else {
+		ERROR("GMenu2X::initFont - font file is missing from : %s", fontPath.c_str());
+	}
 	TRACE("GMenu2X::initFont - exit");
 }
 
@@ -1869,28 +1906,79 @@ const string &GMenu2X::getAssetsPath() {
 	return USER_PREFIX;
 }
 
-bool GMenu2X::copyAssets() {
-	TRACE("GMenu2X::copyAssets - enter");
+bool GMenu2X::doUpgrade(bool upgradeConfig) {
+	INFO("GMenu2X::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
-	TRACE("GMenu2X::copyAssets - testing for writable home dir : %s", USER_PREFIX.c_str());
-	
-	//if (opendir(USER_PREFIX.c_str()) == NULL) {
-		TRACE("GMenu2X::copyAssets - No writable home dir");
-		
-		string message = "Doing first run setup....";
-		string icon = getExePath() + "skins/Default/icons/generic.png";
-		TRACE("GMenu2X::copyAssets - icon : %s", icon.c_str());
+	string source = getExePath();
+	string destination = USER_PREFIX;
 
-		stringstream ss;
-		ss << "cp -arp " << getExePath() << " " << USER_PREFIX << " && sync";
+	INFO("GMenu2X::doUpgrade - from : %s, to : %s", source.c_str(), destination.c_str());
+
+	if (!copyFile(source + "COPYING", destination + "COPYING")) return false;
+	if (!copyFile(source + "ChangeLog.md", destination + "ChangeLog.md")) return false;
+	if (!copyFile(source + "about.txt", destination + "about.txt")) return false;
+	if (!copyFile(source + "gmenunx.png", destination + "gmenunx.png")) return false;
+	if (!copyFile(source + "input.conf", destination + "input.conf")) return false;
+	if (upgradeConfig) {
+		if (!copyFile(source + "gmenunx.conf", destination + "gmenunx.conf")) return false;
+	}
+
+	stringstream ss;
+	if (!dirExists(destination + "scripts")) {
+		ss << "cp -arp " << source + "scripts"  << " " << destination << " && sync";
 		string call = ss.str();
-		TRACE("GMenu2X::copyAssets - Going to run :: %s", call.c_str());
 		system(call.c_str());
+	}
+	if (!dirExists(destination + "sections")) {
+		ss << "cp -arp " << source + "sections"  << " " << destination << " && sync";
+		string call = ss.str();
+		system(call.c_str());
+	}
+	if (!dirExists(destination + "skins")) {
+		ss << "cp -arp " << source + "skins"  << " " << destination << " && sync";
+		string call = ss.str();
+		system(call.c_str());
+	}
+	if (!dirExists(destination + "skins/Default")) {
+		ss << "cp -arp " << source + "skins/Default"  << " " << destination + "skins/" << " && sync";
+		string call = ss.str();
+		system(call.c_str());
+	}
+	if (!dirExists(destination + "translations")) {
+		ss << "cp -arp " << source + "translations"  << " " << destination << " && sync";
+		string call = ss.str();
+		system(call.c_str());
+	}
+	INFO("GMenu2X::doUpgrade - Upgrade complete");
+	success = true;
+	sync();
+	TRACE("GMenu2X::doUpgrade - exit");
+	return success;
+}
 
+bool GMenu2X::doInstall() {
+	INFO("GMenu2X::doInstall - enter");
+	bool success = false;
+	// check for the writable home directory existing
+	string source = getExePath();
+	string destination = USER_PREFIX;
+
+	INFO("GMenu2X::doInstall - from : %s, to : %s", source.c_str(), destination.c_str());
+	INFO("GMenu2X::doInstall - testing for writable home dir : %s", destination.c_str());
+	
+	bool fullCopy = !dirExists(destination);
+	if (fullCopy) {
+		INFO("GMenu2X::doInstall - doing a full copy");
+		stringstream ss;
+		ss << "cp -arp " << source << " " << destination << " && sync";
+		string call = ss.str();
+		INFO("GMenu2X::doInstall - going to run :: %s", call.c_str());
+		system(call.c_str());
 		success = true;
-	//}
-	TRACE("GMenu2X::copyAssets - exit");
+	}
+	sync();
+	TRACE("GMenu2X::doInstall - exit");
 	return success;
 }
 

@@ -135,9 +135,11 @@ private:
 	string umountSd();
 	void mountSdDialog();
 	string mountSd();
+	bool doInstall();
+	bool doUpgrade(bool upgradeConfig);
 
 public:
-	GMenu2X();
+	GMenu2X(bool install = false);
 	~GMenu2X();
 	void quit();
 	void releaseScreen();
@@ -163,8 +165,6 @@ public:
 	@return String containing the parent directory
 	*/
 	const string &getAssetsPath();
-
-	bool copyAssets();
 
 	ScreenManager screenManager;
 	InputManager input;
