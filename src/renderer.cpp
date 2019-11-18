@@ -105,7 +105,7 @@ void Renderer::render() {
 		TRACE("Renderer::sections");
 		if (gmenu2x->skin->sectionBar) {
 
-			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.topBarBackground);
+			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.titleBarBackground);
 
 			x = gmenu2x->sectionBarRect.x; 
 			y = gmenu2x->sectionBarRect.y;
@@ -262,7 +262,12 @@ void Renderer::render() {
 
 					// selected link highlight
 					if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
-						gmenu2x->screen->box(ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight, gmenu2x->skin->colours.selectionBackground);
+						gmenu2x->screen->box(
+							ix, 
+							iy, 
+							gmenu2x->linkWidth, 
+							gmenu2x->linkHeight, 
+							gmenu2x->skin->colours.selectionBackground);
 					}
 
 					if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
@@ -395,7 +400,6 @@ void Renderer::render() {
 
         TRACE("Renderer::flip"); 
 		gmenu2x->screen->flip();
-
         TRACE("Renderer::exit"); 
  
 }

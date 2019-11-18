@@ -488,8 +488,8 @@ void GMenu2X::initLayout() {
 	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 	sectionBarRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 
+	// TODO :: if skin->infoBarAllways
 	if (skin->sectionBar) {
-		// x = 0; y = 0;
 		if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
 			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(config->resolutionX() - skin->sectionBarSize);
 			sectionBarRect.w = skin->sectionBarSize;
@@ -511,9 +511,9 @@ void GMenu2X::initLayout() {
 
 	listRect = (SDL_Rect){
 		0, 
-		skin->topBarHeight, 
+		skin->titleBarHeight, 
 		config->resolutionX(), 
-		config->resolutionY() - skin->bottomBarHeight - skin->topBarHeight};
+		config->resolutionY() - skin->infoBarHeight - skin->titleBarHeight};
 
 	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
 	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
@@ -1025,8 +1025,8 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 18, config->resolutionX()));
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->topBarHeight, 40, 1, config->resolutionY()));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->bottomBarHeight, 16, 1, config->resolutionY()));
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->titleBarHeight, 40, 1, config->resolutionY()));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->infoBarHeight, 16, 1, config->resolutionY()));
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
@@ -1084,9 +1084,9 @@ void GMenu2X::skinColors() {
 		SettingsDialog sd(this, ts, tr["Skin Colors"], "skin:icons/skin.png");
 		sd.allowCancel = false;
 		sd.addSetting(new MenuSettingRGBA(this, tr["Background"], tr["Background colour if no wallpaper"], &skin->colours.background));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Top/Section Bar"], tr["Color of the top and section bar"], &skin->colours.topBarBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Top/Section Bar"], tr["Color of the top and section bar"], &skin->colours.titleBarBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["List Body"], tr["Color of the list body"], &skin->colours.listBackground));
-		sd.addSetting(new MenuSettingRGBA(this, tr["Bottom Bar"], tr["Color of the bottom bar"], &skin->colours.bottomBarBackground));
+		sd.addSetting(new MenuSettingRGBA(this, tr["Bottom Bar"], tr["Color of the bottom bar"], &skin->colours.infoBarBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["Selection"], tr["Color of the selection and other interface details"], &skin->colours.selectionBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["Message Box"], tr["Background color of the message box"], &skin->colours.msgBoxBackground));
 		sd.addSetting(new MenuSettingRGBA(this, tr["Msg Box Border"], tr["Border color of the message box"], &skin->colours.msgBoxBorder));

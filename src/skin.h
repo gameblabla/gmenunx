@@ -17,9 +17,9 @@ public:
 
     struct Colours {
         RGBAColor background;
-        RGBAColor topBarBackground;
         RGBAColor listBackground;
-        RGBAColor bottomBarBackground;
+        RGBAColor titleBarBackground;
+        RGBAColor infoBarBackground;
         RGBAColor selectionBackground;
         RGBAColor msgBoxBackground;
         RGBAColor msgBoxBorder;
@@ -64,8 +64,8 @@ public:
     int numLinkRows;
     int numLinkCols;
     int sectionBarSize;
-    int bottomBarHeight;
-    int topBarHeight;
+    int infoBarHeight;
+    int titleBarHeight;
     int previewWidth;
 
     LinkDisplayModes linkDisplayMode;

@@ -81,8 +81,8 @@ string Skin::toString() {
     vec.push_back(string_format("linkRows=%i", numLinkRows));
     vec.push_back(string_format("linkCols=%i", numLinkCols));
     vec.push_back(string_format("sectionBarSize=%i", sectionBarSize));
-    vec.push_back(string_format("bottomBarHeight=%i", bottomBarHeight));
-    vec.push_back(string_format("topBarHeight=%i", topBarHeight));
+    vec.push_back(string_format("titleBarHeight=%i", titleBarHeight));
+    vec.push_back(string_format("infoBarHeight=%i", infoBarHeight));
     vec.push_back(string_format("previewWidth=%i", previewWidth));
 
     vec.push_back(string_format("linkDisplayMode=%i", linkDisplayMode));
@@ -95,9 +95,9 @@ string Skin::toString() {
 
     vec.push_back("# colours section starts");
     vec.push_back(string_format("background=%s", rgbatostr(colours.background).c_str()));
-    vec.push_back(string_format("topBarBg=%s", rgbatostr(colours.topBarBackground).c_str()));
     vec.push_back(string_format("listBg=%s", rgbatostr(colours.listBackground).c_str()));
-    vec.push_back(string_format("bottomBarBg=%s", rgbatostr(colours.bottomBarBackground).c_str()));
+    vec.push_back(string_format("titleBarBg=%s", rgbatostr(colours.titleBarBackground).c_str()));
+    vec.push_back(string_format("infoBarBg=%s", rgbatostr(colours.infoBarBackground).c_str()));
     vec.push_back(string_format("selectionBg=%s", rgbatostr(colours.selectionBackground).c_str()));
     vec.push_back(string_format("messageBoxBg=%s", rgbatostr(colours.msgBoxBackground).c_str()));
     vec.push_back(string_format("messageBoxBorder=%s", rgbatostr(colours.msgBoxBorder).c_str()));
@@ -195,8 +195,8 @@ void Skin::reset() {
     numLinkRows = 6;
     numLinkCols = 1;
     sectionBarSize = 40;
-    bottomBarHeight = 16;
-    topBarHeight = 40;
+    infoBarHeight = 16;
+    titleBarHeight = 40;
     previewWidth = 142;
 
     linkDisplayMode = LinkDisplayModes::ICON_AND_TEXT;
@@ -208,9 +208,9 @@ void Skin::reset() {
 
 	TRACE("Skin::reset - skinFontColors");
     colours.background = (RGBAColor){125,55,125,200};
-    colours.topBarBackground = (RGBAColor){255,255,255,130};
+    colours.titleBarBackground = (RGBAColor){255,255,255,130};
     colours.listBackground = (RGBAColor){255,255,255,0};
-    colours.bottomBarBackground = (RGBAColor){255,255,255,130};
+    colours.infoBarBackground = (RGBAColor){255,255,255,130};
     colours.selectionBackground = (RGBAColor){255,255,255,130};
     colours.msgBoxBackground = (RGBAColor){255,255,255,255};
     colours.msgBoxBorder = (RGBAColor){80,80,80,255};
@@ -226,9 +226,9 @@ void Skin::reset() {
 
 void Skin::constrain() {
 
-	evalIntConf( &this->topBarHeight, 40, 1, maxY);
+	evalIntConf( &this->titleBarHeight, 40, 1, maxY);
 	evalIntConf( &this->sectionBarSize, 40, 18, maxX);
-	evalIntConf( &this->bottomBarHeight, 16, 1, maxY);
+	evalIntConf( &this->infoBarHeight, 16, 1, maxY);
 	evalIntConf( &this->previewWidth, 142, -1, maxX - 60);
 	evalIntConf( &this->fontSize, 12, 6, 60);
 	evalIntConf( &this->fontSizeTitle, 20, 6, 60);
@@ -279,9 +279,13 @@ bool Skin::fromFile() {
                 } else if (name == "sectionBarSize") {
                     sectionBarSize = atoi(value.c_str());
                 } else if (name == "bottomBarHeight") {
-                    bottomBarHeight = atoi(value.c_str());
+                    infoBarHeight = atoi(value.c_str());
                 } else if (name == "topBarHeight") {
-                    topBarHeight = atoi(value.c_str());
+                    titleBarHeight = atoi(value.c_str());
+                } else if (name == "infoBarHeight") {
+                    infoBarHeight = atoi(value.c_str());
+                } else if (name == "titleBarHeight") {
+                    titleBarHeight = atoi(value.c_str());
                 } else if (name == "previewWidth") {
                     previewWidth = atoi(value.c_str());
                 } else if (name == "linkDisplayMode") {
@@ -305,11 +309,15 @@ bool Skin::fromFile() {
                 } else if (name == "background") {
                     colours.background = strtorgba(value);
                 } else if (name == "topBarBg") {
-                    colours.topBarBackground = strtorgba(value);
+                    colours.titleBarBackground = strtorgba(value);
+                } else if (name == "titleBarBg") {
+                    colours.titleBarBackground = strtorgba(value);
                 } else if (name == "listBg") {
                     colours.listBackground = strtorgba(value);
                 } else if (name == "bottomBarBg") {
-                    colours.bottomBarBackground = strtorgba(value);
+                    colours.infoBarBackground = strtorgba(value);
+                } else if (name == "infoBarBg") {
+                    colours.infoBarBackground = strtorgba(value);
                 } else if (name == "selectionBg") {
                     colours.selectionBackground = strtorgba(value);
                 } else if (name == "messageBoxBg") {

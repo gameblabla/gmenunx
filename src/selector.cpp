@@ -119,16 +119,16 @@ int Selector::exec(int startSelection) {
 					// line it up with the text
 					SDL_Rect bgArea {
 						0, 
-						gmenu2x->skin->topBarHeight, 
+						gmenu2x->skin->titleBarHeight, 
 						gmenu2x->config->resolutionX(), 
-						gmenu2x->config->resolutionY() - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight };
+						gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight - gmenu2x->skin->titleBarHeight };
 
 					// only stretch it once if possible
 					if (!gmenu2x->sc.exists(screenPath)) {
 						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
 						gmenu2x->sc[screenPath]->softStretch(
 							gmenu2x->config->resolutionX(), 
-							gmenu2x->config->resolutionY() - gmenu2x->skin->bottomBarHeight - gmenu2x->skin->topBarHeight, 
+							gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight - gmenu2x->skin->titleBarHeight, 
 							true, 
 							true);
 					}
@@ -200,7 +200,7 @@ int Selector::exec(int startSelection) {
 						gmenu2x->listRect.y, 
 						gmenu2x->skin->previewWidth, 
 						gmenu2x->listRect.h, 
-						gmenu2x->skin->colours.topBarBackground);
+						gmenu2x->skin->colours.titleBarBackground);
 
 					gmenu2x->sc[screens[selected - fl.dirCount()]]->blit(
 						gmenu2x->screen, 
@@ -223,7 +223,13 @@ int Selector::exec(int startSelection) {
 					if (animation > 0) {
 						// we only come in here if we had a screenshot before
 						// and we need to clean it up
-						gmenu2x->screen->box(gmenu2x->config->resolutionX() - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.topBarBackground);
+						gmenu2x->screen->box(
+							gmenu2x->config->resolutionX() - animation, 
+							gmenu2x->listRect.y, 
+							gmenu2x->skin->previewWidth, 
+							gmenu2x->listRect.h, 
+							gmenu2x->skin->colours.titleBarBackground);
+			
 						animation = gmenu2x->skin->previewWidth - intTransition(0, gmenu2x->skin->previewWidth, tickStart, 80);
 						gmenu2x->screen->flip();
 						gmenu2x->input.setWakeUpInterval(45);
