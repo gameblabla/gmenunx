@@ -409,6 +409,9 @@ bool LinkApp::save() {
 }
 
 void LinkApp::favourite(string launchArgs, string supportingFile) {
+	TRACE("LinkApp::favourite - enter - launchArgs : %s, supportingFile : %s", 
+		launchArgs.c_str(), 
+		supportingFile.c_str());
 
 	// need to make a new favourite
 	string path = this->gmenu2x->getAssetsPath() + "sections/" + FAVOURITE_FOLDER;
@@ -418,50 +421,64 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 			 return;
 		}
 	}
-	if (this->isOPK) {
 
-		string cleanTitle = this->title;
-		string description = this->description;
-		if (!supportingFile.empty()) {
-			cleanTitle = fileBaseName(base_name(supportingFile));
-			description = this->description + " - " + cleanTitle;
-		}
-		string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
-
-		uint32_t x = 1;
-		while (fileExists(favePath)) {
-			string id = "";
-			stringstream ss; ss << x; ss >> id;
-			favePath = path + "/" + this->title + "-" + cleanTitle + "." + id + ".desktop";
-			x++;
-		}
-		/*
-		if (fileExists(favePath)) {
-			TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
-			unlink(favePath.c_str());
-		}
-		*/
-		TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
-		LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
-		fave->setTitle(cleanTitle);
-		fave->setExec(OPKRUN_PATH);
-		fave->setIcon(this->icon);
-		fave->setParams("-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs);
-		fave->setDescription(description);
-		fave->consoleapp = this->consoleapp;
-		MessageBox mb(
-			this->gmenu2x, 
-			"Savinging favourite - " + cleanTitle,  
-			this->icon);
-		mb.setAutoHide(500);
-		mb.exec();
-		if (fave->save()) {
-			int secIndex = this->gmenu2x->menu->getSectionIndex(FAVOURITE_FOLDER);
-			this->gmenu2x->menu->setSectionIndex(secIndex);
-			this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
-			TRACE("LinkApp::selector - opk favourite saved");
-		} else delete fave;
+	string cleanTitle = this->title;
+	string description = this->description;
+	if (!supportingFile.empty()) {
+		cleanTitle = fileBaseName(base_name(supportingFile));
+		description = this->description + " - " + cleanTitle;
 	}
+	string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
+
+	uint32_t x = 1;
+	while (fileExists(favePath)) {
+		string id = "";
+		stringstream ss; ss << x; ss >> id;
+		favePath = path + "/" + this->title + "-" + cleanTitle + "." + id + ".desktop";
+		x++;
+	}
+	/*
+	if (fileExists(favePath)) {
+		TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
+		unlink(favePath.c_str());
+	}
+	*/
+
+	LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
+	fave->setTitle(cleanTitle);
+	fave->setIcon(this->icon);
+	fave->setDescription(description);
+	fave->consoleapp = this->consoleapp;
+
+	if (this->isOPK) {
+		string opkParams = "-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs;
+		TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
+		TRACE("LinkApp::selector - opk exec path : %s", OPKRUN_PATH.c_str());
+		TRACE("LinkApp::selector - opk params : %s", opkParams.c_str());
+		fave->setExec(OPKRUN_PATH);
+		fave->setParams(opkParams);
+	} else {
+		TRACE("LinkApp::selector - saving a normal favourite to : %s", favePath.c_str());
+		TRACE("LinkApp::selector - normal exec path : %s", this->exec.c_str());
+		TRACE("LinkApp::selector - normal params : %s", launchArgs.c_str());
+		fave->setExec(this->exec);
+		fave->setParams(launchArgs);
+	}
+
+	MessageBox mb(
+		this->gmenu2x, 
+		"Savinging favourite - " + cleanTitle,  
+		this->icon);
+	mb.setAutoHide(500);
+	mb.exec();
+	if (fave->save()) {
+		int secIndex = this->gmenu2x->menu->getSectionIndex(FAVOURITE_FOLDER);
+		this->gmenu2x->menu->setSectionIndex(secIndex);
+		this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
+		TRACE("LinkApp::selector - favourite saved");
+	} else delete fave;
+	
+	TRACE("LinkApp::favourite - exit");
 }
 
 void LinkApp::makeFavourite() {
@@ -511,6 +528,7 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 		if (sel.isFavourited()) {
 			TRACE("LinkApp::selector - we're saving a favourite");
 			string romFile = sel.getDir() + sel.getFile();
+			TRACE("LinkApp::selector - launchArgs : %s, romFile : %s", launchArgs.c_str(), romFile.c_str());
 			favourite(launchArgs, romFile);
 
 		} else {
