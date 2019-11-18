@@ -91,8 +91,6 @@ int Selector::exec(int startSelection) {
 	Surface *iconGoUp = gmenu2x->sc.skinRes("imgs/go-up.png");
 	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
 	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
-
-	// TODO :: this should probably be true for png's
 	gmenu2x->sc.defaultAlpha = false;
 
 	// kick off the chooser loop
@@ -324,7 +322,6 @@ int Selector::exec(int startSelection) {
 		} while (!inputAction);
 	}
 
-	// TODO :: Probably loose this if we loose the previous setter
 	gmenu2x->sc.defaultAlpha = true;
 	freeScreenshots(&screens);
 

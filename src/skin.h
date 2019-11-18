@@ -57,6 +57,10 @@ public:
     bool save();
 
     string name;
+    string infoBarImage;
+    string sectionBarImage;
+    string titleBarImage;
+    string wallpaper;
 
     int fontSize;
     int fontSizeTitle;
@@ -76,7 +80,6 @@ public:
 
     int skinBackdrops;
     SectionBar sectionBar;
-    string wallpaper;
 
     Colours colours;
 

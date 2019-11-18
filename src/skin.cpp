@@ -81,8 +81,11 @@ string Skin::toString() {
     vec.push_back(string_format("linkRows=%i", numLinkRows));
     vec.push_back(string_format("linkCols=%i", numLinkCols));
     vec.push_back(string_format("sectionBarSize=%i", sectionBarSize));
+    vec.push_back(string_format("sectionBarImage=\"%s\"", sectionBarImage.c_str()));
     vec.push_back(string_format("titleBarHeight=%i", titleBarHeight));
+    vec.push_back(string_format("titleBarImage=\"%s\"", titleBarImage.c_str()));
     vec.push_back(string_format("infoBarHeight=%i", infoBarHeight));
+    vec.push_back(string_format("infoBarImage=\"%s\"", infoBarImage.c_str()));
     vec.push_back(string_format("previewWidth=%i", previewWidth));
 
     vec.push_back(string_format("linkDisplayMode=%i", linkDisplayMode));
@@ -207,6 +210,9 @@ void Skin::reset() {
     skinBackdrops = false;
     sectionBar = SB_LEFT;
     wallpaper = "";
+    infoBarImage = "";
+    titleBarImage = "";
+    sectionBarImage = "";
 
 	TRACE("Skin::reset - skinFontColors");
     colours.background = (RGBAColor){125,55,125,200};
@@ -280,14 +286,41 @@ bool Skin::fromFile() {
                     numLinkCols = atoi(value.c_str());
                 } else if (name == "sectionBarSize") {
                     sectionBarSize = atoi(value.c_str());
+                } else if (name == "sectionBarImage") {
+                    // handle quotes
+                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
+                        sectionBarImage = value.substr(1, value.length() - 2);
+                    } else sectionBarImage = value;
+                    if (!sectionBarImage.empty() && sectionBarImage == base_name(sectionBarImage)) {
+                        sectionBarImage = skinPath + "imgs/" + sectionBarImage;
+                    }
+                    sectionBarImage = trim(sectionBarImage);
                 } else if (name == "bottomBarHeight") {
                     infoBarHeight = atoi(value.c_str());
                 } else if (name == "topBarHeight") {
                     titleBarHeight = atoi(value.c_str());
                 } else if (name == "infoBarHeight") {
                     infoBarHeight = atoi(value.c_str());
+                } else if (name == "infoBarImage") {
+                    // handle quotes
+                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
+                        infoBarImage = value.substr(1, value.length() - 2);
+                    } else infoBarImage = value;
+                    if (!infoBarImage.empty() && infoBarImage == base_name(infoBarImage)) {
+                        infoBarImage = skinPath + "imgs/" + infoBarImage;
+                    }
+                    infoBarImage = trim(infoBarImage);
                 } else if (name == "titleBarHeight") {
                     titleBarHeight = atoi(value.c_str());
+                } else if (name == "titleBarImage") {
+                    // handle quotes
+                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
+                        titleBarImage = value.substr(1, value.length() - 2);
+                    } else titleBarImage = value;
+                    if (!titleBarImage.empty() && titleBarImage == base_name(titleBarImage)) {
+                        titleBarImage = skinPath + "imgs/" + titleBarImage;
+                    }
+                    titleBarImage = trim(titleBarImage);
                 } else if (name == "previewWidth") {
                     previewWidth = atoi(value.c_str());
                 } else if (name == "linkDisplayMode") {
