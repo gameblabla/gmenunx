@@ -74,6 +74,7 @@ void Renderer::render() {
     int ix = 0;
     int iy = 0;
 
+	// if we're going to draw helpers, get their latest value 
 	if (gmenu2x->skin->sectionBar) {
 
 		tickNow = SDL_GetTicks();
@@ -101,6 +102,53 @@ void Renderer::render() {
 			gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, gmenu2x->skin->colours.background);
 		}
 
+		// info bar
+		TRACE("Renderer::infoBar");
+		if (!gmenu2x->skin->hideInfoBarInSections) {
+			if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
+				TRACE("Renderer::infoBar - needs drawing");
+
+				SDL_Rect infoBarRect;
+				switch(gmenu2x->skin->sectionBar) {
+					case Skin::SB_TOP:
+						infoBarRect = (SDL_Rect) { 
+							0, 
+							gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight, 
+							gmenu2x->config->resolutionX(), 
+							gmenu2x->skin->infoBarHeight 
+						};
+						break;
+					case Skin::SB_BOTTOM:
+						infoBarRect = (SDL_Rect) { 
+							0, 
+							0, 
+							gmenu2x->config->resolutionX(), 
+							gmenu2x->skin->infoBarHeight 
+						};
+						break;
+					default:
+						break;
+				};
+
+				gmenu2x->screen->box(infoBarRect, gmenu2x->skin->colours.infoBarBackground);
+
+				int btnX = 6;//gmenu2x->config->halfX() + (infoBarRect.w / 2) - 6;
+				int btnY = infoBarRect.y + (infoBarRect.h / 2);// + gmenu2x->font->getHalfHeight();
+				btnX = gmenu2x->drawButton(gmenu2x->screen, "select", "edit", btnX, btnY);
+				btnX = gmenu2x->drawButton(gmenu2x->screen, "start", "settings", btnX, btnY);
+				btnX = gmenu2x->drawButton(gmenu2x->screen, "a", "launch", btnX, btnY);
+				btnX = gmenu2x->drawButton(gmenu2x->screen, "x", "favourite", btnX, btnY);
+
+				/*
+				gmenu2x->screen->write(
+					gmenu2x->font, 
+					"\u00AB info bar \u00BB", 
+					infoBarRect.w / 2, 
+					infoBarRect.y + (infoBarRect.h / 2),
+					HAlignCenter | VAlignMiddle);
+				*/
+			}
+		}
 		// SECTIONS
 		TRACE("Renderer::sections");
 		if (gmenu2x->skin->sectionBar) {

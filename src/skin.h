@@ -72,6 +72,8 @@ public:
 
     int showSectionIcons;
     int showClock;
+    int hideInfoBarInSections;
+
     int skinBackdrops;
     SectionBar sectionBar;
     string wallpaper;

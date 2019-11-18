@@ -171,16 +171,16 @@ int MessageBox::exec() {
 		gmenu2x->font->getHeight(), 
 		gmenu2x->skin->colours.msgBoxBackground);
 
-	int btnX = gmenu2x->config->halfX()+box.w/2-6;
+	int btnX = gmenu2x->config->halfX() + (box.w / 2) - 6;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
-		if (buttons[i] != "") {
-			buttonPositions[i].y = box.y+box.h+gmenu2x->font->getHalfHeight();
+		if (!buttons[i].empty()) {
+			buttonPositions[i].y = box.y + box.h + gmenu2x->font->getHalfHeight();
 			buttonPositions[i].w = btnX;
 
 			btnX = gmenu2x->drawButtonRight(gmenu2x->screen, buttonLabels[i], buttons[i], btnX, buttonPositions[i].y);
 
 			buttonPositions[i].x = btnX;
-			buttonPositions[i].w = buttonPositions[i].x-btnX-6;
+			buttonPositions[i].w = buttonPositions[i].x - btnX - 6;
 		}
 	}
 	gmenu2x->screen->flip();

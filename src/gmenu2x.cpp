@@ -488,7 +488,6 @@ void GMenu2X::initLayout() {
 	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 	sectionBarRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 
-	// TODO :: if skin->infoBarAllways
 	if (skin->sectionBar) {
 		if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
 			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(config->resolutionX() - skin->sectionBarSize);
@@ -505,6 +504,14 @@ void GMenu2X::initLayout() {
 
 			if (skin->sectionBar == Skin::SB_TOP) {
 				linksRect.y = skin->sectionBarSize;
+			}
+		}
+	}
+	if (!skin->hideInfoBarInSections) {
+		if (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM) {
+			linksRect.h -= skin->infoBarHeight;
+			if (skin->sectionBar == Skin::SB_BOTTOM) {
+				linksRect.y += skin->infoBarHeight;
 			}
 		}
 	}
@@ -1031,6 +1038,7 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
+		sd.addSetting(new MenuSettingBool(this, tr["Hide info bar"], tr["Hide the info bar in the launcher view"], &skin->hideInfoBarInSections));
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 
@@ -1795,17 +1803,6 @@ void GMenu2X::setInputSpeed() {
 	input.setInterval(1000, MENU);
 	input.setInterval(1000, CONFIRM);
 	input.setInterval(1500, POWER);
-	// input.setInterval(30,  VOLDOWN);
-	// input.setInterval(30,  VOLUP);
-	// input.setInterval(300, CANCEL);
-	// input.setInterval(300, MANUAL);
-	// input.setInterval(100, INC);
-	// input.setInterval(100, DEC);
-	// input.setInterval(500, SECTION_PREV);
-	// input.setInterval(500, SECTION_NEXT);
-	// input.setInterval(500, PAGEUP);
-	// input.setInterval(500, PAGEDOWN);
-	// input.setInterval(200, BACKLIGHT);
 }
 
 void GMenu2X::setCPU(uint32_t mhz) {
