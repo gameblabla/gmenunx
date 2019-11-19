@@ -93,9 +93,10 @@ void Renderer::render() {
 		}
     }
 
-    TRACE("Renderer::setting the box");
+    TRACE("Renderer::setting the clearing box");
 	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0, 0, 0, 255});
 
+	// do a background image or a background colour 
 	if (gmenu2x->sc[currBackdrop]) {
 		gmenu2x->sc[currBackdrop]->blit(gmenu2x->screen,0,0);
 	} else {
@@ -104,7 +105,7 @@ void Renderer::render() {
 
 	// info bar
 	TRACE("Renderer::infoBar");
-	if (!gmenu2x->skin->hideInfoBarInSections) {
+	if (gmenu2x->skin->sectionInfoBarVisible) {
 		if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
 			TRACE("Renderer::infoBar - needs drawing");
 
@@ -113,9 +114,9 @@ void Renderer::render() {
 				case Skin::SB_TOP:
 					infoBarRect = (SDL_Rect) { 
 						0, 
-						gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight, 
+						gmenu2x->config->resolutionY() - gmenu2x->skin->sectionInfoBarSize, 
 						gmenu2x->config->resolutionX(), 
-						gmenu2x->skin->infoBarHeight 
+						gmenu2x->skin->sectionInfoBarSize 
 					};
 					break;
 				case Skin::SB_BOTTOM:
@@ -123,7 +124,7 @@ void Renderer::render() {
 						0, 
 						0, 
 						gmenu2x->config->resolutionX(), 
-						gmenu2x->skin->infoBarHeight 
+						gmenu2x->skin->sectionInfoBarSize 
 					};
 					break;
 				default:
@@ -131,13 +132,13 @@ void Renderer::render() {
 			};
 
 			// do we have an image
-			if (!gmenu2x->skin->infoBarImage.empty()) {
-				TRACE("Renderer::infoBar has an image : %s", gmenu2x->skin->infoBarImage.c_str());
-				if (gmenu2x->sc[gmenu2x->skin->infoBarImage]->raw->h != infoBarRect.h || gmenu2x->sc[gmenu2x->skin->infoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+			if (!gmenu2x->skin->sectionInfoBarImage.empty()) {
+				TRACE("Renderer::infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
+				if (gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 					TRACE("Renderer::infoBar image is being scaled");
-					gmenu2x->sc[gmenu2x->skin->infoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
+					gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
 				}
-				gmenu2x->sc[gmenu2x->skin->infoBarImage]->blit(
+				gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->blit(
 					gmenu2x->screen, 
 					infoBarRect);
 			} else {
@@ -168,13 +169,13 @@ void Renderer::render() {
 	if (gmenu2x->skin->sectionBar) {
 
 		// do we have an image
-		if (!gmenu2x->skin->sectionBarImage.empty()) {
-			TRACE("Renderer::sectionBar has an image : %s", gmenu2x->skin->sectionBarImage.c_str());
-			if (gmenu2x->sc[gmenu2x->skin->sectionBarImage]->raw->h != gmenu2x->sectionBarRect.h || gmenu2x->sc[gmenu2x->skin->sectionBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+		if (!gmenu2x->skin->sectionTitleBarImage.empty()) {
+			TRACE("Renderer::sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
+			if (gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 				TRACE("Renderer::sectionBar image is being scaled");
-				gmenu2x->sc[gmenu2x->skin->sectionBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
+				gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
 			}
-			gmenu2x->sc[gmenu2x->skin->sectionBarImage]->blit(
+			gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->blit(
 				gmenu2x->screen, 
 				gmenu2x->sectionBarRect);
 		} else {
@@ -217,9 +218,9 @@ void Renderer::render() {
             //TRACE("Renderer::sections - icon mode");
 			for (int i = gmenu2x->menu->firstDispSection(); i < gmenu2x->menu->getSections().size() && i < gmenu2x->menu->firstDispSection() + gmenu2x->menu->sectionNumItems(); i++) {
 				if (gmenu2x->skin->sectionBar == Skin::SB_LEFT || gmenu2x->skin->sectionBar == Skin::SB_RIGHT) {
-					y = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionBarSize;
+					y = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
 				} else {
-					x = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionBarSize;
+					x = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
 				}
 
                 //TRACE("Renderer::sections - icon mode - got x and y");
@@ -228,14 +229,14 @@ void Renderer::render() {
 					gmenu2x->screen->box(
 						x, 
 						y, 
-						gmenu2x->skin->sectionBarSize, 
-						gmenu2x->skin->sectionBarSize, 
+						gmenu2x->skin->sectionTitleBarSize, 
+						gmenu2x->skin->sectionTitleBarSize, 
 						gmenu2x->skin->colours.selectionBackground);
                 }
                 //TRACE("Renderer::sections - icon mode - blit");
 				gmenu2x->sc[gmenu2x->menu->getSectionIcon(i)]->blit(
 					gmenu2x->screen, 
-					{x, y, gmenu2x->skin->sectionBarSize, gmenu2x->skin->sectionBarSize}, 
+					{x, y, gmenu2x->skin->sectionTitleBarSize, gmenu2x->skin->sectionTitleBarSize}, 
 					HAlignCenter | VAlignMiddle);
 			}
 		}

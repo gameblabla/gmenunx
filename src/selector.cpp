@@ -117,16 +117,16 @@ int Selector::exec(int startSelection) {
 					// line it up with the text
 					SDL_Rect bgArea {
 						0, 
-						gmenu2x->skin->titleBarHeight, 
+						gmenu2x->skin->menuTitleBarHeight, 
 						gmenu2x->config->resolutionX(), 
-						gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight - gmenu2x->skin->titleBarHeight };
+						gmenu2x->config->resolutionY() - gmenu2x->skin->menuInfoBarHeight - gmenu2x->skin->menuTitleBarHeight };
 
 					// only stretch it once if possible
 					if (!gmenu2x->sc.exists(screenPath)) {
 						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
 						gmenu2x->sc[screenPath]->softStretch(
 							gmenu2x->config->resolutionX(), 
-							gmenu2x->config->resolutionY() - gmenu2x->skin->infoBarHeight - gmenu2x->skin->titleBarHeight, 
+							gmenu2x->config->resolutionY() - gmenu2x->skin->menuInfoBarHeight - gmenu2x->skin->menuTitleBarHeight, 
 							true, 
 							true);
 					}

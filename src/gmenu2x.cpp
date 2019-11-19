@@ -490,37 +490,37 @@ void GMenu2X::initLayout() {
 
 	if (skin->sectionBar) {
 		if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
-			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(config->resolutionX() - skin->sectionBarSize);
-			sectionBarRect.w = skin->sectionBarSize;
-			linksRect.w = config->resolutionX() - skin->sectionBarSize;
+			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(config->resolutionX() - skin->sectionTitleBarSize);
+			sectionBarRect.w = skin->sectionTitleBarSize;
+			linksRect.w = config->resolutionX() - skin->sectionTitleBarSize;
 
 			if (skin->sectionBar == Skin::SB_LEFT) {
-				linksRect.x = skin->sectionBarSize;
+				linksRect.x = skin->sectionTitleBarSize;
 			}
 		} else {
-			sectionBarRect.y = (skin->sectionBar == Skin::SB_BOTTOM)*(config->resolutionY() - skin->sectionBarSize);
-			sectionBarRect.h = skin->sectionBarSize;
-			linksRect.h = config->resolutionY() - skin->sectionBarSize;
+			sectionBarRect.y = (skin->sectionBar == Skin::SB_BOTTOM)*(config->resolutionY() - skin->sectionTitleBarSize);
+			sectionBarRect.h = skin->sectionTitleBarSize;
+			linksRect.h = config->resolutionY() - skin->sectionTitleBarSize;
 
 			if (skin->sectionBar == Skin::SB_TOP) {
-				linksRect.y = skin->sectionBarSize;
+				linksRect.y = skin->sectionTitleBarSize;
 			}
 		}
 	}
-	if (!skin->hideInfoBarInSections) {
+	if (skin->sectionInfoBarVisible) {
 		if (skin->sectionBar == Skin::SB_TOP || skin->sectionBar == Skin::SB_BOTTOM) {
-			linksRect.h -= skin->infoBarHeight;
+			linksRect.h -= skin->sectionInfoBarSize;
 			if (skin->sectionBar == Skin::SB_BOTTOM) {
-				linksRect.y += skin->infoBarHeight;
+				linksRect.y += skin->sectionInfoBarSize;
 			}
 		}
 	}
 
 	listRect = (SDL_Rect){
 		0, 
-		skin->titleBarHeight, 
+		skin->menuTitleBarHeight, 
 		config->resolutionX(), 
-		config->resolutionY() - skin->infoBarHeight - skin->titleBarHeight};
+		config->resolutionY() - skin->menuInfoBarHeight - skin->menuTitleBarHeight};
 
 	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
 	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
@@ -1027,19 +1027,21 @@ void GMenu2X::skinMenu() {
 		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::changeWallpaper)));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::skinColors)));
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
+		
 		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
 
-		sd.addSetting(new MenuSettingInt(this, tr["Section bar size"], tr["Size of section bar"], &skin->sectionBarSize, 40, 18, config->resolutionX()));
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->titleBarHeight, 40, 1, config->resolutionY()));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->infoBarHeight, 16, 1, config->resolutionY()));
-
+		sd.addSetting(new MenuSettingInt(this, tr["Section title bar size"], tr["Size of section title bar"], &skin->sectionTitleBarSize, 40, 18, config->resolutionX()));
+		sd.addSetting(new MenuSettingInt(this, tr["Section info bar size"], tr["Size of section info bar"], &skin->sectionInfoBarSize, 16, 1, config->resolutionX()));
+		sd.addSetting(new MenuSettingBool(this, tr["Section info bar visible"], tr["Show the section info bar in the launcher view"], &skin->sectionInfoBarVisible));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
+		
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->menuTitleBarHeight, 40, 18, config->resolutionY()));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->menuInfoBarHeight, 16, 1, config->resolutionY()));
+
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
-		sd.addSetting(new MenuSettingBool(this, tr["Hide info bar"], tr["Hide the info bar in the launcher view"], &skin->hideInfoBarInSections));
-
 		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
@@ -2038,24 +2040,29 @@ int GMenu2X::drawButton(Button *btn, int x, int y) {
 
 int GMenu2X::drawButton(Surface *s, const string &btn, const string &text, int x, int y) {
 	if (y < 0) y = config->resolutionY() + y;
-	// y = config->resolutionY - skinConfInt["bottomBarHeight"] / 2;
 	SDL_Rect re = {x, y, 0, 16};
+	int padding = 4;
 
-	if (sc.skinRes("imgs/buttons/"+btn+".png") != NULL) {
-		sc["imgs/buttons/"+btn+".png"]->blit(s, re.x + 8, re.y + 2, HAlignCenter | VAlignMiddle);
-		re.w = sc["imgs/buttons/"+btn+".png"]->raw->w + 3;
+	if (sc.skinRes("imgs/buttons/" + btn + ".png") != NULL) {
+		int imageWidth = sc["imgs/buttons/" + btn + ".png"]->raw->w;
+		sc["imgs/buttons/" + btn + ".png"]->blit(
+			s, 
+			re.x + (imageWidth / 2), 
+			re.y, 
+			HAlignCenter | VAlignMiddle);
+		re.w = imageWidth + padding;
 
 		s->write(
 			font, 
 			text, 
 			re.x + re.w, 
-			re.y, 
+			re.y,
 			VAlignMiddle, 
 			skin->colours.fontAlt, 
 			skin->colours.fontAltOutline);
 		re.w += font->getTextWidth(text);
 	}
-	return x + re.w + 6;
+	return x + re.w + (2 * padding);
 }
 
 int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, int x, int y) {

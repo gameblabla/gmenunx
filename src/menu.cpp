@@ -235,8 +235,8 @@ const string &Menu::selSection() {
 
 int Menu::sectionNumItems() {
 	return gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM 
-		? (gmenu2x->config->resolutionX() - 40)/gmenu2x->skin->sectionBarSize 
-		: (gmenu2x->config->resolutionY() - 40)/gmenu2x->skin->sectionBarSize;
+		? (gmenu2x->config->resolutionX() - 40)/gmenu2x->skin->sectionTitleBarSize 
+		: (gmenu2x->config->resolutionY() - 40)/gmenu2x->skin->sectionTitleBarSize;
 }
 
 void Menu::setSectionIndex(int i) {

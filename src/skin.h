@@ -57,9 +57,10 @@ public:
     bool save();
 
     string name;
-    string infoBarImage;
-    string sectionBarImage;
-    string titleBarImage;
+    string sectionTitleBarImage;
+    string sectionInfoBarImage;
+    string menuTitleBarImage;
+    string menuInfoBarImage;
     string wallpaper;
 
     int fontSize;
@@ -67,20 +68,20 @@ public:
     int fontSizeSectionTitle;
     int numLinkRows;
     int numLinkCols;
-    int sectionBarSize;
-    int infoBarHeight;
-    int titleBarHeight;
+    int sectionTitleBarSize;
+    int sectionInfoBarSize;
+    int menuTitleBarHeight;
+    int menuInfoBarHeight;
     int previewWidth;
+    int version;
 
     LinkDisplayModes linkDisplayMode;
 
     int showSectionIcons;
     int showClock;
-    int hideInfoBarInSections;
-
+    int sectionInfoBarVisible;
     int skinBackdrops;
     SectionBar sectionBar;
-
     Colours colours;
 
 private:
