@@ -1,13 +1,12 @@
 #!/bin/bash
 
-export DEBUG=5
 RG350_HOME="/media/data/local/home"
 LAUNCHER="/usr/local/sbin/frontend_start"
 RG350_IP="root@10.1.1.2"
 TARGET_DIR="gmenunx-beta"
 
 # probably don't edit below here
-
+debug=2
 rsync=`which rsync`
 if [ $? -ne 0 ]; then
 	echo "This script requires rsync"
@@ -76,15 +75,18 @@ function binaryDeploy {
 }
 
 function showHelp {
-      echo "Usage:"
-      echo "    -h                 Display this help message."
-      echo "    -f                 Full clean, build, deploy, enable."
-	  echo "    -q                 Quick, build, deploy binary only."
-	  echo "    -i                 install"
-	  echo "    -u                 uninstall"
+    echo "Usage:"
+    echo "    -h                 Display this help message."
+    echo "    -f                 Full clean, build, deploy, enable."
+	echo "    -q                 Quick, build, deploy binary only."
+	echo "    -i                 install"
+	echo "    -u                 uninstall"
+	echo "    -d                 enable debug output"
+	echo "    -l                 linux build"
 }
 
 function myMake {
+	export DEBUG=${debug}
 	makefile="$1"
 	shift
 	args="$*"
@@ -102,7 +104,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-while getopts ":hfqiul" opt; do
+while getopts ":hfqiuld" opt; do
 
   case ${opt} in
 	h )
@@ -128,6 +130,9 @@ while getopts ":hfqiul" opt; do
 		binaryDeploy
 		exit 0
       ;;
+	d )
+		debug=5
+	  ;;
     i )
 		installLaunchLink
 		exit 0
