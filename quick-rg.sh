@@ -109,37 +109,31 @@ while getopts ":hfqiuld" opt; do
   case ${opt} in
 	h )
 		showHelp
-		exit 0
       ;;
     f )
 		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 		myMake "Makefile.rg-350 clean opk"
 		fullDeploy
 		installLaunchLink
-		exit 0
       ;;
     q )
 		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 		myMake "Makefile.rg-350 all"
 		binaryDeploy
-		exit 0
       ;;
     l )
 		export CROSS_COMPILE=
 		myMake "Makefile.linux clean all dist"
 		binaryDeploy
-		exit 0
       ;;
 	d )
 		debug=5
 	  ;;
     i )
 		installLaunchLink
-		exit 0
       ;;
     u )
 		removeLaunchLink
-		exit 0
       ;;
     \? )
       showHelp
