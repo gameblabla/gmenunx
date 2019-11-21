@@ -61,7 +61,7 @@ shared: debug
 clean:
 	rm -rf $(OBJDIR) $(DISTDIR) *.gcda *.gcno $(APPNAME)
 
-dist: dir shared
+dist: all
 	install -m755 -D $(APPNAME) $(DISTDIR)/gmenunx
 	install -m644 assets/$(PATH_DIR)/input.conf $(DISTDIR)
 	install -m644 -D README.md $(DISTDIR)/README.txt
@@ -73,6 +73,9 @@ dist: dir shared
 	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/gmenunx.png
+
+opk: dist
+	./make_opk.sh
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
 
