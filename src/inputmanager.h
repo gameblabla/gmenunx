@@ -53,7 +53,7 @@ typedef vector<SDL_Event> SDLEventList;
 typedef struct {
 	bool active;
 	int interval;
-	// long last;
+	long last;
 	MappingList maplist;
 	SDL_TimerID timer;
 } InputManagerAction;
@@ -70,8 +70,9 @@ Manages all input peripherals
 */
 class InputManager {
 private:
+	bool waiting_;
+
 	InputMap getInputMapping(int action);
-	SDLEventList events;
 	SDL_TimerID wakeUpTimer;
 
 	vector <SDL_Joystick*> joysticks;
@@ -97,6 +98,7 @@ public:
 	void initJoysticks();
 	bool readConfFile(const string &conffile = "input.conf");
 
+	bool isWaiting() { return waiting_; }
 	bool update(bool wait = true);
 	bool combo();
 	void dropEvents();

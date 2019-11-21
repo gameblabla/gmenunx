@@ -80,6 +80,7 @@ void LinkScannerDialog::exec() {
 	sync();
 
 	while (!close) {
+		if (gmenu2x->input.isWaiting()) continue;
 		bool inputAction = gmenu2x->input.update();
 		if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
 	}

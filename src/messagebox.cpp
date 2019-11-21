@@ -196,6 +196,7 @@ int MessageBox::exec() {
 			}
 		}
 
+		if (gmenu2x->input.isWaiting()) continue;
 		bool inputAction = gmenu2x->input.update();
 		if (inputAction) {
 			for (uint32_t i = 0; i < buttons.size(); i++) {

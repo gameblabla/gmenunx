@@ -50,15 +50,11 @@ protected:
 	bool edited;
 	string title, description, icon, iconPath;
 
-	Surface *iconSurface;
-
 public:
 	// linkaction
 	Link(GMenu2X *gmenu2x, LinkAction action);
 
 	virtual ~Link() {};
-	void updateSurfaces();
-
 	const string &getTitle();
 	void setTitle(const string &title);
 	const string &getDescription();

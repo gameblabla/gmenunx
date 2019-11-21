@@ -243,6 +243,7 @@ int Selector::exec(int startSelection) {
 
 		// handle input
 		do {
+			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 			if (inputAction) this->tickStart = SDL_GetTicks();
 

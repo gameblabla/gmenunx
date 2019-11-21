@@ -31,6 +31,7 @@ void ImageViewerDialog::exec() {
 			gmenu2x->screen->clearClipRect();
 
 		do {
+			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 
 			if ( gmenu2x->input[MANUAL] || gmenu2x->input[CANCEL] || gmenu2x->input[SETTINGS] ) close = true;

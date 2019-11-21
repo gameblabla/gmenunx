@@ -372,14 +372,13 @@ void GMenu2X::main() {
 	
 	TRACE("main - enter");
 	bool quit = false;
-/*
-	TODO :: put me back in...?
+
 	TRACE("main :: pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
-*/
+
 	TRACE("main :: new renderer");
 	Renderer *renderer = new Renderer(this);
 
@@ -393,46 +392,49 @@ void GMenu2X::main() {
 			ERROR("main :: render - e : %i", e);
 		}
 
+		if (input.isWaiting()) continue;
 		bool inputAction = input.update();
+		if (inputAction) {
+			if ( input[CONFIRM] && menu->selLink() != NULL ) {
+				TRACE("******************RUNNING THIS*******************");
 
-		if ( input[CONFIRM] && menu->selLink() != NULL ) {
-			TRACE("******************RUNNING THIS*******************");
+				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
+					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
+					mb.setAutoHide(500);
+					mb.exec();
+				}
 
-			if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
-				MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
-				mb.setAutoHide(500);
-				mb.exec();
+				TRACE("******************RUNNING THIS -- RUN*******************");
+				menu->selLink()->run();
+			} else if ( input[INC] ) {
+				TRACE("******************favouriting an app THIS*******************");
+				menu->selLinkApp()->makeFavourite();
+			} 
+			else if ( input[SETTINGS] ) settings();
+			else if ( input[MENU]     ) contextMenu();
+			// LINK NAVIGATION
+			else if ( input[LEFT ] && skin->numLinkCols == 1) menu->pageUp();
+			else if ( input[RIGHT] && skin->numLinkCols == 1) menu->pageDown();
+			else if ( input[LEFT ] ) {
+				menu->linkLeft();
 			}
+			else if ( input[RIGHT] ) menu->linkRight();
+			else if ( input[UP   ] ) menu->linkUp();
+			else if ( input[DOWN ] ) menu->linkDown();
+			// SECTION
+			else if ( input[SECTION_PREV] ) menu->decSectionIndex();
+			else if ( input[SECTION_NEXT] ) menu->incSectionIndex();
 
-			TRACE("******************RUNNING THIS -- RUN*******************");
-			menu->selLink()->run();
-		} else if ( input[INC] ) {
-			TRACE("******************favouriting an app THIS*******************");
-			menu->selLinkApp()->makeFavourite();
+			// SELLINKAPP SELECTED
+			else if (input[MANUAL] && menu->selLinkApp() != NULL) 
+				showManual();
 		}
-
-		else if ( input[SETTINGS] ) settings();
-		else if ( input[MENU]     ) contextMenu();
-		// LINK NAVIGATION
-		else if ( input[LEFT ] && skin->numLinkCols == 1) menu->pageUp();
-		else if ( input[RIGHT] && skin->numLinkCols == 1) menu->pageDown();
-		else if ( input[LEFT ] ) menu->linkLeft();
-		else if ( input[RIGHT] ) menu->linkRight();
-		else if ( input[UP   ] ) menu->linkUp();
-		else if ( input[DOWN ] ) menu->linkDown();
-		// SECTION
-		else if ( input[SECTION_PREV] ) menu->decSectionIndex();
-		else if ( input[SECTION_NEXT] ) menu->incSectionIndex();
-
-		// SELLINKAPP SELECTED
-		else if (input[MANUAL] && menu->selLinkApp() != NULL) 
-			showManual();
 	}
 
 	delete renderer;
 
-	//exitMainThread = true;
-	//pthread_join(thread_id, NULL);
+	exitMainThread = true;
+	pthread_join(thread_id, NULL);
 
 	TRACE("main :: exit");
 }
@@ -1590,12 +1592,14 @@ void GMenu2X::contextMenu() {
 		}
 		do {
 			inputAction = input.update();
-			if ( input[MENU] || input[CANCEL]) close = true;
-			else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
-			else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
-			else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
-			else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
-			else if ( input[SETTINGS] || input[CONFIRM] ) { voices[sel].action(); close = true; }
+			if (inputAction) {
+				if ( input[MENU] || input[CANCEL]) close = true;
+				else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
+				else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
+				else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
+				else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
+				else if ( input[SETTINGS] || input[CONFIRM] ) { voices[sel].action(); close = true; }
+			}
 		} while (!inputAction);
 	}
 	TRACE("GMenu2X::contextMenu - exit");

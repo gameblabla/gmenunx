@@ -183,7 +183,6 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		}
 
 		TRACE("LinkApp::LinkApp - ctor - opk::icon set to : %s", this->icon.c_str());
-		updateSurfaces();
 
 		// end of icons
 

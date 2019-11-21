@@ -90,6 +90,7 @@ bool SettingsDialog::exec() {
 
 		gmenu2x->screen->flip();
 		do {
+			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 
 			action = SD_NO_ACTION;

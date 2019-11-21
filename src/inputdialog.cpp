@@ -159,6 +159,7 @@ bool InputDialog::exec() {
 		action = drawVirtualKeyboard();
 		gmenu2x->screen->flip();
 
+		if (gmenu2x->input.isWaiting()) continue;
 		bool inputAction = gmenu2x->input.update();
 		
 		if ( gmenu2x->input[CANCEL] || gmenu2x->input[MENU] ) action = ID_ACTION_CLOSE;

@@ -146,9 +146,6 @@ void Menu::loadIcons() {
 			TRACE("Menu::loadIcons - link : %s", sectionLinks(i)->at(x)->getTitle().c_str());
 			TRACE("Menu::loadIcons - link icon : %s", linkIcon.c_str());
 
-			TRACE("Menu::loadIcons - updating surfaces");
-			sectionLinks(i)->at(x)->updateSurfaces();
-
 			TRACE("Menu::loadIcons - link : casting the link app");
 			LinkApp *linkapp = dynamic_cast<LinkApp*>(sectionLinks(i)->at(x));
 

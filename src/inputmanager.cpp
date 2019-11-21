@@ -80,6 +80,7 @@ using namespace std;
 
 InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenManager) {
 	wakeUpTimer = NULL;
+	waiting_ = false;
 }
 
 InputManager::~InputManager() {
@@ -219,13 +220,15 @@ void InputManager::setActionsCount(int count) {
 
 bool InputManager::update(bool wait) {
 	//TRACE("InputManager::update started : wait = %i", wait);
+	if (waiting_) 
+		return false;
+
 	bool anyactions = false;
 	SDL_JoystickUpdate();
-
-	events.clear();
 	SDL_Event event;
 
 	if (wait) {
+		waiting_ = true;
 		SDL_WaitEvent(&event);
 		
 		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type && SDL_JOYAXISMOTION != event.type) {
@@ -332,25 +335,25 @@ bool InputManager::update(bool wait) {
 			
 			TRACE("InputManager::update - event.type == %i", event.type);
 			screenManager.resetScreenTimer();
+			waiting_ = false;
 			return false;
 		}
 
 		if (event.type == SDL_KEYUP) {
 			anyactions = true;
 			SDL_Event evcopy = event;
-			events.push_back(evcopy);
+			DEBUG("InputManager::update - WAIT KEYUP : %i", event.key.keysym.sym);
 		}
-		
-	}
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_KEYUP) {
-			anyactions = true;
-			SDL_Event evcopy = event;
-			events.push_back(evcopy);
+	} //else {
+		while (SDL_PollEvent(&event)) {
+			if (event.type == SDL_KEYUP) {
+				anyactions = true;
+				SDL_Event evcopy = event;
+				DEBUG("InputManager::update - POLL KEYUP : %i", event.key.keysym.sym);
+			}
 		}
-	}
+	//}
 
-	int32_t now = SDL_GetTicks();
 	for (uint32_t x = 0; x < actions.size(); x++) {
 		actions[x].active = isActive(x);
 		if (actions[x].active) {
@@ -358,13 +361,13 @@ bool InputManager::update(bool wait) {
 				actions[x].timer = SDL_AddTimer(actions[x].interval, wakeUp, NULL);
 			}
 			anyactions = true;
-			// actions[x].last = now;
+			actions[x].last = SDL_GetTicks();
 		} else {
 			if (actions[x].timer != NULL) {
 				SDL_RemoveTimer(actions[x].timer);
 				actions[x].timer = NULL;
 			}
-			// actions[x].last = 0;
+			actions[x].last = 0;
 		}
 	}
 	if (anyactions) {
@@ -372,6 +375,7 @@ bool InputManager::update(bool wait) {
 	}
 
 	//TRACE("InputManager::update completed");
+	waiting_ = false;
 	return anyactions;
 }
 
@@ -462,6 +466,11 @@ bool &InputManager::operator[](int action) {
 }
 
 bool InputManager::isActive(int action) {
+	// is it too soon since last press??
+	if (actions[action].last + actions[action].interval > SDL_GetTicks()) {
+		return false;
+	}
+
 	MappingList mapList = actions[action].maplist;
 	for (MappingList::const_iterator it = mapList.begin(); it != mapList.end(); ++it) {
 		InputMap map = *it;
