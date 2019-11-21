@@ -45,6 +45,7 @@ string Config::toString() {
     vec.push_back(string_format("batteryType=\"%s\"", this->batteryType().c_str()));
     vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
     vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
+    vec.push_back(string_format("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
 
     // ints
     vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate()));
@@ -76,7 +77,7 @@ string Config::toString() {
     for (const auto &piece : vec) s += (piece + "\n");
     return s;
 }
-    
+
 bool Config::save() {
     TRACE("Config::save - enter");
     if (this->isDirty) {
@@ -111,6 +112,7 @@ void Config::reset() {
     TRACE("Config::reset - enter");
 
      //strings
+    this->externalAppPath_ = APP_EXTERNAL_PATH;
     this->skin_ = "Default";
     this->performance_ = "On demand";
     this->tvOutMode_ = "NTSC";
@@ -208,7 +210,9 @@ bool Config::fromFile() {
                 TRACE("Config::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 // strings
-                if (name == "skin") {
+                if (name == "externalAppPath") {
+                    this->externalAppPath(stripQuotes(value));
+                } else if (name == "skin") {
                     this->skin(stripQuotes(value));
                 } else if (name == "performance") {
                     this->performance(stripQuotes(value));

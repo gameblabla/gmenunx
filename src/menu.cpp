@@ -38,7 +38,6 @@ using namespace std;
 
 const string OPK_FOLDER_NAME = "apps";
 const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
-const string OPK_EXTERNAL_PATH_SEARCH_ROOT = "/media/sdcard/";
 const string OPK_PLATFORM = "gcw0";
 
 Menu::Menu(GMenu2X *gmenu2x) {
@@ -107,30 +106,12 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("Menu :: ctor - read internal OPK links");
 	openPackagesFromDir(OPK_INTERNAL_PATH);
 
-	TRACE("Menu :: ctor - searching for external OPK links under : %s", OPK_EXTERNAL_PATH_SEARCH_ROOT.c_str());
-	if (dirExists(OPK_EXTERNAL_PATH_SEARCH_ROOT)) {
-		TRACE("Menu :: ctor - external search root exists : %s", OPK_EXTERNAL_PATH_SEARCH_ROOT.c_str());
-		dirp = opendir (OPK_EXTERNAL_PATH_SEARCH_ROOT.c_str());
-		TRACE("Menu :: ctor - external search root opened");
-		while (dptr = readdir (dirp)) {
-			int statRet = stat(filepath.c_str(), &st);
-			if (!S_ISDIR(st.st_mode)) continue;
-			if (dptr->d_name[0] == '.') continue;
-			TRACE("Menu::ctor - found a directory : %s", dptr->d_name);
-			string dirName = (string)dptr->d_name;
-			string dirNameLower = (string)dptr->d_name;
-			std::transform(dirNameLower.begin(), dirNameLower.end(), dirNameLower.begin(), ::tolower);
+	string appPath = gmenu2x->config->externalAppPath();
 
-			TRACE("Menu::ctor - lower cased directory : %s", dirNameLower.c_str());
-			if (OPK_FOLDER_NAME == dirNameLower) {
-				TRACE("Menu::ctor - lower cased directory matches %s = %s", OPK_FOLDER_NAME.c_str(), dirNameLower.c_str());
-				string fullPath = OPK_EXTERNAL_PATH_SEARCH_ROOT + dirName;
-				TRACE("Menu::ctor - full path resolved to : %s", fullPath.c_str());
-				openPackagesFromDir(fullPath);
-				break;
-			}
-		}
-		closedir(dirp);
+	TRACE("Menu :: ctor - searching for external OPK links under : %s", appPath.c_str());
+	if (dirExists(appPath)) {
+		TRACE("Menu :: ctor - external search root dir : %s", appPath.c_str());
+		openPackagesFromDir(appPath);
 	}
 
 	TRACE("Menu :: ctor - ordering links");
@@ -590,7 +571,6 @@ void Menu::orderLinks() {
 	}
 	TRACE("Menu::orderLinks - exit");
 }
-
 
 /* --------------- OPK SECTION ---------------*/
 

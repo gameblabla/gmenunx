@@ -663,6 +663,8 @@ void GMenu2X::settings() {
 	string skin = config->skin();
 	string batteryType = config->batteryType();
 	string performanceMode = config->performance();
+	string appsPath = config->externalAppPath();
+
 	int saveSelection = config->saveSelection();
 	int outputLogs = config->outputLogs();
 	int backlightTimeout = config->backlightTimeout();
@@ -710,6 +712,15 @@ void GMenu2X::settings() {
 		sd.addSetting(new MenuSettingBool(this, tr["Unhide all sections"], tr["Remove the hide sections filter"], &unhideSections));
 	}
 	
+	sd.addSetting(new MenuSettingDir(
+		this, 
+		tr["External apps path"], 
+		tr["Path to your apps on the external sd card"], 
+		&appsPath, 
+		config->externalAppPath(), 
+		"Apps path", 
+		"skin:icons/explorer.png"));
+
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &outputLogs));
 	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &backlightTimeout, 60, 0, 120));
 	
@@ -733,7 +744,10 @@ void GMenu2X::settings() {
 			tr.setLang(lang);
 			refreshNeeded = true;
 		}
-
+		if (appsPath != config->externalAppPath()) {
+			config->externalAppPath(appsPath);
+			refreshNeeded = true;
+		}
 		config->skin(skin);
 		config->batteryType(batteryType);
 		config->performance(performanceMode);

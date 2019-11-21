@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "utilities.h"
 
 using std::string;
 using std::vector;
@@ -11,6 +12,7 @@ static const string CONFIG_FILE_NAME = "gmenunx.conf";
 static const int CONFIG_CURRENT_VERSION = 1;
 static const string EXTERNAL_LAUNCHER_PATH = "/media/sdcard/ROMS";
 static const string HOME_DIR = "/media/home";
+static const string APP_EXTERNAL_PATH = "/media/sdcard/APPS";
 
 class Config {
 
@@ -25,6 +27,15 @@ public:
         if (val != this->skin_) {
             this->skin_ = val;
             this->isDirty = true;
+        }
+     }
+    string externalAppPath() const { return this->externalAppPath_; }
+    void externalAppPath(string val) { 
+        if (val != this->externalAppPath_) {
+            if (dirExists(val)) {
+                this->externalAppPath_ = val;
+                this->isDirty = true;
+            }
         }
      }
     string performance() const { return this->performance_; }
@@ -209,6 +220,7 @@ private:
     string prefix;
     bool isDirty;
 
+    string externalAppPath_;// = APP_EXTERNAL_PATH;
     string skin_; //="Default"
     string performance_; //="On demand"
     string tvOutMode_; //="NTSC"
