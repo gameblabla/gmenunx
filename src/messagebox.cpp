@@ -101,7 +101,7 @@ int MessageBox::exec() {
 	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX());
 	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
-	int box_w_padding = 24 + (gmenu2x->sc[icon] != NULL ? 37 : 0);
+	int box_w_padding = 24 + ((*gmenu2x->sc)[icon] != NULL ? 37 : 0);
 
 	// let's see how big our buttons add up to
 	int buttonWidth = 0;
@@ -130,7 +130,7 @@ int MessageBox::exec() {
 
 	SDL_Rect box;
 	box.h = gmenu2x->font->getTextHeight(wrapped_text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
-	if (gmenu2x->sc[icon] != NULL && box.h < 40) box.h = 48;
+	if ((*gmenu2x->sc)[icon] != NULL && box.h < 40) box.h = 48;
 	box.w = textWidthPx + box_w_padding;
 	box.x = gmenu2x->config->halfX() - box.w/2 - 2;
 	box.y = gmenu2x->config->halfY() - box.h/2 - 2;
@@ -142,13 +142,13 @@ int MessageBox::exec() {
 	gmenu2x->screen->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skin->colours.msgBoxBorder);
 
 	//icon+wrapped_text
-	if (gmenu2x->sc[icon] != NULL)
-		gmenu2x->sc[icon]->blit( gmenu2x->screen, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
+	if ((*gmenu2x->sc)[icon] != NULL)
+		(*gmenu2x->sc)[icon]->blit( gmenu2x->screen, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
 
 	gmenu2x->screen->write(
 		gmenu2x->font, 
 		wrapped_text, 
-		box.x+(gmenu2x->sc[icon] != NULL ? 47 : 11), 
+		box.x+((*gmenu2x->sc)[icon] != NULL ? 47 : 11), 
 		gmenu2x->config->halfY() - gmenu2x->font->getHeight()/5, 
 		VAlignMiddle, 
 		gmenu2x->skin->colours.fontAlt, 

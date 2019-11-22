@@ -21,47 +21,18 @@
 #include "surfacecollection.h"
 #include "surface.h"
 #include "utilities.h"
+#include "skin.h"
 #include "debug.h"
 
 using std::endl;
 using std::string;
 
-SurfaceCollection::SurfaceCollection(bool defaultAlpha, const string &skin) {
+SurfaceCollection::SurfaceCollection(Skin *skin, bool defaultAlpha) {
 	this->defaultAlpha = defaultAlpha;
-	this->prefix = "";
-	setSkin(skin);
-}
-
-SurfaceCollection::~SurfaceCollection() {}
-
-void SurfaceCollection::setPrefix(const string &prefix) {
-	this->prefix = prefix;
-}
-
-void SurfaceCollection::setSkin(const string &skin) {
 	this->skin = skin;
 }
 
-string SurfaceCollection::getSkinFilePath(const string &file) {
-	TRACE("SurfaceCollection::getSkinFilePath - enter : %s", file.c_str());
-	TRACE("SurfaceCollection::getSkinFilePath - prefix : %s, skin : %s", prefix.c_str(), skin.c_str());
-	string result = "";
-	
-	if (fileExists(this->prefix + "skins/" + skin + "/" + file)) {
-		TRACE("SurfaceCollection::getSkinFilePath - found file in current skin");
-		result = this->prefix + "skins/" + skin + "/" + file;
-	} else if (fileExists(this->prefix + "skins/Default/" + file)) {
-		TRACE("SurfaceCollection::getSkinFilePath - found file in default skin");
-		result = this->prefix + "skins/Default/" + file;
-	} else if (fileExists(this->prefix + "skins/" + file)) {
-		TRACE("SurfaceCollection::getSkinFilePath - found file in root skin folder");
-		result = this->prefix + "skins/" + file;
-	} else {
-		TRACE("SurfaceCollection::getSkinFilePath - didn't find file anywhere");
-	}
-	TRACE("SurfaceCollection :: getSkinFilePath - exit : %s", result.c_str());
-	return result;
-}
+SurfaceCollection::~SurfaceCollection() {}
 
 void SurfaceCollection::debug() {
 	SurfaceHash::iterator end = surfaces.end();
@@ -74,13 +45,15 @@ bool SurfaceCollection::exists(const string &path) {
 	return surfaces.find(path) != surfaces.end();
 }
 
-Surface *SurfaceCollection::add(Surface *s, const string &path) {
-	if (exists(path)) del(path);
-	surfaces[path] = s;
-	return s;
+Surface *SurfaceCollection::addImage(const string &path, bool alpha) {
+	return this->add(path, alpha, this->skin->imagesToGrayscale);
 }
 
-Surface *SurfaceCollection::add(const string &path, bool alpha) {
+Surface *SurfaceCollection::addIcon(const string &path, bool alpha) {
+	return this->add(path, alpha, this->skin->iconsToGrayscale);
+}
+
+Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) {
 	TRACE("SurfaceCollection::add - enter - %s", path.c_str());
 	if (path.empty()) return NULL;
 	TRACE("SurfaceCollection::add - path exists test");
@@ -89,7 +62,7 @@ Surface *SurfaceCollection::add(const string &path, bool alpha) {
 	string filePath = path;
 	if (filePath.substr(0,5)=="skin:") {
 		TRACE("SurfaceCollection::add - matched on skin:");
-		filePath = getSkinFilePath(filePath.substr(5,filePath.length()));
+		filePath = this->skin->getSkinFilePath(filePath.substr(5,filePath.length()));
 		TRACE("SurfaceCollection::add - filepath - %s", filePath.c_str());
 		if (filePath.empty())
 			return NULL;
@@ -101,6 +74,8 @@ Surface *SurfaceCollection::add(const string &path, bool alpha) {
 	TRACE("Adding surface: '%s'", path.c_str());
 	Surface *s = new Surface(filePath, alpha);
 	if (s != NULL) {
+		if (grayScale)
+			s->toGrayScale();
 		TRACE("SurfaceCollection::add - adding surface to collection");
 		surfaces[path] = s;
 	}
@@ -110,16 +85,20 @@ Surface *SurfaceCollection::add(const string &path, bool alpha) {
 
 Surface *SurfaceCollection::addSkinRes(const string &path, bool alpha) {
 	if (path.empty()) return NULL;
-	if (exists(path)) return surfaces[path]; // del(path);
+	if (exists(path)) return surfaces[path];
 
-	string skinpath = getSkinFilePath(path);
+	string skinpath = this->skin->getSkinFilePath(path);
 	if (skinpath.empty())
 		return NULL;
 
 	TRACE("Adding skin surface: '%s:%s'", skinpath.c_str(), path.c_str());
-	Surface *s = new Surface(skinpath,alpha);
-	if (s != NULL)
+	Surface *s = new Surface(skinpath, alpha);
+	if (s != NULL) {
+		if (this->skin->iconsToGrayscale) {
+			s->toGrayScale();
+		}
 		surfaces[path] = s;
+	}
 	return s;
 }
 
@@ -141,7 +120,9 @@ bool SurfaceCollection::empty() {
 
 void SurfaceCollection::clear() {
 	while (surfaces.size() > 0) {
-		delete surfaces.begin()->second;
+		if (surfaces.begin()->second) {
+			delete surfaces.begin()->second;
+		}
 		surfaces.erase(surfaces.begin());
 	}
 }
@@ -155,7 +136,7 @@ void SurfaceCollection::move(const string &from, const string &to) {
 Surface *SurfaceCollection::operator[](const string &key) {
 	SurfaceHash::iterator i = surfaces.find(key);
 	if (i == surfaces.end())
-		return add(key, defaultAlpha);
+		return addIcon(key, defaultAlpha);
 
 	return i->second;
 }

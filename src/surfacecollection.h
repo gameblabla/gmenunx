@@ -22,6 +22,7 @@
 
 #include <string>
 #include <tr1/unordered_map>
+#include "skin.h"
 
 class Surface;
 
@@ -35,23 +36,20 @@ Hash Map of surfaces that loads surfaces not already loaded and reuses already l
 class SurfaceCollection {
 private:
 	SurfaceHash surfaces;
-	std::string skin;
-	std::string prefix;
+	Skin * skin;
+	Surface *add(const std::string &path, bool alpha=false, bool grayScale=false);
 
 public:
 	SurfaceCollection(
-			bool defaultAlpha = true, const std::string &skin = "default");
+		Skin * skin, 
+		bool defaultAlpha = true);
 	~SurfaceCollection();
-
-	void setPrefix(const std::string &prefix);
-	void setSkin(const std::string &skin);
-	std::string getSkinFilePath(const std::string &file);
 
 	bool defaultAlpha;
 	void debug();
+	Surface *addIcon(const std::string &path, bool alpha=true);
+	Surface *addImage(const std::string &path, bool alpha=true);
 
-	Surface *add(Surface *s, const std::string &path);
-	Surface *add(const std::string &path, bool alpha=true);
 	Surface *addSkinRes(const std::string &path, bool alpha=true);
 	void     del(const std::string &path);
 	void     clear();

@@ -60,7 +60,7 @@ bool WallpaperDialog::exec()
 		string skinPath = wallpaperPath + wallpapers[selected];
 
 		TRACE("WallpaperDialog::exec - blitting surface :: %s", skinPath.c_str());
-		gmenu2x->sc[skinPath]->blit(gmenu2x->screen,0,0);
+		(*gmenu2x->sc)[skinPath]->blit(gmenu2x->screen,0,0);
 
 		TRACE("WallpaperDialog::exec - drawTopBar");
 		drawTopBar(gmenu2x->screen, title, description, icon);
@@ -127,7 +127,7 @@ bool WallpaperDialog::exec()
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
 		string skinPath = wallpaperPath + wallpapers[i];
 		TRACE("WallpaperDialog::exec - deleting surface from collection :: %s", skinPath.c_str());
-		gmenu2x->sc.del(skinPath);
+		gmenu2x->sc->del(skinPath);
 	}
 	TRACE("WallpaperDialog::exec - exit - %i", result);
 	return result;

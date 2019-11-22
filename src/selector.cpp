@@ -52,8 +52,8 @@ int Selector::exec(int startSelection) {
 	TRACE("Selector::exec - enter - startSelection : %i", startSelection);
 
 	// does the link have a backdrop that takes precendence over the background
-	if (gmenu2x->sc[link->getBackdrop()] != NULL) 
-		gmenu2x->sc[link->getBackdrop()]->blit(this->bg,0,0);
+	if ((*gmenu2x->sc)[link->getBackdrop()] != NULL) 
+		(*gmenu2x->sc)[link->getBackdrop()]->blit(this->bg,0,0);
 
 	bool close = false, result = true, inputAction = false;
 	vector<string> screens, titles;
@@ -88,10 +88,10 @@ int Selector::exec(int startSelection) {
 	int selected = constrain(startSelection, 0, fl.size() - 1);
 
 	// moved surfaces out to prevent reloading on loop
-	Surface *iconGoUp = gmenu2x->sc.skinRes("imgs/go-up.png");
-	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
-	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
-	gmenu2x->sc.defaultAlpha = false;
+	Surface *iconGoUp = gmenu2x->sc->skinRes("imgs/go-up.png");
+	Surface *iconFolder = gmenu2x->sc->skinRes("imgs/folder.png");
+	Surface *iconFile = gmenu2x->sc->skinRes("imgs/file.png");
+	gmenu2x->sc->defaultAlpha = false;
 
 	// kick off the chooser loop
 	while (!close) {
@@ -122,16 +122,16 @@ int Selector::exec(int startSelection) {
 						gmenu2x->config->resolutionY() - gmenu2x->skin->menuInfoBarHeight - gmenu2x->skin->menuTitleBarHeight };
 
 					// only stretch it once if possible
-					if (!gmenu2x->sc.exists(screenPath)) {
+					if (!gmenu2x->sc->exists(screenPath)) {
 						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
-						gmenu2x->sc[screenPath]->softStretch(
+						(*gmenu2x->sc)[screenPath]->softStretch(
 							gmenu2x->config->resolutionX(), 
 							gmenu2x->config->resolutionY() - gmenu2x->skin->menuInfoBarHeight - gmenu2x->skin->menuTitleBarHeight, 
 							true, 
 							true);
 					}
 
-					gmenu2x->sc[screenPath]->blit(
+					(*gmenu2x->sc)[screenPath]->blit(
 						gmenu2x->screen, 
 						bgArea, 
 						HAlignCenter | VAlignMiddle, 
@@ -184,9 +184,9 @@ int Selector::exec(int startSelection) {
 				if (!screens[currentFileIndex].empty()) {
 
 					string screenPath = screens.at(currentFileIndex);
-					if (!gmenu2x->sc.exists(screenPath)) {
+					if (!gmenu2x->sc->exists(screenPath)) {
 						TRACE("Selector::exec - 1st load windowed - stretching screen path : %s", screenPath.c_str());
-						gmenu2x->sc[screenPath]->softStretch(
+						(*gmenu2x->sc)[screenPath]->softStretch(
 							gmenu2x->skin->previewWidth - 3 * padding, 
 							gmenu2x->listRect.h - 3 * padding, 
 							true, 
@@ -200,7 +200,7 @@ int Selector::exec(int startSelection) {
 						gmenu2x->listRect.h, 
 						gmenu2x->skin->colours.titleBarBackground);
 
-					gmenu2x->sc[screens[selected - fl.dirCount()]]->blit(
+					(*gmenu2x->sc)[screens[selected - fl.dirCount()]]->blit(
 						gmenu2x->screen, 
 						{	gmenu2x->config->resolutionX() - animation + padding, 
 							gmenu2x->listRect.y + padding, 
@@ -323,7 +323,7 @@ int Selector::exec(int startSelection) {
 		} while (!inputAction);
 	}
 
-	gmenu2x->sc.defaultAlpha = true;
+	gmenu2x->sc->defaultAlpha = true;
 	freeScreenshots(&screens);
 
 	TRACE("Selector::exec - exit : %i", result ? (int)selected : -1);
@@ -419,7 +419,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 void Selector::freeScreenshots(vector<string> *screens) {
 	for (uint32_t i = 0; i < screens->size(); i++) {
 		if (!screens->at(i).empty())
-			gmenu2x->sc.del(screens->at(i));
+			gmenu2x->sc->del(screens->at(i));
 	}
 }
 

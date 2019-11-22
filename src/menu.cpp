@@ -134,9 +134,9 @@ void Menu::loadIcons() {
 	for (uint32_t i = 0; i < sections.size(); i++) {
 		string sectionIcon = "sections/" + sections[i] + ".png";
 		TRACE("Menu::loadIcons - section : %s", sections[i].c_str());
-		if (!gmenu2x->sc.getSkinFilePath(sectionIcon).empty()) {
+		if (!gmenu2x->skin->getSkinFilePath(sectionIcon).empty()) {
 			TRACE("Menu::loadIcons - section  icon: skin:%s", sectionIcon.c_str());
-			gmenu2x->sc.add("skin:" + sectionIcon);
+			gmenu2x->sc->addIcon("skin:" + sectionIcon);
 		}
 
 		//check link's icons
@@ -157,7 +157,7 @@ void Menu::loadIcons() {
 
 			TRACE("Menu::loadIcons - link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
-				linkIcon = gmenu2x->sc.getSkinFilePath(linkIcon.substr(5,linkIcon.length()));
+				linkIcon = gmenu2x->skin->getSkinFilePath(linkIcon.substr(5,linkIcon.length()));
 				if (linkapp != NULL && !fileExists(linkIcon))
 					linkapp->searchIcon();
 				else
@@ -248,7 +248,7 @@ bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::Fa
 	Link *linkact = new Link(gmenu2x, action);
 	linkact->setTitle(title);
 	linkact->setDescription(description);
-	if (gmenu2x->sc.exists(icon) || (icon.substr(0,5) == "skin:" && !gmenu2x->sc.getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon))
+	if (gmenu2x->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !gmenu2x->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon))
 	linkact->setIcon(icon);
 
 	sectionLinks(section)->push_back(linkact);
@@ -359,14 +359,14 @@ void Menu::deleteSelectedLink() {
 		}
 	}
 	if (!icon_used) {
-		gmenu2x->sc.del(iconpath);
+		gmenu2x->sc->del(iconpath);
 	}
 }
 
 void Menu::deleteSelectedSection() {
 	INFO("Deleting section '%s'", selSection().c_str());
 
-	gmenu2x->sc.del(gmenu2x->getAssetsPath() + "sections/" + selSection() + ".png");
+	gmenu2x->sc->del(gmenu2x->getAssetsPath() + "sections/" + selSection() + ".png");
 	links.erase( links.begin() + selSectionIndex() );
 	sections.erase( sections.begin() + selSectionIndex() );
 	setSectionIndex(0); //reload sections
@@ -542,7 +542,7 @@ int Menu::getSectionIndex(const string &name) {
 
 const string Menu::getSectionIcon(int i) {
 	string sectionIcon = "skin:sections/" + sections[i] + ".png";
-	if (!gmenu2x->sc.exists(sectionIcon)) {
+	if (!gmenu2x->sc->exists(sectionIcon)) {
 		sectionIcon = "skin:icons/section.png";
 	}
 	return sectionIcon;

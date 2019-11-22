@@ -31,7 +31,7 @@ Link::Link(GMenu2X *gmenu2x_, LinkAction action)
 {
 	this->action = action;
 	edited = false;
-	iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
+	iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
 	padding = 4;
 
 }
@@ -66,7 +66,7 @@ void Link::setIcon(const string &icon) {
 	this->icon = icon;
 
 	if (icon.compare(0, 5, "skin:") == 0)
-		this->iconPath = gmenu2x->sc.getSkinFilePath(icon.substr(5, string::npos));
+		this->iconPath = gmenu2x->skin->getSkinFilePath(icon.substr(5, string::npos));
 	else
 		this->iconPath = icon;
 
@@ -74,12 +74,12 @@ void Link::setIcon(const string &icon) {
 }
 
 const string &Link::searchIcon() {
-	if (!gmenu2x->sc.getSkinFilePath(iconPath).empty()) {
-		iconPath = gmenu2x->sc.getSkinFilePath(iconPath);
+	if (!gmenu2x->skin->getSkinFilePath(iconPath).empty()) {
+		iconPath = gmenu2x->skin->getSkinFilePath(iconPath);
 	}	else if (!fileExists(iconPath)) {
-		iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
+		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
 	} else
-		iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
+		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
 	return iconPath;
 }
 
@@ -92,5 +92,5 @@ void Link::setIconPath(const string &icon) {
 	if (fileExists(icon))
 		iconPath = icon;
 	else
-		iconPath = gmenu2x->sc.getSkinFilePath("icons/generic.png");
+		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
 }

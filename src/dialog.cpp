@@ -16,11 +16,11 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 
 	Surface *i = NULL;
 	if (!icon.empty()) {
-		i = gmenu2x->sc[icon];
-		if (i == NULL) i = gmenu2x->sc.skinRes(icon);
+		i = (*gmenu2x->sc)[icon];
+		if (i == NULL) i = gmenu2x->sc->skinRes(icon);
 	}
 
-	if (i == NULL) i = gmenu2x->sc.skinRes("icons/generic.png");
+	if (i == NULL) i = gmenu2x->sc->skinRes("icons/generic.png");
 
 	i->blit(s, {4, 4, gmenu2x->config->resolutionX() - 8, gmenu2x->skin->menuTitleBarHeight - 8}, VAlignMiddle);
 	// s->box(4, 4, 32, 32, strtorgba("ffff00ff"));

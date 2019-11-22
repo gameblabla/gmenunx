@@ -152,6 +152,7 @@ GMenu2X::~GMenu2X() {
 	delete fontSectionTitle;
 	delete led;
 	delete skin;
+	delete sc;
 	delete config;
 	TRACE("GMenu2X::dtor - exit\n\n");
 }
@@ -162,12 +163,12 @@ void GMenu2X::releaseScreen() {
 
 void GMenu2X::quit() {
 	TRACE("GMenunX::quit - enter");
-	if (!this->sc.empty()) {
+	if (!this->sc->empty()) {
 		TRACE("GMenu2X::quit - SURFACE EXISTED");
 		writeConfig();
 		ledOff();
 		fflush(NULL);
-		this->sc.clear();
+		this->sc->clear();
 		this->screen->free();
 		releaseScreen();
 	}
@@ -263,19 +264,17 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
 	this->screen->raw = SDL_SetVideoMode(config->resolutionX(), config->resolutionY(), config->videoBpp(), SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
-	TRACE("GMenu2X::ctor - set prefix on surface collection");
-	sc.setPrefix(assets_path);
-
 	this->skin = new Skin(assets_path, config->resolutionX(),  config->resolutionY());
 	if (!this->skin->loadSkin( config->skin())) {
 		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
 	}
+	this->sc = new SurfaceCollection(this->skin, true);
 
 	TRACE("GMenu2X::ctor - setWallpaper");
 	setWallpaper(skin->wallpaper);
 
-	TRACE("GMenu2X::ctor - setSkin");
-	setSkin(this->skin->name, false, false);
+	TRACE("GMenu2X::ctor - initFont");
+	initFont();
 
 	TRACE("GMenu2X::ctor - screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
@@ -394,6 +393,7 @@ void GMenu2X::main() {
 
 		if (input.isWaiting()) continue;
 		bool inputAction = input.update();
+
 		if (inputAction) {
 			if ( input[CONFIRM] && menu->selLink() != NULL ) {
 				TRACE("******************RUNNING THIS*******************");
@@ -463,7 +463,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 							skin->colours.background.a));
 		
 	} else {
-		if(sc.add(wallpaper) == NULL) {
+		if(this->sc->addImage(wallpaper) == NULL) {
 			// try and add a default one
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
@@ -476,9 +476,9 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 				skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
 			}
 		}
-		if (sc[skin->wallpaper]) {
+		if ((*this->sc)[skin->wallpaper]) {
 			TRACE("GMenu2X::setWallpaper - blit");
-			sc[skin->wallpaper]->blit(bg, 0, 0);
+			(*this->sc)[skin->wallpaper]->blit(bg, 0, 0);
 		}
 	}
 	TRACE("GMenu2X::setWallpaper - exit");
@@ -533,7 +533,7 @@ void GMenu2X::initLayout() {
 void GMenu2X::initFont() {
 	TRACE("GMenu2X::initFont - enter");
 
-	string fontPath = sc.getSkinFilePath("font.ttf");
+	string fontPath = this->skin->getSkinFilePath("font.ttf");
 	TRACE("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
 
 	if (fileExists(fontPath)) {
@@ -962,37 +962,6 @@ void GMenu2X::writeSkinConfig() {
 	TRACE("GMenu2X::writeSkinConfig - exit");
 }
 
-void GMenu2X::setSkin(const string &name, bool resetWallpaper, bool clearSC) {
-	TRACE("GMenu2X::setSkin - enter - %s", name.c_str());
-	
-	if (name != config->skin()) {
-		// save it into app settings
-		config->skin(name);
-		if (!this->skin->loadSkin(name)) {
-			ERROR("GMenu2X::setSkin - Couldn't load skin : %s", name.c_str());
-			return;
-		}
-	}
-
-	//clear collection and change the skin path
-	if (clearSC) {
-		TRACE("GMenu2X::setSkin - clearSC");
-		sc.clear();
-	}
-	TRACE("GMenu2X::setSkin - sc.setSkin");
-	sc.setSkin(name);
-
-	if (menu != NULL && clearSC) {
-		TRACE("GMenu2X::setSkin - loadIcons");
-		menu->loadIcons();
-	}
-
-	//font
-	TRACE("GMenu2X::setSkin - init font");
-	initFont();
-	TRACE("GMenu2X::setSkin - exit");
-}
-
 uint32_t GMenu2X::onChangeSkin() {
 	return 1;
 }
@@ -1026,15 +995,13 @@ void GMenu2X::skinMenu() {
 	it = wallpapers.begin();
 	wallpapers.insert(it, "None");
 
+	bool restartRequired = false;
+	bool currentIconGray = skin->iconsToGrayscale;
+	bool currentImageGray = skin->imagesToGrayscale;
+
 	do {
-		setSkin(config->skin(), false, false);
 		string wpPrev = base_name(skin->wallpaper);
 		string wpCurrent = wpPrev;
-
-		sc.del("skin:icons/skin.png");
-		sc.del("skin:imgs/buttons/left.png");
-		sc.del("skin:imgs/buttons/right.png");
-		sc.del("skin:imgs/buttons/a.png");
 
 		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
 		sd.selected = selected;
@@ -1062,13 +1029,17 @@ void GMenu2X::skinMenu() {
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
 		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 16));
+		
+		sd.addSetting(new MenuSettingBool(this, tr["Monochrome icons"], tr["Force all icons to monochrome"], &skin->iconsToGrayscale));
+		sd.addSetting(new MenuSettingBool(this, tr["Monochrome images"], tr["Force all images to monochrome"], &skin->imagesToGrayscale));
+		
 		sd.exec();
 
 		// if wallpaper has changed, get full path and add it to the sc
 		// unless we have chosen 'None'
 		if (wpCurrent != wpPrev) {
 			if (wpCurrent != "None") {
-				if (sc.add(assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
+				if (this->sc->addImage(assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
 					skin->wallpaper = assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
 			} else skin->wallpaper = "";
 			setWallpaper(skin->wallpaper);
@@ -1095,18 +1066,25 @@ void GMenu2X::skinMenu() {
 	writeSkinConfig();
 
 	TRACE("GMenu2X::skinMenu - checking exit mode");
-	if (prevSkinBackdrops != skin->skinBackdrops) {
-		TRACE("GMenu2X::skinMenu - restarting because backdrops changed");
+	if (currentIconGray != skin->iconsToGrayscale) {
+		restartRequired = true;
+	} else if (currentImageGray != skin->imagesToGrayscale) {
+		restartRequired = true;
+	} else if (prevSkinBackdrops != skin->skinBackdrops) {
+		restartRequired = true;
+	}
+	if (restartRequired) {
+		TRACE("GMenu2X::skinMenu - restarting because backdrops or gray scale changed");
 		restartDialog(true);
-	} else initMenu();
+	} else {
+		initMenu();
+	}
 	TRACE("GMenu2X::skinMenu - exit");
 }
 
 void GMenu2X::skinColors() {
 	bool save = false;
 	do {
-		setSkin(config->skin(), false, false);
-
 		SettingsDialog sd(this, ts, tr["Skin Colors"], "skin:icons/skin.png");
 		sd.allowCancel = false;
 		sd.addSetting(new MenuSettingRGBA(this, tr["Background"], tr["Background colour if no wallpaper"], &skin->colours.background));
@@ -1761,7 +1739,7 @@ void GMenu2X::renameSection() {
 			ledOn();
 			if (rename(sectiondir.c_str(), "tmpsection")==0 && rename("tmpsection", newsectiondir.c_str())==0) {
 				string oldpng = sectiondir + ".png", newpng = newsectiondir+".png";
-				string oldicon = sc.getSkinFilePath(oldpng), newicon = sc.getSkinFilePath(newpng);
+				string oldicon = this->skin->getSkinFilePath(oldpng), newicon = this->skin->getSkinFilePath(newpng);
 				if (!oldicon.empty() && newicon.empty()) {
 					newicon = oldicon;
 					newicon.replace(newicon.find(oldpng), oldpng.length(), newpng);
@@ -1769,7 +1747,7 @@ void GMenu2X::renameSection() {
 					if (!fileExists(newicon)) {
 						rename(oldicon.c_str(), "tmpsectionicon");
 						rename("tmpsectionicon", newicon.c_str());
-						sc.move("skin:" + oldpng, "skin:" + newpng);
+						this->sc->move("skin:" + oldpng, "skin:" + newpng);
 					}
 				}
 				menu->renameSection(menu->selSectionIndex(), id.getInput());
@@ -2061,9 +2039,9 @@ int GMenu2X::drawButton(Surface *s, const string &btn, const string &text, int x
 	SDL_Rect re = {x, y, 0, 16};
 	int padding = 4;
 
-	if (sc.skinRes("imgs/buttons/" + btn + ".png") != NULL) {
-		int imageWidth = sc["imgs/buttons/" + btn + ".png"]->raw->w;
-		sc["imgs/buttons/" + btn + ".png"]->blit(
+	if (this->sc->skinRes("imgs/buttons/" + btn + ".png") != NULL) {
+		int imageWidth = (*this->sc)["imgs/buttons/" + btn + ".png"]->raw->w;
+		(*this->sc)["imgs/buttons/" + btn + ".png"]->blit(
 			s, 
 			re.x + (imageWidth / 2), 
 			re.y, 
@@ -2086,9 +2064,9 @@ int GMenu2X::drawButton(Surface *s, const string &btn, const string &text, int x
 int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, int x, int y) {
 	if (y < 0) y = config->resolutionY() + y;
 	// y = config->resolutionY - skinConfInt["bottomBarHeight"] / 2;
-	if (sc.skinRes("imgs/buttons/" + btn + ".png") != NULL) {
+	if (this->sc->skinRes("imgs/buttons/" + btn + ".png") != NULL) {
 		x -= 16;
-		sc["imgs/buttons/" + btn + ".png"]->blit(s, x + 8, y + 2, HAlignCenter | VAlignMiddle);
+		(*this->sc)["imgs/buttons/" + btn + ".png"]->blit(s, x + 8, y + 2, HAlignCenter | VAlignMiddle);
 		x -= 3;
 		s->write(
 			font, 

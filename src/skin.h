@@ -50,6 +50,7 @@ public:
 
     static vector<string> getSkins(string assetsPath) ;
 
+    std::string getSkinFilePath(const string &file);
     std::string currentSkinPath();
     bool loadSkin(string name);
     vector<string> getWallpapers();
@@ -73,6 +74,10 @@ public:
     int menuTitleBarHeight;
     int menuInfoBarHeight;
     int previewWidth;
+
+    int imagesToGrayscale;
+    int iconsToGrayscale;
+
     int version;
 
     LinkDisplayModes linkDisplayMode;

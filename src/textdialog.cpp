@@ -98,7 +98,7 @@ void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rows
 }
 
 void TextDialog::exec() {
-	if (gmenu2x->sc[backdrop] != NULL) gmenu2x->sc[backdrop]->blit(this->bg,0,0);
+	if ((*gmenu2x->sc)[backdrop] != NULL) (*gmenu2x->sc)[backdrop]->blit(this->bg,0,0);
 
 	preProcess();
 
@@ -107,7 +107,7 @@ void TextDialog::exec() {
 	drawTopBar(this->bg, title, description);
 
 	//link icon
-	if (gmenu2x->sc.skinRes(icon)==NULL)
+	if (gmenu2x->sc->skinRes(icon)==NULL)
 		drawTitleIcon("icons/ebook.png", this->bg);
 	else
 		drawTitleIcon(icon, this->bg);

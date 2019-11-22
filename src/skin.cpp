@@ -145,6 +145,11 @@ string Skin::toString() {
     vec.push_back("# the path is resolved at run time");
     vec.push_back(string_format("wallpaper=\"%s\"", wallpaper.c_str()));
 
+    vec.push_back("# force skin aspects to grayscale");
+    vec.push_back("# imagesToGrayscale covers wallpapers, previews, backdrops");
+    vec.push_back(string_format("imagesToGrayscale=%i", imagesToGrayscale));
+    vec.push_back(string_format("iconsToGrayscale=%i", iconsToGrayscale));
+
     vec.push_back("# colours section starts");
     vec.push_back(string_format("background=%s", rgbatostr(colours.background).c_str()));
     vec.push_back(string_format("listBg=%s", rgbatostr(colours.listBackground).c_str()));
@@ -236,6 +241,27 @@ std::string Skin::currentSkinPath() {
     return this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
 }
 
+string Skin::getSkinFilePath(const string &file) {
+	TRACE("Skin::getSkinFilePath - enter : %s", file.c_str());
+	TRACE("Skin::getSkinFilePath - prefix : %s, skin : %s", this->assetsPrefix.c_str(), this->name.c_str());
+	string result = "";
+
+	if (fileExists(this->currentSkinPath() + "/" + file)) {
+		TRACE("Skin::getSkinFilePath - found file in current skin");
+		result = this->currentSkinPath() + "/" + file;
+	} else if (fileExists(this->assetsPrefix + "skins/Default/" + file)) {
+		TRACE("Skin::getSkinFilePath - found file in default skin");
+		result = this->assetsPrefix + "skins/Default/" + file;
+	} else if (fileExists(this->assetsPrefix + "skins/" + file)) {
+		TRACE("Skin::getSkinFilePath - found file in root skin folder");
+		result = this->assetsPrefix + "skins/" + file;
+	} else {
+		TRACE("Skin::getSkinFilePath - didn't find file anywhere");
+	}
+	TRACE("Skin :: getSkinFilePath - exit : %s", result.c_str());
+	return result;
+}
+
 /* Private methods */
 
 void Skin::reset() {
@@ -264,6 +290,9 @@ void Skin::reset() {
     menuTitleBarImage = "";
     sectionInfoBarImage = "";
     sectionTitleBarImage = "";
+
+    iconsToGrayscale = false;
+    imagesToGrayscale = false;
 
 	TRACE("Skin::reset - skinFontColors");
     colours.background = (RGBAColor){125,55,125,200};
@@ -440,6 +469,10 @@ bool Skin::fromFile() {
                     colours.fontAlt = strtorgba(value);
                 } else if (name == "fontAltOutline") {
                     colours.fontAltOutline = strtorgba(value);
+                } else if (name == "iconsToGrayscale") {
+                    this->iconsToGrayscale = atoi(value.c_str());
+                } else if (name == "imagesToGrayscale") {
+                    this->imagesToGrayscale = atoi(value.c_str());
                 } else {
                     WARNING("Skin::fromFile - unknown key : %s", name.c_str());
                 }

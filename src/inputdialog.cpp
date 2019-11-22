@@ -42,14 +42,13 @@ InputDialog::InputDialog(GMenu2X *gmenu2x,
 		this->text = text;
 	}
 	this->icon = "";
-	if (icon != "" && gmenu2x->sc[icon] != NULL)
+	if (!icon.empty() && (*gmenu2x->sc)[icon] != NULL)
 		this->icon = icon;
 
 	input = startvalue;
 	selCol = 0;
 	selRow = 0;
 	keyboard.resize(7);
-
 
 	keyboard[0].push_back("qwertyuiop789");
 	keyboard[0].push_back(",asdfghjkl456");

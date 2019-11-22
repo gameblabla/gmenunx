@@ -23,9 +23,9 @@ bool BrowseDialog::exec() {
 
 	this->bg = new Surface(gmenu2x->bg); // needed to redraw on child screen return
 
-	Surface *iconGoUp = gmenu2x->sc.skinRes("imgs/go-up.png");
-	Surface *iconFolder = gmenu2x->sc.skinRes("imgs/folder.png");
-	Surface *iconFile = gmenu2x->sc.skinRes("imgs/file.png");
+	Surface *iconGoUp = gmenu2x->sc->skinRes("imgs/go-up.png");
+	Surface *iconFolder = gmenu2x->sc->skinRes("imgs/folder.png");
+	Surface *iconFile = gmenu2x->sc->skinRes("imgs/file.png");
 
 	string path = fl->getPath();
 	if (path.empty() || !dirExists(path))
@@ -84,8 +84,8 @@ bool BrowseDialog::exec() {
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
 			gmenu2x->screen->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.titleBarBackground);
 
-			gmenu2x->sc[filename]->softStretch(gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding, true, false);
-			gmenu2x->sc[filename]->blit(gmenu2x->screen, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
+			(*gmenu2x->sc)[filename]->softStretch(gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding, true, false);
+			(*gmenu2x->sc)[filename]->blit(gmenu2x->screen, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
 
 			if (animation < gmenu2x->skin->previewWidth) {
 				animation = intTransition(0, gmenu2x->skin->previewWidth, tickStart, 110);

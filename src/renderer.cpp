@@ -21,24 +21,24 @@ uint8_t Renderer::getVolumeMode(uint8_t vol) {
 
 Renderer::Renderer(GMenu2X *gmenu2x) : 
     iconBrightness {
-		gmenu2x->sc.skinRes("imgs/brightness/0.png"),
-		gmenu2x->sc.skinRes("imgs/brightness/1.png"),
-		gmenu2x->sc.skinRes("imgs/brightness/2.png"),
-		gmenu2x->sc.skinRes("imgs/brightness/3.png"),
-		gmenu2x->sc.skinRes("imgs/brightness/4.png"),
-		gmenu2x->sc.skinRes("imgs/brightness.png"),
+		gmenu2x->sc->skinRes("imgs/brightness/0.png"),
+		gmenu2x->sc->skinRes("imgs/brightness/1.png"),
+		gmenu2x->sc->skinRes("imgs/brightness/2.png"),
+		gmenu2x->sc->skinRes("imgs/brightness/3.png"),
+		gmenu2x->sc->skinRes("imgs/brightness/4.png"),
+		gmenu2x->sc->skinRes("imgs/brightness.png"),
 	}, iconBattery {
-		gmenu2x->sc.skinRes("imgs/battery/0.png"),
-		gmenu2x->sc.skinRes("imgs/battery/1.png"),
-		gmenu2x->sc.skinRes("imgs/battery/2.png"),
-		gmenu2x->sc.skinRes("imgs/battery/3.png"),
-		gmenu2x->sc.skinRes("imgs/battery/4.png"),
-		gmenu2x->sc.skinRes("imgs/battery/5.png"),
-		gmenu2x->sc.skinRes("imgs/battery/ac.png"),
+		gmenu2x->sc->skinRes("imgs/battery/0.png"),
+		gmenu2x->sc->skinRes("imgs/battery/1.png"),
+		gmenu2x->sc->skinRes("imgs/battery/2.png"),
+		gmenu2x->sc->skinRes("imgs/battery/3.png"),
+		gmenu2x->sc->skinRes("imgs/battery/4.png"),
+		gmenu2x->sc->skinRes("imgs/battery/5.png"),
+		gmenu2x->sc->skinRes("imgs/battery/ac.png"),
 	}, iconVolume {
-		gmenu2x->sc.skinRes("imgs/mute.png"),
-		gmenu2x->sc.skinRes("imgs/phones.png"),
-		gmenu2x->sc.skinRes("imgs/volume.png"),
+		gmenu2x->sc->skinRes("imgs/mute.png"),
+		gmenu2x->sc->skinRes("imgs/phones.png"),
+		gmenu2x->sc->skinRes("imgs/volume.png"),
 	} {
 
 	this->gmenu2x = gmenu2x;
@@ -49,9 +49,9 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 	this->prevBackdrop = gmenu2x->skin->wallpaper;
 	this->currBackdrop = prevBackdrop;
 
-	iconSD = gmenu2x->sc.skinRes("imgs/sd1.png");
-	iconManual = gmenu2x->sc.skinRes("imgs/manual.png");
-	iconCPU = gmenu2x->sc.skinRes("imgs/cpu.png");
+	iconSD = gmenu2x->sc->skinRes("imgs/sd1.png");
+	iconManual = gmenu2x->sc->skinRes("imgs/manual.png");
+	iconCPU = gmenu2x->sc->skinRes("imgs/cpu.png");
 
 	brightnessIcon = 5;
 	batteryIcon = 3;
@@ -97,8 +97,8 @@ void Renderer::render() {
 	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0, 0, 0, 255});
 
 	// do a background image or a background colour 
-	if (gmenu2x->sc[currBackdrop]) {
-		gmenu2x->sc[currBackdrop]->blit(gmenu2x->screen,0,0);
+	if ((*gmenu2x->sc)[currBackdrop]) {
+		(*gmenu2x->sc)[currBackdrop]->blit(gmenu2x->screen,0,0);
 	} else {
 		gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, gmenu2x->skin->colours.background);
 	}
@@ -134,11 +134,11 @@ void Renderer::render() {
 			// do we have an image
 			if (!gmenu2x->skin->sectionInfoBarImage.empty()) {
 				TRACE("Renderer::infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
-				if (gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+				if ((*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 					TRACE("Renderer::infoBar image is being scaled");
-					gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
+					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
 				}
-				gmenu2x->sc[gmenu2x->skin->sectionInfoBarImage]->blit(
+				(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->blit(
 					gmenu2x->screen, 
 					infoBarRect);
 			} else {
@@ -171,11 +171,11 @@ void Renderer::render() {
 		// do we have an image
 		if (!gmenu2x->skin->sectionTitleBarImage.empty()) {
 			TRACE("Renderer::sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
-			if (gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+			if ((*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 				TRACE("Renderer::sectionBar image is being scaled");
-				gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
+				(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
 			}
-			gmenu2x->sc[gmenu2x->skin->sectionTitleBarImage]->blit(
+			(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->blit(
 				gmenu2x->screen, 
 				gmenu2x->sectionBarRect);
 		} else {
@@ -234,7 +234,7 @@ void Renderer::render() {
 						gmenu2x->skin->colours.selectionBackground);
                 }
                 //TRACE("Renderer::sections - icon mode - blit");
-				gmenu2x->sc[gmenu2x->menu->getSectionIcon(i)]->blit(
+				(*gmenu2x->sc)[gmenu2x->menu->getSectionIcon(i)]->blit(
 					gmenu2x->screen, 
 					{x, y, gmenu2x->skin->sectionTitleBarSize, gmenu2x->skin->sectionTitleBarSize}, 
 					HAlignCenter | VAlignMiddle);
@@ -268,7 +268,7 @@ void Renderer::render() {
 			int padding = 36;
 			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 				//TRACE("Menu::loadIcons - theme uses icons");
-				gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+				(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
 					gmenu2x->screen, 
 					{ix, iy, padding, gmenu2x->linkHeight}, 
 					HAlignCenter | VAlignMiddle);
@@ -348,12 +348,12 @@ void Renderer::render() {
 
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("Renderer::links - adding icon and text : %s", title.c_str());
-					gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+					(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						gmenu2x->screen, 
 						{ix + 2, iy + 2, gmenu2x->linkWidth - 4, gmenu2x->linkHeight - 4}, 
 						HAlignCenter | VAlignMiddle);
 				} else if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
-					gmenu2x->sc[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+					(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						gmenu2x->screen, 
 						{ix + 2, iy, gmenu2x->linkWidth - 4, gmenu2x->linkHeight}, 
 						HAlignCenter | VAlignTop);
@@ -384,7 +384,7 @@ void Renderer::render() {
 		gmenu2x->linksRect);
 
 	currBackdrop = gmenu2x->skin->wallpaper;
-	if (gmenu2x->menu->selLink() != NULL && gmenu2x->menu->selLinkApp() != NULL && !gmenu2x->menu->selLinkApp()->getBackdropPath().empty() && gmenu2x->sc.add(gmenu2x->menu->selLinkApp()->getBackdropPath()) != NULL) {
+	if (gmenu2x->menu->selLink() != NULL && gmenu2x->menu->selLinkApp() != NULL && !gmenu2x->menu->selLinkApp()->getBackdropPath().empty() && gmenu2x->sc->addImage(gmenu2x->menu->selLinkApp()->getBackdropPath()) != NULL) {
 		TRACE("Renderer::setting currBackdrop to : %s", gmenu2x->menu->selLinkApp()->getBackdropPath().c_str());
 		currBackdrop = gmenu2x->menu->selLinkApp()->getBackdropPath();
 	}
@@ -392,7 +392,7 @@ void Renderer::render() {
 	//Background has changed flip it and return out quickly
 	if (prevBackdrop != currBackdrop) {
 		INFO("New backdrop: %s", currBackdrop.c_str());
-		gmenu2x->sc.del(prevBackdrop);
+		gmenu2x->sc->del(prevBackdrop);
 		prevBackdrop = currBackdrop;
 		// input.setWakeUpInterval(1);
 		return;

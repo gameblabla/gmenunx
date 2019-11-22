@@ -144,7 +144,6 @@ public:
 	void quit();
 	void releaseScreen();
 
-
 	int getBacklight();
 	int getVolume();
 	int16_t curMMCStatus;
@@ -173,13 +172,12 @@ public:
 	LED *led;
 	// uint32_t tickSuspend; //, tickPowerOff;
 
-	void setSkin(const string &skin, bool resetWallpaper = true, bool clearSC = true);
 	//firmware type and version
 	string fwType = ""; //, fwVersion;
 	//gp2x type
 	bool f200 = true;
 
-	SurfaceCollection sc;
+	SurfaceCollection *sc;
 	Translator tr;
 	Surface *screen, *bg;
 	FontHelper *font = NULL, *fontTitle = NULL, *fontSectionTitle = NULL; 
