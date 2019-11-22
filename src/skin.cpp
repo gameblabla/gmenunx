@@ -241,6 +241,7 @@ vector<string> Skin::getWallpapers() {
 	closedir(dirp);
 	sort(results.begin(), results.end(), case_less());
     TRACE("Skin::getWallpapers - exit - found %i wallpapers for skin %s", results.size(), this->name.c_str());
+    return results;
 }
 
 std::string Skin::currentSkinPath() {
