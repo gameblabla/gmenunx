@@ -127,6 +127,8 @@ public:
 	void operator = (Surface*);
 
 	void softStretch(uint16_t x, uint16_t y, bool keep_aspect = false, bool maximize = true);
+	void toGrayScale();
+	
 	void setAlpha(uint8_t alpha);
 };
 

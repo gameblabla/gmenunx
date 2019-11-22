@@ -454,6 +454,29 @@ void Surface::softStretch(uint16_t x, uint16_t y, bool keep_aspect, bool maximiz
 	raw = outSurface->raw;
 }
 
+void Surface::toGrayScale() {
+
+	if (SDL_MUSTLOCK(raw)) {
+		if (SDL_LockSurface(raw) < 0) {
+			return;
+		}
+	}
+
+	for (int y = 0; y < raw->h; ++y) {
+		for (int x = 0; x < raw->w; ++x) {
+			RGBAColor colour = pixelColor(x, y);
+			Uint8 v = (0.212671f * colour.r) + (0.715160f * colour.g) + (0.072169f * colour.b);
+			Uint32 pixel= (colour.a << 24) | (v << 16) | (v << 8) | v;
+			this->putPixel(x, y, pixel);
+		}
+	}
+
+	if (SDL_MUSTLOCK(raw)) {
+		SDL_UnlockSurface(raw);
+	}
+
+}
+
 // Changes a surface's alpha value, by altering per-pixel alpha if necessary.
 void Surface::setAlpha(uint8_t alpha) {
 	SDL_PixelFormat* fmt = raw->format;
