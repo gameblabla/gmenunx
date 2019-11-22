@@ -138,8 +138,12 @@ string Skin::toString() {
 
     vec.push_back("# display the clock in the section title bar or not");
     vec.push_back(string_format("showClock=%i", showClock));
+    vec.push_back("");
+
     vec.push_back("# display skin backgrounds for emulators etc");
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
+    vec.push_back("");
+    
     vec.push_back("# the current selected wallpaper");
     vec.push_back("# when designing a skin, set the filename only, no path, ");
     vec.push_back("# the path is resolved at run time");
