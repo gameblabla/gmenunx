@@ -461,8 +461,12 @@ uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
 }
 
 bool &InputManager::operator[](int action) {
-	// if (action<0 || (uint32_t)action>=actions.size()) return false;
 	return actions[action].active;
+	bool result = false;
+	if (action < 0 || (uint32_t)action >= actions.size()) {
+		result = false;
+	} else result = actions[action].active;
+	return result;
 }
 
 bool InputManager::isActive(int action) {

@@ -32,7 +32,7 @@ CFLAGS = \
 	-fomit-frame-pointer
 
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk -lpng
+LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lSDL -lpthread -lopk -lpng
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx

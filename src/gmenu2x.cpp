@@ -60,6 +60,7 @@
 #include "config.h"
 #include "rtc.h"
 #include "renderer.h"
+#include "loader.h"
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -270,9 +271,6 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	}
 	this->sc = new SurfaceCollection(this->skin, true);
 
-	TRACE("GMenu2X::ctor - setWallpaper");
-	setWallpaper(skin->wallpaper);
-
 	TRACE("GMenu2X::ctor - initFont");
 	initFont();
 
@@ -318,32 +316,35 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 		quit_all(exitCode);
 	}
 
+	/*
+	TRACE("GMenu2X::ctor - setVolume");
+	setVolume(this->config->globalVolume());
+
+	TRACE("GMenu2X::ctor - input");
+	this->input.init(this->getAssetsPath() + "input.conf");
+	setInputSpeed();
+
+	TRACE("GMenu2X::ctor - setting wake up");
+	input.setWakeUpInterval(1000);
+
 	TRACE("GMenu2X::ctor - not first run - loading");
-	MessageBox mb(this, tr["Loading"]);
-	mb.setAutoHide(1);
-	mb.exec();
+	Loader loader(this);
+	loader.run();
+
+	TRACE("GMenu2X::ctor - setWallpaper");
+	setWallpaper(this->skin->wallpaper);
 
 	TRACE("GMenu2X::ctor - setPerformanceMode");
 	setPerformanceMode();
 
-	TRACE("GMenu2X::ctor - setVolume");
-	setVolume(config->globalVolume());
-
 	TRACE("GMenu2X::ctor - checkUDC");
 	checkUDC();
-
-	TRACE("GMenu2X::ctor - input");
-	input.init(this->getAssetsPath() + "input.conf");
-	setInputSpeed();
 
 	TRACE("GMenu2X::ctor - menu");
 	initMenu();
 
 	TRACE("GMenu2X::ctor - setCpu");
-	setCPU(config->cpuMenu());
-	
-	TRACE("GMenu2X::ctor - setting wake up");
-	input.setWakeUpInterval(1000);
+	setCPU(this->config->cpuMenu());
 
 	// turn the blinker off
 	TRACE("GMenu2X::ctor - ledOff");
@@ -354,15 +355,17 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	//recover last session
 	TRACE("GMenu2X::ctor - recoverSession test");
-	if (lastSelectorElement >- 1 && \
-		menu->selLinkApp() != NULL && \
-		(!menu->selLinkApp()->getSelectorDir().empty() || \
-		!lastSelectorDir.empty())) {
+	if (this->lastSelectorElement >- 1 && \
+		this->menu->selLinkApp() != NULL && \
+		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
+		!this->lastSelectorDir.empty())) {
 
 		TRACE("GMenu2X::ctor - recoverSession happening");
-		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
+		this->menu->selLinkApp()->selector(
+			this->lastSelectorElement, 
+			this->lastSelectorDir);
 	}
-
+	*/
 	TRACE("GMenu2X::ctor - exit");
 
 }
@@ -370,6 +373,60 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 void GMenu2X::main() {
 	
 	TRACE("main - enter");
+
+	/* carried over */
+
+	TRACE("GMenu2X::ctor - setVolume");
+	setVolume(this->config->globalVolume());
+
+	TRACE("GMenu2X::ctor - input");
+	this->input.init(this->getAssetsPath() + "input.conf");
+	setInputSpeed();
+
+	TRACE("GMenu2X::ctor - setting wake up");
+	input.setWakeUpInterval(1000);
+
+	TRACE("GMenu2X::ctor - not first run - loading");
+	Loader loader(this);
+	loader.run();
+
+	TRACE("GMenu2X::ctor - setWallpaper");
+	setWallpaper(this->skin->wallpaper);
+
+	TRACE("GMenu2X::ctor - setPerformanceMode");
+	setPerformanceMode();
+
+	TRACE("GMenu2X::ctor - checkUDC");
+	checkUDC();
+
+	TRACE("GMenu2X::ctor - menu");
+	initMenu();
+
+	TRACE("GMenu2X::ctor - setCpu");
+	setCPU(this->config->cpuMenu());
+
+	// turn the blinker off
+	TRACE("GMenu2X::ctor - ledOff");
+	ledOff();
+
+	TRACE("GMenu2X::ctor - readTmp");
+	readTmp();
+
+	//recover last session
+	TRACE("GMenu2X::ctor - recoverSession test");
+	if (this->lastSelectorElement >- 1 && \
+		this->menu->selLinkApp() != NULL && \
+		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
+		!this->lastSelectorDir.empty())) {
+
+		TRACE("GMenu2X::ctor - recoverSession happening");
+		this->menu->selLinkApp()->selector(
+			this->lastSelectorElement, 
+			this->lastSelectorDir);
+	}
+
+	/* carried over */
+
 	bool quit = false;
 
 	TRACE("main :: pthread");

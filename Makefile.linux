@@ -23,7 +23,7 @@ CFLAGS = -ggdb \
     -g3
 
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL -lpthread -lopk -lpng $(SDL_LIBS) 
+LDFLAGS = $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lopk -lpng 
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx
