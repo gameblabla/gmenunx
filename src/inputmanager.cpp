@@ -51,7 +51,7 @@
 	R3              KEY_KPDOT,
 	START           KEY_ENTER,
 	SELECT          KEY_ESC,
-	POWER           KEY_POWER,
+	POWER           KEY_POWER,			320 (SEND KEY_HOME on press)
 	VOL_UP          KEY_VOLUMEUP,
 	VOL_DOWN        KEY_VOLUMEDOWN,
 
@@ -462,11 +462,6 @@ uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
 
 bool &InputManager::operator[](int action) {
 	return actions[action].active;
-	bool result = false;
-	if (action < 0 || (uint32_t)action >= actions.size()) {
-		result = false;
-	} else result = actions[action].active;
-	return result;
 }
 
 bool InputManager::isActive(int action) {
