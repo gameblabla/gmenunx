@@ -21,7 +21,7 @@ using std::ofstream;
 using std::string;
 
 Config::Config(string const &prefix) {
-    DEBUG("Config::Skin - enter - prefix : %s", prefix.c_str());
+    TRACE("Config::Skin - enter - prefix : %s", prefix.c_str());
     this->prefix = prefix;
     this->isDirty = false;
 }

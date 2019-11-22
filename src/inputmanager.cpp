@@ -342,14 +342,14 @@ bool InputManager::update(bool wait) {
 		if (event.type == SDL_KEYUP) {
 			anyactions = true;
 			SDL_Event evcopy = event;
-			DEBUG("InputManager::update - WAIT KEYUP : %i", event.key.keysym.sym);
+			TRACE("InputManager::update - WAIT KEYUP : %i", event.key.keysym.sym);
 		}
 	} //else {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_KEYUP) {
 				anyactions = true;
 				SDL_Event evcopy = event;
-				DEBUG("InputManager::update - POLL KEYUP : %i", event.key.keysym.sym);
+				TRACE("InputManager::update - POLL KEYUP : %i", event.key.keysym.sym);
 			}
 		}
 	//}

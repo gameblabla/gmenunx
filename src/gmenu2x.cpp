@@ -485,7 +485,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 }
 
 void GMenu2X::initLayout() {
-	DEBUG("GMenu2X::initLayout - enter");
+	TRACE("GMenu2X::initLayout - enter");
 	// LINKS rect
 	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 	sectionBarRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
@@ -527,7 +527,7 @@ void GMenu2X::initLayout() {
 	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
 	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
 
-	DEBUG("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
+	TRACE("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
 }
 
 void GMenu2X::initFont() {

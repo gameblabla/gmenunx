@@ -144,11 +144,13 @@ string Skin::toString() {
     vec.push_back("# when designing a skin, set the filename only, no path, ");
     vec.push_back("# the path is resolved at run time");
     vec.push_back(string_format("wallpaper=\"%s\"", wallpaper.c_str()));
+    vec.push_back("");
 
     vec.push_back("# force skin aspects to grayscale");
     vec.push_back("# imagesToGrayscale covers wallpapers, previews, backdrops");
     vec.push_back(string_format("imagesToGrayscale=%i", imagesToGrayscale));
     vec.push_back(string_format("iconsToGrayscale=%i", iconsToGrayscale));
+    vec.push_back("");
 
     vec.push_back("# colours section starts");
     vec.push_back(string_format("background=%s", rgbatostr(colours.background).c_str()));
