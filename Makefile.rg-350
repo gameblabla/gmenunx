@@ -1,4 +1,4 @@
-TARGET=rg-350
+TARGET=RG350
 PATH_DIR=rg-350
 
 CC = $(CROSS_COMPILE)gcc
@@ -14,7 +14,7 @@ SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 DEBUG ?= 2
 CFLAGS = \
 	-ggdb \
-	-DTARGET=$(TARGET) \
+	-DTARGET_$(TARGET) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
@@ -34,8 +34,8 @@ CFLAGS = \
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = $(SDL_LIBS) -lfreetype -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lSDL -lpthread -lopk -lpng
 
-OBJDIR = objs/$(PATH_DIR)
-DISTDIR = dist/$(PATH_DIR)/gmenunx
+OBJDIR = objs/$(TARGET)
+DISTDIR = dist/$(TARGET)/gmenunx
 APPNAME = $(OBJDIR)/gmenunx
 
 SOURCES := $(wildcard src/*.cpp)

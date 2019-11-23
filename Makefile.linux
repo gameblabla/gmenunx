@@ -15,7 +15,7 @@ CFLAGS = -ggdb \
 	$(SDL_CFLAGS) \
     -I/usr/local/include/ \
     -std=gnu++11 \
-	-DTARGET=$(TARGET) \
+	-DTARGET_$(TARGET) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
@@ -25,8 +25,8 @@ CFLAGS = -ggdb \
 CXXFLAGS := $(CFLAGS)
 LDFLAGS := $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lpng -L/usr/local/lib -lopk 
 
-OBJDIR = objs/$(PATH_DIR)
-DISTDIR = dist/$(PATH_DIR)/gmenunx
+OBJDIR = objs/$(TARGET)
+DISTDIR = dist/$(TARGET)/gmenunx
 APPNAME = $(OBJDIR)/gmenunx
 
 SOURCES := $(wildcard src/*.cpp)

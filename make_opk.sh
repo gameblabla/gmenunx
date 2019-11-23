@@ -1,13 +1,13 @@
 #!/bin/sh
 
 OPK_NAME=gmenunx.opk
-ASSETS_PATH="dist/rg-350/gmenunx"
+ASSETS_PATH="dist/RG350/gmenunx"
 
 if [ ! -d ${ASSETS_PATH} ]; then
-    echo "Can't fid ${ASSETS_PATH}, You need to run a make dist first"
+    echo "Can't find ${ASSETS_PATH}, You need to run a make dist first"
     exit 1
 fi
-echo ${OPK_NAME}
+echo "Making opk : ${OPK_NAME}"
 
 # create default.gcw0.desktop
 cat > default.gcw0.desktop <<EOF

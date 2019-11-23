@@ -7,6 +7,7 @@ TARGET_DIR="gmenunx-beta"
 
 # probably don't edit below here
 debug=2
+wd=`pwd`
 rsync=`which rsync`
 if [ $? -ne 0 ]; then
 	echo "This script requires rsync"
@@ -55,9 +56,10 @@ function installLaunchLink {
 }
 
 function fullDeploy {
-	echo "doing a full deploy from target folder to rg-350"
-	cmd="rsync -r ./dist/rg-350/gmenunx/ ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
-	echo ${cmd}
+	buildFolder="/dist/RG350/gmenunx/"
+	echo "doing a full deploy from '.${buildFolder}' to rg-350 : ${RG350_IP}"
+	cmd="rsync -r ${wd}${buildFolder} ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
+	echo "running : ${cmd}"
 	${cmd}
 	if [ $? -ne 0 ]; then
 		echo "full deployment failed"
@@ -68,7 +70,7 @@ function fullDeploy {
 
 function binaryDeploy {
 	echo "doing a quick binary only deploy"
-	cmd="scp ./objs/rg-350/gmenunx ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
+	cmd="scp ./objs/RG350/gmenunx ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
 	echo ${cmd}
 	${cmd}
 	return $?
