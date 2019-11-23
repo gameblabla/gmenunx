@@ -94,9 +94,11 @@ Surface *SurfaceCollection::addSkinRes(const string &path, bool alpha) {
 	TRACE("Adding skin surface: '%s:%s'", skinpath.c_str(), path.c_str());
 	Surface *s = new Surface(skinpath, alpha);
 	if (s != NULL) {
+		/*
 		if (this->skin->iconsToGrayscale) {
 			s->toGrayScale();
 		}
+		*/
 		surfaces[path] = s;
 	}
 	return s;
