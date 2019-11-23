@@ -33,7 +33,6 @@
 using namespace std;
 
 const string PREVIEWS_DIR = ".previews";
-const string FILTER_FILE = ".filter";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
 Dialog(gmenu2x) {
@@ -338,20 +337,14 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		if (0 != this->dir.compare(dir.length() -1, 1, "/")) 
 			this->dir += "/";
 	} else this->dir = "/";
-	fl->setPath(this->dir);
+	fl->setPath(this->dir, false);
 
 	TRACE("Selector::exec - setting filter");
 	string filter = link->getSelectorFilter();
-	string filterFile = this->dir + FILTER_FILE;
-	TRACE("Selector::exec - looking for a filter file at : %s", filterFile.c_str());
-	if (fileExists(filterFile)) {
-		TRACE("Selector::exec - found a filter file at : %s", filterFile.c_str());
-		if (filter.length() > 0) filter += ",";
-		filter += fileReader(filterFile);
-	}
 	fl->setFilter(filter);
 	TRACE("Selector::exec - filter : %s", filter.c_str());
 
+	TRACE("Selector::exec - calling browse");
 	fl->browse();
 	freeScreenshots(screens);
 	TRACE("Selector::exec - found %i files and dirs", fl->size());

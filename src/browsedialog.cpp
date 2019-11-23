@@ -48,8 +48,10 @@ bool BrowseDialog::exec() {
 	if (!showFiles && allowSelectDirectory) {
 		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Select"]);
 	} else {
-		gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Exit"])
+		gmenu2x->drawButton(
+			this->bg, "start", gmenu2x->tr["Exit"],
+			gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Up"], 
+			gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"]))
 		);
 	}
 
@@ -103,7 +105,6 @@ bool BrowseDialog::exec() {
 			}
 		}
 		gmenu2x->input.setWakeUpInterval(1000);
-
 		gmenu2x->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
 		gmenu2x->screen->flip();
 
@@ -180,7 +181,7 @@ void BrowseDialog::directoryUp() {
 	string::size_type p = path.rfind("/");
 	if (p == path.size() - 1) p = path.rfind("/", p - 1);
 	selected = 0;
-	setPath("/"+path.substr(0, p));
+	setPath("/" + path.substr(0, p));
 }
 
 void BrowseDialog::directoryEnter() {
@@ -213,7 +214,7 @@ const std::string BrowseDialog::getExt() {
 void BrowseDialog::setPath(const string &path) {
 	fl->showDirectories = showDirectories;
 	fl->showFiles = showFiles;
-	fl->setPath(path);
+	fl->setPath(path, true);
 	onChangeDir();
 }
 

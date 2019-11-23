@@ -39,6 +39,7 @@ const string &FileLister::getPath() {
 	return path;
 }
 void FileLister::setPath(const string &path, bool doBrowse) {
+	TRACE("FileLister::setpath - enter - path : %s, browse : %i", path.c_str(), doBrowse);
 	this->path = real_path(path);
 	if (doBrowse)
 		browse();
