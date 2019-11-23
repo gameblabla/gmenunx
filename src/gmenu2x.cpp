@@ -1939,11 +1939,16 @@ int GMenu2X::setVolume(int val) {
 int GMenu2X::getBacklight() {
 	TRACE("GMenu2X::getBacklight - enter");
 	int level = -1;
+#ifdef TARGET_RG350
+	// TODO :: fix this scale here
+	// scale 0 - 255
 	string result = fileReader(RG350_BACKLIGHT_PATH);
 	if (result.length() > 0) {
 		level = atoi(trim(result).c_str());
 	}
-	// scale 0 - 255
+#else
+	level = 100;
+#endif
 	TRACE("GMenu2X::getBacklight - exit : %i", level);
 	return level;
 }
@@ -1952,6 +1957,7 @@ int GMenu2X::setBacklight(int val) {
 	TRACE("GMenu2X::setBacklight - enter - %i", val);
 	if (val <= 0) val = 100;
 	else if (val > 100) val = 0;
+#ifdef TARGET_RG350
 	int rg350val = (int)(val * (255.0f/100));
 	TRACE("GMenu2X::setBacklight - rg350 value : %i", rg350val);
 	// save a write
@@ -1963,6 +1969,7 @@ int GMenu2X::setBacklight(int val) {
 	} else {
 		ERROR("Couldn't update backlight value to : %i", rg350val);
 	}
+#endif
 	return val;	
 }
 

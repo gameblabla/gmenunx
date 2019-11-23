@@ -90,6 +90,7 @@ void ScreenManager::setScreenBlanking(bool state) {
 	const char *path = SCREEN_BLANK_PATH;
 	const char *blank = state ? "0" : "1";
 
+#ifdef TARGET_RG350
 	int fd = open(path, O_RDWR);
 	if (fd == -1) {
 		WARNING("Failed to open '%s': %s\n", path, strerror(errno));
@@ -100,6 +101,8 @@ void ScreenManager::setScreenBlanking(bool state) {
 		}
 		close(fd);
 	}
+#endif
+
 	screenState = state;
 }
 
