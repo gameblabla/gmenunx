@@ -212,18 +212,19 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	exe_path = getExePath();
 
 	bool firstRun = !dirExists(getAssetsPath());
+	string localAssetsPath;
 	if (firstRun) {
-		assets_path = exe_path;
+		localAssetsPath = exe_path;
 	} else {
-		assets_path = getAssetsPath();
+		localAssetsPath = getAssetsPath();
 	}
-	TRACE("GMenu2X::ctor - first run : %i, assets_path : %s", firstRun, assets_path.c_str());
+	TRACE("GMenu2X::ctor - first run : %i, localAssetsPath : %s", firstRun, localAssetsPath.c_str());
 
 	TRACE("GMenu2X::ctor - init translations");
-	tr.setPath(assets_path);
+	tr.setPath(localAssetsPath);
 
-	TRACE("GMenu2X::ctor - readConfig from : %s", assets_path.c_str());
-	this->config = new Config(assets_path);
+	TRACE("GMenu2X::ctor - readConfig from : %s", localAssetsPath.c_str());
+	this->config = new Config(localAssetsPath);
 	readConfig();
 
 	// set this ASAP
@@ -249,7 +250,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
 	this->screen->raw = SDL_SetVideoMode(config->resolutionX(), config->resolutionY(), config->videoBpp(), SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
-	this->skin = new Skin(assets_path, config->resolutionX(),  config->resolutionY());
+	this->skin = new Skin(localAssetsPath, config->resolutionX(),  config->resolutionY());
 	if (!this->skin->loadSkin( config->skin())) {
 		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
 	}
@@ -267,7 +268,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	if (firstRun) {
 		int exitCode = 0;
 		INFO("GMenu2X::ctor - first run, copying data");
-		MessageBox mb(this, "Copying data for first run...", assets_path + "gmenunx.png");
+		MessageBox mb(this, "Copying data for first run...", localAssetsPath + "gmenunx.png");
 		mb.setAutoHide(-1);
 		mb.exec();
 		if (doInstall()) {
@@ -284,8 +285,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 		// we're doing an upgrade
 		int exitCode = 0;
 		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), MIN_CONFIG_VERSION);
-		assets_path = getExePath();
-		MessageBox mb(this, "Upgrading new install...", assets_path + "gmenunx.png");
+		MessageBox mb(this, "Upgrading new install...", getExePath() + "gmenunx.png");
 		mb.setAutoHide(-1);
 		mb.exec();
 		if (doUpgrade(MIN_CONFIG_VERSION > config->version())) {
@@ -515,7 +515,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
 
-			FileLister fl(assets_path + relativePath, false, true);
+			FileLister fl(getAssetsPath() + relativePath, false, true);
 			fl.setFilter(".png,.jpg,.jpeg,.bmp");
 			fl.browse();
 			if (fl.getFiles().size() > 0) {
@@ -674,7 +674,7 @@ void GMenu2X::initMenu() {
 					tr["Mount external SD"], 
 					"skin:icons/eject.png");
 
-			if (fileExists(assets_path + "log.txt"))
+			if (fileExists(getAssetsPath() + "log.txt"))
 				menu->addActionLink(
 					i, 
 					tr["Log Viewer"], 
@@ -706,7 +706,7 @@ void GMenu2X::settings() {
 	int curGlobalBrightness = config->backlightLevel();
 	bool unhideSections = false;
 	string prevSkin = config->skin();
-	vector<string> skinList = Skin::getSkins(assets_path);
+	vector<string> skinList = Skin::getSkins(getAssetsPath());
 
 	TRACE("GMenu2X::settings - getting translations");
 	FileLister fl_tr(getAssetsPath() + "translations");
@@ -909,11 +909,11 @@ void GMenu2X::resetSettings() {
 			}
 		}
 		if (reset_skin) {
-			tmppath = assets_path + "skins/Default/skin.conf";
+			tmppath = getAssetsPath() + "skins/Default/skin.conf";
 			unlink(tmppath.c_str());
 		}
 		if (reset_gmenu) {
-			tmppath = assets_path + "gmenunx.conf";
+			tmppath = getAssetsPath() + "gmenunx.conf";
 			unlink(tmppath.c_str());
 		}
 		restartDialog();
@@ -984,7 +984,7 @@ void GMenu2X::readConfig() {
 	if (!config->lang().empty()) {
 		tr.setLang(config->lang());
 	}
-	if (!dirExists(assets_path + "skins/" + config->skin())) {
+	if (!dirExists(getAssetsPath() + "skins/" + config->skin())) {
 		config->skin("Default");
 	}
 	TRACE("GMenu2X::readConfig - exit");
@@ -994,7 +994,7 @@ void GMenu2X::writeConfig() {
 	TRACE("GMenu2X::writeConfig - enter");
 	ledOn();
 	// don't try and save to RO file system
-	if (getExePath() != assets_path) {
+	if (getExePath() != getAssetsPath()) {
 		if (config->saveSelection() && menu != NULL) {
 			config->section(menu->selSectionIndex());
 			config->link(menu->selLinkIndex());
@@ -1091,8 +1091,8 @@ void GMenu2X::skinMenu() {
 		// unless we have chosen 'None'
 		if (wpCurrent != wpPrev) {
 			if (wpCurrent != "None") {
-				if (this->sc->addImage(assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
-					skin->wallpaper = assets_path + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
+				if (this->sc->addImage(getAssetsPath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
+					skin->wallpaper = getAssetsPath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
 			} else skin->wallpaper = "";
 			setWallpaper(skin->wallpaper);
 		}
@@ -1204,18 +1204,18 @@ void GMenu2X::about() {
 	#endif
 	td.appendText("----\n");
 	
-	TRACE("GMenu2X::about - append - file %sabout.txt", assets_path.c_str());
-	td.appendFile(assets_path + "about.txt");
+	TRACE("GMenu2X::about - append - file %sabout.txt", getAssetsPath().c_str());
+	td.appendFile(getAssetsPath() + "about.txt");
 	td.exec();
 	TRACE("GMenu2X::about - exit");
 }
 
 void GMenu2X::viewLog() {
-	string logfile = assets_path + "log.txt";
+	string logfile = getAssetsPath() + "log.txt";
 	if (!fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
-	td.appendFile(assets_path + "log.txt");
+	td.appendFile(getAssetsPath() + "log.txt");
 	td.exec();
 
 	MessageBox mb(this, tr["Do you want to delete the log file?"], "skin:icons/ebook.png");
@@ -1820,7 +1820,7 @@ void GMenu2X::deleteSection() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		ledOn();
-		if (rmtree(assets_path + "sections/" + menu->selSection())) {
+		if (rmtree(getAssetsPath() + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}
@@ -1989,6 +1989,8 @@ const string &GMenu2X::getExePath() {
 }
 
 string GMenu2X::getAssetsPath() {
+	if (assets_path.length())
+		return assets_path;
 	string result = USER_PREFIX;
 	#ifdef TARGET_LINUX
 	const char *homedir;
@@ -1999,6 +2001,7 @@ string GMenu2X::getAssetsPath() {
 	result = (string)homedir + "/" + USER_PREFIX;
 	#endif
 	DEBUG("GMenu2X::getAssetsPath - exit : %s", result.c_str());
+	assets_path = result;
 	return result;
 }
 
