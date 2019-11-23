@@ -413,7 +413,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 			TRACE("Selector::prepare - adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
 		}
 	}
-	TRACE("Selector::prepare - exit - loaded %i screens", screens->size());
+	TRACE("Selector::prepare - exit - loaded %zu screens", screens->size());
 }
 
 void Selector::freeScreenshots(vector<string> *screens) {
@@ -437,7 +437,7 @@ void Selector::loadAliases() {
 		}
 		infile.close();
 	}
-	TRACE("Selector::loadAliases - exit : loaded %i aliases", aliases.size());
+	TRACE("Selector::loadAliases - exit : loaded %zu aliases", aliases.size());
 }
 
 string Selector::getAlias(const string &key, const string &fname) {

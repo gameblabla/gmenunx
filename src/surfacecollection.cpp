@@ -37,7 +37,7 @@ SurfaceCollection::~SurfaceCollection() {}
 void SurfaceCollection::debug() {
 	SurfaceHash::iterator end = surfaces.end();
 	for(SurfaceHash::iterator curr = surfaces.begin(); curr != end; curr++){
-		TRACE("key: %i", curr->first.c_str());
+		TRACE("key: %s", curr->first.c_str());
 	}
 }
 

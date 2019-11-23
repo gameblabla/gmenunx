@@ -52,7 +52,7 @@ bool WallpaperDialog::exec()
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
 		if (wallpaper == wallpapers[i]) selected = i;
 	}
-	TRACE("WallpaperDialog::exec - selected wallpaper #%i of %i", selected, wallpapers.size());
+	TRACE("WallpaperDialog::exec - selected wallpaper #%i of %zu", selected, wallpapers.size());
 	
 	TRACE("WallpaperDialog::exec - looping on user input");
 	while (!close) {
@@ -123,7 +123,7 @@ bool WallpaperDialog::exec()
 	}
 	TRACE("WallpaperDialog::exec - end of inputActions");
 	
-	TRACE("WallpaperDialog::exec - looping through %i wallpapers", wallpapers.size());
+	TRACE("WallpaperDialog::exec - looping through %zu wallpapers", wallpapers.size());
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
 		string skinPath = wallpaperPath + wallpapers[i];
 		TRACE("WallpaperDialog::exec - deleting surface from collection :: %s", skinPath.c_str());

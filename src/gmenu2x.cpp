@@ -479,12 +479,15 @@ void GMenu2X::main() {
 			else if ( input[UP   ] ) menu->linkUp();
 			else if ( input[DOWN ] ) menu->linkDown();
 			// SECTION
-			else if ( input[SECTION_PREV] ) menu->decSectionIndex();
-			else if ( input[SECTION_NEXT] ) menu->incSectionIndex();
-
+			else if ( input[SECTION_PREV] ) {
+				menu->decSectionIndex();
+			} else if ( input[SECTION_NEXT] ) {
+				menu->incSectionIndex();
+			}
 			// SELLINKAPP SELECTED
-			else if (input[MANUAL] && menu->selLinkApp() != NULL) 
+			else if (input[MANUAL] && menu->selLinkApp() != NULL) {
 				showManual();
+			}
 		}
 	}
 
@@ -630,7 +633,7 @@ void GMenu2X::initMenu() {
 	TRACE("GMenu2X::initMenu - new menu");
 	menu = new Menu(this);
 
-	TRACE("GMenu2X::initMenu - sections loop : %i", menu->getSections().size());
+	TRACE("GMenu2X::initMenu - sections loop : %zu", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
@@ -1732,7 +1735,7 @@ void GMenu2X::editLink() {
 			rename(menu->selLinkApp()->getFile().c_str(), newFileName.c_str());
 			menu->selLinkApp()->renameFile(newFileName);
 
-			INFO("New section: (%i) %s", newSectionIndex - menu->getSections().begin(), newSection.c_str());
+			INFO("New section: %s", newSection.c_str());
 
 			menu->linkChangeSection(menu->selLinkIndex(), menu->selSectionIndex(), newSectionIndex - menu->getSections().begin());
 		}
@@ -2069,7 +2072,7 @@ string GMenu2X::getDiskFree(const char *path) {
 		// Make sure that the multiplication happens in 64 bits.
 		uint32_t freeMiB = ((uint64_t)b.f_bfree * b.f_bsize) / (1024 * 1024);
 		uint32_t totalMiB = ((uint64_t)b.f_blocks * b.f_frsize) / (1024 * 1024);
-		TRACE("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %i", b.f_bfree, b.f_blocks, b.f_bsize);
+		TRACE("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %lu", b.f_bfree, b.f_blocks, b.f_bsize);
 		stringstream ss;
 		if (totalMiB >= 10000) {
 			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "

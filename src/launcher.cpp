@@ -60,7 +60,7 @@ void Launcher::exec() {
 		TRACE("Launcher::exec - end of console specific work");
 	}
 
-	TRACE("Launcher::exec - sorting args out for size : %i", commandLine.size() + 1);
+	TRACE("Launcher::exec - sorting args out for size : %zu", commandLine.size() + 1);
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
 	TRACE("Launcher::exec - sorting args reserved");

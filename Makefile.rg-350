@@ -14,7 +14,7 @@ SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 DEBUG ?= 2
 CFLAGS = \
 	-ggdb \
-	-DTARGET=$(PATH_DIR) \
+	-DTARGET=$(TARGET) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \

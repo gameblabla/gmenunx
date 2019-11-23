@@ -1,5 +1,5 @@
 TARGET=LINUX
-PATH_DIR=LINUX
+PATH_DIR=rg-350
 
 CC = gcc
 CXX = g++
@@ -15,15 +15,15 @@ CFLAGS = -ggdb \
 	$(SDL_CFLAGS) \
     -I/usr/local/include/ \
     -std=gnu++11 \
-	-DTARGET=$(PATH_DIR) \
+	-DTARGET=$(TARGET) \
     -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
     -Wno-narrowing \
     -g3
 
-CXXFLAGS = $(CFLAGS)
-LDFLAGS = $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lopk -lpng 
+CXXFLAGS := $(CFLAGS)
+LDFLAGS := $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lpng -L/usr/local/lib -lopk 
 
 OBJDIR = objs/$(PATH_DIR)
 DISTDIR = dist/$(PATH_DIR)/gmenunx
@@ -43,10 +43,12 @@ dir:
 
 debug: $(OBJS)
 	@echo "Linking gmenunx-debug..."
-	$(CXX) -o $(APPNAME)-debug $(LDFLAGS) $(OBJS)
-	 # $(LDFLAGS) 
+	$(CXX) -o $(APPNAME)-debug $(OBJS) $(LDFLAGS)
+	@echo "We were searching in : $(SDL_LIBS)"
+	@echo "Full ld flags were : $(LDFLAGS)"
 
 shared: debug
+	@echo "Stripping the debug binary"
 	$(STRIP) $(APPNAME)-debug -o $(APPNAME)
 
 clean:
@@ -64,6 +66,7 @@ dist: dir shared
 	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/gmenunx.png
+	@echo "binary: $(DISTDIR)/gmenunx"
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
 

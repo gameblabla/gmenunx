@@ -52,14 +52,14 @@ Menu::Menu(GMenu2X *gmenu2x) {
 
 	vector<string> filter;
 	split(filter, this->gmenu2x->config->sectionFilter(), ",");
-	TRACE("Menu :: ctor - got %i filter sections", filter.size());
+	TRACE("Menu :: ctor - got %zu filter sections", filter.size());
 
 	TRACE("Menu :: ctor - opening sections");
 	string resolvedPath = this->gmenu2x->getAssetsPath() + "sections/";
 	TRACE("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
-	TRACE("Menu :: ctor - readdir : %i", dirp);
+	TRACE("Menu :: ctor - readdir : %zu", (long)dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
 		string dirName = string(dptr->d_name);
@@ -504,7 +504,7 @@ void Menu::readLinks() {
 		sort(linkfiles.begin(), linkfiles.end(), case_less());
 		TRACE("Menu::readLinks - links sorted");
 
-		TRACE("Menu::readLinks - validating %i links exist", linkfiles.size());
+		TRACE("Menu::readLinks - validating %zu links exist", linkfiles.size());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
 
@@ -638,7 +638,7 @@ void Menu::openPackage(string path, bool order) {
 		link->setSize(gmenu2x->linkWidth, gmenu2x->linkHeight);
 		//link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
 
-		TRACE("Menu::openPackage : adding category for %S", link->getCategory().c_str());
+		TRACE("Menu::openPackage : adding category for %s", link->getCategory().c_str());
 		addSection(link->getCategory());
 		for (i = 0; i < sections.size(); i++) {
 			if (sections[i] == link->getCategory()) {

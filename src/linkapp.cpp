@@ -62,7 +62,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	deletable = deletable_;
 
-	TRACE("LinkApp::LinkApp - ctor - setting opk by testing value of : %i", opk);
+	TRACE("LinkApp::LinkApp - ctor - setting opk by testing value of : %p", opk);
 	isOPK = (0 != opk);
 	TRACE("LinkApp::LinkApp - ctor - setting metadata : %s", metadata_);
 
@@ -99,7 +99,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			}
 
 			char buf[lval + 1];
-			sprintf(buf, "%.*s", lval, val);
+			sprintf(buf, "%.*s", (int)lval, val);
 
 			if (!strncmp(key, "Categories", lkey)) {
 				category = buf;
@@ -416,7 +416,7 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	string path = this->gmenu2x->getAssetsPath() + "sections/" + FAVOURITE_FOLDER;
 	if (!this->gmenu2x->menu->sectionExists(FAVOURITE_FOLDER)) {
 		if (!this->gmenu2x->menu->addSection(FAVOURITE_FOLDER)) {
-			 ERROR("LinkApp::selector - Couldn't make favourites folder : $s", path.c_str());
+			 ERROR("LinkApp::selector - Couldn't make favourites folder : %s", path.c_str());
 			 return;
 		}
 	}
@@ -631,7 +631,7 @@ void LinkApp::launch(string launchArgs) {
 		} // else, well.. we are no worse off :)
 
 		execute = exec + " " + launchArgs;
-		TRACE("LinkApp::launch - standard file cmd lime : %s %s",  execute.c_str());
+		TRACE("LinkApp::launch - standard file cmd lime : %s",  execute.c_str());
 	}
 	if (gmenu2x->config->outputLogs()) {
 		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";

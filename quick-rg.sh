@@ -122,9 +122,8 @@ while getopts ":hfqiuld" opt; do
 		binaryDeploy
       ;;
     l )
-		export CROSS_COMPILE=
+		unset CROSS_COMPILE=
 		myMake "Makefile.linux clean all dist"
-		binaryDeploy
       ;;
 	d )
 		debug=5
