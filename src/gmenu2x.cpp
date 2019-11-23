@@ -510,7 +510,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 							skin->colours.background.a));
 		
 	} else {
-		if(this->sc->addImage(wallpaper) == NULL) {
+		if (this->sc->addImage(wallpaper) == NULL) {
 			// try and add a default one
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
@@ -524,6 +524,11 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 			}
 		}
 		if ((*this->sc)[skin->wallpaper]) {
+			(*this->sc)[skin->wallpaper]->softStretch(
+				this->config->resolutionX(), 
+				this->config->resolutionY(), 
+				false, 
+				true);
 			TRACE("GMenu2X::setWallpaper - blit");
 			(*this->sc)[skin->wallpaper]->blit(bg, 0, 0);
 		}
@@ -1188,9 +1193,15 @@ void GMenu2X::about() {
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
 	td.appendText(temp);
 	
+	#ifdef TARGET_RG350
 	TRACE("GMenu2X::about - append - command /usr/bin/system_info");
 	td.appendCommand("/usr/bin/system_info");
-	
+	#else
+	TRACE("GMenu2X::about - append - command /usr/bin/uname -a");
+	td.appendCommand("/usr/bin/uname", "-a");
+	TRACE("GMenu2X::about - append - command /usr/bin/lshw -short 2>/dev/null");
+	td.appendCommand("/usr/bin/lshw", "-short 2>/dev/null");
+	#endif
 	td.appendText("----\n");
 	
 	TRACE("GMenu2X::about - append - file %sabout.txt", assets_path.c_str());

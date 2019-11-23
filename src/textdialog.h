@@ -41,7 +41,7 @@ public:
 
 	void appendText(const string &text);
 	void appendFile(const string &file);
-	void appendCommand(const string &executable);
+	void appendCommand(const string &executable, const string &args="");
 	
 	void exec();
 };

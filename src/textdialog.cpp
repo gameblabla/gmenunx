@@ -21,6 +21,7 @@
 #include "textdialog.h"
 #include "messagebox.h"
 #include "utilities.h"
+#include "debug.h"
 #include <iostream>
 #include <stdexcept>
 #include <stdio.h>
@@ -163,11 +164,17 @@ void TextDialog::appendFile(const string &file) {
 	}
 }
 
-void TextDialog::appendCommand(const string &executable) {
+void TextDialog::appendCommand(const string &executable, const string &args) {
+	TRACE("TextDialog::appendCommand - enter : running %s %s", executable.c_str(), args.c_str());
 	if (fileExists(executable)) {
+		TRACE("TextDialog::appendCommand - executable exists");
 		char buffer[128];
 		std::string result = "";
-		FILE* pipe = popen(executable.c_str(), "r");
+		std::string final = executable;
+		if (args.length() > 0) {
+			final += " " + args;
+		}
+		FILE* pipe = popen(final.c_str(), "r");
 		if (!pipe) throw std::runtime_error("popen() failed!");
 		try {
 			while (fgets(buffer, sizeof buffer, pipe) != NULL) {
@@ -180,4 +187,5 @@ void TextDialog::appendCommand(const string &executable) {
 		pclose(pipe);
 		this->rawText += result;
 	}
+	TRACE("TextDialog::appendCommand - exit");
 }
