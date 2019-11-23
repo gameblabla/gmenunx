@@ -18,7 +18,7 @@
 
 // -------------
 #ifndef COLOR_TRACE
-# define COLOR_TRACE   "\e[1;34m"
+# define COLOR_TRACE   "\e[1;35m"
 #endif
 #ifndef COLOR_DEBUG
 # define COLOR_DEBUG   "\e[1;34m"
@@ -38,7 +38,7 @@
 #if (LOG_LEVEL >= TRACE_L)
 # ifdef COLOR_TRACE
 #  define TRACE(str, ...) \
-    fprintf(stdout, COLOR_TRACE "[D] - %lu -  %s:%d %s: " str COLOR_END "\n", time (NULL),  __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
+    fprintf(stdout, COLOR_TRACE "[T] - %lu -  %s:%d %s: " str COLOR_END "\n", time (NULL),  __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
 # else
 #  define TRACE(str, ...) \
     fprintf(stdout, "TRACE: %lu - " str "\n", time (NULL), ##__VA_ARGS__)
