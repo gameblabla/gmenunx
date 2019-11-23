@@ -140,8 +140,16 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			} else if (!strncmp(key, "selectorfilter", lkey)) {
 				TRACE("LinkApp::LinkApp - ctor - opk::selector filter : %s", buf);
 				setSelectorFilter(buf);
+			} else if (!strncmp(key, "Type", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::Type : %s", buf);
+			} else if (!strncmp(key, "StartupNotify", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::StartupNotify : %s", buf);
+			} else if (!strncmp(key, "X-OD-NeedsDownscaling", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::X-OD-NeedsDownscaling : %s", buf);
+			} else if (!strncmp(key, "MimeType", lkey)) {
+				TRACE("LinkApp::LinkApp - ctor - opk::MimeType : %s", buf);
 			} else {
-				WARNING("Unrecognized OPK link option: '%s'", key);
+				//WARNING("Unrecognized OPK link option: '%s'", key);
 			}
 		}
 

@@ -277,7 +277,7 @@ void Skin::reset() {
     version = SKIN_VERSION;
     fontSize = 12;
     fontSizeTitle = 20;
-    fontSizeSectionTitle = 30;
+    fontSizeSectionTitle = 20;
     numLinkRows = 6;
     numLinkCols = 1;
     sectionInfoBarSize = 16;
@@ -302,7 +302,7 @@ void Skin::reset() {
     imagesToGrayscale = false;
 
 	TRACE("Skin::reset - skinFontColors");
-    colours.background = (RGBAColor){125,55,125,200};
+    colours.background = (RGBAColor){0,0,0,255};
     colours.titleBarBackground = (RGBAColor){255,255,255,130};
     colours.listBackground = (RGBAColor){255,255,255,0};
     colours.infoBarBackground = (RGBAColor){255,255,255,130};
