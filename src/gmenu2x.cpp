@@ -82,22 +82,6 @@ using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
 
-char *hwVersion() {
-	static char buf[10] = { 0 };
-	FILE *f = fopen("/dev/mmcblk0", "r");
-	fseek(f, 440, SEEK_SET); // Set the new position at 10
-	if (f) {
-		for (int i = 0; i < 4; i++) {
-			int c = fgetc(f); // Get character
-			snprintf(buf + strlen(buf), sizeof(buf), "%02X", c);
-		}
-	}
-	fclose(f);
-
-	// printf("FW Checksum: %s\n", buf);
-	return buf;
-}
-
 char *ms2hms(uint32_t t, bool mm = true, bool ss = true) {
 	static char buf[10];
 
@@ -105,7 +89,6 @@ char *ms2hms(uint32_t t, bool mm = true, bool ss = true) {
 	int s = (t % 60);
 	int m = (t % 3600) / 60;
 	int h = (t % 86400) / 3600;
-	// int d = (t % (86400 * 30)) / 86400;
 
 	if (!ss) sprintf(buf, "%02d:%02d", h, m);
 	else if (!mm) sprintf(buf, "%02d", h);
@@ -1176,15 +1159,13 @@ void GMenu2X::about() {
 
 	char *hms = ms2hms(SDL_GetTicks());
 	int battLevel = getBatteryLevel();
-	//TRACE("GMenu2X::about - batt level : %i", battLevel);
+	TRACE("GMenu2X::about - batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
-	//TRACE("GMenu2X::about - batt percent : %i", battPercent);
+	TRACE("GMenu2X::about - batt percent : %i", battPercent);
 	
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
-
 	string batt(buffer);
-	char *hwv = hwVersion();
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
 	temp += tr["Uptime: "] + hms + "\n";
