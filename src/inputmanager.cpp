@@ -339,7 +339,11 @@ bool InputManager::update(bool wait) {
 			return false;
 		}
 
-		if (event.type == SDL_KEYUP) {
+		if (event.type == SDL_QUIT) {
+			anyactions = true;
+			actions[QUIT].active = true;
+			return true;
+		} else if (event.type == SDL_KEYUP) {
 			anyactions = true;
 			SDL_Event evcopy = event;
 			TRACE("InputManager::update - WAIT KEYUP : %i", event.key.keysym.sym);

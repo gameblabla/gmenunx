@@ -74,22 +74,25 @@ void Renderer::render() {
     int ix = 0;
     int iy = 0;
 
-	// if we're going to draw helpers, get their latest value 
+	// if we're going to draw helpers, get their latest value
+	TRACE("Renderer::render - section bar test");
 	if (gmenu2x->skin->sectionBar) {
-
+		TRACE("Renderer::render - section bar exists in skin settings");
 		tickNow = SDL_GetTicks();
 		// update helper icons every 1 secs
 		if (tickNow - tickBattery >= 1000) {
+			TRACE("Renderer::render - updating helper icon status");
 			tickBattery = tickNow;
 			batteryIcon = gmenu2x->getBatteryLevel();
 			if (batteryIcon > 5) batteryIcon = 6;
 
-			brightnessIcon = gmenu2x->getBacklight() / 51;
+			brightnessIcon = gmenu2x->getBacklight();
 			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
 
 			int currentVolume = gmenu2x->getVolume();
 			currentVolumeMode = this->getVolumeMode(currentVolume);
             rtc.refresh();
+			TRACE("Renderer::render - helper icon status updated");
 		}
     }
 

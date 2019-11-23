@@ -28,7 +28,8 @@ enum actions {
 	PAGEUP, PAGEDOWN,
 	SETTINGS, MENU,
 	VOLUP, VOLDOWN,
-  BACKLIGHT, POWER
+  	BACKLIGHT, POWER, 
+	QUIT
 };
 
 #include "screenmanager.h"

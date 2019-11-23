@@ -1,4 +1,6 @@
 #include <string>
+#include <time.h>
+#include <cstdio>
 #include <linux/rtc.h>
 #include <sys/ioctl.h>
 #include <stdio.h>
@@ -22,7 +24,7 @@ RTC::~RTC() {
 
 void RTC::refresh() {
     TRACE("RTC::refresh - enter");
-
+    #ifdef TARGET_RG350
     int fd;
     fd = open("/dev/rtc", O_RDONLY);
     if (fd) {
@@ -31,6 +33,14 @@ void RTC::refresh() {
         TRACE("RTC::refresh - successful read");
         TRACE("RTC::refresh - hour raw = %i", this->rt.tm_hour);
     }
+    #else
+        time_t theTime = time(NULL);
+        struct tm *aTime = localtime(&theTime);
+        this->rt.tm_year = aTime->tm_year;
+        this->rt.tm_hour = aTime->tm_hour;
+        this->rt.tm_min = aTime->tm_min;
+        this->rt.tm_isdst = aTime->tm_isdst;
+    #endif
     TRACE("RTC::refresh - exit");
 }
 
@@ -74,6 +84,8 @@ std::string RTC::getDateTime() {
 bool RTC::setTime(string datetime) {
     string cmd = "/sbin/hwclock --set --localtime --epoch=1900 --date=\"" + datetime + "\";/sbin/hwclock --hctosys";
     TRACE("RTC::setTime - running : %s", cmd.c_str());
+    #ifdef TARGET_RG350
     system(cmd.c_str());
+    #endif
     return true;
 }

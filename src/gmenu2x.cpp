@@ -24,6 +24,7 @@
 #include <signal.h>
 #include <sys/statvfs.h>
 #include <sys/time.h>
+#include <pwd.h>
 
 #include "linkapp.h"
 #include "menu.h"
@@ -173,7 +174,7 @@ void GMenu2X::quit() {
 		this->screen->free();
 		releaseScreen();
 	}
-	TRACE("GMenuNX::quit - exit");
+	INFO("GMenuNX::quit - exit");
 }
 
 int main(int argc, char * argv[]) {
@@ -452,7 +453,9 @@ void GMenu2X::main() {
 		bool inputAction = input.update();
 
 		if (inputAction) {
-			if ( input[CONFIRM] && menu->selLink() != NULL ) {
+			if ( input[QUIT] ) {
+				quit = true;
+			} else if ( input[CONFIRM] && menu->selLink() != NULL ) {
 				TRACE("******************RUNNING THIS*******************");
 
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
@@ -466,26 +469,27 @@ void GMenu2X::main() {
 			} else if ( input[INC] ) {
 				TRACE("******************favouriting an app THIS*******************");
 				menu->selLinkApp()->makeFavourite();
-			} 
-			else if ( input[SETTINGS] ) settings();
-			else if ( input[MENU]     ) contextMenu();
-			// LINK NAVIGATION
-			else if ( input[LEFT ] && skin->numLinkCols == 1) menu->pageUp();
-			else if ( input[RIGHT] && skin->numLinkCols == 1) menu->pageDown();
-			else if ( input[LEFT ] ) {
+			} else if ( input[SETTINGS] ) {
+				settings();
+			} else if ( input[MENU]     ) {
+				contextMenu();
+			} else if ( input[LEFT ] && skin->numLinkCols == 1) {
+				menu->pageUp();
+			} else if ( input[RIGHT] && skin->numLinkCols == 1) {
+				menu->pageDown();
+			} else if ( input[LEFT ] ) {
 				menu->linkLeft();
-			}
-			else if ( input[RIGHT] ) menu->linkRight();
-			else if ( input[UP   ] ) menu->linkUp();
-			else if ( input[DOWN ] ) menu->linkDown();
-			// SECTION
-			else if ( input[SECTION_PREV] ) {
+			} else if ( input[RIGHT] ) {
+				menu->linkRight();
+			} else if ( input[UP   ] ) {
+				menu->linkUp();
+			} else if ( input[DOWN ] ) {
+				menu->linkDown();
+			} else if ( input[SECTION_PREV] ) {
 				menu->decSectionIndex();
 			} else if ( input[SECTION_NEXT] ) {
 				menu->incSectionIndex();
-			}
-			// SELLINKAPP SELECTED
-			else if (input[MANUAL] && menu->selLinkApp() != NULL) {
+			} else if (input[MANUAL] && menu->selLinkApp() != NULL) {
 				showManual();
 			}
 		}
@@ -790,10 +794,10 @@ void GMenu2X::settings() {
 	sd.addSetting(new MenuSettingInt(this,tr["Backlight"], tr["Set LCD backlight"], &backlightLevel, 70, 1, 100));
 	sd.addSetting(new MenuSettingInt(this, tr["Audio volume"], tr["Set the default audio volume"], &globalVolume, 60, 0, 100));
 
-#if defined(TARGET_RS97)
+	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
 	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::cpuSettings)));
-#endif
+	#endif
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
@@ -1369,11 +1373,11 @@ void GMenu2X::poweroffDialog() {
 }
 
 void GMenu2X::setTVOut(string TVOut) {
-#if defined(TARGET_RS97)
+	#if defined(TARGET_RS97)
 	system("echo 0 > /proc/jz/tvselect"); // always reset tv out
 	if (TVOut == "NTSC")		system("echo 2 > /proc/jz/tvselect");
 	else if (TVOut == "PAL")	system("echo 1 > /proc/jz/tvselect");
-#endif
+	#endif
 }
 
 string GMenu2X::mountSd() {
@@ -1836,6 +1840,7 @@ int GMenu2X::getBatteryLevel() {
 	//TRACE("GMenu2X::getBatteryLevel - enter");
 
 	int online, result = 0;
+	#ifdef TARGET_RG350
 	sscanf(fileReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
 	if (online) {
 		result = 6;
@@ -1850,6 +1855,9 @@ int GMenu2X::getBatteryLevel() {
 		else if (battery_level > 20) result = 1;
 		result = 0;
 	}
+	#else
+	result = 6;
+	#endif
 	TRACE("GMenu2X::getBatteryLevel - scaled battery level : %i", result);
 	return result;
 }
@@ -1868,7 +1876,7 @@ void GMenu2X::setCPU(uint32_t mhz) {
 	if (memdev > 0) {
 		TRACE("Setting clock to %d", mhz);
 
-#if defined(TARGET_GP2X)
+	#if defined(TARGET_GP2X)
 		uint32_t v, mdiv, pdiv=3, scale=0;
 
 		#define SYS_CLK_FREQ 7372800
@@ -1880,7 +1888,7 @@ void GMenu2X::setCPU(uint32_t mhz) {
 		v = mdiv | pdiv | scale;
 		MEM_REG[0x910>>1] = v;
 
-#elif defined(TARGET_CAANOO) || defined(TARGET_WIZ)
+	#elif defined(TARGET_CAANOO) || defined(TARGET_WIZ)
 		volatile uint32_t *memregl = static_cast<volatile uint32_t*>((volatile void*)memregs);
 		int mdiv, pdiv = 9, sdiv = 0;
 		uint32_t v;
@@ -1896,11 +1904,11 @@ void GMenu2X::setCPU(uint32_t mhz) {
 		PWRMODE |= 0x8000;
 		for (int i = 0; (PWRMODE & 0x8000) && i < 0x100000; i++);
 
-#elif defined(TARGET_RS97)
+	#elif defined(TARGET_RS97)
 		uint32_t m = mhz / 6;
 		memregs[0x10 >> 2] = (m << 24) | 0x090520;
 		INFO("Set CPU clock: %d", mhz);
-#endif
+	#endif
 		setTVOut(TVOut);
 	}
 }
@@ -1938,17 +1946,16 @@ int GMenu2X::setVolume(int val) {
 
 int GMenu2X::getBacklight() {
 	TRACE("GMenu2X::getBacklight - enter");
-	int level = -1;
-#ifdef TARGET_RG350
-	// TODO :: fix this scale here
-	// scale 0 - 255
+	int level = 0;
+	#ifdef TARGET_RG350
+	//force  scale 0 - 5
 	string result = fileReader(RG350_BACKLIGHT_PATH);
 	if (result.length() > 0) {
-		level = atoi(trim(result).c_str());
+		level = atoi(trim(result).c_str()) / 51;
 	}
-#else
-	level = 100;
-#endif
+	#else
+	level = 5;
+	#endif
 	TRACE("GMenu2X::getBacklight - exit : %i", level);
 	return level;
 }
@@ -1957,7 +1964,7 @@ int GMenu2X::setBacklight(int val) {
 	TRACE("GMenu2X::setBacklight - enter - %i", val);
 	if (val <= 0) val = 100;
 	else if (val > 100) val = 0;
-#ifdef TARGET_RG350
+	#ifdef TARGET_RG350
 	int rg350val = (int)(val * (255.0f/100));
 	TRACE("GMenu2X::setBacklight - rg350 value : %i", rg350val);
 	// save a write
@@ -1969,7 +1976,7 @@ int GMenu2X::setBacklight(int val) {
 	} else {
 		ERROR("Couldn't update backlight value to : %i", rg350val);
 	}
-#endif
+	#endif
 	return val;	
 }
 
@@ -1989,8 +1996,18 @@ const string &GMenu2X::getExePath() {
 	return exe_path;
 }
 
-const string &GMenu2X::getAssetsPath() {
-	return USER_PREFIX;
+string GMenu2X::getAssetsPath() {
+	string result = USER_PREFIX;
+	#ifdef TARGET_LINUX
+	const char *homedir;
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = getpwuid(getuid())->pw_dir;
+	}
+	DEBUG("GMenu2X::getAssetsPath - homedir : %s", homedir);
+	result = (string)homedir + "/" + USER_PREFIX;
+	#endif
+	DEBUG("GMenu2X::getAssetsPath - exit : %s", result.c_str());
+	return result;
 }
 
 bool GMenu2X::doUpgrade(bool upgradeConfig) {
@@ -1998,7 +2015,7 @@ bool GMenu2X::doUpgrade(bool upgradeConfig) {
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
-	string destination = USER_PREFIX;
+	string destination = getAssetsPath();
 
 	INFO("GMenu2X::doUpgrade - from : %s, to : %s", source.c_str(), destination.c_str());
 
@@ -2049,7 +2066,7 @@ bool GMenu2X::doInstall() {
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
-	string destination = USER_PREFIX;
+	string destination = getAssetsPath();
 
 	INFO("GMenu2X::doInstall - from : %s, to : %s", source.c_str(), destination.c_str());
 	INFO("GMenu2X::doInstall - testing for writable home dir : %s", destination.c_str());
@@ -2062,6 +2079,7 @@ bool GMenu2X::doInstall() {
 		string call = ss.str();
 		INFO("GMenu2X::doInstall - going to run :: %s", call.c_str());
 		system(call.c_str());
+		INFO("GMenu2X::doInstall - successful copy of assets");
 		success = true;
 	}
 	sync();

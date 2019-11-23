@@ -52,7 +52,12 @@ const int BATTERY_READS = 10;
 
 extern const char *CARD_ROOT;
 
+#ifdef TARGET_RG350
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
+#else
+// $HOME/ gets prepended to this
+const string USER_PREFIX = ".gmenunx/";
+#endif
 
 using std::string;
 using std::vector;
@@ -163,7 +168,7 @@ public:
 	@see assets_path
 	@return String containing the parent directory
 	*/
-	const string &getAssetsPath();
+	string getAssetsPath();
 
 	ScreenManager screenManager;
 	InputManager input;

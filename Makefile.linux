@@ -1,5 +1,5 @@
 TARGET=LINUX
-PATH_DIR=rg-350
+PATH_DIR=pc
 
 CC = gcc
 CXX = g++
