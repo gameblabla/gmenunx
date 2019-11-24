@@ -1,6 +1,6 @@
 #include <memory>
 #include <stdarg.h>
-#include <string.h>
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <stdlib.h>
@@ -275,12 +275,3 @@ bool Config::fromFile() {
     TRACE("Config::fromFile - exit");
     return result;
 }
-
-std::string Config::stripQuotes(std::string const &input) {
-    string result = input;
-    if (input.at(0) == '"' && input.at(input.length() - 1) == '"') {
-        result = input.substr(1, input.length() - 2);
-    }
-    return result;
-}
-

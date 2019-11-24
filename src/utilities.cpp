@@ -367,3 +367,11 @@ string string_format(const std::string fmt_str, ...) {
     }
     return std::string(formatted.get());
 }
+
+std::string stripQuotes(std::string const &input) {
+    string result = input;
+    if (input.at(0) == '"' && input.at(input.length() - 1) == '"') {
+        result = input.substr(1, input.length() - 2);
+    }
+    return result;
+}

@@ -252,9 +252,6 @@ private:
     bool fromFile();
     void constrain();
 
-    std::string stripQuotes(std::string const &input);
-
-
 };
 
 #endif

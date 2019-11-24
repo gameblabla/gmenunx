@@ -30,6 +30,14 @@ using std::tr1::hash;
 using std::string;
 using std::vector;
 
+#ifndef NULL
+#ifdef __cplusplus
+#define NULL 0
+#else
+#define NULL ((void *)0)
+#endif
+#endif /* NULL */
+
 class case_less {
 public:
 	bool operator()(const string &left, const string &right) const;
@@ -84,5 +92,6 @@ bool copyFile(string from, string to);
 
 string splitInLines(string source, std::size_t max_width, string whitespace = " \t\r");
 string string_format(const std::string fmt_str, ...);
+string stripQuotes(std::string const &input);
 
 #endif

@@ -381,10 +381,7 @@ bool Skin::fromFile() {
                 } else if (name == "sectionTitleBarSize") {
                     sectionTitleBarSize = atoi(value.c_str());
                 } else if (name == "sectionTitleBarImage") {
-                    // handle quotes
-                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-                        sectionTitleBarImage = value.substr(1, value.length() - 2);
-                    } else sectionTitleBarImage = value;
+                    sectionTitleBarImage = stripQuotes(value);
                     if (!sectionTitleBarImage.empty() && sectionTitleBarImage == base_name(sectionTitleBarImage)) {
                         sectionTitleBarImage = skinPath + "imgs/" + sectionTitleBarImage;
                     }
@@ -392,10 +389,7 @@ bool Skin::fromFile() {
                 } else if (name == "sectionInfoBarSize") {
                     sectionInfoBarSize = atoi(value.c_str());
                 } else if (name == "sectionInfoBarImage") {
-                    // handle quotes
-                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-                        sectionInfoBarImage = value.substr(1, value.length() - 2);
-                    } else sectionInfoBarImage = value;
+                    sectionInfoBarImage = stripQuotes(value);
                     if (!sectionInfoBarImage.empty() && sectionInfoBarImage == base_name(sectionInfoBarImage)) {
                         sectionInfoBarImage = skinPath + "imgs/" + sectionInfoBarImage;
                     }
@@ -407,10 +401,7 @@ bool Skin::fromFile() {
                 } else if (name == "infoBarHeight") {
                     menuInfoBarHeight = atoi(value.c_str());
                 } else if (name == "menuInfoBarImage") {
-                    // handle quotes
-                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-                        menuInfoBarImage = value.substr(1, value.length() - 2);
-                    } else menuInfoBarImage = value;
+                    menuInfoBarImage = stripQuotes(value);
                     if (!menuInfoBarImage.empty() && menuInfoBarImage == base_name(menuInfoBarImage)) {
                         menuInfoBarImage = skinPath + "imgs/" + menuInfoBarImage;
                     }
@@ -418,10 +409,7 @@ bool Skin::fromFile() {
                 } else if (name == "menuTitleBarHeight") {
                     menuTitleBarHeight = atoi(value.c_str());
                 } else if (name == "menuTitleBarImage") {
-                    // handle quotes
-                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-                        menuTitleBarImage = value.substr(1, value.length() - 2);
-                    } else menuTitleBarImage = value;
+                    menuTitleBarImage = stripQuotes(value);
                     if (!menuTitleBarImage.empty() && menuTitleBarImage == base_name(menuTitleBarImage)) {
                         menuTitleBarImage = skinPath + "imgs/" + menuTitleBarImage;
                     }
@@ -441,10 +429,7 @@ bool Skin::fromFile() {
                 } else if (name == "sectionBar") {
                     sectionBar = (SectionBar)atoi(value.c_str());
                 } else if (name == "wallpaper") {
-                    // handle quotes
-                    if (value.at(0) == '"' && value.at(value.length() - 1) == '"') {
-                        wallpaper = value.substr(1, value.length() - 2);
-                    } else wallpaper = value;
+                    wallpaper = stripQuotes(value);
                     if (!wallpaper.empty() && wallpaper == base_name(wallpaper)) {
                         wallpaper = skinPath + "wallpapers/" + wallpaper;
                     }
