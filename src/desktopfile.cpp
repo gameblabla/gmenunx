@@ -37,9 +37,10 @@ string DesktopFile::toString() {
     vec.push_back(string_format("icon=\"%s\"", this->icon().c_str()));
     vec.push_back(string_format("exec=\"%s\"", this->exec().c_str()));
     vec.push_back(string_format("params=\"%s\"", this->params().c_str()));
-    vec.push_back(string_format("selectordir=\"%s\"", this->selectordir().c_str()));
-    vec.push_back(string_format("selectorfilter=\"%s\"", this->selectorfilter().c_str()));
-    vec.push_back(string_format("x-provider=\"%s\"", this->provider().c_str()));
+    vec.push_back(string_format("selectorDir=\"%s\"", this->selectordir().c_str()));
+    vec.push_back(string_format("selectorFilter=\"%s\"", this->selectorfilter().c_str()));
+    vec.push_back(string_format("X-Provider=\"%s\"", this->provider().c_str()));
+    vec.push_back(string_format("X-ProviderMetadata=\"%s\"", this->providerMetadata().c_str()));
     vec.push_back(string_format("consoleapp=\"%s\"", this->consoleapp() ? "true" : "false"));
 
     std::string s;
@@ -88,6 +89,8 @@ bool DesktopFile::fromFile(const string & file) {
                     this->selectorfilter(stripQuotes(value));
                 } else if (name == "x-provider") {
                     this->provider(stripQuotes(value));
+                } else if (name == "x-providermetadata") {
+                    this->providerMetadata(stripQuotes(value));
                 } else if (name == "consoleapp") {
                     bool console = "false" == stripQuotes(value) ? false : true;
                     this->consoleapp(console);
@@ -147,6 +150,7 @@ void DesktopFile::reset() {
     this->selectordir_ = "";
     this->selectorfilter_ = "";
     this->provider = "";
+    this->providerMetadata_ = "";
     bool consoleapp_ = false;
     this->isDirty_ = false;
 }

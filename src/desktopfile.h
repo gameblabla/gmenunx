@@ -21,6 +21,7 @@ class DesktopFile {
         string selectordir_; //=/home/mat/Downloads
         string selectorfilter_; //=.opk
         string provider_; //=/home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk
+        string providerMetadata_; //=default.gcw0.desktop
         bool consoleapp_; //=false
 
     public:
@@ -89,6 +90,13 @@ class DesktopFile {
         void provider(string val) { 
             if (val != this->provider_) {
                 this->provider_ = val;
+                this->isDirty_ = true;
+            }
+        }
+        string providerMetadata() const { return this->providerMetadata_; }
+        void providerMetadata(string val) { 
+            if (val != this->providerMetadata_) {
+                this->providerMetadata_ = val;
                 this->isDirty_ = true;
             }
         }
