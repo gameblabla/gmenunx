@@ -150,7 +150,7 @@ void DesktopFile::reset() {
     this->selectordir_ = "";
     this->selectorfilter_ = "";
     this->provider = "";
-    this->providerMetadata_ = "";
+    this->providerMetadata_ = "default.gcw0.desktop";
     bool consoleapp_ = false;
     this->isDirty_ = false;
 }

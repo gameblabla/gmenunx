@@ -95,7 +95,7 @@ class DesktopFile {
         }
         string providerMetadata() const { return this->providerMetadata_; }
         void providerMetadata(string val) { 
-            if (val != this->providerMetadata_) {
+            if (val != this->providerMetadata_ && !val.empty()) {
                 this->providerMetadata_ = val;
                 this->isDirty_ = true;
             }
