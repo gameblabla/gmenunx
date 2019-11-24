@@ -361,72 +361,72 @@ bool Skin::fromFile() {
 				string value = trim(line.substr(pos+1,line.length()));
 
                 if (0 == value.length()) continue;
-
+                name = toLower(name);
                 TRACE("Skin::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 if (name == "version") {
                     version = atoi(value.c_str());
-                } else if (name == "fontSize") {
+                } else if (name == "fontsize") {
                     this->fontSize = atoi(value.c_str());
-                } else if (name == "fontSizeTitle") {
+                } else if (name == "fontsizetitle") {
                     this->fontSizeTitle = atoi(value.c_str());
-                } else if (name == "fontSizeSectionTitle") {
+                } else if (name == "fontsizesectiontitle") {
                     this->fontSizeSectionTitle = atoi(value.c_str());
-                } else if (name == "linkRows") {
+                } else if (name == "linkrows") {
                     numLinkRows = atoi(value.c_str());
-                } else if (name == "linkCols") {
+                } else if (name == "linkcols") {
                     numLinkCols = atoi(value.c_str());
-                } else if (name == "sectionBarSize") {
+                } else if (name == "sectionbarsize") {
                     sectionTitleBarSize = atoi(value.c_str());
-                } else if (name == "sectionTitleBarSize") {
+                } else if (name == "sectiontitlebarsize") {
                     sectionTitleBarSize = atoi(value.c_str());
-                } else if (name == "sectionTitleBarImage") {
+                } else if (name == "sectiontitlebarimage") {
                     sectionTitleBarImage = stripQuotes(value);
                     if (!sectionTitleBarImage.empty() && sectionTitleBarImage == base_name(sectionTitleBarImage)) {
                         sectionTitleBarImage = skinPath + "imgs/" + sectionTitleBarImage;
                     }
                     sectionTitleBarImage = trim(sectionTitleBarImage);
-                } else if (name == "sectionInfoBarSize") {
+                } else if (name == "sectioninfobarsize") {
                     sectionInfoBarSize = atoi(value.c_str());
-                } else if (name == "sectionInfoBarImage") {
+                } else if (name == "sectioninfobarimage") {
                     sectionInfoBarImage = stripQuotes(value);
                     if (!sectionInfoBarImage.empty() && sectionInfoBarImage == base_name(sectionInfoBarImage)) {
                         sectionInfoBarImage = skinPath + "imgs/" + sectionInfoBarImage;
                     }
                     sectionInfoBarImage = trim(sectionInfoBarImage);
-                } else if (name == "bottomBarHeight") {
+                } else if (name == "bottombarheight") {
                     menuInfoBarHeight = atoi(value.c_str());
-                } else if (name == "topBarHeight") {
+                } else if (name == "topbarheight") {
                     menuTitleBarHeight = atoi(value.c_str());
-                } else if (name == "infoBarHeight") {
+                } else if (name == "infobarheight") {
                     menuInfoBarHeight = atoi(value.c_str());
-                } else if (name == "menuInfoBarImage") {
+                } else if (name == "menuinfobarimage") {
                     menuInfoBarImage = stripQuotes(value);
                     if (!menuInfoBarImage.empty() && menuInfoBarImage == base_name(menuInfoBarImage)) {
                         menuInfoBarImage = skinPath + "imgs/" + menuInfoBarImage;
                     }
                     menuInfoBarImage = trim(menuInfoBarImage);
-                } else if (name == "menuTitleBarHeight") {
+                } else if (name == "menutitlebarheight") {
                     menuTitleBarHeight = atoi(value.c_str());
-                } else if (name == "menuTitleBarImage") {
+                } else if (name == "menutitlebarimage") {
                     menuTitleBarImage = stripQuotes(value);
                     if (!menuTitleBarImage.empty() && menuTitleBarImage == base_name(menuTitleBarImage)) {
                         menuTitleBarImage = skinPath + "imgs/" + menuTitleBarImage;
                     }
                     menuTitleBarImage = trim(menuTitleBarImage);
-                } else if (name == "previewWidth") {
+                } else if (name == "previewwidth") {
                     previewWidth = atoi(value.c_str());
-                } else if (name == "linkDisplayMode") {
+                } else if (name == "linkdisplaymode") {
                     linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
-                } else if (name == "showSectionIcons") {
+                } else if (name == "showsectionicons") {
                     showSectionIcons = atoi(value.c_str());
-                } else if (name == "showClock") {
+                } else if (name == "showclock") {
                     showClock = atoi(value.c_str());
-                } else if (name == "sectionInfoBarVisible") {
+                } else if (name == "sectioninfobarvisible") {
                     sectionInfoBarVisible = atoi(value.c_str());
-                } else if (name == "skinBackdrops") {
+                } else if (name == "skinbackdrops") {
                     skinBackdrops = atoi(value.c_str());
-                } else if (name == "sectionBar") {
+                } else if (name == "sectionbar") {
                     sectionBar = (SectionBar)atoi(value.c_str());
                 } else if (name == "wallpaper") {
                     wallpaper = stripQuotes(value);
@@ -435,35 +435,35 @@ bool Skin::fromFile() {
                     }
                 } else if (name == "background") {
                     colours.background = strtorgba(value);
-                } else if (name == "topBarBg") {
+                } else if (name == "topbarbg") {
                     colours.titleBarBackground = strtorgba(value);
-                } else if (name == "titleBarBg") {
+                } else if (name == "titlebarbg") {
                     colours.titleBarBackground = strtorgba(value);
-                } else if (name == "listBg") {
+                } else if (name == "listbg") {
                     colours.listBackground = strtorgba(value);
-                } else if (name == "bottomBarBg") {
+                } else if (name == "bottombarbg") {
                     colours.infoBarBackground = strtorgba(value);
-                } else if (name == "infoBarBg") {
+                } else if (name == "infobarbg") {
                     colours.infoBarBackground = strtorgba(value);
-                } else if (name == "selectionBg") {
+                } else if (name == "selectionbg") {
                     colours.selectionBackground = strtorgba(value);
-                } else if (name == "messageBoxBg") {
+                } else if (name == "messageboxbg") {
                     colours.msgBoxBackground = strtorgba(value);
-                } else if (name == "messageBoxBorder") {
+                } else if (name == "messageboxborder") {
                     colours.msgBoxBorder = strtorgba(value);
-                } else if (name == "messageBoxSelection") {
+                } else if (name == "messageboxselection") {
                     colours.msgBoxSelection = strtorgba(value);
                 } else if (name == "font") {
                     colours.font = strtorgba(value);
-                } else if (name == "fontOutline") {
+                } else if (name == "fontoutline") {
                     colours.fontOutline = strtorgba(value);
-                } else if (name == "fontAlt") {
+                } else if (name == "fontalt") {
                     colours.fontAlt = strtorgba(value);
-                } else if (name == "fontAltOutline") {
+                } else if (name == "fontaltoutline") {
                     colours.fontAltOutline = strtorgba(value);
-                } else if (name == "iconsToGrayscale") {
+                } else if (name == "iconstograyscale") {
                     this->iconsToGrayscale = atoi(value.c_str());
-                } else if (name == "imagesToGrayscale") {
+                } else if (name == "imagestograyscale") {
                     this->imagesToGrayscale = atoi(value.c_str());
                 } else {
                     WARNING("Skin::fromFile - unknown key : %s", name.c_str());

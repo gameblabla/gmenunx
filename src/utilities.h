@@ -93,5 +93,6 @@ bool copyFile(string from, string to);
 string splitInLines(string source, std::size_t max_width, string whitespace = " \t\r");
 string string_format(const std::string fmt_str, ...);
 string stripQuotes(std::string const &input);
+string toLower(const std::string & input);
 
 #endif

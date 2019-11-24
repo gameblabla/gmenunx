@@ -206,58 +206,59 @@ bool Config::fromFile() {
 				string value = trim(line.substr(pos+1,line.length()));
 
                 if (0 == value.length()) continue;
+                name = toLower(name);
 
                 TRACE("Config::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 // strings
-                if (name == "externalAppPath") {
+                if (name == "externalapppath") {
                     this->externalAppPath(stripQuotes(value));
                 } else if (name == "skin") {
                     this->skin(stripQuotes(value));
                 } else if (name == "performance") {
                     this->performance(stripQuotes(value));
-                } else if (name == "tvOutMode") {
+                } else if (name == "tvoutmode") {
                     this->tvOutMode(stripQuotes(value));
                 } else if (name == "lang") {
                     this->lang(stripQuotes(value));
-                } else if (name == "batteryType") {
+                } else if (name == "batterytype") {
                     this->batteryType(stripQuotes(value));
-                } else if (name == "sectionFilter") {
+                } else if (name == "sectionfilter") {
                     this->sectionFilter(stripQuotes(value));
-                } else if (name == "launcherPath") {
+                } else if (name == "launcherpath") {
                     this->launcherPath(stripQuotes(value));
                 } 
 
                 // ints
-                else if (name == "buttonRepeatRate") {
+                else if (name == "buttonrepeatrate") {
                     this->buttonRepeatRate(atoi(value.c_str()));
-                } else if (name == "resolutionX") {
+                } else if (name == "resolutionx") {
                     this->resolutionX(atoi(value.c_str()));
-                } else if (name == "resolutionY") {
+                } else if (name == "resolutiony") {
                     this->resolutionY(atoi(value.c_str()));
-                } else if (name == "videoBpp") {
+                } else if (name == "videobpp") {
                     this->videoBpp(atoi(value.c_str()));
-                } else if (name == "backlightLevel") {
+                } else if (name == "backlightlevel") {
                     this->backlightLevel(atoi(value.c_str()));
-                } else if (name == "backlightTimeout") {
+                } else if (name == "backlighttimeout") {
                     this->backlightTimeout(atoi(value.c_str()));
-                } else if (name == "powerTimeout") {
+                } else if (name == "powertimeout") {
                     this->powerTimeout(atoi(value.c_str()));
-                } else if (name == "minBattery") {
+                } else if (name == "minbattery") {
                     this->minBattery(atoi(value.c_str()));
-                } else if (name == "maxBattery") {
+                } else if (name == "maxbattery") {
                     this->maxBattery(atoi(value.c_str()));
-                } else if (name == "cpuMin") {
+                } else if (name == "cpumin") {
                     this->cpuMin(atoi(value.c_str()));
-                } else if (name == "cpuMax") {
+                } else if (name == "cpumax") {
                     this->cpuMax(atoi(value.c_str()));
-                } else if (name == "cpuMenu") {
+                } else if (name == "cpumenu") {
                     this->cpuMenu(atoi(value.c_str()));
-                } else if (name == "globalVolume") {
+                } else if (name == "globalvolume") {
                     this->globalVolume(atoi(value.c_str()));
-                } else if (name == "outputLogs") {
+                } else if (name == "outputlogs") {
                     this->outputLogs(atoi(value.c_str()));
-                } else if (name == "saveSelection") {
+                } else if (name == "saveselection") {
                     this->saveSelection(atoi(value.c_str()));
                 } else if (name == "section") {
                     this->section(atoi(value.c_str()));
@@ -265,6 +266,8 @@ bool Config::fromFile() {
                     this->link(atoi(value.c_str()));
                 } else if (name == "version") {
                     this->version(atoi(value.c_str()));
+                } else {
+                    WARNING("Config::fromFile - unknown key : %s", name.c_str());
                 }
 
             };

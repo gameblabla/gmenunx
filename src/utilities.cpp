@@ -31,6 +31,7 @@
 #include <math.h>
 #include <errno.h>
 #include <memory>
+#include <algorithm>
 
 #include <SDL.h>
 
@@ -374,4 +375,10 @@ std::string stripQuotes(std::string const &input) {
         result = input.substr(1, input.length() - 2);
     }
     return result;
+}
+
+std::string toLower(const std::string & input) {
+	string copy = input;
+	transform(copy.begin(), copy.end(), copy.begin(), (int(*)(int)) tolower);
+	return copy;
 }
