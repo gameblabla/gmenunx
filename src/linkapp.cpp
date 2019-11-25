@@ -38,7 +38,15 @@
 using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
+#ifdef HAVE_LIBOPK
+#ifdef TARGET_RG350
 static const string OPKRUN_PATH = "/usr/bin/opkrun";
+#else
+// just for testing, make sure the target test resolves
+static const string OPKRUN_PATH = "/bin/false";
+#endif
+#endif
+
 const string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
@@ -213,8 +221,8 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			if (line.empty()) continue;
 			if (line[0] == '#') continue;
 
-			string::size_type position = line.find("=");
-			string name = trim(line.substr(0,position));
+			std::size_t position = line.find("=");
+			string name = toLower(trim(line.substr(0,position)));
 			string value = trim(line.substr(position+1));
 
 			if (name == "clock") {
@@ -250,7 +258,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 					setBackdrop(value);
 					// WARNING("BACKDROP: '%s'", backdrop.c_str());
 			} else {
-				WARNING("Unrecognized native link option: '%s'", name.c_str());
+				WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
 				break;
 			}
 

@@ -31,6 +31,10 @@ class LinkApp;
 class GMenu2X;
 
 typedef vector<Link*> linklist;
+const string OPK_FOLDER_NAME = "apps";
+const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
+const string OPK_PLATFORM = "gcw0";
+const bool OPK_USE_CACHE = true;
 
 /**
 Handles the menu structure
@@ -49,11 +53,13 @@ private:
 	void freeLinks();
 	void orderLinks();
 
+	#ifdef HAVE_LIBOPK
 	/* opk section */
 	void openPackagesFromDir(std::string path);
 	void readPackages(std::string parentDir);
 	void openPackage(std::string path, bool order);
 	void removePackageLink(std::string path);
+	#endif
 
 public:
 	Menu(GMenu2X *gmenu2x);

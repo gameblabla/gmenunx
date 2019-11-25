@@ -36,10 +36,6 @@
 
 using namespace std;
 
-const string OPK_FOLDER_NAME = "apps";
-const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
-const string OPK_PLATFORM = "gcw0";
-
 Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("enter");
 	this->gmenu2x = gmenu2x;
@@ -59,15 +55,15 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
-	TRACE("readdir : %zu", (long)dirp);
+	//TRACE("readdir : %zu", (long)dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
 		string dirName = string(dptr->d_name);
-		TRACE("reading : %s", dptr->d_name);
+		//TRACE("reading : %s", dptr->d_name);
 		filepath = resolvedPath + dirName;
 		TRACE("checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
-		TRACE("reading stat : %i", statRet);
+		//TRACE("reading stat : %i", statRet);
 		if (!S_ISDIR(st.st_mode)) continue;
 		if (statRet != -1) {
 			// check the filters
@@ -103,16 +99,20 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("read links");
 	readLinks();
 
-	TRACE("read internal OPK links");
-	openPackagesFromDir(OPK_INTERNAL_PATH);
+	#ifdef HAVE_LIBOPK
+	if (!OPK_USE_CACHE) {
+		TRACE("read internal OPK links");
+		openPackagesFromDir(OPK_INTERNAL_PATH);
 
-	string appPath = gmenu2x->config->externalAppPath();
+		string appPath = gmenu2x->config->externalAppPath();
 
-	TRACE("searching for external OPK links under : %s", appPath.c_str());
-	if (dirExists(appPath)) {
-		TRACE("external search root dir : %s", appPath.c_str());
-		openPackagesFromDir(appPath);
+		TRACE("searching for external OPK links under : %s", appPath.c_str());
+		if (dirExists(appPath)) {
+			TRACE("external search root dir : %s", appPath.c_str());
+			openPackagesFromDir(appPath);
+		}
 	}
+	#endif
 
 	TRACE("ordering links");
 	orderLinks();
@@ -569,6 +569,7 @@ void Menu::orderLinks() {
 	TRACE("exit");
 }
 
+#ifdef HAVE_LIBOPK
 /* --------------- OPK SECTION ---------------*/
 
 void Menu::openPackagesFromDir(string path) {
@@ -727,3 +728,5 @@ void Menu::removePackageLink(std::string path) {
 	}
 
 }
+
+#endif

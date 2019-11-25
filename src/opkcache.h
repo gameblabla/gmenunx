@@ -12,7 +12,14 @@ using namespace std;
 
 static const string OPK_CACHE_DIR = "cache";
 static const string OPK_CACHE_IMAGE_DIR = "images";
+
+#ifdef TARGET_RG350
 static const string OPK_EXEC = "/usr/bin/opkrun";
+#else
+// just for testing, make sure the target test resolves
+static const string OPK_EXEC = "/bin/false";
+#endif
+
 
 class OpkCache {
     private:

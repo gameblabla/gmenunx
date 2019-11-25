@@ -25,6 +25,8 @@
 #include <sys/statvfs.h>
 #include <sys/time.h>
 #include <pwd.h>
+#include <cassert>
+#include <thread>
 
 #include "linkapp.h"
 #include "menu.h"
@@ -62,7 +64,10 @@
 #include "rtc.h"
 #include "renderer.h"
 #include "loader.h"
+
+#ifdef HAVE_LIBOPK
 #include "opkcache.h"
+#endif
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -140,6 +145,9 @@ GMenu2X::~GMenu2X() {
 	delete skin;
 	delete sc;
 	delete config;
+	#ifdef HAVE_LIBOPK
+	delete opkCache;
+	#endif
 	TRACE("exit\n\n");
 }
 
@@ -200,6 +208,27 @@ void* mainThread(void* param) {
 	return NULL;
 }
 
+void GMenu2X::updateAppCache() {
+	TRACE("enter");
+#ifdef HAVE_LIBOPK
+	if (OPK_USE_CACHE) {
+		TRACE("we're using the opk cache");
+		string externalPath = this->config->externalAppPath();
+		vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath, "/home/mat/Downloads/games/rg-350" };
+		string rootDir = getAssetsPath();
+		TRACE("rootDir : %s", rootDir.c_str());
+		if (nullptr == this->opkCache) {
+			this->opkCache = new OpkCache(opkDirs, rootDir);
+		}
+		assert(this->opkCache);
+
+		this->opkCache->update();
+		INFO("MAIN - RUN 2");
+		this->opkCache->update();
+	}
+#endif
+	TRACE("exit");
+}
 GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("enter - install flag : %i", install);
@@ -307,9 +336,10 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 void GMenu2X::main() {
 	
-	TRACE("main - enter");
+	TRACE("enter");
 
-	/* carried over */
+	TRACE("Kicking off our app cache thread");
+	std::thread thread_1(&GMenu2X::updateAppCache, this);
 
 	TRACE("setVolume");
 	setVolume(this->config->globalVolume());
@@ -317,11 +347,9 @@ void GMenu2X::main() {
 	TRACE("input");
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
-
-	TRACE("setting wake up");
 	input.setWakeUpInterval(1000);
 
-	TRACE("not first run - loading");
+	TRACE("calling the loading helper");
 	Loader loader(this);
 	loader.run();
 
@@ -360,7 +388,9 @@ void GMenu2X::main() {
 			this->lastSelectorDir);
 	}
 
-	/* carried over */
+	TRACE("joining app cache thread");
+	thread_1.join();
+	TRACE("app cache thread has finished");
 
 	bool quit = false;
 
@@ -1859,6 +1889,7 @@ void GMenu2X::setCPU(uint32_t mhz) {
 int GMenu2X::getVolume() {
 	TRACE("enter");
 	int vol = -1;
+	#ifdef TARGET_RG350
 	string result = exec(RG350_GET_VOLUME_PATH.c_str());
 	if (result.length() > 0) {
 		vol = atoi(trim(result).c_str());
@@ -1866,6 +1897,9 @@ int GMenu2X::getVolume() {
 	// scale 0 - 31, turn to percent
 	vol = vol * 100 / 31;
 	TRACE("exit : %i", vol);
+	#else
+	vol = 100;
+	#endif
 	return vol;
 }
 
@@ -2008,26 +2042,31 @@ bool GMenu2X::doUpgrade(bool upgradeConfig) {
 }
 
 bool GMenu2X::doInstall() {
-	INFO("GMenu2X::doInstall - enter");
+	TRACE("enter");
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
 	string destination = getAssetsPath();
 
-	INFO("GMenu2X::doInstall - from : %s, to : %s", source.c_str(), destination.c_str());
-	INFO("GMenu2X::doInstall - testing for writable home dir : %s", destination.c_str());
+	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
+	INFO("testing for writable home dir : %s", destination.c_str());
 	
 	bool fullCopy = !dirExists(destination);
 	if (fullCopy) {
-		INFO("GMenu2X::doInstall - doing a full copy");
+		INFO("doing a full copy");
 		stringstream ss;
 		ss << "cp -arp \"" << source << "\" " << destination << " && sync";
 		string call = ss.str();
-		INFO("GMenu2X::doInstall - going to run :: %s", call.c_str());
+		TRACE("going to run :: %s", call.c_str());
 		system(call.c_str());
-		INFO("GMenu2X::doInstall - successful copy of assets");
+		INFO("successful copy of assets");
+
+		INFO("setting up the application cache");
+		this->updateAppCache();
+
 		success = true;
 	}
+
 	sync();
 	TRACE("exit");
 	return success;

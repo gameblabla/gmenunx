@@ -27,16 +27,23 @@ void LinkScannerDialog::exec() {
 	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, lineY);
 
 	lineY += gmenu2x->font->getHeight();
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Updating app cache"], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->flip();
+	gmenu2x->updateAppCache();
+
+/*
+	lineY += gmenu2x->font->getHeight();
 	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/mnt/int_sd"], gmenu2x->listRect.x + 4, lineY);
 	gmenu2x->screen->flip();
 
 	scanPath("/mnt/int_sd", &files);
+*/
 
 	lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/mnt/ext_sd"], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/media/sdcard"], gmenu2x->listRect.x + 4, lineY);
 	gmenu2x->screen->flip();
 
-	scanPath("/mnt/ext_sd", &files);
+	scanPath("/media/sdcard", &files);
 
 	ss << files.size();
 	ss >> str;

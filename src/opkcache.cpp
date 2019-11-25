@@ -263,7 +263,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             }
 
             TRACE("found opk : %s", dptr->d_name);
-            string opkPath = dir + dptr->d_name;
+            string opkPath = dir + "/" + dptr->d_name;
             // we need to 
             // check all the metadata declarations in the opk
             // and extract the section
@@ -276,7 +276,8 @@ bool OpkCache::createMissingOpkDesktopFiles() {
 
             list<OpkHelper::Opk> * opks = OpkHelper::ToOpkList(opkPath);
             if (NULL == opks) {
-                WARNING("OpkCache::createMissingOpkDesktopFiles - got null back");
+                TRACE("got null back");
+                WARNING("got null back");
                 continue;
             }
 
@@ -285,7 +286,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             for (categoryIt = opks->begin(); categoryIt != opks->end(); categoryIt++) {
                 OpkHelper::Opk myOpk = (*categoryIt);
                 string sectionName = myOpk.category;
-                string myHash =  hashKey(myOpk); // myOpk.metadata + "-" + opkPath;
+                string myHash =  hashKey(myOpk);
                 TRACE("looking in cache for hash : %s", myHash.c_str());
                 std::list<std::pair<std::string, DesktopFile>> sectionList = (*this->sectionCache)[sectionName];
                 std::list<std::pair<std::string, DesktopFile>>::iterator listIt;
@@ -339,6 +340,8 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                     }
                     // and add it to the cache
                     this->addToCache(sectionName, *finalFile);
+                } else {
+                    TRACE("found in cache");
                 }
 
             }

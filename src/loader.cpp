@@ -102,12 +102,14 @@ bool Loader::fromFile() {
 
 void Loader::run() {
     TRACE("enter");
+
     bool run = (!fileExists(LOADER_MARKER_FILE) && this->fromFile());
     if (run) {
         this->showLoader();
     } else {
         this->showFallback();
     }
+
     TRACE("exit");
 }
 
@@ -203,6 +205,7 @@ void Loader::showLoader() {
             }
         }
     }
+
     // ------------------------
     delete currImg;
 

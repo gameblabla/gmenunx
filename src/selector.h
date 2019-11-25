@@ -48,7 +48,7 @@ private:
 	LinkApp *link;
 
 	string file, dir;
-	unordered_map<string, string> aliases;
+	std::unordered_map<string, string> aliases;
 	void loadAliases();
 	string getAlias(const string &key, const string &fname);
 	void prepare(FileLister *fl, vector<string> *screens, vector<string> *titles);

@@ -37,6 +37,10 @@ class PowerManager;
 #include "skin.h"
 #include "config.h"
 
+#ifdef HAVE_LIBOPK
+#include "opkcache.h"
+#endif
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -64,8 +68,8 @@ using std::vector;
 using fastdelegate::FastDelegate0;
 
 typedef FastDelegate0<> MenuAction;
-typedef unordered_map<string, string, std::hash<string> > ConfStrHash;
-typedef unordered_map<string, int, std::hash<string> > ConfIntHash;
+typedef std::tr1::unordered_map<string, string, std::hash<string> > ConfStrHash;
+typedef std::tr1::unordered_map<string, int, std::hash<string> > ConfIntHash;
 
 struct MenuOption {
 	string text;
@@ -142,6 +146,10 @@ private:
 	string mountSd();
 	bool doInstall();
 	bool doUpgrade(bool upgradeConfig);
+
+	#ifdef HAVE_LIBOPK
+	OpkCache* opkCache;
+	#endif
 
 public:
 	GMenu2X(bool install = false);
@@ -266,6 +274,7 @@ public:
 	void deleteSection();
 
 	void setWallpaper(const string &wallpaper = "");
+	void updateAppCache();
 
 	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
 	int drawButton(Button *btn, int x=5, int y=-10);
