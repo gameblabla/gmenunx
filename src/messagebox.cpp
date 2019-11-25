@@ -90,7 +90,7 @@ void MessageBox::fadeOut(int delay) {
 }
 
 int MessageBox::exec() {
-	TRACE("MessageBox::exec - enter");
+	TRACE("enter");
 	int result = -1;
 
 	gmenu2x->powerManager->clearTimer();
@@ -98,8 +98,8 @@ int MessageBox::exec() {
 	// Surface bg(gmenu2x->s);
 	//Darken background
 	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0,0,0,bgalpha});
-	TRACE("MessageBox::exec - resx : %i", gmenu2x->config->resolutionX());
-	TRACE("MessageBox::exec - text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
+	TRACE("resx : %i", gmenu2x->config->resolutionX());
+	TRACE("text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
 	int box_w_padding = 24 + ((*gmenu2x->sc)[icon] != NULL ? 37 : 0);
 
@@ -107,25 +107,25 @@ int MessageBox::exec() {
 	int buttonWidth = 0;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
 		if (!buttons[i].empty()) {
-			TRACE("MessageBox::exec - button width being added for : %s", buttonLabels[i].c_str());
+			TRACE("button width being added for : %s", buttonLabels[i].c_str());
 			buttonWidth += buttonLabels[i].length() + 2;
 		}
 	}
-	TRACE("MessageBox::exec - button width : %i", buttonWidth);
+	TRACE("button width : %i", buttonWidth);
 
 	int wrap_size = ((gmenu2x->config->resolutionX() - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
-	TRACE("MessageBox::exec - initial wrap size : %i", wrap_size);
+	TRACE("initial wrap size : %i", wrap_size);
 	if (wrap_size < buttonWidth) {
 		wrap_size = buttonWidth;
 	}
-	TRACE("MessageBox::exec - final wrap size : %i", wrap_size);
+	TRACE("final wrap size : %i", wrap_size);
 
 	string wrapped_text = splitInLines(text, wrap_size);
 	int textWidthPx = gmenu2x->font->getTextWidth(wrapped_text);
 	if (textWidthPx + box_w_padding > gmenu2x->config->resolutionX()) {
 		textWidthPx = gmenu2x->config->resolutionX(); 
 	}
-	TRACE("MessageBox::exec - wrap text : %s", wrapped_text.c_str());
+	TRACE("wrap text : %s", wrapped_text.c_str());
 
 
 	SDL_Rect box;
@@ -210,7 +210,7 @@ int MessageBox::exec() {
 
 	gmenu2x->input.dropEvents(); // prevent passing input away
 	gmenu2x->powerManager->resetSuspendTimer();
-	TRACE("MessageBox::exec - exit : %i", result);
+	TRACE("exit : %i", result);
 	return result;
 }
 

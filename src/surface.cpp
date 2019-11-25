@@ -435,7 +435,7 @@ bool Surface::blit(Surface *destination, SDL_Rect destrect, const uint8_t align,
 }
 
 void Surface::softStretch(uint16_t x, uint16_t y, bool keep_aspect, bool maximize) {
-	TRACE("Surface::softStretch - enter - x : %i, y : %i, raw->w : %i, raw->h : %i", x, y, raw->w, raw->h);
+	TRACE("enter - x : %i, y : %i, raw->w : %i, raw->h : %i", x, y, raw->w, raw->h);
 	if (!maximize && raw->w <= x && raw->h <= y) return;
 	if (keep_aspect) {
 		if (x < y) {
@@ -444,7 +444,7 @@ void Surface::softStretch(uint16_t x, uint16_t y, bool keep_aspect, bool maximiz
 			x = y * raw->w / raw->h;
 		}
 	}
-	TRACE("Surface::softStretch - scaled - x : %i, y : %i", x, y);
+	TRACE("scaled - x : %i, y : %i", x, y);
 
 	Surface *thisSurface = new Surface(this);
 	Surface *outSurface = new Surface(x, y);

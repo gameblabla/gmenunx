@@ -62,6 +62,7 @@
 #include "rtc.h"
 #include "renderer.h"
 #include "loader.h"
+#include "opkcache.h"
 
 #define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
@@ -128,7 +129,7 @@ bool getTVOutStatus() {
 }
 
 GMenu2X::~GMenu2X() {
-	TRACE("GMenu2X::dtor - enter\n\n");
+	TRACE("enter\n\n");
 	quit();
 	delete menu;
 	delete screen;
@@ -139,7 +140,7 @@ GMenu2X::~GMenu2X() {
 	delete skin;
 	delete sc;
 	delete config;
-	TRACE("GMenu2X::dtor - exit\n\n");
+	TRACE("exit\n\n");
 }
 
 void GMenu2X::releaseScreen() {
@@ -147,9 +148,9 @@ void GMenu2X::releaseScreen() {
 }
 
 void GMenu2X::quit() {
-	TRACE("GMenunX::quit - enter");
+	TRACE("enter");
 	if (!this->sc->empty()) {
-		TRACE("GMenu2X::quit - SURFACE EXISTED");
+		TRACE("SURFACE EXISTED");
 		writeConfig();
 		ledOff();
 		fflush(NULL);
@@ -201,14 +202,14 @@ void* mainThread(void* param) {
 
 GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
-	TRACE("GMenu2X::ctor - enter - install flag : %i", install);
-	TRACE("GMenu2X::ctor - creating LED instance");
+	TRACE("enter - install flag : %i", install);
+	TRACE("creating LED instance");
 	led = new LED();
 	
-	TRACE("GMenu2X::ctor - ledOn");
+	TRACE("ledOn");
 	ledOn();
 
-	TRACE("GMenu2X::ctor - getExePath");
+	TRACE("getExePath");
 	exe_path = getExePath();
 
 	bool firstRun = !dirExists(getAssetsPath());
@@ -218,36 +219,36 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	} else {
 		localAssetsPath = getAssetsPath();
 	}
-	TRACE("GMenu2X::ctor - first run : %i, localAssetsPath : %s", firstRun, localAssetsPath.c_str());
+	TRACE("first run : %i, localAssetsPath : %s", firstRun, localAssetsPath.c_str());
 
-	TRACE("GMenu2X::ctor - init translations");
+	TRACE("init translations");
 	tr.setPath(localAssetsPath);
 
-	TRACE("GMenu2X::ctor - readConfig from : %s", localAssetsPath.c_str());
+	TRACE("readConfig from : %s", localAssetsPath.c_str());
 	this->config = new Config(localAssetsPath);
 	readConfig();
 
 	// set this ASAP
-	TRACE("GMenu2X::ctor - backlight");
+	TRACE("backlight");
 	setBacklight(config->backlightLevel());
 
 	//Screen
-	TRACE("GMenu2X::ctor - setEnv");
+	TRACE("setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 
-	TRACE("GMenu2X::ctor - sdl_init");
+	TRACE("sdl_init");
 	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit();
 	}
-	TRACE("GMenu2X::ctor - disabling the cursor");
+	TRACE("disabling the cursor");
 	SDL_ShowCursor(SDL_DISABLE);
 
-	TRACE("GMenu2X::ctor - surface");
+	TRACE("surface");
 	this->screen = new Surface();
 
-	TRACE("GMenu2X::ctor - SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
+	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
 	this->screen->raw = SDL_SetVideoMode(config->resolutionX(), config->resolutionY(), config->videoBpp(), SDL_HWSURFACE|SDL_DOUBLEBUF);
 	
 	this->skin = new Skin(localAssetsPath, config->resolutionX(),  config->resolutionY());
@@ -256,13 +257,13 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	}
 	this->sc = new SurfaceCollection(this->skin, true);
 
-	TRACE("GMenu2X::ctor - initFont");
+	TRACE("initFont");
 	initFont();
 
-	TRACE("GMenu2X::ctor - screen manager");
+	TRACE("screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
 
-	TRACE("GMenu2X::ctor - power mgr");
+	TRACE("power mgr");
 	powerManager = new PowerManager(this,  config->backlightTimeout(), config->powerTimeout());
 
 	if (firstRun) {
@@ -300,7 +301,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 		quit_all(exitCode);
 	}
 
-	TRACE("GMenu2X::ctor - exit");
+	TRACE("exit");
 
 }
 
@@ -310,50 +311,50 @@ void GMenu2X::main() {
 
 	/* carried over */
 
-	TRACE("GMenu2X::main - setVolume");
+	TRACE("setVolume");
 	setVolume(this->config->globalVolume());
 
-	TRACE("GMenu2X::main - input");
+	TRACE("input");
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
 
-	TRACE("GMenu2X::main - setting wake up");
+	TRACE("setting wake up");
 	input.setWakeUpInterval(1000);
 
-	TRACE("GMenu2X::main - not first run - loading");
+	TRACE("not first run - loading");
 	Loader loader(this);
 	loader.run();
 
-	TRACE("GMenu2X::main - setWallpaper");
+	TRACE("setWallpaper");
 	setWallpaper(this->skin->wallpaper);
 
-	TRACE("GMenu2X::main - setPerformanceMode");
+	TRACE("setPerformanceMode");
 	setPerformanceMode();
 
-	TRACE("GMenu2X::main - checkUDC");
+	TRACE("checkUDC");
 	checkUDC();
 
-	TRACE("GMenu2X::main - menu");
+	TRACE("menu");
 	initMenu();
 
-	TRACE("GMenu2X::main - setCpu");
+	TRACE("setCpu");
 	setCPU(this->config->cpuMenu());
 
 	// turn the blinker off
-	TRACE("GMenu2X::main - ledOff");
+	TRACE("ledOff");
 	ledOff();
 
-	TRACE("GMenu2X::ctor - readTmp");
+	TRACE("readTmp");
 	readTmp();
 
 	//recover last session
-	TRACE("GMenu2X::main - recoverSession test");
+	TRACE("recoverSession test");
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
 		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
 		!this->lastSelectorDir.empty())) {
 
-		TRACE("GMenu2X::ctor - recoverSession happening");
+		TRACE("recoverSession happening");
 		this->menu->selLinkApp()->selector(
 			this->lastSelectorElement, 
 			this->lastSelectorDir);
@@ -363,23 +364,23 @@ void GMenu2X::main() {
 
 	bool quit = false;
 
-	TRACE("main :: pthread");
+	TRACE("pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
 
-	TRACE("main :: new renderer");
+	TRACE("new renderer");
 	Renderer *renderer = new Renderer(this);
 
-	TRACE("main :: loop");
+	TRACE("loop");
 	while (!quit) {
 
-		TRACE("main :: render");
+		TRACE("render");
 		try {
 			renderer->render();
 		} catch (int e) {
-			ERROR("main :: render - e : %i", e);
+			ERROR("render - e : %i", e);
 		}
 
 		if (input.isWaiting()) continue;
@@ -433,22 +434,22 @@ void GMenu2X::main() {
 	exitMainThread = true;
 	pthread_join(thread_id, NULL);
 
-	TRACE("main :: exit");
+	TRACE("exit");
 }
 
 void GMenu2X::setWallpaper(const string &wallpaper) {
-	TRACE("GMenu2X::setWallpaper - enter : %s", wallpaper.c_str());
+	TRACE("enter : %s", wallpaper.c_str());
 	if (bg != NULL) delete bg;
 
-	TRACE("GMenu2X::setWallpaper - new surface");
+	TRACE("new surface");
 	bg = new Surface(screen);
-	TRACE("GMenu2X::setWallpaper - bg box");
+	TRACE("bg box");
 	bg->box((SDL_Rect){ 0, 0, config->resolutionX(), config->resolutionY() }, (RGBAColor){0, 0, 0, 0});
 
 	skin->wallpaper = wallpaper;
-	TRACE("GMenu2X::setWallpaper - null test");
+	TRACE("null test");
 	if (wallpaper.empty()) {
-		TRACE("GMenu2X::setWallpaper - simple background mode");
+		TRACE("simple background mode");
 		
 		SDL_FillRect(	bg->raw, 
 						NULL, 
@@ -463,13 +464,13 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 		if (this->sc->addImage(wallpaper) == NULL) {
 			// try and add a default one
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
-			TRACE("GMenu2X::setWallpaper - searching for wallpaper in :%s", relativePath.c_str());
+			TRACE("searching for wallpaper in :%s", relativePath.c_str());
 
 			FileLister fl(getAssetsPath() + relativePath, false, true);
 			fl.setFilter(".png,.jpg,.jpeg,.bmp");
 			fl.browse();
 			if (fl.getFiles().size() > 0) {
-				TRACE("GMenu2X::setWallpaper - found a wallpaper");
+				TRACE("found a wallpaper");
 				skin->wallpaper = fl.getPath() + "/" + fl.getFiles()[0];
 			}
 		}
@@ -479,15 +480,15 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 				this->config->resolutionY(), 
 				false, 
 				true);
-			TRACE("GMenu2X::setWallpaper - blit");
+			TRACE("blit");
 			(*this->sc)[skin->wallpaper]->blit(bg, 0, 0);
 		}
 	}
-	TRACE("GMenu2X::setWallpaper - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::initLayout() {
-	TRACE("GMenu2X::initLayout - enter");
+	TRACE("enter");
 	// LINKS rect
 	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
 	sectionBarRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
@@ -529,53 +530,53 @@ void GMenu2X::initLayout() {
 	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
 	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
 
-	TRACE("GMenu2X::initLayout - exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
+	TRACE("exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
 }
 
 void GMenu2X::initFont() {
-	TRACE("GMenu2X::initFont - enter");
+	TRACE("enter");
 
 	string fontPath = this->skin->getSkinFilePath("font.ttf");
-	TRACE("GMenu2X::initFont - getSkinFilePath: %s", fontPath.c_str());
+	TRACE("getSkinFilePath: %s", fontPath.c_str());
 
 	if (fileExists(fontPath)) {
-		TRACE("GMenu2X::initFont - font file exists");
+		TRACE("font file exists");
 		if (font != NULL) {
-			TRACE("GMenu2X::initFont - delete font");
+			TRACE("delete font");
 			delete font;
 		}
 		if (fontTitle != NULL) {
-			TRACE("GMenu2X::initFont - delete title font");
+			TRACE("delete title font");
 			delete fontTitle;
 		}
 		if (fontSectionTitle != NULL) {
-			TRACE("GMenu2X::initFont - delete title font");
+			TRACE("delete title font");
 			delete fontSectionTitle;
 		}
-		TRACE("GMenu2X::initFont - getFont");
+		TRACE("getFont");
 		font = new FontHelper(fontPath, skin->fontSize, skin->colours.font, skin->colours.fontOutline);
-		TRACE("GMenu2X::initFont - getTileFont");
+		TRACE("getTileFont");
 		fontTitle = new FontHelper(fontPath, skin->fontSizeTitle, skin->colours.font, skin->colours.fontOutline);
-		TRACE("GMenu2X::initFont - exit");
+		TRACE("exit");
 		fontSectionTitle = new FontHelper(fontPath, skin->fontSizeSectionTitle, skin->colours.font, skin->colours.fontOutline);
 	} else {
 		ERROR("GMenu2X::initFont - font file is missing from : %s", fontPath.c_str());
 	}
-	TRACE("GMenu2X::initFont - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::initMenu() {
-	TRACE("GMenu2X::initMenu - enter");
+	TRACE("enter");
 	if (menu != NULL) delete menu;
 
-	TRACE("GMenu2X::initMenu - initLayout");
+	TRACE("initLayout");
 	initLayout();
 
 	//Menu structure handler
-	TRACE("GMenu2X::initMenu - new menu");
+	TRACE("new menu");
 	menu = new Menu(this);
 
-	TRACE("GMenu2X::initMenu - sections loop : %zu", menu->getSections().size());
+	TRACE("sections loop : %zu", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
@@ -637,28 +638,28 @@ void GMenu2X::initMenu() {
 		}
 	}
 	if (config->saveSelection()) {
-		TRACE("GMenu2X::initMenu - menu->setSectionIndex : %i", config->section());
+		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
-		TRACE("GMenu2X::initMenu - menu->setLinkIndex : %i", config->link());
+		TRACE("menu->setLinkIndex : %i", config->link());
 		menu->setLinkIndex(config->link());
 	} else {
 		menu->setSectionIndex(0);
 		menu->setLinkIndex(0);
 	}
-	TRACE("GMenu2X::initMenu - menu->loadIcons");
+	TRACE("menu->loadIcons");
 	menu->loadIcons();
-	TRACE("GMenu2X::initMenu - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::settings() {
-	TRACE("GMenu2X::settings - enter");
+	TRACE("enter");
 	int curGlobalVolume = config->globalVolume();
 	int curGlobalBrightness = config->backlightLevel();
 	bool unhideSections = false;
 	string prevSkin = config->skin();
 	vector<string> skinList = Skin::getSkins(getAssetsPath());
 
-	TRACE("GMenu2X::settings - getting translations");
+	TRACE("getting translations");
 	FileLister fl_tr(getAssetsPath() + "translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
@@ -676,11 +677,11 @@ void GMenu2X::settings() {
 	int backlightLevel = config->backlightLevel();
 	int globalVolume = config->globalVolume();
 
-	TRACE("GMenu2X::settings - found %i translations", fl_tr.fileCount());
+	TRACE("found %i translations", fl_tr.fileCount());
 	if (lang.empty()) {
 		lang = "English";
 	}
-	TRACE("GMenu2X::settings - current language : %s", lang.c_str());
+	TRACE("current language : %s", lang.c_str());
 
 	vector<string> encodings;
 	encodings.push_back("NTSC");
@@ -743,7 +744,7 @@ void GMenu2X::settings() {
 
 		if (lang == "English") lang = "";
 		if (lang != config->lang()) {
-			TRACE("GMenu2X::settings - updating language : %s", lang.c_str());
+			TRACE("updating language : %s", lang.c_str());
 			config->lang(lang);
 			tr.setLang(lang);
 			refreshNeeded = true;
@@ -762,7 +763,7 @@ void GMenu2X::settings() {
 		config->backlightLevel(backlightLevel);
 		config->globalVolume(globalVolume);
 
-		TRACE("GMenu2X::settings - updating the settings");
+		TRACE("updating the settings");
 		if (curGlobalVolume != config->globalVolume()) {
 			curGlobalVolume = setVolume(config->globalVolume());
 		}
@@ -781,30 +782,30 @@ void GMenu2X::settings() {
 			refreshNeeded = true;
 		}
 		if (refreshNeeded && !restartNeeded) {
-			TRACE("GMenu2X::settings - calling init menu");
+			TRACE("calling init menu");
 			initMenu();
 		}
 
-		TRACE("GMenu2X::settings - setScreenTimeout - %i", config->backlightTimeout());
+		TRACE("setScreenTimeout - %i", config->backlightTimeout());
 		screenManager.resetScreenTimer();
 		screenManager.setScreenTimeout(config->backlightTimeout());
 
 		this->writeConfig();
 
 		if (prevDateTime != currentDatetime) {
-			TRACE("GMenu2X::skinMenu - updating datetime");
+			TRACE("updating datetime");
 			MessageBox mb(this, tr["Updating system time"]);
 			mb.setAutoHide(500);
 			mb.exec();
 			rtc->setTime(currentDatetime);
 		}
 		if (restartNeeded) {
-			TRACE("GMenu2X::skinMenu - restarting because skins changed");
+			TRACE("restarting because skins changed");
 			restartDialog();
 		}
 	}
 	delete rtc;
-	TRACE("GMenu2X::settings - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::resetSettings() {
@@ -871,7 +872,7 @@ void GMenu2X::resetSettings() {
 }
 
 void GMenu2X::cpuSettings() {
-	TRACE("GMenu2X::cpuSettings - enter");
+	TRACE("enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
 	int cpuMenu = config->cpuMenu();
 	int cpuMax = config->cpuMax();
@@ -886,11 +887,11 @@ void GMenu2X::cpuSettings() {
 		setCPU(config->cpuMenu());
 		writeConfig();
 	}
-	TRACE("GMenu2X::cpuSettings - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::readTmp() {
-	TRACE("GMenu2X::readTmp - enter");
+	TRACE("enter");
 	lastSelectorElement = -1;
 	if (!fileExists("/tmp/gmenunx.tmp")) return;
 	ifstream inf("/tmp/gmenunx.tmp", ios_base::in);
@@ -929,7 +930,7 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 }
 
 void GMenu2X::readConfig() {
-	TRACE("GMenu2X::readConfig - enter");
+	TRACE("enter");
 	config->loadConfig();
 	if (!config->lang().empty()) {
 		tr.setLang(config->lang());
@@ -937,11 +938,11 @@ void GMenu2X::readConfig() {
 	if (!dirExists(getAssetsPath() + "skins/" + config->skin())) {
 		config->skin("Default");
 	}
-	TRACE("GMenu2X::readConfig - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::writeConfig() {
-	TRACE("GMenu2X::writeConfig - enter");
+	TRACE("enter");
 	ledOn();
 	// don't try and save to RO file system
 	if (getExePath() != getAssetsPath()) {
@@ -951,17 +952,17 @@ void GMenu2X::writeConfig() {
 		}
 		config->save();
 	}
-	TRACE("GMenu2X::writeConfig - ledOff");
+	TRACE("ledOff");
 	ledOff();
-	TRACE("GMenu2X::writeConfig - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::writeSkinConfig() {
-	TRACE("GMenu2X::writeSkinConfig - enter");
+	TRACE("enter");
 	ledOn();
 	skin->save();
 	ledOff();
-	TRACE("GMenu2X::writeSkinConfig - exit");
+	TRACE("exit");
 }
 
 uint32_t GMenu2X::onChangeSkin() {
@@ -969,7 +970,7 @@ uint32_t GMenu2X::onChangeSkin() {
 }
 
 void GMenu2X::skinMenu() {
-	TRACE("GMenu2X::skinMenu - enter");
+	TRACE("enter");
 	bool save = false;
 	int selected = 0;
 	int prevSkinBackdrops = skin->skinBackdrops;
@@ -1064,10 +1065,10 @@ void GMenu2X::skinMenu() {
 		skin->linkDisplayMode = Skin::ICON;
 	} else skin->linkDisplayMode = Skin::TEXT;
 
-	TRACE("GMenu2X::skinMenu - writing config out");
+	TRACE("writing config out");
 	writeSkinConfig();
 
-	TRACE("GMenu2X::skinMenu - checking exit mode");
+	TRACE("checking exit mode");
 	if (currentIconGray != skin->iconsToGrayscale) {
 		restartRequired = true;
 	} else if (currentImageGray != skin->imagesToGrayscale) {
@@ -1076,12 +1077,12 @@ void GMenu2X::skinMenu() {
 		restartRequired = true;
 	}
 	if (restartRequired) {
-		TRACE("GMenu2X::skinMenu - restarting because backdrops or gray scale changed");
+		TRACE("restarting because backdrops or gray scale changed");
 		restartDialog(true);
 	} else {
 		initMenu();
 	}
-	TRACE("GMenu2X::skinMenu - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::skinColors() {
@@ -1108,15 +1109,15 @@ void GMenu2X::skinColors() {
 }
 
 void GMenu2X::about() {
-	TRACE("GMenu2X::about - enter");
+	TRACE("enter");
 	vector<string> text;
 	string temp;
 
 	char *hms = ms2hms(SDL_GetTicks());
 	int battLevel = getBatteryLevel();
-	TRACE("GMenu2X::about - batt level : %i", battLevel);
+	TRACE("batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
-	TRACE("GMenu2X::about - batt percent : %i", battPercent);
+	TRACE("batt percent : %i", battPercent);
 	
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
@@ -1144,20 +1145,20 @@ void GMenu2X::about() {
 	td.appendText(temp);
 	
 	#ifdef TARGET_RG350
-	TRACE("GMenu2X::about - append - command /usr/bin/system_info");
+	TRACE("append - command /usr/bin/system_info");
 	td.appendCommand("/usr/bin/system_info");
 	#else
-	TRACE("GMenu2X::about - append - command /usr/bin/uname -a");
+	TRACE("append - command /usr/bin/uname -a");
 	td.appendCommand("/usr/bin/uname", "-a");
-	TRACE("GMenu2X::about - append - command /usr/bin/lshw -short 2>/dev/null");
+	TRACE("append - command /usr/bin/lshw -short 2>/dev/null");
 	td.appendCommand("/usr/bin/lshw", "-short 2>/dev/null");
 	#endif
 	td.appendText("----\n");
 	
-	TRACE("GMenu2X::about - append - file %sabout.txt", getAssetsPath().c_str());
+	TRACE("append - file %sabout.txt", getAssetsPath().c_str());
 	td.appendFile(getAssetsPath() + "about.txt");
 	td.exec();
-	TRACE("GMenu2X::about - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::viewLog() {
@@ -1193,7 +1194,7 @@ void GMenu2X::linkScanner() {
 }
 
 void GMenu2X::changeWallpaper() {
-	TRACE("GMenu2X::changeWallpaper - enter");
+	TRACE("enter");
 	WallpaperDialog wp(
 		this, 
 		tr["Wallpaper"], 
@@ -1201,12 +1202,12 @@ void GMenu2X::changeWallpaper() {
 		"skin:icons/wallpaper.png");
 
 	if (wp.exec() && skin->wallpaper != wp.wallpaper) {
-		TRACE("GMenu2X::changeWallpaper - new wallpaper : %s", wp.wallpaper.c_str());
+		TRACE("new wallpaper : %s", wp.wallpaper.c_str());
 		setWallpaper(wp.wallpaper);
-		TRACE("GMenu2X::changeWallpaper - write config");
+		TRACE("write config");
 		writeSkinConfig();
 	}
-	TRACE("GMenu2X::changeWallpaper - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::showManual() {
@@ -1231,7 +1232,7 @@ void GMenu2X::showManual() {
 }
 
 void GMenu2X::explorer() {
-	TRACE("GMenu2X::explorer - enter");
+	TRACE("enter");
 	BrowseDialog fd(this, tr["Explorer"], tr["Select a file or application"]);
 	fd.showDirectories = true;
 	fd.showFiles = true;
@@ -1265,7 +1266,7 @@ void GMenu2X::explorer() {
 			execlp("./gmenunx", "./gmenunx", NULL);
 		}
 	}
-	TRACE("GMenu2X::explorer - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::ledOn() {
@@ -1323,9 +1324,9 @@ void GMenu2X::setTVOut(string TVOut) {
 }
 
 string GMenu2X::mountSd() {
-	TRACE("GMenu2X::mountSd - enter");
+	TRACE("enter");
 	string result = exec("mount -t auto /dev/mmcblk1p1 /media/sdcard 2>&1");
-	TRACE("GMenu2X::mountSd - result : %s", result.c_str());
+	TRACE("result : %s", result.c_str());
 	system("sleep 1");
 	checkUDC();
 	return result;
@@ -1408,15 +1409,15 @@ void GMenu2X::umountSdDialog() {
 }
 
 void GMenu2X::checkUDC() {
-	TRACE("GMenu2X::checkUDC - enter");
+	TRACE("enter");
 	curMMCStatus = MMC_ERROR;
 	unsigned long size;
-	TRACE("GMenu2X::checkUDC - reading /sys/block/mmcblk1/size");
+	TRACE("reading /sys/block/mmcblk1/size");
 	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
 	if (fsize >> size) {
 		if (size > 0) {
 			// ok, so we're inserted, are we mounted
-			TRACE("GMenu2X::checkUDC - size was : %lu, reading /proc/mounts", size);
+			TRACE("size was : %lu, reading /proc/mounts", size);
 			std::ifstream procmounts( "/proc/mounts" );
 			if (!procmounts) {
 				curMMCStatus = MMC_ERROR;
@@ -1430,7 +1431,7 @@ void GMenu2X::checkUDC() {
 						found = line.find("mcblk1");
 						if (found != std::string::npos) {
 							curMMCStatus = MMC_MOUNTED;
-							TRACE("GMenu2X::checkUDC - inserted && mounted because line : %s", line.c_str());
+							TRACE("inserted && mounted because line : %s", line.c_str());
 							break;
 						}
 					} else {
@@ -1443,14 +1444,14 @@ void GMenu2X::checkUDC() {
 			}
 		} else {
 			curMMCStatus = MMC_MISSING;
-			TRACE("GMenu2X::checkUDC - not inserted");
+			TRACE("not inserted");
 		}
 	} else {
 		curMMCStatus = MMC_ERROR;
 		WARNING("GMenu2X::checkUDC - error, no card");
 	}
 	fsize.close();
-	TRACE("GMenu2X::checkUDC - exit - %i",  curMMCStatus);
+	TRACE("exit - %i",  curMMCStatus);
 }
 
 /*
@@ -1473,37 +1474,37 @@ void GMenu2X::formatSd() {
 }
 */
 void GMenu2X::setPerformanceMode() {
-	TRACE("GMenu2X::setPerformanceMode - enter - %s", config->performance().c_str());
+	TRACE("enter - %s", config->performance().c_str());
 	string current = getPerformanceMode();
 	string desired = "ondemand";
 	if ("Performance" == config->performance()) {
 		desired = "performance";
 	}
 	if (current.compare(desired) != 0) {
-		TRACE("GMenu2X::setPerformanceMode - update needed :: current %s vs. desired %s", current.c_str(), desired.c_str());
+		TRACE("update needed : current %s vs. desired %s", current.c_str(), desired.c_str());
 		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
 			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
 			initMenu();
 		}
 	} else {
-		TRACE("GMenu2X::setPerformanceMode - nothing to do");
+		TRACE("nothing to do");
 	}
-	TRACE("GMenu2X::setPerformanceMode - exit");	
+	TRACE("exit");	
 }
 
 string GMenu2X::getPerformanceMode() {
-	TRACE("GMenu2X::getPerformanceMode - enter");
+	TRACE("enter");
 	string result = "ondemand";
 	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
 		result = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
 	}
-	TRACE("GMenu2X::getPerformanceMode - exit - %s", result.c_str());
+	TRACE("exit - %s", result.c_str());
 	return full_trim(result);
 }
 
 void GMenu2X::contextMenu() {
 	
-	TRACE("GMenu2X::contextMenu - enter");
+	TRACE("enter");
 	vector<MenuOption> voices;
 	if (menu->selLinkApp() != NULL) {
 		if (menu->selLinkApp()->isEditable() ){
@@ -1544,8 +1545,8 @@ void GMenu2X::contextMenu() {
 	box.x = this->config->halfX() - box.w / 2;
 	box.y = this->config->halfY() - box.h / 2;
 
-	TRACE("GMenu2X::contextMenu - box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	TRACE("GMenu2X::contextMenu - screen - x: %i, y: %i, halfx: %i, halfy: %i",  config->resolutionX(), config->resolutionY(), this->config->halfX(), this->config->halfY());
+	TRACE("box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
+	TRACE("screen - x: %i, y: %i, halfx: %i, halfy: %i",  config->resolutionX(), config->resolutionY(), this->config->halfX(), this->config->halfY());
 	
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
@@ -1586,7 +1587,7 @@ void GMenu2X::contextMenu() {
 			}
 		} while (!inputAction);
 	}
-	TRACE("GMenu2X::contextMenu - exit");
+	TRACE("exit");
 }
 
 void GMenu2X::addLink() {
@@ -1779,7 +1780,7 @@ void GMenu2X::deleteSection() {
 }
 
 int GMenu2X::getBatteryLevel() {
-	//TRACE("GMenu2X::getBatteryLevel - enter");
+	//TRACE("enter");
 
 	int online, result = 0;
 	#ifdef TARGET_RG350
@@ -1789,7 +1790,7 @@ int GMenu2X::getBatteryLevel() {
 	} else {
 		int battery_level = 0;
 		sscanf(fileReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
-		TRACE("GMenu2X::getBatteryLevel - raw battery level - %i", battery_level);
+		TRACE("raw battery level - %i", battery_level);
 		if (battery_level >= 100) result = 5;
 		else if (battery_level > 80) result = 4;
 		else if (battery_level > 60) result = 3;
@@ -1800,7 +1801,7 @@ int GMenu2X::getBatteryLevel() {
 	#else
 	result = 6;
 	#endif
-	TRACE("GMenu2X::getBatteryLevel - scaled battery level : %i", result);
+	TRACE("scaled battery level : %i", result);
 	return result;
 }
 
@@ -1856,7 +1857,7 @@ void GMenu2X::setCPU(uint32_t mhz) {
 }
 
 int GMenu2X::getVolume() {
-	TRACE("GMenu2X::getVolume - enter");
+	TRACE("enter");
 	int vol = -1;
 	string result = exec(RG350_GET_VOLUME_PATH.c_str());
 	if (result.length() > 0) {
@@ -1864,30 +1865,30 @@ int GMenu2X::getVolume() {
 	}
 	// scale 0 - 31, turn to percent
 	vol = vol * 100 / 31;
-	TRACE("GMenu2X::getVolume - exit : %i", vol);
+	TRACE("exit : %i", vol);
 	return vol;
 }
 
 int GMenu2X::setVolume(int val) {
-	TRACE("GMenu2X::setVolume - enter - %i", val);
+	TRACE("enter - %i", val);
 	if (val < 0) val = 100;
 	else if (val > 100) val = 0;
 	if (val == getVolume()) 
 		return val;
 	int rg350val = (int)(val * (31.0f/100));
-	TRACE("GMenu2X::setVolume - rg350 value : %i", rg350val);
+	TRACE("rg350 value : %i", rg350val);
 	stringstream ss;
 	string cmd;
 	ss << RG350_SET_VOLUME_PATH << rg350val;
 	std::getline(ss, cmd);
-	TRACE("GMenu2X::setVolume - cmd : %s", cmd.c_str());
+	TRACE("cmd : %s", cmd.c_str());
 	string result = exec(cmd.c_str());
-	TRACE("GMenu2X::setVolume - result : %s", result.c_str());
+	TRACE("result : %s", result.c_str());
 	return val;
 }
 
 int GMenu2X::getBacklight() {
-	TRACE("GMenu2X::getBacklight - enter");
+	TRACE("enter");
 	int level = 0;
 	#ifdef TARGET_RG350
 	//force  scale 0 - 5
@@ -1898,23 +1899,23 @@ int GMenu2X::getBacklight() {
 	#else
 	level = 5;
 	#endif
-	TRACE("GMenu2X::getBacklight - exit : %i", level);
+	TRACE("exit : %i", level);
 	return level;
 }
 
 int GMenu2X::setBacklight(int val) {
-	TRACE("GMenu2X::setBacklight - enter - %i", val);
+	TRACE("enter - %i", val);
 	if (val <= 0) val = 100;
 	else if (val > 100) val = 0;
 	#ifdef TARGET_RG350
 	int rg350val = (int)(val * (255.0f/100));
-	TRACE("GMenu2X::setBacklight - rg350 value : %i", rg350val);
+	TRACE("rg350 value : %i", rg350val);
 	// save a write
 	if (rg350val == getBacklight()) 
 		return val;
 
 	if (procWriter(RG350_BACKLIGHT_PATH, rg350val)) {
-		TRACE("GMenu2X::setBacklight - success");
+		TRACE("success");
 	} else {
 		ERROR("Couldn't update backlight value to : %i", rg350val);
 	}
@@ -1923,7 +1924,7 @@ int GMenu2X::setBacklight(int val) {
 }
 
 const string &GMenu2X::getExePath() {
-	TRACE("GMenu2X::getExePath - enter path: %s", exe_path.c_str());
+	TRACE("enter path: %s", exe_path.c_str());
 	if (exe_path.empty()) {
 		char buf[255];
 		memset(buf, 0, 255);
@@ -1934,7 +1935,7 @@ const string &GMenu2X::getExePath() {
 		l = exe_path.rfind("/");
 		exe_path = exe_path.substr(0, l + 1);
 	}
-	TRACE("GMenu2X::getExePath - exit path:%s", exe_path.c_str());
+	TRACE("exit path:%s", exe_path.c_str());
 	return exe_path;
 }
 
@@ -1947,10 +1948,10 @@ string GMenu2X::getAssetsPath() {
 	if ((homedir = getenv("HOME")) == NULL) {
 		homedir = getpwuid(getuid())->pw_dir;
 	}
-	DEBUG("GMenu2X::getAssetsPath - homedir : %s", homedir);
+	TRACE("homedir : %s", homedir);
 	result = (string)homedir + "/" + USER_PREFIX;
 	#endif
-	DEBUG("GMenu2X::getAssetsPath - exit : %s", result.c_str());
+	TRACE("exit : %s", result.c_str());
 	assets_path = result;
 	return result;
 }
@@ -2002,7 +2003,7 @@ bool GMenu2X::doUpgrade(bool upgradeConfig) {
 	INFO("GMenu2X::doUpgrade - Upgrade complete");
 	success = true;
 	sync();
-	TRACE("GMenu2X::doUpgrade - exit");
+	TRACE("exit");
 	return success;
 }
 
@@ -2028,21 +2029,21 @@ bool GMenu2X::doInstall() {
 		success = true;
 	}
 	sync();
-	TRACE("GMenu2X::doInstall - exit");
+	TRACE("exit");
 	return success;
 }
 
 string GMenu2X::getDiskFree(const char *path) {
-	TRACE("GMenu2X::getDiskFree - enter - %s", path);
+	TRACE("enter - %s", path);
 	string df = "N/A";
 	struct statvfs b;
 
 	if (statvfs(path, &b) == 0) {
-		TRACE("GMenu2X::getDiskFree - read statvfs ok");
+		TRACE("read statvfs ok");
 		// Make sure that the multiplication happens in 64 bits.
 		uint32_t freeMiB = ((uint64_t)b.f_bfree * b.f_bsize) / (1024 * 1024);
 		uint32_t totalMiB = ((uint64_t)b.f_blocks * b.f_frsize) / (1024 * 1024);
-		TRACE("GMenu2X::getDiskFree - raw numbers - free: %lu, total: %lu, block size: %lu", b.f_bfree, b.f_blocks, b.f_bsize);
+		TRACE("raw numbers - free: %lu, total: %lu, block size: %lu", b.f_bfree, b.f_blocks, b.f_bsize);
 		stringstream ss;
 		if (totalMiB >= 10000) {
 			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "
@@ -2052,7 +2053,7 @@ string GMenu2X::getDiskFree(const char *path) {
 		}
 		std::getline(ss, df);
 	} else WARNING("statvfs failed with error '%s'.\n", strerror(errno));
-	TRACE("GMenu2X::getDiskFree - exit");
+	TRACE("exit");
 	return df;
 }
 

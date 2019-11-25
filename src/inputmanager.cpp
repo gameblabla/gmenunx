@@ -90,15 +90,15 @@ InputManager::~InputManager() {
 }
 
 void InputManager::init(const string &conffile) {
-	TRACE("InputManager::init started");
+	TRACE("init started");
 	initJoysticks();
 	if (!readConfFile(conffile))
 		ERROR("InputManager initialization from config file failed.");
-	TRACE("InputManager::init completed");
+	TRACE("init completed");
 }
 
 void InputManager::initJoysticks() {
-	TRACE("InputManager::initJoysticks started");
+	TRACE("initJoysticks started");
 	SDL_Init(SDL_INIT_JOYSTICK);
 	SDL_JoystickEventState(SDL_ENABLE);
 	
@@ -112,11 +112,11 @@ void InputManager::initJoysticks() {
 		}
 		else WARNING("Failed to initialize joystick: %i", x);
 	}
-	TRACE("InputManager::initJoysticks completed");
+	TRACE("initJoysticks completed");
 }
 
 bool InputManager::readConfFile(const string &conffile) {
-	TRACE("InputManager::readconffile - enter : %s", conffile.c_str());
+	TRACE("enter : %s", conffile.c_str());
 	setActionsCount(20); // plus 2 for BACKLIGHT and POWER
 
 	if (!fileExists(conffile)) {
@@ -136,7 +136,7 @@ bool InputManager::readConfFile(const string &conffile) {
 	vector<string> values;
 
 	while (getline(inf, line, '\n')) {
-		TRACE("InputManager::readconffile - reading : %s", line.c_str());
+		TRACE("reading : %s", line.c_str());
 		linenum++;
 		pos = line.find("=");
 		name = trim(line.substr(0,pos));
@@ -200,9 +200,9 @@ bool InputManager::readConfFile(const string &conffile) {
 			return false;
 		}
 	}
-	TRACE("InputManager::readConfFile - close stream");
+	TRACE("close stream");
 	inf.close();
-	TRACE("InputManager::readConfFile - exit");
+	TRACE("exit");
 	return true;
 }
 
@@ -219,7 +219,7 @@ void InputManager::setActionsCount(int count) {
 }
 
 bool InputManager::update(bool wait) {
-	//TRACE("InputManager::update started : wait = %i", wait);
+	//TRACE("update started : wait = %i", wait);
 	if (waiting_) 
 		return false;
 
@@ -232,108 +232,108 @@ bool InputManager::update(bool wait) {
 		SDL_WaitEvent(&event);
 		
 		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type && SDL_JOYAXISMOTION != event.type) {
-			TRACE("InputManager::update - We're asleep, so we're just going to wake up and eat the timer event");
+			TRACE("We're asleep, so we're just going to wake up and eat the timer event");
 			
 				// let's dump out what we can and isolate the wake up event type
 				switch(event.type) {
                     case SDL_ACTIVEEVENT:
                         if (event.active.state & SDL_APPMOUSEFOCUS) {
                                 if (event.active.gain) {
-                                        TRACE("InputManager::update - event.type test - Mouse focus gained\n");
+                                        TRACE("event.type test - Mouse focus gained\n");
                                 } else {
-                                        TRACE("InputManager::update - event.type test - Mouse focus lost\n");
+                                        TRACE("event.type test - Mouse focus lost\n");
                                 }
                         }
                         if (event.active.state & SDL_APPINPUTFOCUS) {
                                 if (event.active.gain) {
-                                        TRACE("InputManager::update - event.type test - Input focus gained\n");
+                                        TRACE("event.type test - Input focus gained\n");
                                 } else {
-                                        TRACE("InputManager::update - event.type test - Input focus lost\n");
+                                        TRACE("event.type test - Input focus lost\n");
                                 }
                         }
                         if (event.active.state & SDL_APPACTIVE) {
                                 if (event.active.gain) {
-                                        TRACE("InputManager::update - event.type test - Application restored\n");
+                                        TRACE("event.type test - Application restored\n");
                                 } else {
-                                        TRACE("InputManager::update - event.type test - Application iconified\n");
+                                        TRACE("event.type test - Application iconified\n");
                                 }
                         }
                         break;
                     case SDL_KEYDOWN:  /* Handle a KEYDOWN event */
-                        TRACE("InputManager::update - event.type test - Key pressed:\n");
-                        TRACE("InputManager::update - event.type test -        SDL sim: %i\n",event.key.keysym.sym);
-                        TRACE("InputManager::update - event.type test -        modifiers: %i\n",event.key.keysym.mod);
-                        TRACE("InputManager::update - event.type test -        unicode: %i (if enabled with SDL_EnableUNICODE)\n",\
+                        TRACE("event.type test - Key pressed:\n");
+                        TRACE("event.type test -        SDL sim: %i\n",event.key.keysym.sym);
+                        TRACE("event.type test -        modifiers: %i\n",event.key.keysym.mod);
+                        TRACE("event.type test -        unicode: %i (if enabled with SDL_EnableUNICODE)\n",\
                                         event.key.keysym.unicode);
                         break;
                     case SDL_KEYUP:
-                        TRACE("InputManager::update - event.type test - Key released:\n");
-                        TRACE("InputManager::update - event.type test -        SDL sim: %i\n",event.key.keysym.sym);
-                        TRACE("InputManager::update - event.type test -        modifiers: %i\n",event.key.keysym.mod);
-                        TRACE("InputManager::update - event.type test -        unicode: %i (if enabled with SDL_EnableUNICODE)\n",\
+                        TRACE("event.type test - Key released:\n");
+                        TRACE("event.type test -        SDL sim: %i\n",event.key.keysym.sym);
+                        TRACE("event.type test -        modifiers: %i\n",event.key.keysym.mod);
+                        TRACE("event.type test -        unicode: %i (if enabled with SDL_EnableUNICODE)\n",\
                                         event.key.keysym.unicode);
                         break;
                     case SDL_MOUSEMOTION:
-                        TRACE("InputManager::update - event.type test - Mouse moved to: (%i,%i) ", event.motion.x, event.motion.y);
-                        TRACE("InputManager::update - event.type test - change: (%i,%i)\n", event.motion.xrel, event.motion.yrel);
-                        TRACE("InputManager::update - event.type test -        button state: %i\n",event.motion.state);
+                        TRACE("event.type test - Mouse moved to: (%i,%i) ", event.motion.x, event.motion.y);
+                        TRACE("event.type test - change: (%i,%i)\n", event.motion.xrel, event.motion.yrel);
+                        TRACE("event.type test -        button state: %i\n",event.motion.state);
                         break;
                     case SDL_MOUSEBUTTONDOWN:
-                        TRACE("InputManager::update - event.type test - Mouse button %i ",event.button.button);
-                        TRACE("InputManager::update - event.type test - pressed with mouse at (%i,%i)\n",event.button.x,event.button.y);
+                        TRACE("event.type test - Mouse button %i ",event.button.button);
+                        TRACE("event.type test - pressed with mouse at (%i,%i)\n",event.button.x,event.button.y);
                         break;
                     case SDL_MOUSEBUTTONUP:
-                        TRACE("InputManager::update - event.type test - Mouse button %i ",event.button.button);
-                        TRACE("InputManager::update - event.type test - released with mouse at (%i,%i)\n",event.button.x,event.button.y);
+                        TRACE("event.type test - Mouse button %i ",event.button.button);
+                        TRACE("event.type test - released with mouse at (%i,%i)\n",event.button.x,event.button.y);
                         break;
                     case SDL_JOYAXISMOTION:
-                        TRACE("InputManager::update - event.type test - Joystick axis %i ",event.jaxis.axis);
-                        TRACE("InputManager::update - event.type test - on joystick %i ", event.jaxis.which);
-                        TRACE("InputManager::update - event.type test - moved to %i\n", event.jaxis.value);
+                        TRACE("event.type test - Joystick axis %i ",event.jaxis.axis);
+                        TRACE("event.type test - on joystick %i ", event.jaxis.which);
+                        TRACE("event.type test - moved to %i\n", event.jaxis.value);
                         break;
                     case SDL_JOYBALLMOTION:
-                        TRACE("InputManager::update - event.type test - Trackball axis %i ",event.jball.ball);
-                        TRACE("InputManager::update - event.type test - on joystick %i ", event.jball.which);
-                        TRACE("InputManager::update - event.type test - moved to (%i,%i)\n", event.jball.xrel, event.jball.yrel);
+                        TRACE("event.type test - Trackball axis %i ",event.jball.ball);
+                        TRACE("event.type test - on joystick %i ", event.jball.which);
+                        TRACE("event.type test - moved to (%i,%i)\n", event.jball.xrel, event.jball.yrel);
                         break;
                     case SDL_JOYHATMOTION:
-                        TRACE("InputManager::update - event.type test - Hat axis %i ",event.jhat.hat);
-                        TRACE("InputManager::update - event.type test - on joystick %i ", event.jhat.which);
-                        TRACE("InputManager::update - event.type test - moved to %i\n", event.jhat.value);
+                        TRACE("event.type test - Hat axis %i ",event.jhat.hat);
+                        TRACE("event.type test - on joystick %i ", event.jhat.which);
+                        TRACE("event.type test - moved to %i\n", event.jhat.value);
                         break;
                     case SDL_JOYBUTTONDOWN:
-                        TRACE("InputManager::update - event.type test - Joystick button %i ",event.jbutton.button);
-                        TRACE("InputManager::update - event.type test - on joystick %i ", event.jbutton.which);
-                        TRACE("InputManager::update - event.type test - pressed\n");
+                        TRACE("event.type test - Joystick button %i ",event.jbutton.button);
+                        TRACE("event.type test - on joystick %i ", event.jbutton.which);
+                        TRACE("event.type test - pressed\n");
                         break;
                     case SDL_JOYBUTTONUP:
-                        TRACE("InputManager::update - event.type test - Joystick button %i ",event.jbutton.button);
-                        TRACE("InputManager::update - event.type test - on joystick %i ", event.jbutton.which);
-                        TRACE("InputManager::update - event.type test - released\n");
+                        TRACE("event.type test - Joystick button %i ",event.jbutton.button);
+                        TRACE("event.type test - on joystick %i ", event.jbutton.which);
+                        TRACE("event.type test - released\n");
                         break;
                     case SDL_VIDEORESIZE:
-                        TRACE("InputManager::update - event.type test - Window resized to: (%i,%i)\n",event.resize.w, event.resize.h);
+                        TRACE("event.type test - Window resized to: (%i,%i)\n",event.resize.w, event.resize.h);
                         break;
                     case SDL_VIDEOEXPOSE:
-                        TRACE("InputManager::update - event.type test - Window exposed\n");
+                        TRACE("event.type test - Window exposed\n");
                         break;
                     case SDL_QUIT:
-                        TRACE("InputManager::update - event.type test - Request to quit\n");
+                        TRACE("event.type test - Request to quit\n");
                         break;
                     case SDL_USEREVENT:
-                        TRACE("InputManager::update - event.type test - User event:\n");
-                        TRACE("InputManager::update - event.type test -        code:  %i\n",event.user.code);
-                        TRACE("InputManager::update - event.type test -        data1: %p\n",event.user.data1);
-                        TRACE("InputManager::update - event.type test -        data2: %p\n",event.user.data2);
+                        TRACE("event.type test - User event:\n");
+                        TRACE("event.type test -        code:  %i\n",event.user.code);
+                        TRACE("event.type test -        data1: %p\n",event.user.data1);
+                        TRACE("event.type test -        data2: %p\n",event.user.data2);
                         break;
                     case SDL_SYSWMEVENT:
-                        TRACE("InputManager::update - event.type test - Window manager event\n");
+                        TRACE("event.type test - Window manager event\n");
                         break;
                     default: /* Report an unhandled event */
-                        TRACE("InputManager::update - event.type test - I don't know what this event is!\n");
+                        TRACE("event.type test - I don't know what this event is!\n");
                   };
 			
-			TRACE("InputManager::update - event.type == %i", event.type);
+			TRACE("event.type == %i", event.type);
 			screenManager.resetScreenTimer();
 			waiting_ = false;
 			return false;
@@ -346,14 +346,14 @@ bool InputManager::update(bool wait) {
 		} else if (event.type == SDL_KEYUP) {
 			anyactions = true;
 			SDL_Event evcopy = event;
-			TRACE("InputManager::update - WAIT KEYUP : %i", event.key.keysym.sym);
+			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
 		}
 	} //else {
 		while (SDL_PollEvent(&event)) {
 			if (event.type == SDL_KEYUP) {
 				anyactions = true;
 				SDL_Event evcopy = event;
-				TRACE("InputManager::update - POLL KEYUP : %i", event.key.keysym.sym);
+				TRACE("POLL KEYUP : %i", event.key.keysym.sym);
 			}
 		}
 	//}
@@ -378,7 +378,7 @@ bool InputManager::update(bool wait) {
 		screenManager.resetScreenTimer();
 	}
 
-	//TRACE("InputManager::update completed");
+	//TRACE("update completed");
 	waiting_ = false;
 	return anyactions;
 }
@@ -448,7 +448,7 @@ void InputManager::setInterval(int ms, int action) {
 }
 
 void InputManager::setWakeUpInterval(int ms) {
-	//TRACE("InputManager::setWakeUpInterval - enter - %i", ms);
+	//TRACE("enter - %i", ms);
 	if (wakeUpTimer != NULL)
 		SDL_RemoveTimer(wakeUpTimer);
 
@@ -457,7 +457,7 @@ void InputManager::setWakeUpInterval(int ms) {
 }
 
 uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
-	//TRACE("InputManager::wakeUp - enter");
+	//TRACE("enter");
 	SDL_Event *event = new SDL_Event();
 	event->type = SDL_WAKEUPEVENT;
 	SDL_PushEvent( event );

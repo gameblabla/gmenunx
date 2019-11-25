@@ -39,7 +39,7 @@ const string &FileLister::getPath() {
 	return path;
 }
 void FileLister::setPath(const string &path, bool doBrowse) {
-	TRACE("FileLister::setpath - enter - path : %s, browse : %i", path.c_str(), doBrowse);
+	TRACE("enter - path : %s, browse : %i", path.c_str(), doBrowse);
 	this->path = real_path(path);
 	if (doBrowse)
 		browse();
@@ -49,12 +49,12 @@ const string &FileLister::getFilter() {
 	return filter;
 }
 void FileLister::setFilter(const string &filter) {
-	TRACE("FileLister::setFilter - %s", filter.c_str());
+	TRACE("%s", filter.c_str());
 	this->filter = trim(filter);
 }
 
 void FileLister::browse() {
-	TRACE("FileLister::browse - enter");
+	TRACE("enter");
 	directories.clear();
 	files.clear();
 
@@ -75,7 +75,7 @@ void FileLister::browse() {
 
 		while ((dptr = readdir(dirp))) {
 			file = dptr->d_name;
-			TRACE("FileLister::browse - raw result : %s", file.c_str());
+			TRACE("raw result : %s", file.c_str());
 			// skip self and hidden dirs
 			if (file[0] == '.') continue;
 			// checked supressed list
@@ -84,42 +84,42 @@ void FileLister::browse() {
 					continue;
 			}
 
-			//TRACE("FileLister::browse - raw result : %s - post excludes", file.c_str());
+			//TRACE("raw result : %s - post excludes", file.c_str());
 			filepath = path + "/" + file;
 			int statRet = stat(filepath.c_str(), &st);
 			if (statRet == -1) {
 				ERROR("Stat failed on '%s' with error '%s'", filepath.c_str(), strerror(errno));
 				continue;
 			}
-			//TRACE("FileLister::browse - raw result : %s - post stat", file.c_str());
+			//TRACE("raw result : %s - post stat", file.c_str());
 
 			if (S_ISDIR(st.st_mode)) {
 				if (!showDirectories) continue;
-				//TRACE("FileLister::browse - adding directory : %s", file.c_str());
+				//TRACE("adding directory : %s", file.c_str());
 				directories.push_back(file);
 			} else {
 				if (!showFiles) continue;
 				if (vfilter.empty()) {
-					//TRACE("FileLister::browse - no filters, so adding file : %s", file.c_str());
+					//TRACE("no filters, so adding file : %s", file.c_str());
 					files.push_back(file);
 					continue;
 				} else {
 					//loop through each filter and check the end of the file for a match
-					//TRACE("FileLister::browse - raw result : %s - checking filters", file.c_str());
+					//TRACE("raw result : %s - checking filters", file.c_str());
 					for (vector<string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
 						// skip any empty filters...
-						//TRACE("FileLister::browse - itterator is : %s", (*it).c_str());
+						//TRACE("itterator is : %s", (*it).c_str());
 						int filterLength = (*it).length();
-						//TRACE("FileLister::browse - itterator length test : %i", filterLength);
+						//TRACE("itterator length test : %i", filterLength);
 						if (0 == filterLength) continue;
 						// skip testing any files shorter than the filter size
-						//TRACE("FileLister::browse - file length test : %i < %i", file.length(), filterLength);
+						//TRACE("file length test : %i < %i", file.length(), filterLength);
 						if (file.length() < filterLength) continue;
 
-						//TRACE("FileLister::browse - ends with test");
+						//TRACE("ends with test");
 						// the real test, does the end match our filter
 						if (file.compare(file.length() - filterLength, filterLength, *it) == 0) {
-							//TRACE("FileLister::browse - adding file : %s", file.c_str());
+							//TRACE("adding file : %s", file.c_str());
 							files.push_back(file);
 							break;
 						}
@@ -128,16 +128,16 @@ void FileLister::browse() {
 			}
 		}
 		closedir(dirp);
-		//TRACE("FileLister::browse - sort starts");
+		//TRACE("sort starts");
 		std::sort(files.begin(), files.end(), case_less());
 		std::sort(directories.begin(), directories.end(), case_less());
-		//TRACE("FileLister::browse - sort ended");
+		//TRACE("sort ended");
 		// add a dir up option at the front if not excluded
 		if (showDirectories && path != "/" && allowDirUp) 
 			directories.insert(directories.begin(), "..");
 	}
 
-	TRACE("FileLister::browse - exit");
+	TRACE("exit");
 }
 
 uint32_t FileLister::size() {

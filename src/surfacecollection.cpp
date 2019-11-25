@@ -54,20 +54,20 @@ Surface *SurfaceCollection::addIcon(const string &path, bool alpha) {
 }
 
 Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) {
-	TRACE("SurfaceCollection::add - enter - %s", path.c_str());
+	TRACE("enter - %s", path.c_str());
 	if (path.empty()) return NULL;
-	TRACE("SurfaceCollection::add - path exists test");
+	TRACE("path exists test");
 	if (exists(path)) return surfaces[path];
 
 	string filePath = path;
 	if (filePath.substr(0,5)=="skin:") {
-		TRACE("SurfaceCollection::add - matched on skin:");
+		TRACE("matched on skin:");
 		filePath = this->skin->getSkinFilePath(filePath.substr(5,filePath.length()));
-		TRACE("SurfaceCollection::add - filepath - %s", filePath.c_str());
+		TRACE("filepath - %s", filePath.c_str());
 		if (filePath.empty())
 			return NULL;
 	} else if (!fileExists(filePath)) {
-		TRACE("SurfaceCollection::add - file doesn't exist");
+		TRACE("file doesn't exist");
 		return NULL;
 	}
 
@@ -76,10 +76,10 @@ Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) 
 	if (s != NULL) {
 		if (grayScale)
 			s->toGrayScale();
-		TRACE("SurfaceCollection::add - adding surface to collection");
+		TRACE("adding surface to collection");
 		surfaces[path] = s;
 	}
-	TRACE("SurfaceCollection::add - exit");
+	TRACE("exit");
 	return s;
 }
 

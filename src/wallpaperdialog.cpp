@@ -34,7 +34,7 @@ WallpaperDialog::WallpaperDialog(GMenu2X *gmenu2x, const string &title, const st
 
 bool WallpaperDialog::exec()
 {
-	TRACE("WallpaperDialog::exec - enter");
+	TRACE("enter");
 	bool close = false, result = true, inputAction = false;
 
 	uint32_t i, iY, firstElement = 0;
@@ -47,29 +47,29 @@ bool WallpaperDialog::exec()
 	wallpapers = gmenu2x->skin->getWallpapers();
 	
 	wallpaper = base_name(wallpaper);
-	TRACE("WallpaperDialog::exec - wallpaper base name resolved :: %s", wallpaper.c_str());
+	TRACE("wallpaper base name resolved : %s", wallpaper.c_str());
 
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
 		if (wallpaper == wallpapers[i]) selected = i;
 	}
-	TRACE("WallpaperDialog::exec - selected wallpaper #%i of %zu", selected, wallpapers.size());
+	TRACE("selected wallpaper #%i of %zu", selected, wallpapers.size());
 	
-	TRACE("WallpaperDialog::exec - looping on user input");
+	TRACE("looping on user input");
 	while (!close) {
 
 		string skinPath = wallpaperPath + wallpapers[selected];
 
-		TRACE("WallpaperDialog::exec - blitting surface :: %s", skinPath.c_str());
+		TRACE("blitting surface : %s", skinPath.c_str());
 		(*gmenu2x->sc)[skinPath]->blit(gmenu2x->screen,0,0);
 
-		TRACE("WallpaperDialog::exec - drawTopBar");
+		TRACE("drawTopBar");
 		drawTopBar(gmenu2x->screen, title, description, icon);
-		TRACE("WallpaperDialog::exec - drawBottomBar");
+		TRACE("drawBottomBar");
 		drawBottomBar(gmenu2x->screen);
-		TRACE("WallpaperDialog::exec - box");
+		TRACE("box");
 		gmenu2x->screen->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
-		TRACE("WallpaperDialog::exec - drawButtons");
+		TRACE("drawButtons");
 		gmenu2x->drawButton(gmenu2x->screen, "a", gmenu2x->tr["Select"],
 		gmenu2x->drawButton(gmenu2x->screen, "start", gmenu2x->tr["Exit"],5));
 
@@ -79,23 +79,23 @@ bool WallpaperDialog::exec()
 
 		//Files & Directories
 		iY = gmenu2x->listRect.y + 1;
-		TRACE("WallpaperDialog::exec - loop dirs");
+		TRACE("loop dirs");
 		for (i = firstElement; i < wallpapers.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 			if (i == selected) gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
 			gmenu2x->screen->write(gmenu2x->font, wallpapers[i], gmenu2x->listRect.x + 5, iY + rowHeight/2, VAlignMiddle);
 		}
 
-		TRACE("WallpaperDialog::exec - drawScrollBar");
+		TRACE("drawScrollBar");
 		gmenu2x->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
-		TRACE("WallpaperDialog::exec - flip");
+		TRACE("flip");
 		gmenu2x->screen->flip();
 
-		TRACE("WallpaperDialog::exec - loop");
+		TRACE("loop");
 		do {
 			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 
-			TRACE("WallpaperDialog::exec - got an action");
+			TRACE("got an action");
 			if ( gmenu2x->input[UP] ) {
 				selected -= 1;
 				if (selected < 0) selected = wallpapers.size() - 1;
@@ -121,14 +121,14 @@ bool WallpaperDialog::exec()
 			}
 		} while (!inputAction);
 	}
-	TRACE("WallpaperDialog::exec - end of inputActions");
+	TRACE("end of inputActions");
 	
-	TRACE("WallpaperDialog::exec - looping through %zu wallpapers", wallpapers.size());
+	TRACE("looping through %zu wallpapers", wallpapers.size());
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
 		string skinPath = wallpaperPath + wallpapers[i];
-		TRACE("WallpaperDialog::exec - deleting surface from collection :: %s", skinPath.c_str());
+		TRACE("deleting surface from collection : %s", skinPath.c_str());
 		gmenu2x->sc->del(skinPath);
 	}
-	TRACE("WallpaperDialog::exec - exit - %i", result);
+	TRACE("exit - %i", result);
 	return result;
 }

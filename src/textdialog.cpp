@@ -165,9 +165,9 @@ void TextDialog::appendFile(const string &file) {
 }
 
 void TextDialog::appendCommand(const string &executable, const string &args) {
-	TRACE("TextDialog::appendCommand - enter : running %s %s", executable.c_str(), args.c_str());
+	TRACE("enter : running %s %s", executable.c_str(), args.c_str());
 	if (fileExists(executable)) {
-		TRACE("TextDialog::appendCommand - executable exists");
+		TRACE("executable exists");
 		char buffer[128];
 		std::string result = "";
 		std::string final = executable;
@@ -187,5 +187,5 @@ void TextDialog::appendCommand(const string &executable, const string &args) {
 		pclose(pipe);
 		this->rawText += result;
 	}
-	TRACE("TextDialog::appendCommand - exit");
+	TRACE("exit");
 }

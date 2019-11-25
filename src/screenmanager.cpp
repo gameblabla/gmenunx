@@ -11,7 +11,7 @@
 ScreenManager *ScreenManager::instance = nullptr;
 
 Uint32 screenTimerCallback(Uint32 timeout, void *d) {
-	TRACE("ScreenManager::screenTimerCallback - enter");
+	TRACE("enter");
 	unsigned int * old_ticks = (unsigned int *) d;
 	unsigned int new_ticks = SDL_GetTicks();
 
@@ -21,7 +21,7 @@ Uint32 screenTimerCallback(Uint32 timeout, void *d) {
 		return timeout;
 	}
 
-	TRACE("ScreenManager::screenTimerCallback - Disable Backlight Event\n");
+	TRACE("Disable Backlight Event\n");
 	ScreenManager::instance->disableScreen();
 	return 0;
 }
@@ -48,13 +48,13 @@ bool ScreenManager::isAsleep() {
 }
 
 void ScreenManager::setScreenTimeout(unsigned int seconds) {
-	TRACE("ScreenManager::setScreenTimeout : %i", seconds);
+	TRACE(" %i", seconds);
 	screenTimeout = seconds;
 	resetScreenTimer();
 }
 
 void ScreenManager::resetScreenTimer() {
-	//TRACE("ScreenManager::resetScreenTimer - enter");
+	//TRACE("enter");
 	removeScreenTimer();
 	enableScreen();
 	if (screenTimeout != 0) {
@@ -63,9 +63,9 @@ void ScreenManager::resetScreenTimer() {
 }
 
 void ScreenManager::addScreenTimer() {
-	//TRACE("ScreenManager::addScreenTimer - enter");
+	//TRACE("enter");
 	assert(!screenTimer);
-	//TRACE("ScreenManager::addScreenTimer - no screen timer exists");
+	//TRACE("no screen timer exists");
 	timeout_startms = SDL_GetTicks();
 	screenTimer = SDL_AddTimer(
 			screenTimeout * 1000, screenTimerCallback, &timeout_startms);
@@ -75,18 +75,18 @@ void ScreenManager::addScreenTimer() {
 }
 
 void ScreenManager::removeScreenTimer() {
-	//TRACE("ScreenManager::removeScreenTimer - enter");
+	//TRACE("enter");
 	if (screenTimer) {
-		//TRACE("ScreenManager::removeScreenTimer - timer exists");
+		//TRACE("timer exists");
 		SDL_RemoveTimer(screenTimer);
 		screenTimer = nullptr;
-		//TRACE("ScreenManager::removeScreenTimer - timer safely removed");
+		//TRACE("timer safely removed");
 	}
 }
 
 #define SCREEN_BLANK_PATH "/sys/class/graphics/fb0/blank"
 void ScreenManager::setScreenBlanking(bool state) {
-	TRACE("ScreenManager::setScreenBlanking - %s", (state ? "on" : "off"));
+	TRACE("%s", (state ? "on" : "off"));
 	const char *path = SCREEN_BLANK_PATH;
 	const char *blank = state ? "0" : "1";
 
@@ -107,7 +107,7 @@ void ScreenManager::setScreenBlanking(bool state) {
 }
 
 void ScreenManager::enableScreen() {
-	TRACE("ScreenManager::enableScreen - enter");
+	TRACE("enter");
 	asleep = false;
 	if (!screenState) {
 		setScreenBlanking(true);
@@ -115,7 +115,7 @@ void ScreenManager::enableScreen() {
 }
 
 void ScreenManager::disableScreen() {
-	TRACE("ScreenManager::disableScreen - enter");
+	TRACE("enter");
 	asleep = true;
 	if (screenState) {
 		setScreenBlanking(false);

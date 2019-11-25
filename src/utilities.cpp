@@ -306,13 +306,13 @@ string fileExtension(const string & filename) {
 }
 
 bool procWriter(string path, string value) {
-	TRACE("procWriter:: - %s - %s", path.c_str(), value.c_str());
+	TRACE("%s - %s", path.c_str(), value.c_str());
 	if (fileExists(path)) {
-		TRACE("procWriter:: - file exists");
+		TRACE("file exists");
 		ofstream str(path);
 		str << value;
 		str.close();
-		TRACE("procWriter:: - success");
+		TRACE("success");
 		return true;
 	}
 	return false;

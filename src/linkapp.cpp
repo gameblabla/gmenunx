@@ -45,11 +45,11 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
 	inputMgr(gmenu2x->input) {
 
-	TRACE("LinkApp::LinkApp - ctor - enter - linkfile : %s", linkfile);
+	TRACE("linkfile : %s", linkfile);
 	manual = manualPath = "";
 	file = linkfile;
 
-	TRACE("LinkApp::LinkApp - ctor - setCPU");
+	TRACE("ctor - setCPU");
 	setCPU(gmenu2x->config->cpuMenu());
 
 	selectordir = "";
@@ -62,15 +62,15 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	deletable = deletable_;
 
-	TRACE("LinkApp::LinkApp - ctor - setting opk by testing value of : %p", opk);
+	TRACE("ctor - setting opk by testing value of : %p", opk);
 	isOPK = (0 != opk);
-	TRACE("LinkApp::LinkApp - ctor - setting metadata : %s", metadata_);
+	TRACE("ctor - setting metadata : %s", metadata_);
 
 	bool appTakesFileArg = true;
 /* ---------------------------------------------------------------- */
 
 	if (isOPK) {
-		TRACE("LinkApp::LinkApp - ctor - handling opk :%s", file.c_str());
+		TRACE("ctor - handling opk :%s", file.c_str());
 		// let's override these guys for sure
 		deletable = editable = false;
 
@@ -87,11 +87,11 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		opkMount = opkMount.substr(0, pos);
 		string metaIcon;
 
-		TRACE("LinkApp::LinkApp - ctor - opkMount : %s", opkMount.c_str());
+		TRACE("ctor - opkMount : %s", opkMount.c_str());
 		appTakesFileArg = false;
 		category = "applications";
 
-		TRACE("LinkApp::LinkApp - ctor - reading pairs from meta begins");
+		TRACE("ctor - reading pairs from meta begins");
 		while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
 			if (ret < 0) {
 				ERROR("Unable to read meta-data");
@@ -106,28 +106,28 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				pos = category.find(';');
 				if (pos != category.npos)
 					category = category.substr(0, pos);
-				TRACE("LinkApp::LinkApp - ctor - opk::category : %s", category.c_str());
+				TRACE("category : %s", category.c_str());
 			} else if (!strncmp(key, "Name", lkey)) {
 				title = buf;
-				TRACE("LinkApp::LinkApp - ctor - opk::title : %s", title.c_str());
+				TRACE("title : %s", title.c_str());
 			} else if (!strncmp(key, "Comment", lkey) && description.empty()) {
 				description = buf;
-				TRACE("LinkApp::LinkApp - ctor - opk::description : %s", description.c_str());
+				TRACE("description : %s", description.c_str());
 			} else if (!strncmp(key, "Terminal", lkey)) {
 				consoleapp = !strncmp(val, "true", lval);
-				TRACE("LinkApp::LinkApp - ctor - opk::consoleapp : %i", consoleapp);
+				TRACE("consoleapp : %i", consoleapp);
 			} else if (!strncmp(key, "X-OD-Manual", lkey)) {
 				manual = buf;
-				TRACE("LinkApp::LinkApp - ctor - opk::manual : %s", manual.c_str());
+				TRACE("manual : %s", manual.c_str());
 			} else if (!strncmp(key, "Icon", lkey)) {
 				metaIcon = (string)buf;
-				TRACE("LinkApp::LinkApp - ctor - opk::icon : %s", metaIcon.c_str());
+				TRACE("icon : %s", metaIcon.c_str());
 			} else if (!strncmp(key, "Exec", lkey)) {
 				exec = buf;
-				TRACE("LinkApp::LinkApp - ctor - opk::raw exec : %s", exec.c_str());
+				TRACE("raw exec : %s", exec.c_str());
 				for (auto token : tokens) {
 					if (exec.find(token) != exec.npos) {
-						TRACE("LinkApp::LinkApp - ctor - opk::exec takes a token");
+						TRACE("exec takes a token");
 						selectordir = CARD_ROOT;
 						appTakesFileArg = true;
 						break;
@@ -135,19 +135,19 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				}
 				continue;
 			} else if (!strncmp(key, "selectordir", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::selector dir : %s", buf);
+				TRACE("selector dir : %s", buf);
 				setSelectorDir(buf);
 			} else if (!strncmp(key, "selectorfilter", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::selector filter : %s", buf);
+				TRACE("selector filter : %s", buf);
 				setSelectorFilter(buf);
 			} else if (!strncmp(key, "Type", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::Type : %s", buf);
+				TRACE("Type : %s", buf);
 			} else if (!strncmp(key, "StartupNotify", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::StartupNotify : %s", buf);
+				TRACE("StartupNotify : %s", buf);
 			} else if (!strncmp(key, "X-OD-NeedsDownscaling", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::X-OD-NeedsDownscaling : %s", buf);
+				TRACE("X-OD-NeedsDownscaling : %s", buf);
 			} else if (!strncmp(key, "MimeType", lkey)) {
-				TRACE("LinkApp::LinkApp - ctor - opk::MimeType : %s", buf);
+				TRACE("MimeType : %s", buf);
 			} else {
 				//WARNING("Unrecognized OPK link option: '%s'", key);
 			}
@@ -156,27 +156,27 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		// let's sort out icons
 		string shortFileName = metaIcon + ".png";
 		string ip = "icons/" + shortFileName;
-		TRACE("LinkApp::LinkApp - ctor - looking for icon at : %s", ip.c_str());
+		TRACE("ctor - looking for icon at : %s", ip.c_str());
 		// Read the icon from the OPK if it doesn't exist on the skin
 		searchIcon(metaIcon, false);
 		if (!iconPath.empty()) {
-			TRACE("LinkApp::LinkApp - ctor - icon found in local skin");
+			TRACE("ctor - icon found in local skin");
 			this->icon = iconPath;
 		} else {
 			// let's extract the image and use for now, and save it locally for the future
-			TRACE("LinkApp::LinkApp - ctor - icon not found, looking in the opk");
+			TRACE("ctor - icon not found, looking in the opk");
 			string opkImagePath = file + "#" + shortFileName;
-			TRACE("LinkApp::LinkApp - ctor - loading OPK icon from : %s", opkImagePath.c_str());
+			TRACE("ctor - loading OPK icon from : %s", opkImagePath.c_str());
 			SDL_Surface *tmpIcon = loadPNG(opkImagePath, true);
 			if (tmpIcon) {
-				TRACE("LinkApp::LinkApp - ctor - loaded opk icon ok");
+				TRACE("ctor - loaded opk icon ok");
 				string outPath = gmenu2x->skin->currentSkinPath() + "/icons";
 				if (dirExists(outPath)) {
 					string outFile = outPath + "/" + basename(shortFileName.c_str());
-					TRACE("LinkApp::LinkApp - ctor - saving icon to : %s", outFile.c_str());
+					TRACE("ctor - saving icon to : %s", outFile.c_str());
 					if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
 						string workingName = "skin:" + ip;
-						TRACE("LinkApp::LinkApp - ctor - working name is : %s", workingName.c_str());
+						TRACE("ctor - working name is : %s", workingName.c_str());
 						this->icon = workingName;
 					} else {
 						ERROR("LinkApp::LinkApp - ctor - couldn't save icon png");
@@ -185,12 +185,12 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 					ERROR("LinkApp::LinkApp - ctor - directory doesn't exist : %s", outPath.c_str());
 				}
 			} else {
-				TRACE("LinkApp::LinkApp - ctor - loaded opk icon failed");
+				TRACE("ctor - loaded opk icon failed");
 				this->icon = opkImagePath;
 			}
 		}
 
-		TRACE("LinkApp::LinkApp - ctor - opk::icon set to : %s", this->icon.c_str());
+		TRACE("icon set to : %s", this->icon.c_str());
 
 		// end of icons
 
@@ -202,11 +202,11 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	else {
 		this->editable = this->deletable = deletable;
-		TRACE("LinkApp::LinkApp - ctor - handling normal desktop file :%s", linkfile);
+		TRACE("ctor - handling normal desktop file :%s", linkfile);
 		string line;
-		TRACE("LinkApp::LinkApp - ctor - creating ifstream");
+		TRACE("ctor - creating ifstream");
 		ifstream infile (linkfile, ios_base::in);
-		TRACE("LinkApp::LinkApp - ctor - iterating thru infile : %s", linkfile);
+		TRACE("ctor - iterating thru infile : %s", linkfile);
 		while (getline(infile, line, '\n')) {
 
 			line = trim(line);
@@ -228,7 +228,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			} else if (name == "description") {
 					description = value;
 			} else if (name == "icon") {
-					TRACE("LinkApp::LinkApp - ctor - setting icon value to %s", value.c_str());
+					TRACE("ctor - setting icon value to %s", value.c_str());
 					setIcon(value);
 			} else if (name == "exec") {
 					exec = value;
@@ -255,18 +255,18 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			}
 
 		}
-		TRACE("LinkApp::LinkApp - ctor - closing infile");
+		TRACE("ctor - closing infile");
 		infile.close();
 
 		// try and find an icon 
 		if (iconPath.empty()) {
-			TRACE("LinkApp::LinkApp - ctor - searching for icon");
+			TRACE("ctor - searching for icon");
 			searchIcon(exec, true);
 		}
 
 	}	// !opk
 
-	TRACE("LinkApp::LinkApp - ctor exit : %s", this->toString().c_str());
+	TRACE("ctor exit : %s", this->toString().c_str());
 	edited = false;
 }
 
@@ -328,7 +328,7 @@ const string &LinkApp::searchIcon() {
 }
 
 const string &LinkApp::searchIcon(string path, bool fallBack) {
-	TRACE("LinkApp::searchIcon - enter - fallback : %i", fallBack);
+	TRACE("enter - fallback : %i", fallBack);
 
 	// get every permutation possible from the metadata opts
 	string execicon = path;
@@ -354,7 +354,7 @@ const string &LinkApp::searchIcon(string path, bool fallBack) {
 		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
 	}
 
-	TRACE("LinkApp::searchIcon - exit - iconPath : %s", iconPath.c_str());
+	TRACE("exit - iconPath : %s", iconPath.c_str());
 	return iconPath;
 }
 
@@ -378,18 +378,18 @@ bool LinkApp::targetExists() {
 	if (!exec.empty() && exec[0] != '/' && !workdir.empty())
 		target = workdir + "/" + exec;
 
-	TRACE("LinkApp::targetExists - looking for : %s", target.c_str());
+	TRACE("looking for : %s", target.c_str());
 	return fileExists(target);
 }
 
 bool LinkApp::save() {
-	TRACE("LinkApp::save - enter : %s", file.c_str());
+	TRACE("enter : %s", file.c_str());
 	if (!edited) {
-		TRACE("LinkApp::save - not edited, nothing to save");
+		TRACE("not edited, nothing to save");
 		return false;
 	}
 	if (isOpk()) {
-		TRACE("LinkApp::save - OPK, nothing to save");
+		TRACE("OPK, nothing to save");
 		return false;
 	}
 
@@ -397,26 +397,26 @@ bool LinkApp::save() {
 	out << this->toString();
 
 	if (out.tellp() > 0) {
-		TRACE("LinkApp::save - saving data : %s", out.str().c_str());
+		TRACE("saving data : %s", out.str().c_str());
 		ofstream f(file.c_str());
 		if (f.is_open()) {
 			f << out.str();
 			f.close();
 			sync();
-			TRACE("LinkApp::save - save success");
+			TRACE("save success");
 			return true;
 		} else {
 			ERROR("LinkApp::save - Error while opening the file '%s' for write.\n", file.c_str());
 			return false;
 		}
 	} else {
-		TRACE("LinkApp::save - Empty app settings: %s\n", file.c_str());
+		TRACE("Empty app settings: %s\n", file.c_str());
 		return unlink(file.c_str()) == 0 || errno == ENOENT;
 	}
 }
 
 void LinkApp::favourite(string launchArgs, string supportingFile) {
-	TRACE("LinkApp::favourite - enter - launchArgs : %s, supportingFile : %s", 
+	TRACE("enter - launchArgs : %s, supportingFile : %s", 
 		launchArgs.c_str(), 
 		supportingFile.c_str());
 
@@ -446,7 +446,7 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	}
 	/*
 	if (fileExists(favePath)) {
-		TRACE("LinkApp::selector - deleting existing favourite : %s", favePath.c_str());
+		TRACE("deleting existing favourite : %s", favePath.c_str());
 		unlink(favePath.c_str());
 	}
 	*/
@@ -459,15 +459,15 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 
 	if (this->isOPK) {
 		string opkParams = "-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs;
-		TRACE("LinkApp::selector - saving an opk favourite to : %s", favePath.c_str());
-		TRACE("LinkApp::selector - opk exec path : %s", OPKRUN_PATH.c_str());
-		TRACE("LinkApp::selector - opk params : %s", opkParams.c_str());
+		TRACE("saving an opk favourite to : %s", favePath.c_str());
+		TRACE("opk exec path : %s", OPKRUN_PATH.c_str());
+		TRACE("opk params : %s", opkParams.c_str());
 		fave->setExec(OPKRUN_PATH);
 		fave->setParams(opkParams);
 	} else {
-		TRACE("LinkApp::selector - saving a normal favourite to : %s", favePath.c_str());
-		TRACE("LinkApp::selector - normal exec path : %s", this->exec.c_str());
-		TRACE("LinkApp::selector - normal params : %s", launchArgs.c_str());
+		TRACE("saving a normal favourite to : %s", favePath.c_str());
+		TRACE("normal exec path : %s", this->exec.c_str());
+		TRACE("normal params : %s", launchArgs.c_str());
 		fave->setExec(this->exec);
 		fave->setParams(launchArgs);
 	}
@@ -482,10 +482,10 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 		int secIndex = this->gmenu2x->menu->getSectionIndex(FAVOURITE_FOLDER);
 		this->gmenu2x->menu->setSectionIndex(secIndex);
 		this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
-		TRACE("LinkApp::selector - favourite saved");
+		TRACE("favourite saved");
 	} else delete fave;
 	
-	TRACE("LinkApp::favourite - exit");
+	TRACE("exit");
 }
 
 void LinkApp::makeFavourite() {
@@ -501,7 +501,7 @@ void LinkApp::makeFavourite() {
  */
 
 void LinkApp::run() {
-	TRACE("LinkApp::run - enter");
+	TRACE("enter");
 	if (!selectordir.empty()) {
 		selector();
 	} else {
@@ -514,7 +514,7 @@ void LinkApp::run() {
  * lauches a supporting file selector if needed
  */
 void LinkApp::selector(int startSelection, const string &selectorDir) {
-	TRACE("LinkApp::selector - enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
+	TRACE("enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
 
 	//Run selector interface - this is the order of specificity
 	string myDir = selectorDir;
@@ -533,9 +533,9 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 		string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
 
 		if (sel.isFavourited()) {
-			TRACE("LinkApp::selector - we're saving a favourite");
+			TRACE("we're saving a favourite");
 			string romFile = sel.getDir() + sel.getFile();
-			TRACE("LinkApp::selector - launchArgs : %s, romFile : %s", launchArgs.c_str(), romFile.c_str());
+			TRACE("launchArgs : %s, romFile : %s", launchArgs.c_str(), romFile.c_str());
 			favourite(launchArgs, romFile);
 
 		} else {
@@ -551,7 +551,7 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 
 	// selectedFile means a rom or some kind of data file..
 	if (!selectedFile.empty()) {
-		TRACE("LinkApp::launch - we have a selected file to work with : %s", selectedFile.c_str());
+		TRACE("we have a selected file to work with : %s", selectedFile.c_str());
 		// break out the dir, filename and extension
 		string selectedFileExtension;
 		string selectedFileName;
@@ -560,7 +560,7 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 		selectedFileExtension = fileExtension(selectedFile);
 		selectedFileName = fileBaseName(selectedFile);
 
-		TRACE("LinkApp::launch - name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
+		TRACE("name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
 		if (selectedDir.empty())
 			dir = getSelectorDir();
 		else
@@ -571,11 +571,11 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 			if (0 != dir.compare(dir.length() -1, 1, "/")) 
 				dir += "/";
 		} else dir = "/";
-		TRACE("LinkApp::launch - dir : %s", dir.c_str());
+		TRACE("dir : %s", dir.c_str());
 
 		if (params.empty()) {
 			launchArgs = "\"" + dir + selectedFile + "\"";
-			TRACE("LinkApp::launch - no params, so cleaned to : %s", launchArgs.c_str());
+			TRACE("no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
 			
 			launchArgs = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
@@ -596,21 +596,21 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 }
 
 void LinkApp::launch(string launchArgs) {
-	TRACE("LinkApp::launch - enter - args: %si", launchArgs.c_str());
+	TRACE("enter - args: %si", launchArgs.c_str());
 
 	if (!isOpk()) {
-		TRACE("LinkApp::launch - not an opk");
+		TRACE("not an opk");
 		//Set correct working directory
 		string wd = getRealWorkdir();
-		TRACE("LinkApp::launch - real work dir = %s", wd.c_str());
+		TRACE("real work dir = %s", wd.c_str());
 		if (!wd.empty()) {
 			chdir(wd.c_str());
-			TRACE("LinkApp::launch - changed into wrkdir");
+			TRACE("changed into wrkdir");
 		}
 	}
 
 	if (gmenu2x->config->saveSelection()) {
-		TRACE("LinkApp::launch - updating selections");
+		TRACE("updating selections");
 		gmenu2x->config->section(gmenu2x->menu->selSectionIndex());
 		gmenu2x->config->link(gmenu2x->menu->selLinkIndex());
 	}
@@ -621,14 +621,14 @@ void LinkApp::launch(string launchArgs) {
 
 	if (isOpk()) {
 		execute = "/usr/bin/opkrun -m " + metadata + " \"" + opkFile + "\"";
-		TRACE("LinkApp::launch - running an opk via : %s", execute.c_str());
+		TRACE("running an opk via : %s", execute.c_str());
 		if (!launchArgs.empty()) {
-			TRACE("LinkApp::launch - running an opk with extra params : %s", launchArgs.c_str());
+			TRACE("running an opk with extra params : %s", launchArgs.c_str());
 			execute += " " + launchArgs;
 		}
 
 	} else {
-		TRACE("LinkApp::launch - running a standard desktop file");
+		TRACE("running a standard desktop file");
 		// Check to see if permissions are desirable
 		struct stat fstat;
 		if ( stat( exec.c_str(), &fstat ) == 0 ) {
@@ -639,23 +639,23 @@ void LinkApp::launch(string launchArgs) {
 		} // else, well.. we are no worse off :)
 
 		execute = exec + " " + launchArgs;
-		TRACE("LinkApp::launch - standard file cmd lime : %s",  execute.c_str());
+		TRACE("standard file cmd lime : %s",  execute.c_str());
 	}
 	if (gmenu2x->config->outputLogs()) {
 		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
-		TRACE("LinkApp::launch - adding logging");
+		TRACE("adding logging");
 	}
-	TRACE("LinkApp::launch - Final command : %s", execute.c_str());
+	TRACE("Final command : %s", execute.c_str());
 	commandLine.push_back(execute);
 
 	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
 	if (toLaunch) {
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
-		TRACE("LinkApp::launch - quit");
+		TRACE("quit");
 		gmenu2x->quit();
 
-		TRACE("LinkApp::launch - calling exec");
+		TRACE("calling exec");
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed
 		// everything, the easiest solution is to exit and let the system
@@ -663,7 +663,7 @@ void LinkApp::launch(string launchArgs) {
 		delete toLaunch;
 	}
 
-	TRACE("LinkApp::launch - exit");
+	TRACE("exit");
 }
 
 const string &LinkApp::getExec() {

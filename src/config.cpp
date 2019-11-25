@@ -21,13 +21,13 @@ using std::ofstream;
 using std::string;
 
 Config::Config(string const &prefix) {
-    TRACE("Config::Skin - enter - prefix : %s", prefix.c_str());
+    TRACE("enter - prefix : %s", prefix.c_str());
     this->prefix = prefix;
     this->isDirty = false;
 }
 
 Config::~Config() {
-    TRACE("Config::~Config");
+    TRACE("~Config");
 }
 
 string Config::toString() {
@@ -79,10 +79,10 @@ string Config::toString() {
 }
 
 bool Config::save() {
-    TRACE("Config::save - enter");
+    TRACE("enter");
     if (this->isDirty) {
         string fileName = this->prefix + CONFIG_FILE_NAME;
-        TRACE("Config::save - saving to : %s", fileName.c_str());
+        TRACE("saving to : %s", fileName.c_str());
         std::ofstream config(fileName.c_str());
         if (config.is_open()) {
             config << this->toString();
@@ -91,12 +91,12 @@ bool Config::save() {
             this->isDirty = false;
         }
     }
-    TRACE("Config::save - exit");
+    TRACE("exit");
     return true;
 }
 
 bool Config::loadConfig() {
-    TRACE("Config::loadConfig - enter");
+    TRACE("enter");
     this->reset();
     if (this->fromFile()) {
         this->constrain();
@@ -109,7 +109,7 @@ bool Config::loadConfig() {
 /* Private methods */
 
 void Config::reset() {
-    TRACE("Config::reset - enter");
+    TRACE("enter");
 
      //strings
     this->externalAppPath_ = APP_EXTERNAL_PATH;
@@ -150,7 +150,7 @@ void Config::reset() {
 
     this->version_ = CONFIG_CURRENT_VERSION;
 
-    TRACE("Config::reset - exit");
+    TRACE("exit");
     return;
 }
 
@@ -185,13 +185,13 @@ void Config::constrain() {
 }
 
 bool Config::fromFile() {
-    TRACE("Config::fromFile - enter");
+    TRACE("enter");
     bool result = false;
     string fileName = this->prefix + CONFIG_FILE_NAME;
-    TRACE("Config::fromFile - loading config file from : %s", fileName.c_str());
+    TRACE("loading config file from : %s", fileName.c_str());
 
 	if (fileExists(fileName)) {
-		TRACE("Config::fromFile - config file exists");
+		TRACE("config file exists");
 		std::ifstream confstream(fileName.c_str(), std::ios_base::in);
 		if (confstream.is_open()) {
 			string line;
@@ -208,7 +208,7 @@ bool Config::fromFile() {
                 if (0 == value.length()) continue;
                 name = toLower(name);
 
-                TRACE("Config::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
+                TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 // strings
                 if (name == "externalapppath") {
@@ -267,7 +267,7 @@ bool Config::fromFile() {
                 } else if (name == "version") {
                     this->version(atoi(value.c_str()));
                 } else {
-                    WARNING("Config::fromFile - unknown key : %s", name.c_str());
+                    WARNING("unknown key : %s", name.c_str());
                 }
 
             };
@@ -275,6 +275,6 @@ bool Config::fromFile() {
             result = true;
         }
     }
-    TRACE("Config::fromFile - exit");
+    TRACE("exit");
     return result;
 }

@@ -36,7 +36,7 @@ const string PREVIEWS_DIR = ".previews";
 
 Selector::Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir) :
 Dialog(gmenu2x) {
-	TRACE("Selector::Selector - enter : %s", selectorDir.c_str());
+	TRACE("enter : %s", selectorDir.c_str());
 	this->link = link;
 	loadAliases();
 	selRow = 0;
@@ -48,7 +48,7 @@ Dialog(gmenu2x) {
 }
 
 int Selector::exec(int startSelection) {
-	TRACE("Selector::exec - enter - startSelection : %i", startSelection);
+	TRACE("enter - startSelection : %i", startSelection);
 
 	// does the link have a backdrop that takes precendence over the background
 	if ((*gmenu2x->sc)[link->getBackdrop()] != NULL) 
@@ -57,7 +57,7 @@ int Selector::exec(int startSelection) {
 	bool close = false, result = true, inputAction = false;
 	vector<string> screens, titles;
 
-	TRACE("Selector::exec - starting selector");
+	TRACE("starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
 
 	// do we have screen shots?
@@ -122,7 +122,7 @@ int Selector::exec(int startSelection) {
 
 					// only stretch it once if possible
 					if (!gmenu2x->sc->exists(screenPath)) {
-						TRACE("Selector::prepare - 1st load - stretching screen path : %s", screenPath.c_str());
+						TRACE("1st load - stretching screen path : %s", screenPath.c_str());
 						(*gmenu2x->sc)[screenPath]->softStretch(
 							gmenu2x->config->resolutionX(), 
 							gmenu2x->config->resolutionY() - gmenu2x->skin->menuInfoBarHeight - gmenu2x->skin->menuTitleBarHeight, 
@@ -184,7 +184,7 @@ int Selector::exec(int startSelection) {
 
 					string screenPath = screens.at(currentFileIndex);
 					if (!gmenu2x->sc->exists(screenPath)) {
-						TRACE("Selector::exec - 1st load windowed - stretching screen path : %s", screenPath.c_str());
+						TRACE("1st load windowed - stretching screen path : %s", screenPath.c_str());
 						(*gmenu2x->sc)[screenPath]->softStretch(
 							gmenu2x->skin->previewWidth - 3 * padding, 
 							gmenu2x->listRect.h - 3 * padding, 
@@ -313,7 +313,7 @@ int Selector::exec(int startSelection) {
 			} else if ( gmenu2x->input[INC] ) {
 				// favourite
 				if (fl.isFile(selected)) {
-					TRACE("Selector::exec - Favourite : %s", fl[selected].c_str());
+					TRACE("Favourite : %s", fl[selected].c_str());
 					this->favourited = true;
 					file = fl[selected];
 					close = true;
@@ -325,13 +325,13 @@ int Selector::exec(int startSelection) {
 	gmenu2x->sc->defaultAlpha = true;
 	freeScreenshots(&screens);
 
-	TRACE("Selector::exec - exit : %i", result ? (int)selected : -1);
+	TRACE("exit : %i", result ? (int)selected : -1);
 	return result ? (int)selected : -1;
 }
 
 // checks for screen shots etc
 void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *titles) {
-	TRACE("Selector::prepare - enter");
+	TRACE("enter");
 
 	if (this->dir.length() > 0) {
 		if (0 != this->dir.compare(dir.length() -1, 1, "/")) 
@@ -339,15 +339,15 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	} else this->dir = "/";
 	fl->setPath(this->dir, false);
 
-	TRACE("Selector::exec - setting filter");
+	TRACE("setting filter");
 	string filter = link->getSelectorFilter();
 	fl->setFilter(filter);
-	TRACE("Selector::exec - filter : %s", filter.c_str());
+	TRACE("filter : %s", filter.c_str());
 
-	TRACE("Selector::exec - calling browse");
+	TRACE("calling browse");
 	fl->browse();
 	freeScreenshots(screens);
-	TRACE("Selector::exec - found %i files and dirs", fl->size());
+	TRACE("found %i files and dirs", fl->size());
 	this->numDirs = fl->dirCount();
 	this->numFiles = fl->fileCount();
 
@@ -362,7 +362,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 			realPath += "/";
 	} else realPath = "/";
 	bool previewsDirExists = dirExists(realPath + PREVIEWS_DIR);
-	TRACE("Selector::prepare - realPath : %s, exists : %i", realPath.c_str(), previewsDirExists);
+	TRACE("realPath : %s, exists : %i", realPath.c_str(), previewsDirExists);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -403,10 +403,10 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 			}
 		}
 		if (!screens->at(i).empty()) {
-			TRACE("Selector::prepare - adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+			TRACE("adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
 		}
 	}
-	TRACE("Selector::prepare - exit - loaded %zu screens", screens->size());
+	TRACE("exit - loaded %zu screens", screens->size());
 }
 
 void Selector::freeScreenshots(vector<string> *screens) {
@@ -417,7 +417,7 @@ void Selector::freeScreenshots(vector<string> *screens) {
 }
 
 void Selector::loadAliases() {
-	TRACE("Selector::loadAliases - enter");
+	TRACE("enter");
 	aliases.clear();
 	if (fileExists(link->getAliasFile())) {
 		string line;
@@ -430,11 +430,11 @@ void Selector::loadAliases() {
 		}
 		infile.close();
 	}
-	TRACE("Selector::loadAliases - exit : loaded %zu aliases", aliases.size());
+	TRACE("exit : loaded %zu aliases", aliases.size());
 }
 
 string Selector::getAlias(const string &key, const string &fname) {
-	//TRACE("Selector::getAlias - enter");
+	//TRACE("enter");
 	if (aliases.empty()) return fname;
 	unordered_map<string, string>::iterator i = aliases.find(key);
 	if (i == aliases.end())

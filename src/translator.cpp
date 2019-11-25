@@ -42,19 +42,19 @@ bool Translator::exists(const string &term) {
 }
 
 void Translator::setPath(const string &path) {
-	TRACE("Translator::setPath : %s", path.c_str());
+	TRACE("%s", path.c_str());
 	_path = path;
 	if (!_lang.empty())
 		setLang(_lang);
 }
 
 void Translator::setLang(const string &lang) {
-	TRACE("Translator::setLang : %s", lang.c_str());
+	TRACE("%s", lang.c_str());
 	translations.clear();
 
 	string line;
 	string path = _path + "translations/" + lang;
-	TRACE("Translator::setLang : opening - %s", path.c_str());
+	TRACE("opening - %s", path.c_str());
 	ifstream infile (path.c_str(), ios_base::in);
 	if (infile.is_open()) {
 		while (getline(infile, line, '\n')) {
@@ -66,7 +66,7 @@ void Translator::setLang(const string &lang) {
 			translations[ trim(line.substr(0,position)) ] = trim(line.substr(position+1));
 		}
 		infile.close();
-		TRACE("Translator::setLang : read completed");
+		TRACE("read completed");
 		_lang = lang;
 	}
 }

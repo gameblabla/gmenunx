@@ -62,12 +62,12 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 }
 
 Renderer::~Renderer() {
-    TRACE("Renderer::~Renderer");
+    TRACE("~Renderer");
 
 }
 
 void Renderer::render() {
-    TRACE("Renderer::render - enter");
+    TRACE("enter");
 
     int x = 0;
     int y = 0;
@@ -75,13 +75,13 @@ void Renderer::render() {
     int iy = 0;
 
 	// if we're going to draw helpers, get their latest value
-	TRACE("Renderer::render - section bar test");
+	TRACE("section bar test");
 	if (gmenu2x->skin->sectionBar) {
-		TRACE("Renderer::render - section bar exists in skin settings");
+		TRACE("section bar exists in skin settings");
 		tickNow = SDL_GetTicks();
 		// update helper icons every 1 secs
 		if (tickNow - tickBattery >= 1000) {
-			TRACE("Renderer::render - updating helper icon status");
+			TRACE("updating helper icon status");
 			tickBattery = tickNow;
 			batteryIcon = gmenu2x->getBatteryLevel();
 			if (batteryIcon > 5) batteryIcon = 6;
@@ -92,11 +92,11 @@ void Renderer::render() {
 			int currentVolume = gmenu2x->getVolume();
 			currentVolumeMode = this->getVolumeMode(currentVolume);
             rtc.refresh();
-			TRACE("Renderer::render - helper icon status updated");
+			TRACE("helper icon status updated");
 		}
     }
 
-    TRACE("Renderer::setting the clearing box");
+    TRACE("setting the clearing box");
 	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0, 0, 0, 255});
 
 	// do a background image or a background colour 
@@ -107,10 +107,10 @@ void Renderer::render() {
 	}
 
 	// info bar
-	TRACE("Renderer::infoBar");
+	TRACE("infoBar test");
 	if (gmenu2x->skin->sectionInfoBarVisible) {
 		if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
-			TRACE("Renderer::infoBar - needs drawing");
+			TRACE("infobar needs drawing");
 
 			SDL_Rect infoBarRect;
 			switch(gmenu2x->skin->sectionBar) {
@@ -136,16 +136,16 @@ void Renderer::render() {
 
 			// do we have an image
 			if (!gmenu2x->skin->sectionInfoBarImage.empty()) {
-				TRACE("Renderer::infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
+				TRACE("infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
 				if ((*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
-					TRACE("Renderer::infoBar image is being scaled");
+					TRACE("infoBar image is being scaled");
 					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
 				}
 				(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->blit(
 					gmenu2x->screen, 
 					infoBarRect);
 			} else {
-				TRACE("Renderer::infoBar has no image, going for a simple box");
+				TRACE("infoBar has no image, going for a simple box");
 				gmenu2x->screen->box(infoBarRect, gmenu2x->skin->colours.infoBarBackground);
 			}
 
@@ -168,34 +168,34 @@ void Renderer::render() {
 	}
 		
 	// SECTIONS
-	TRACE("Renderer::sections");
+	TRACE("sections");
 	if (gmenu2x->skin->sectionBar) {
 
 		// do we have an image
 		if (!gmenu2x->skin->sectionTitleBarImage.empty()) {
-			TRACE("Renderer::sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
+			TRACE("sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
 			if ((*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
-				TRACE("Renderer::sectionBar image is being scaled");
+				TRACE("sectionBar image is being scaled");
 				(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
 			}
 			(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->blit(
 				gmenu2x->screen, 
 				gmenu2x->sectionBarRect);
 		} else {
-			TRACE("Renderer::sectionBar has no image, going for a simple box");
+			TRACE("sectionBar has no image, going for a simple box");
 			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.titleBarBackground);
 		}
 
 		x = gmenu2x->sectionBarRect.x; 
 		y = gmenu2x->sectionBarRect.y;
 
-        TRACE("Renderer::sections - checking mode");
+        TRACE("checking mode");
 		// we're in section text mode....
 		if (!gmenu2x->skin->showSectionIcons && (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM)) {
-            TRACE("Renderer::sections - section text mode");
+            TRACE("section text mode");
             string sectionName = gmenu2x->menu->selSection();
 
-            TRACE("Renderer::sections - section text mode - writing title");
+            TRACE("section text mode - writing title");
 			gmenu2x->screen->write(
 				gmenu2x->fontSectionTitle, 
 				"\u00AB " + gmenu2x->tr.translate(sectionName) + " \u00BB", 
@@ -203,12 +203,12 @@ void Renderer::render() {
 				gmenu2x->sectionBarRect.y + (gmenu2x->sectionBarRect.h / 2),
 				HAlignCenter | VAlignMiddle);
 
-            TRACE("Renderer::sections - section text mode - checking clock");
+            TRACE("section text mode - checking clock");
 			if (gmenu2x->skin->showClock) {	
 
-                TRACE("Renderer::sections - section text mode - writing clock");
+                TRACE("section text mode - writing clock");
                 string clockTime = rtc.getClockTime(true);
-                TRACE("Renderer::sections - section text mode - got clock time : %s", clockTime.c_str());
+                TRACE("section text mode - got clock time : %s", clockTime.c_str());
 				gmenu2x->screen->write(
 					gmenu2x->fontSectionTitle, 
 					clockTime, 
@@ -218,7 +218,7 @@ void Renderer::render() {
 			}
 
 		} else {
-            //TRACE("Renderer::sections - icon mode");
+            //TRACE("icon mode");
 			for (int i = gmenu2x->menu->firstDispSection(); i < gmenu2x->menu->getSections().size() && i < gmenu2x->menu->firstDispSection() + gmenu2x->menu->sectionNumItems(); i++) {
 				if (gmenu2x->skin->sectionBar == Skin::SB_LEFT || gmenu2x->skin->sectionBar == Skin::SB_RIGHT) {
 					y = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
@@ -226,9 +226,9 @@ void Renderer::render() {
 					x = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
 				}
 
-                //TRACE("Renderer::sections - icon mode - got x and y");
+                //TRACE("icon mode - got x and y");
 				if (gmenu2x->menu->selSectionIndex() == (int)i) {
-                    //TRACE("Renderer::sections - icon mode - applying highlight");
+                    //TRACE("icon mode - applying highlight");
 					gmenu2x->screen->box(
 						x, 
 						y, 
@@ -236,7 +236,7 @@ void Renderer::render() {
 						gmenu2x->skin->sectionTitleBarSize, 
 						gmenu2x->skin->colours.selectionBackground);
                 }
-                //TRACE("Renderer::sections - icon mode - blit");
+                //TRACE("icon mode - blit");
 				(*gmenu2x->sc)[gmenu2x->menu->getSectionIcon(i)]->blit(
 					gmenu2x->screen, 
 					{x, y, gmenu2x->skin->sectionTitleBarSize, gmenu2x->skin->sectionTitleBarSize}, 
@@ -246,14 +246,14 @@ void Renderer::render() {
 	}
 
 	// LINKS
-	//TRACE("Renderer::links");
+	//TRACE("links");
 	gmenu2x->screen->setClipRect(gmenu2x->linksRect);
 	gmenu2x->screen->box(gmenu2x->linksRect, gmenu2x->skin->colours.listBackground);
 
 	int i = gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols;
 
 	if (gmenu2x->skin->numLinkCols == 1) {
-		//TRACE("Renderer::links - column mode : %i", gmenu2x->menu->sectionLinks()->size());
+		//TRACE("column mode : %i", gmenu2x->menu->sectionLinks()->size());
 		// LIST
         ix = gmenu2x->linksRect.x;
 		for (y = 0; y < gmenu2x->skin->numLinkRows && i < gmenu2x->menu->sectionLinks()->size(); y++, i++) {
@@ -270,7 +270,7 @@ void Renderer::render() {
 
 			int padding = 36;
 			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::ICON) {
-				//TRACE("Menu::loadIcons - theme uses icons");
+				//TRACE("theme uses icons");
 				(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
 					gmenu2x->screen, 
 					{ix, iy, padding, gmenu2x->linkHeight}, 
@@ -280,14 +280,14 @@ void Renderer::render() {
 			}
 				
 			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::TEXT) {
-				//TRACE("Renderer::links - adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getTitle().c_str());
+				//TRACE("adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getTitle().c_str());
 				int localXpos = ix + gmenu2x->linkSpacing + padding;
 				int localAlignTitle = VAlignMiddle;
 				int totalFontHeight = gmenu2x->fontTitle->getHeight() + gmenu2x->font->getHeight();
-				TRACE("Renderer::total Font Height : %i, linkHeight: %i", totalFontHeight, gmenu2x->linkHeight);
+				TRACE("total Font Height : %i, linkHeight: %i", totalFontHeight, gmenu2x->linkHeight);
 
 				if (gmenu2x->skin->sectionBar == Skin::SB_BOTTOM || gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_OFF) {
-					TRACE("Renderer::HITTING MIDDLE ALIGN");
+					TRACE("HITTING MIDDLE ALIGN");
 					localXpos = gmenu2x->linksRect.w / 2;
 					if (totalFontHeight >= gmenu2x->linkHeight) {
 						localAlignTitle = HAlignCenter | VAlignTop;
@@ -313,7 +313,7 @@ void Renderer::render() {
 			}
 		}
 	} else {
-		//TRACE("Renderer::links - row mode : %i", gmenu2x->menu->sectionLinks()->size());
+		//TRACE("row mode : %i", gmenu2x->menu->sectionLinks()->size());
         int ix, iy = 0;
 		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
 			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
@@ -350,7 +350,7 @@ void Renderer::render() {
 				}
 
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
-					//TRACE("Renderer::links - adding icon and text : %s", title.c_str());
+					//TRACE("adding icon and text : %s", title.c_str());
 					(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
 						gmenu2x->screen, 
 						{ix + 2, iy + 2, gmenu2x->linkWidth - 4, gmenu2x->linkHeight - 4}, 
@@ -367,7 +367,7 @@ void Renderer::render() {
 						iy + gmenu2x->linkHeight,
 						HAlignCenter | VAlignBottom);
 				} else {
-					//TRACE("Renderer::links - adding text only : %s", title.c_str());
+					//TRACE("adding text only : %s", title.c_str());
 					gmenu2x->screen->write(gmenu2x->font, 
 						title, 
 						ix + (gmenu2x->linkWidth / 2), 
@@ -378,7 +378,7 @@ void Renderer::render() {
 			}
 		}
 	}
-	//TRACE("Renderer::links - done");
+	//TRACE("done");
 	gmenu2x->screen->clearClipRect();
 
 	gmenu2x->drawScrollBar(gmenu2x->skin->numLinkRows, 
@@ -388,7 +388,7 @@ void Renderer::render() {
 
 	currBackdrop = gmenu2x->skin->wallpaper;
 	if (gmenu2x->menu->selLink() != NULL && gmenu2x->menu->selLinkApp() != NULL && !gmenu2x->menu->selLinkApp()->getBackdropPath().empty() && gmenu2x->sc->addImage(gmenu2x->menu->selLinkApp()->getBackdropPath()) != NULL) {
-		TRACE("Renderer::setting currBackdrop to : %s", gmenu2x->menu->selLinkApp()->getBackdropPath().c_str());
+		TRACE("setting currBackdrop to : %s", gmenu2x->menu->selLinkApp()->getBackdropPath().c_str());
 		currBackdrop = gmenu2x->menu->selLinkApp()->getBackdropPath();
 	}
 
@@ -417,7 +417,7 @@ void Renderer::render() {
 		}
 		int rootXPos = gmenu2x->sectionBarRect.x + gmenu2x->sectionBarRect.w - 18;
 		int rootYPos = gmenu2x->sectionBarRect.y + gmenu2x->sectionBarRect.h - 18;
-		TRACE("Renderer::hitting up the helpers");
+		TRACE("hitting up the helpers");
 
 		helpers.push_back(iconVolume[currentVolumeMode]);
 		helpers.push_back(iconBattery[batteryIcon]);
@@ -437,11 +437,11 @@ void Renderer::render() {
 				}
 			}
 		}
-		TRACE("Renderer::layoutHelperIcons");
+		TRACE("layoutHelperIcons");
 		int * xPosPtr = & rootXPos;
 		int * yPosPtr = & rootYPos;
 		layoutHelperIcons(helpers, gmenu2x->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
-		TRACE("Renderer::helpers.clear()");
+		TRACE("helpers.clear()");
 		helpers.clear();
 
 		if (gmenu2x->skin->showClock) {
@@ -468,14 +468,14 @@ void Renderer::render() {
 		}
 	} // gmenu2x->skin->sectionBar
 
-    TRACE("Renderer::flip"); 
+    TRACE("flip"); 
 	gmenu2x->screen->flip();
-    TRACE("Renderer::exit"); 
+    TRACE("exit"); 
  
 }
 
 void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow) {
-	TRACE("Renderer::layoutHelperIcons - enter - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
+	TRACE("enter - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 	int iconCounter = 0;
 	int currentXOffset = 0;
 	int currentYOffset = 0;
@@ -483,7 +483,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	int rootYPos = *rootYPosPtr;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
-		TRACE("Renderer::layoutHelperIcons - blitting");
+		TRACE("blitting");
 		(*it)->blit(
 			gmenu2x->screen, 
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
@@ -498,6 +498,6 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	};
 	*rootXPosPtr = rootXPos - (currentXOffset * (helperHeight - 2));
 	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
-	TRACE("Renderer::layoutHelperIcons - exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
+	TRACE("exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 }
 

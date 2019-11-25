@@ -32,13 +32,13 @@ Launcher::Launcher(vector<string> && commandLine, bool consoleApp)
 }
 
 void Launcher::exec() {
-	TRACE("Launcher::exec - enter");
+	TRACE("enter");
 	
 	if (consoleApp) {
-		TRACE("Launcher::exec - console app");
+		TRACE("console app");
 
 		/* Enable the framebuffer console */
-		TRACE("Launcher::exec - enabling framebuffer");
+		TRACE("enabling framebuffer");
 		char c = '1';
 		int fd = open("/sys/devices/virtual/vtconsole/vtcon1/bind", O_WRONLY);
 		if (fd < 0) {
@@ -47,7 +47,7 @@ void Launcher::exec() {
 			write(fd, &c, 1);
 			close(fd);
 		}
-		TRACE("Launcher::exec - opening tty handle");
+		TRACE("opening tty handle");
 		fd = open("/dev/tty1", O_RDWR);
 		if (fd < 0) {
 			WARNING("Unable to open tty1 handle\n");
@@ -57,26 +57,26 @@ void Launcher::exec() {
 			close(fd);
 		}
 
-		TRACE("Launcher::exec - end of console specific work");
+		TRACE("end of console specific work");
 	}
 
-	TRACE("Launcher::exec - sorting args out for size : %zu", commandLine.size() + 1);
+	TRACE("sorting args out for size : %zu", commandLine.size() + 1);
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
-	TRACE("Launcher::exec - sorting args reserved");
+	TRACE("sorting args reserved");
 	std::string s;
 	for (auto arg : commandLine) {
-		TRACE("Launcher::exec - pushing back arg : %s", arg.c_str());
+		TRACE("pushing back arg : %s", arg.c_str());
 		args.push_back(arg.c_str());
 		s += " " + arg;
 	}
 	args.push_back(nullptr);
-	TRACE("Launcher::exec - args finished");
-	TRACE("Launcher::exec - exec-ing :: %s", s.c_str());
+	TRACE("args finished");
+	TRACE("exec-ing : %s", s.c_str());
 
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
 	WARNING("Failed to exec '%s': %s\n",
 			commandLine[0].c_str(), strerror(errno));
 	
-	TRACE("Launcher::exec - exit");
+	TRACE("exit");
 }

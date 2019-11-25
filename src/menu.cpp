@@ -41,7 +41,7 @@ const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
 const string OPK_PLATFORM = "gcw0";
 
 Menu::Menu(GMenu2X *gmenu2x) {
-	TRACE("Menu :: ctor - enter");
+	TRACE("enter");
 	this->gmenu2x = gmenu2x;
 	iFirstDispSection = 0;
 
@@ -52,22 +52,22 @@ Menu::Menu(GMenu2X *gmenu2x) {
 
 	vector<string> filter;
 	split(filter, this->gmenu2x->config->sectionFilter(), ",");
-	TRACE("Menu :: ctor - got %zu filter sections", filter.size());
+	TRACE("got %zu filter sections", filter.size());
 
-	TRACE("Menu :: ctor - opening sections");
+	TRACE("opening sections");
 	string resolvedPath = this->gmenu2x->getAssetsPath() + "sections/";
-	TRACE("Menu :: ctor - looking for section in : %s", resolvedPath.c_str());
+	TRACE("looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
-	TRACE("Menu :: ctor - readdir : %zu", (long)dirp);
+	TRACE("readdir : %zu", (long)dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
 		string dirName = string(dptr->d_name);
-		TRACE("Menu :: ctor - reading : %s", dptr->d_name);
+		TRACE("reading : %s", dptr->d_name);
 		filepath = resolvedPath + dirName;
-		TRACE("Menu :: ctor - checking : %s", filepath.c_str());
+		TRACE("checking : %s", filepath.c_str());
 		int statRet = stat(filepath.c_str(), &st);
-		TRACE("Menu :: ctor - reading stat : %i", statRet);
+		TRACE("reading stat : %i", statRet);
 		if (!S_ISDIR(st.st_mode)) continue;
 		if (statRet != -1) {
 			// check the filters
@@ -80,44 +80,44 @@ Menu::Menu(GMenu2X *gmenu2x) {
 				}
 			}
 			if (!filtered) {
-				TRACE("Menu :: ctor - adding section : %s", dptr->d_name);
+				TRACE("adding section : %s", dptr->d_name);
 				sections.push_back((string)dptr->d_name);
 				linklist ll;
 				links.push_back(ll);
 			}
 		}
 	}
-	TRACE("Menu :: ctor - dirp has been read");
+	TRACE("dirp has been read");
 	
-	TRACE("Menu :: ctor - add sections");
+	TRACE("add sections");
 	addSection("settings");
-	TRACE("Menu :: ctor - add applications");
+	TRACE("add applications");
 	addSection("applications");
 
-	TRACE("Menu :: ctor - close dirp");
+	TRACE("close dirp");
 	closedir(dirp);
-	TRACE("Menu :: ctor - sort");
+	TRACE("sort");
 	sort(sections.begin(),sections.end(),case_less());
-	TRACE("Menu :: ctor - set index 0");
+	TRACE("set index 0");
 	setSectionIndex(0);
-	TRACE("Menu :: ctor - read links");
+	TRACE("read links");
 	readLinks();
 
-	TRACE("Menu :: ctor - read internal OPK links");
+	TRACE("read internal OPK links");
 	openPackagesFromDir(OPK_INTERNAL_PATH);
 
 	string appPath = gmenu2x->config->externalAppPath();
 
-	TRACE("Menu :: ctor - searching for external OPK links under : %s", appPath.c_str());
+	TRACE("searching for external OPK links under : %s", appPath.c_str());
 	if (dirExists(appPath)) {
-		TRACE("Menu :: ctor - external search root dir : %s", appPath.c_str());
+		TRACE("external search root dir : %s", appPath.c_str());
 		openPackagesFromDir(appPath);
 	}
 
-	TRACE("Menu :: ctor - ordering links");
+	TRACE("ordering links");
 	orderLinks();
 
-	TRACE("Menu :: ctor - exit");
+	TRACE("exit");
 }
 
 Menu::~Menu() {
@@ -129,13 +129,13 @@ uint32_t Menu::firstDispRow() {
 }
 
 void Menu::loadIcons() {
-	TRACE("Menu::loadIcons - enter");
+	TRACE("enter");
 
 	for (uint32_t i = 0; i < sections.size(); i++) {
 		string sectionIcon = "sections/" + sections[i] + ".png";
-		TRACE("Menu::loadIcons - section : %s", sections[i].c_str());
+		TRACE("section : %s", sections[i].c_str());
 		if (!gmenu2x->skin->getSkinFilePath(sectionIcon).empty()) {
-			TRACE("Menu::loadIcons - section  icon: skin:%s", sectionIcon.c_str());
+			TRACE("section  icon: skin:%s", sectionIcon.c_str());
 			gmenu2x->sc->addIcon("skin:" + sectionIcon);
 		}
 
@@ -143,19 +143,19 @@ void Menu::loadIcons() {
 		string linkIcon;
 		for (uint32_t x = 0; x < sectionLinks(i)->size(); x++) {
 			linkIcon = sectionLinks(i)->at(x)->getIcon();
-			TRACE("Menu::loadIcons - link : %s", sectionLinks(i)->at(x)->getTitle().c_str());
-			TRACE("Menu::loadIcons - link icon : %s", linkIcon.c_str());
+			TRACE("link : %s", sectionLinks(i)->at(x)->getTitle().c_str());
+			TRACE("link icon : %s", linkIcon.c_str());
 
-			TRACE("Menu::loadIcons - link : casting the link app");
+			TRACE("link : casting the link app");
 			LinkApp *linkapp = dynamic_cast<LinkApp*>(sectionLinks(i)->at(x));
 
 			if (linkapp != NULL) {
-				TRACE("Menu::loadIcons - link - searching backdrop and manuals");
+				TRACE("link - searching backdrop and manuals");
 				linkapp->searchBackdrop();
 				linkapp->searchManual();
 			}
 
-			TRACE("Menu::loadIcons - link : testing for skin icon vs real icon");
+			TRACE("link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
 				linkIcon = gmenu2x->skin->getSkinFilePath(linkIcon.substr(5,linkIcon.length()));
 				if (linkapp != NULL && !fileExists(linkIcon))
@@ -169,7 +169,7 @@ void Menu::loadIcons() {
 			}
 		}
 	}
-	TRACE("Menu::loadIcons - exit");
+	TRACE("exit");
 }
 
 /*====================================
@@ -256,7 +256,7 @@ bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::Fa
 }
 
 bool Menu::addLink(string path, string file, string section) {
-	TRACE("Menu::addLink - enter");
+	TRACE("enter");
 	if (section.empty())
 		section = selSection();
 	else if (find(sections.begin(), sections.end(), section) == sections.end()) {
@@ -321,23 +321,23 @@ bool Menu::addLink(string path, string file, string section) {
 	}
 
 	setLinkIndex(links[isection].size() - 1);
-	TRACE("Menu::addLink - exit");
+	TRACE("exit");
 	return true;
 }
 
 bool Menu::addSection(const string &sectionName) {
-	TRACE("Menu::addSection - enter %s", sectionName.c_str());
+	TRACE("enter %s", sectionName.c_str());
 	string sectiondir = gmenu2x->getAssetsPath() + "sections/" + sectionName;
 
 	if (mkdir(sectiondir.c_str(),0777) == 0) {
 		sections.push_back(sectionName);
 		linklist ll;
 		links.push_back(ll);
-		TRACE("Menu::addSection - exit created dir : %s", sectiondir.c_str());
+		TRACE("exit created dir : %s", sectiondir.c_str());
 		return true;
 	} else if (errno == EEXIST ) {
-		TRACE("Menu::addSection - skipping dir already exists : %s", sectiondir.c_str());
-	} else TRACE("Menu::addSection - failed to mkdir");
+		TRACE("skipping dir already exists : %s", sectiondir.c_str());
+	} else TRACE("failed to mkdir");
 	return false;
 }
 
@@ -468,7 +468,7 @@ void Menu::setLinkIndex(int i) {
 }
 
 void Menu::readLinks() {
-	TRACE("Menu::readLinks - enter");
+	TRACE("enter");
 	vector<string> linkfiles;
 
 	iLink = 0;
@@ -485,36 +485,36 @@ void Menu::readLinks() {
 		linkfiles.clear();
 		string full_path = assets_path + sectionPath(i);
 		
-		TRACE("Menu::readLinks - scanning path : %s", full_path.c_str());
+		TRACE("scanning path : %s", full_path.c_str());
 		if ((dirp = opendir(full_path.c_str())) == NULL) continue;
-		TRACE("Menu::readLinks - opened path : %s", full_path.c_str());
+		TRACE("opened path : %s", full_path.c_str());
 		while ((dptr = readdir(dirp))) {
 			if (dptr->d_name[0] == '.') continue;
 			filepath = full_path + dptr->d_name;
-			TRACE("Menu::readLinks - filepath : %s", filepath.c_str());
+			TRACE("filepath : %s", filepath.c_str());
 			int statRet = stat(filepath.c_str(), &st);
 			if (S_ISDIR(st.st_mode)) continue;
 			if (statRet != -1) {
-				TRACE("Menu::readLinks - filepath valid : %s", filepath.c_str());
+				TRACE("filepath valid : %s", filepath.c_str());
 				linkfiles.push_back(filepath);
 			}
 		}
 
-		TRACE("Menu::readLinks - sorting links");
+		TRACE("sorting links");
 		sort(linkfiles.begin(), linkfiles.end(), case_less());
-		TRACE("Menu::readLinks - links sorted");
+		TRACE("links sorted");
 
-		TRACE("Menu::readLinks - validating %zu links exist", linkfiles.size());
+		TRACE("validating %zu links exist", linkfiles.size());
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
-			TRACE("Menu::readLinks - validating link : %s", linkfiles[x].c_str());
+			TRACE("validating link : %s", linkfiles[x].c_str());
 
 			LinkApp *link = new LinkApp(gmenu2x, linkfiles[x].c_str(), true);
-			TRACE("Menu::readLinks - link created...");
+			TRACE("link created...");
 			if (link->targetExists()) {
-				TRACE("Menu::readLinks - target exists");
+				TRACE("target exists");
 				links[i].push_back( link );
 			} else {
-				TRACE("Menu::readLinks - target doesn't exist");
+				TRACE("target doesn't exist");
 				delete link;
 			}
 		}
@@ -522,10 +522,10 @@ void Menu::readLinks() {
 		closedir(dirp);
 	}
 
-	TRACE("Menu::readLinks - orderLinks");
+	TRACE("orderLinks");
 	orderLinks();
 
-	TRACE("Menu::readLinks - exit");
+	TRACE("exit");
 }
 
 void Menu::renameSection(int index, const string &name) {
@@ -562,24 +562,24 @@ static bool compare_links(Link *a, Link *b) {
 }
 
 void Menu::orderLinks() {
-	TRACE("Menu::orderLinks - enter");
+	TRACE("enter");
 	for (auto& section : links) {
 		sort(section.begin(), section.end(), compare_links);
 	}
-	TRACE("Menu::orderLinks - exit");
+	TRACE("exit");
 }
 
 /* --------------- OPK SECTION ---------------*/
 
 void Menu::openPackagesFromDir(string path) {
-	TRACE("Menu::openPackagesFromDir - enter : %s", path.c_str());
+	TRACE("enter : %s", path.c_str());
 	if (dirExists(path))
 		readPackages(path);
-	TRACE("Menu::openPackagesFromDir - exit");
+	TRACE("exit");
 }
 
 void Menu::openPackage(string path, bool order) {
-	TRACE("Menu::openPackage - enter : search : %s, sort : %i", path.c_str(), order);
+	TRACE("enter : search : %s, sort : %i", path.c_str(), order);
 
 	/* First try to remove existing links of the same OPK
 	 * (needed for instance when an OPK is modified) */
@@ -591,14 +591,14 @@ void Menu::openPackage(string path, bool order) {
 		return;
 	}
 
-	TRACE("Menu::openPackage : meta outer loop");
+	TRACE("meta outer loop");
 	for (;;) {
 		unsigned int i;
 		bool has_metadata = false;
 		const char *name;
 		LinkApp *link;
 
-		TRACE("Menu::openPackage : meta inner loop");
+		TRACE("meta inner loop");
 		for (;;) {
 			string::size_type pos;
 			int ret = opk_open_metadata(opk, &name);
@@ -617,9 +617,9 @@ void Menu::openPackage(string path, bool order) {
 			pos = metadata.rfind('.');
 			metadata = metadata.substr(pos + 1);
 
-			TRACE("Menu::openPackage : resolved meta data to : %s", metadata.c_str());
+			TRACE("resolved meta data to : %s", metadata.c_str());
 			if (metadata == OPK_PLATFORM || metadata == "all") {
-				TRACE("Menu::openPackage : metadata matches platform : %s", OPK_PLATFORM.c_str());
+				TRACE("metadata matches platform : %s", OPK_PLATFORM.c_str());
 				has_metadata = true;
 				break;
 			}
@@ -632,36 +632,36 @@ void Menu::openPackage(string path, bool order) {
 		//       but that is not something we want to do in the menu,
 		//       so consider this link undeletable.
 
-		TRACE("Menu::openPackage : creating new linkapp");
+		TRACE("creating new linkapp");
 		link = new LinkApp(gmenu2x, path.c_str(), false, opk, name);
-		TRACE("Menu::openPackage : setting sizes");
+		TRACE("setting sizes");
 		link->setSize(gmenu2x->linkWidth, gmenu2x->linkHeight);
 		//link->setSize(gmenu2x->skinConfInt["linkWidth"], gmenu2x->skinConfInt["linkHeight"]);
 
-		TRACE("Menu::openPackage : adding category for %s", link->getCategory().c_str());
+		TRACE("adding category for %s", link->getCategory().c_str());
 		addSection(link->getCategory());
 		for (i = 0; i < sections.size(); i++) {
 			if (sections[i] == link->getCategory()) {
-				TRACE("Menu::openPackage : matched category, adding link");
+				TRACE("matched category, adding link");
 				links[i].push_back(link);
 				break;
 			}
 		}
 	}
 
-	TRACE("Menu::openPackage : closed opk");
+	TRACE("closed opk");
 	opk_close(opk);
 
 	if (order) {
-		TRACE("Menu::openPackage : ordering links");
+		TRACE("ordering links");
 		orderLinks();
 	}
 
-	TRACE("Menu::openPackage : exit");
+	TRACE("exit");
 }
 
 void Menu::readPackages(std::string parentDir) {
-	TRACE("Menu::readPackage - enter : %s", parentDir.c_str());
+	TRACE("enter : %s", parentDir.c_str());
 	DIR *dirp;
 	struct dirent *dptr;
 	vector<string> linkfiles;
@@ -670,18 +670,18 @@ void Menu::readPackages(std::string parentDir) {
 	if (!dirp)
 		return;
 
-	TRACE("Menu::readPackage - dir opened");
+	TRACE("dir opened");
 	while ((dptr = readdir(dirp))) {
-		TRACE("Menu::readPackage - reading directory");
+		TRACE("reading directory");
 
 		if (dptr->d_type != DT_REG) {
-			TRACE("Menu::readPackage - skipping non regular dir entry : %s - (%u)", dptr->d_name, dptr->d_type);
+			TRACE("skipping non regular dir entry : %s - (%u)", dptr->d_name, dptr->d_type);
 			continue;
 		}
 
 		char *c;
 		c = strrchr(dptr->d_name, '.');
-		TRACE("Menu::readPackage - found file : %s", c);
+		TRACE("found file : %s", c);
 		if (!c) /* File without extension */
 			continue;
 
@@ -694,12 +694,12 @@ void Menu::readPackages(std::string parentDir) {
 			continue;
 		}
 
-		TRACE("Menu::readPackage - it's an opk, handling it...");
+		TRACE("it's an opk, handling it...");
 		openPackage(parentDir + '/' + dptr->d_name, false);
 	}
-	TRACE("Menu::readPackage - closing dir");
+	TRACE("closing dir");
 	closedir(dirp);
-	TRACE("Menu::readPackage - exit");
+	TRACE("exit");
 }
 
 /* Remove all links that correspond to the given path.

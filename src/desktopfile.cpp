@@ -22,26 +22,26 @@ DesktopFile::DesktopFile(const string & file) {
 }
 
 DesktopFile::~DesktopFile() {
-    //TRACE("DesktopFile::~DesktopFile - enter");
+    //TRACE("enter");
 }
 
 string DesktopFile::toString() {
 
     vector<string> vec;
 
-    vec.push_back("# gmenunx desktop file");
+    vec.push_back("# gmenunx X-tended desktop file");
     vec.push_back("# lines starting with a # are ignored");
 
-    vec.push_back(string_format("title=\"%s\"", this->title().c_str()));
-    vec.push_back(string_format("description=\"%s\"", this->description().c_str()));
-    vec.push_back(string_format("icon=\"%s\"", this->icon().c_str()));
-    vec.push_back(string_format("exec=\"%s\"", this->exec().c_str()));
-    vec.push_back(string_format("params=\"%s\"", this->params().c_str()));
-    vec.push_back(string_format("selectorDir=\"%s\"", this->selectordir().c_str()));
-    vec.push_back(string_format("selectorFilter=\"%s\"", this->selectorfilter().c_str()));
-    vec.push_back(string_format("X-Provider=\"%s\"", this->provider().c_str()));
-    vec.push_back(string_format("X-ProviderMetadata=\"%s\"", this->providerMetadata().c_str()));
-    vec.push_back(string_format("consoleapp=\"%s\"", this->consoleapp() ? "true" : "false"));
+    vec.push_back(string_format("title=%s", this->title().c_str()));
+    vec.push_back(string_format("description=%s", this->description().c_str()));
+    vec.push_back(string_format("icon=%s", this->icon().c_str()));
+    vec.push_back(string_format("exec=%s", this->exec().c_str()));
+    vec.push_back(string_format("params=%s", this->params().c_str()));
+    vec.push_back(string_format("selectorDir=%s", this->selectordir().c_str()));
+    vec.push_back(string_format("selectorFilter=%s", this->selectorfilter().c_str()));
+    vec.push_back(string_format("X-Provider=%s", this->provider().c_str()));
+    vec.push_back(string_format("X-ProviderMetadata=%s", this->providerMetadata().c_str()));
+    vec.push_back(string_format("consoleapp=%s", this->consoleapp() ? "true" : "false"));
 
     std::string s;
     for (const auto &piece : vec) s += (piece + "\n");
@@ -50,10 +50,10 @@ string DesktopFile::toString() {
 }
 
 bool DesktopFile::fromFile(const string & file) {
-    TRACE("DesktopFile::fromFile - enter : %s", file.c_str());
+    TRACE("enter : %s", file.c_str());
     bool success = false;
     if (fileExists(file)) {
-        TRACE("DesktopFile::fromFile - found desktop file");
+        TRACE("found desktop file");
         this->path_ = file;
 
 		std::ifstream confstream(this->path_.c_str(), std::ios_base::in);
@@ -71,7 +71,7 @@ bool DesktopFile::fromFile(const string & file) {
 
                 if (0 == value.length()) continue;
                 name = toLower(name);
-                //TRACE("Config::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
+                //TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 if (name == "title") {
                     this->title(stripQuotes(value));
@@ -103,23 +103,23 @@ bool DesktopFile::fromFile(const string & file) {
             this->isDirty_ = false;
         }
     } else {
-        TRACE("DesktopFile::fromFile - desktopfile doesn't exist : %s", file.c_str());
+        TRACE("desktopfile doesn't exist : %s", file.c_str());
     }
-    TRACE("DesktopFile::fromFile - exit - success: %i", success);
+    TRACE("exit - success: %i", success);
     return success;
 }
 
 void DesktopFile::remove() {
-    TRACE("DesktopFile::remove - enter");
+    TRACE("enter");
     if (!this->path_.empty()) {
-        TRACE("DesktopFile::remove - deleting file : %s", this->path_.c_str());
+        TRACE("deleting file : %s", this->path_.c_str());
         unlink(this->path_.c_str());
     }
-    TRACE("DesktopFile::remove - exit");
+    TRACE("exit");
 }
 
 bool DesktopFile::save(const string & path) {
-    TRACE("DesktopFile::save - enter : %s", path.c_str());
+    TRACE("enter : %s", path.c_str());
     if (this->isDirty_) {
         if (!path.empty()) {
             if (fileExists(path)) {
@@ -127,7 +127,7 @@ bool DesktopFile::save(const string & path) {
             }
             this->path_ = path;
         }
-        TRACE("Config::save - saving to : %s", this->path_.c_str());
+        TRACE("saving to : %s", this->path_.c_str());
         std::ofstream desktop(this->path_.c_str());
         if (desktop.is_open()) {
             desktop << this->toString();
@@ -136,7 +136,7 @@ bool DesktopFile::save(const string & path) {
             this->isDirty_ = false;
         }
     }
-    TRACE("Config::save - exit");
+    TRACE("exit");
     return true;
 }
 

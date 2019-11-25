@@ -20,16 +20,16 @@ Loader::Loader(GMenu2X *app) {
 }
 
 Loader::~Loader() {
-    TRACE("Loader::~Loader");
+    TRACE("~Loader");
 }
 
 bool Loader::fromFile() {
     string loaderPath = this->app->skin->currentSkinPath() + "/" + LOADER_FOLDER;
     string confFile = loaderPath + "/" + LOADER_CONFIG_FILE;
     
-    TRACE("Loader::fromFile - enter : %s", confFile.c_str());
+    TRACE("enter : %s", confFile.c_str());
     if (fileExists(confFile)) {
-        TRACE("Loader::fromFile - config exists");
+        TRACE("config exists");
         string tempImages;
 		ifstream loaderConf(confFile.c_str(), std::ios_base::in);
 		if (loaderConf.is_open()) {
@@ -45,7 +45,7 @@ bool Loader::fromFile() {
 				string value = trim(line.substr(pos+1,line.length()));
 
                 if (0 == value.length()) continue;
-                TRACE("Loader::fromFile - key : value - %s : %s", name.c_str(), value.c_str());
+                TRACE("key : value - %s : %s", name.c_str(), value.c_str());
 
                 if (name == "interval") {
                     this->interval = atoi(value.c_str());
@@ -69,27 +69,27 @@ bool Loader::fromFile() {
         }
 
         if (!tempImages.empty()) {
-            TRACE("Loader::fromFile - found images : %s", tempImages.c_str());
+            TRACE("found images : %s", tempImages.c_str());
             vector<string> temp;
             split(temp, tempImages, ",");
             // load images into sc
             for(std::vector<string>::iterator it = temp.begin(); it != temp.end(); ++it) {
                 string name = *it;
                 string imagePath = loaderPath + "/" + name;
-                TRACE("Loader::fromFile - checking image exists : %s", imagePath.c_str());
+                TRACE("checking image exists : %s", imagePath.c_str());
                 if (fileExists(imagePath)) {
-                    TRACE("Loader::fromFile - image exists");
+                    TRACE("image exists");
                     this->app->sc->addIcon(imagePath);
                     this->images.push_back(imagePath);
                 }
             }
         }
-        TRACE("Loader::fromFile - checking sound file");
+        TRACE("checking sound file");
         if (!this->soundFile.empty()) {
             string tempSoundFile = loaderPath + "/" + this->soundFile;
-            TRACE("Loader::fromFile - checking sound file : %s", tempSoundFile.c_str());
+            TRACE("checking sound file : %s", tempSoundFile.c_str());
             if (fileExists(tempSoundFile)) {
-                TRACE("Loader::fromFile - found sound file at : %s", this->soundFile.c_str());
+                TRACE("found sound file at : %s", this->soundFile.c_str());
                 this->soundFile = tempSoundFile;
             } else {
                 this->soundFile = "";
@@ -101,26 +101,26 @@ bool Loader::fromFile() {
 }
 
 void Loader::run() {
-    TRACE("Loader::run - enter");
+    TRACE("enter");
     bool run = (!fileExists(LOADER_MARKER_FILE) && this->fromFile());
     if (run) {
         this->showLoader();
     } else {
         this->showFallback();
     }
-    TRACE("Loader::run - exit");
+    TRACE("exit");
 }
 
 void Loader::showFallback() {
-    TRACE("Loader::showFallback - enter");
+    TRACE("enter");
     MessageBox mb(this->app, this->app->tr["Loading"]);
     mb.setAutoHide(1);
     mb.exec();
-    TRACE("Loader::showFallback - exit");
+    TRACE("exit");
 }
 
 void Loader::showLoader() {
-    TRACE("Loader::showLoader - enter");
+    TRACE("enter");
     //-----------------------
     // audio first
     bool playSound = false;
@@ -214,12 +214,12 @@ void Loader::showLoader() {
 
     //-----------------------------------------------
     // finally write the marker so it's once per boot up only
-    TRACE("Loader::showLoader - setting marker : %s", LOADER_MARKER_FILE.c_str());
+    TRACE("setting marker : %s", LOADER_MARKER_FILE.c_str());
     fstream fs;
     fs.open(LOADER_MARKER_FILE, ios::out);
     fs.close();
     //-----------------------------------------------
 
-    TRACE("Loader::showLoader - exit");
+    TRACE("exit");
 }
 

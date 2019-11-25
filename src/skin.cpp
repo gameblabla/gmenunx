@@ -22,7 +22,7 @@ using std::string;
 const int SKIN_VERSION = 1;
 
 Skin::Skin(string const &prefix, int const &maxX, int const &maxY) {
-    TRACE("Skin::Skin - enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
+    TRACE("enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
 
     this->assetsPrefix = prefix;
     this->maxX = maxX;
@@ -31,14 +31,14 @@ Skin::Skin(string const &prefix, int const &maxX, int const &maxY) {
 }
 
 Skin::~Skin() {
-    TRACE("Skin::~Skin");
+    TRACE("~Skin");
 }
 
 vector<string> Skin::getSkins(string assetsPath) {
 
 	string skinPath = assetsPath + SKIN_FOLDER;
     vector<string> result;
-	TRACE("GMenu2X::getSkins - searching for skins in : %s", skinPath.c_str());
+	TRACE("getSkins - searching for skins in : %s", skinPath.c_str());
 	if (dirExists(skinPath)) {
 
 		DIR *dirp;
@@ -61,7 +61,7 @@ vector<string> Skin::getSkins(string assetsPath) {
 				continue;
 			}
 			if (S_ISDIR(st.st_mode)) {
-				TRACE("Skin::getSkins - adding directory : %s", folder.c_str());
+				TRACE("adding directory : %s", folder.c_str());
 				result.push_back(folder);
             }
         }
@@ -176,9 +176,9 @@ string Skin::toString() {
 }
     
 bool Skin::save() {
-    TRACE("Skin::save - enter");
+    TRACE("enter");
     string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;
-    TRACE("Skin::save - saving to : %s", fileName.c_str());
+    TRACE("saving to : %s", fileName.c_str());
 
 	ofstream config(fileName.c_str());
 	if (config.is_open()) {
@@ -187,21 +187,21 @@ bool Skin::save() {
 		sync();
 	}
 
-    TRACE("Skin::save - exit");
+    TRACE("exit");
     return true;
 }
 
 bool Skin::loadSkin(string name) {
-    TRACE("Skin::loadSkin - loading skin : %s", name.c_str());
+    TRACE("loading skin : %s", name.c_str());
     this->name = name;
     this->reset();
     return this->fromFile();
 }
 
 vector<string> Skin::getWallpapers() {
-    TRACE("Skin::getWallpapers - enter");
+    TRACE("enter");
     string path = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/wallpapers";
-    TRACE("Skin::getWallpapers - searching in : %s", path.c_str());
+    TRACE("searching in : %s", path.c_str());
 
     vector<string> results;
 
@@ -231,7 +231,7 @@ vector<string> Skin::getWallpapers() {
 			if (vfilter.size() > 1 && it->length() == 0 && (int32_t)file.rfind(".") >= 0) continue;
 			if (it->length() <= file.length()) {
 				if (file.compare(file.length() - it->length(), it->length(), *it) == 0) {
-					TRACE("Skin::getWallpapers - adding wallpaper : %s", file.c_str());
+					TRACE("adding wallpaper : %s", file.c_str());
 					results.push_back(file);
 					break;
 				}
@@ -240,7 +240,7 @@ vector<string> Skin::getWallpapers() {
     }
 	closedir(dirp);
 	sort(results.begin(), results.end(), case_less());
-    TRACE("Skin::getWallpapers - exit - found %zu wallpapers for skin %s", results.size(), this->name.c_str());
+    TRACE("exit - found %zu wallpapers for skin %s", results.size(), this->name.c_str());
     return results;
 }
 
@@ -249,23 +249,23 @@ std::string Skin::currentSkinPath() {
 }
 
 string Skin::getSkinFilePath(const string &file) {
-	TRACE("Skin::getSkinFilePath - enter : %s", file.c_str());
-	TRACE("Skin::getSkinFilePath - prefix : %s, skin : %s", this->assetsPrefix.c_str(), this->name.c_str());
+	TRACE("enter : %s", file.c_str());
+	TRACE("prefix : %s, skin : %s", this->assetsPrefix.c_str(), this->name.c_str());
 	string result = "";
 
 	if (fileExists(this->currentSkinPath() + "/" + file)) {
-		TRACE("Skin::getSkinFilePath - found file in current skin");
+		TRACE("found file in current skin");
 		result = this->currentSkinPath() + "/" + file;
 	} else if (fileExists(this->assetsPrefix + "skins/Default/" + file)) {
-		TRACE("Skin::getSkinFilePath - found file in default skin");
+		TRACE("found file in default skin");
 		result = this->assetsPrefix + "skins/Default/" + file;
 	} else if (fileExists(this->assetsPrefix + "skins/" + file)) {
-		TRACE("Skin::getSkinFilePath - found file in root skin folder");
+		TRACE("found file in root skin folder");
 		result = this->assetsPrefix + "skins/" + file;
 	} else {
-		TRACE("Skin::getSkinFilePath - didn't find file anywhere");
+		TRACE("didn't find file anywhere");
 	}
-	TRACE("Skin :: getSkinFilePath - exit : %s", result.c_str());
+	TRACE("exit : %s", result.c_str());
 	return result;
 }
 
@@ -273,7 +273,7 @@ string Skin::getSkinFilePath(const string &file) {
 
 void Skin::reset() {
 
-    TRACE("Skin::reset - enter");
+    TRACE("enter");
     version = SKIN_VERSION;
     fontSize = 12;
     fontSizeTitle = 20;
@@ -301,7 +301,7 @@ void Skin::reset() {
     iconsToGrayscale = false;
     imagesToGrayscale = false;
 
-	TRACE("Skin::reset - skinFontColors");
+	TRACE("skinFontColors");
     colours.background = (RGBAColor){0,0,0,255};
     colours.titleBarBackground = (RGBAColor){255,255,255,130};
     colours.listBackground = (RGBAColor){255,255,255,0};
@@ -315,7 +315,7 @@ void Skin::reset() {
     colours.fontAlt = (RGBAColor){253,1,252,0};
     colours.fontAltOutline = (RGBAColor){253,1,252,0};
 
-    TRACE("Skin::reset - exit");
+    TRACE("exit");
     return;
 }
 
@@ -339,14 +339,14 @@ void Skin::constrain() {
 }
 
 bool Skin::fromFile() {
-    TRACE("Skin::fromFile - enter");
+    TRACE("enter");
     bool result = false;
     string skinPath = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/";
     string fileName = skinPath + SKIN_FILE_NAME;
-    TRACE("Skin::fromFile - loading skin from : %s", fileName.c_str());
+    TRACE("loading skin from : %s", fileName.c_str());
 
 	if (fileExists(fileName)) {
-		TRACE("Skin::fromFile - skin file exists");
+		TRACE("skin file exists");
 		ifstream skinconf(fileName.c_str(), std::ios_base::in);
 		if (skinconf.is_open()) {
 			string line;
@@ -362,7 +362,7 @@ bool Skin::fromFile() {
 
                 if (0 == value.length()) continue;
                 name = toLower(name);
-                TRACE("Skin::fromFile - handling kvp - %s = %s", name.c_str(), value.c_str());
+                TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
                 if (name == "version") {
                     version = atoi(value.c_str());
@@ -466,7 +466,7 @@ bool Skin::fromFile() {
                 } else if (name == "imagestograyscale") {
                     this->imagesToGrayscale = atoi(value.c_str());
                 } else {
-                    WARNING("Skin::fromFile - unknown key : %s", name.c_str());
+                    WARNING("unknown key : %s", name.c_str());
                 }
 
             };
@@ -475,7 +475,7 @@ bool Skin::fromFile() {
             result = true;
         }
     }
-    TRACE("Skin::fromFile - exit");
+    TRACE("exit");
     return result;
 }
 
