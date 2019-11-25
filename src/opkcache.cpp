@@ -15,42 +15,48 @@
 #include "opkhelper.h"
 
 OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
-    TRACE("OpkCache::OpkCache - enter - root : %s", rootDir.c_str());
+    TRACE("enter - root : %s", rootDir.c_str());
     this->opkDirs_ = opkDirs;
     this->sectionDir_ = rootDir + "sections";
     this->cacheDir_ = rootDir + OPK_CACHE_DIR;
     this->sectionCache = nullptr;
-    TRACE("OpkCache::OpkCache - exit");
+    TRACE("exit");
 }
 
 OpkCache::~OpkCache() {
-    TRACE("OpkCache::~OpkCache - enter");
+    TRACE("enter");
     if (this->sectionCache != nullptr) {
         delete sectionCache;
     }
-    TRACE("OpkCache::~OpkCache - exit");
+    TRACE("exit");
 }
 
 bool OpkCache::update() {
-    TRACE("OpkCache::update - enter");
+    TRACE("enter");
 
     if (!this->ensureCacheDirs())
         return false;
-
+/*
     if (this->sectionCache != nullptr) {
-        TRACE("OpkCache::update - deleteing previous cache");
+        TRACE("deleteing previous cache");
         this->sectionCache->clear();
         delete this->sectionCache;
-        TRACE("OpkCache::update - deleted previous cache");
+        TRACE("deleted previous cache");
     }
+
     this->sectionCache = new std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>();
-
     assert(this->sectionCache);
+*/
 
-    if (!loadCache()) return false;
-    if (!removeUnlinkedDesktopFiles()) return false;
+    if (!this->loaded_) {
+        if (!loadCache()) return false;
+    }
+    // add any new ones first, so we can run the upgrade logic on any missing ones
     if (!createMissingOpkDesktopFiles()) return false;
-    TRACE("OpkCache::update - exit");
+
+    if (!removeUnlinkedDesktopFiles()) return false;
+    
+    TRACE("exit");
     return true;
 
 }
@@ -60,11 +66,11 @@ const string OpkCache::imageCachePath() {
 }
 
 bool OpkCache::ensureCacheDirs() {
-    TRACE("OpkCache::ensureCacheDirs - enter");
+    TRACE("enter");
 
     if (!dirExists(this->cacheDir_)) {
         if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
-            TRACE("OpkCache::ensureCacheDirs - created dir : %s", this->cacheDir_.c_str());
+            TRACE("created dir : %s", this->cacheDir_.c_str());
         } else {
             ERROR("OpkCache::ensureCacheDirs - failed to create cache dir : %s", this->cacheDir_.c_str());
             return false;
@@ -73,19 +79,23 @@ bool OpkCache::ensureCacheDirs() {
     string imageDir = this->imageCachePath();
     if (!dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {
-            TRACE("OpkCache::ensureCacheDirs - created dir : %s", imageDir.c_str());
+            TRACE("created dir : %s", imageDir.c_str());
         } else {
             ERROR("OpkCache::ensureCacheDirs - failed to create image cache dir : %s", imageDir.c_str());
             return false;
         }
     }
 
-    TRACE("OpkCache::ensureCacheDirs - exit");
+    TRACE("exit");
     return true;
 }
 
 string OpkCache::hashKey(DesktopFile const & file) {
     return file.providerMetadata() + "-" + file.provider();
+}
+
+string OpkCache::hashKey(OpkHelper::Opk const & file) {
+    return file.metadata + "-" + file.fullPath;
 }
 
 /*
@@ -94,7 +104,12 @@ string OpkCache::hashKey(DesktopFile const & file) {
         if exists, puts desktop file into section catageory <hash map <list>> structure
 */
 bool OpkCache::loadCache() {
-    TRACE("OpkCache::loadCache - enter");
+    TRACE("enter");
+
+    assert(nullptr == this->sectionCache);
+    this->sectionCache = new std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>();
+    assert(this->sectionCache);
+
     bool success = false;
     if (dirExists(this->sectionDir_)) {
     
@@ -103,10 +118,10 @@ bool OpkCache::loadCache() {
         struct dirent *dptr;
         string section;
         string path = this->sectionDir_;
-        if (path[path.length()-1]!='/') path += "/";
+        if (path[path.length()-1] != '/') path += "/";
 
         if ((dirp = opendir(path.c_str()) ) != NULL) {
-            TRACE("OpkCache::loadCache - entered section dir : %s", this->sectionDir_.c_str());
+            TRACE("entered section dir : %s", this->sectionDir_.c_str());
             while ((dptr = readdir(dirp))) {
                 if (dptr->d_name[0] == '.')
                     continue;
@@ -114,7 +129,7 @@ bool OpkCache::loadCache() {
                 string sectionPath = path + section;
                 int statRet = stat(sectionPath.c_str(), &st);
                 if (S_ISDIR(st.st_mode)) {
-                    TRACE("OpkCache::loadCache - found section : %s", section.c_str());
+                    TRACE("found section : %s", section.c_str());
                     scanSection(section, sectionPath);
                 }
             }
@@ -122,14 +137,14 @@ bool OpkCache::loadCache() {
             success = true;
         }
     }
-
-    TRACE("OpkCache::loadCache - exit - success : %i", success);
+    this->loaded_ = true;
+    TRACE("exit - success : %i", success);
     return success;
 }
 
 void OpkCache::scanSection(const string & sectionName, string path) {
 
-    TRACE("OpkCache::scanSection - enter - scanning section '%s' at : %s", 
+    TRACE("enter - scanning section '%s' at : %s", 
         sectionName.c_str(), 
         path.c_str());
 
@@ -150,33 +165,67 @@ void OpkCache::scanSection(const string & sectionName, string path) {
 			continue;
 
 		if (statRet != -1) {
-			TRACE("OpkCache::scanSection - found desktop file : '%s'", dptr->d_name);
+			TRACE("found desktop file : '%s'", dptr->d_name);
             DesktopFile file(filepath);
             if (OPK_EXEC == file.exec() && !file.provider().empty()) {
-                TRACE("OpkCache::scanSection - it's an opk desktop file");
-                //TRACE("DUMP ::\n %s", file.toString().c_str());
-                string hash = hashKey(file);
-                TRACE("OpkCache::scanSection - opk hash : %s", hash.c_str());
-                std::pair<std::string, DesktopFile> myPair {hash, file};
-                (*this->sectionCache)[sectionName].push_back(myPair);
-                TRACE("OpkCache::scanSection :: section count for '%s' = %zu", 
-                    sectionName.c_str(), 
-                    (*this->sectionCache)[sectionName].size());
+                TRACE("it's an opk desktop file");
+                this->addToCache(sectionName, file);
+
             }
 		}
 	}
 	closedir(dirp);
-    TRACE("OpkCache::scanSection - exit");
+    TRACE("exit");
+}
+
+void OpkCache::addToCache(const string & section, const DesktopFile & file) {
+    TRACE("enter - section count for '%s' = %zu", 
+        section.c_str(), 
+        (*this->sectionCache)[section].size());
+
+    string hash = hashKey(file);
+    TRACE("desktop hash : %s", hash.c_str());
+    std::pair<std::string, DesktopFile> myPair {hash, file};
+    (*this->sectionCache)[section].push_back(myPair);
+
+    TRACE("exit - section count for '%s' = %zu", 
+        section.c_str(), 
+        (*this->sectionCache)[section].size());
+
+}
+
+void OpkCache::removeFromCache(const string & section, const DesktopFile & file) {
+    TRACE("enter - section count for '%s' = %zu", 
+        section.c_str(), 
+        (*this->sectionCache)[section].size());
+
+    list<std::pair<std::string, DesktopFile>>::iterator fileIt;
+    string myHash = hashKey(file);
+    for (fileIt = (*this->sectionCache)[section].begin(); fileIt != (*this->sectionCache)[section].end(); fileIt++) {
+        if (myHash == fileIt->first) {
+
+            TRACE("removing hash : %s", myHash.c_str());
+
+            (*this->sectionCache)[section].erase(fileIt);
+
+            TRACE("exit - section count for '%s' = %zu", 
+                section.c_str(), 
+                (*this->sectionCache)[section].size());
+
+            return;
+        }
+    }
+    ERROR("Can't find hash key : %s - %s", section.c_str(), myHash.c_str());
 }
 
 bool OpkCache::createMissingOpkDesktopFiles() {
-    TRACE("OpkCache::createMissingOpkDesktopFiles - enter");
+    TRACE("enter");
 
     for (std::vector<string>::iterator opkDir = this->opkDirs_.begin(); opkDir != this->opkDirs_.end(); opkDir++) {
         string dir = (*opkDir);
-        TRACE("OpkCache::createMissingOpkDesktopFiles - checking opk directory : %s", dir.c_str());
+        TRACE("checking opk directory : %s", dir.c_str());
         if (!dirExists(dir)) {
-            TRACE("OpkCache::createMissingOpkDesktopFiles - skipping non-existing directory : %s", dir.c_str());
+            TRACE("skipping non-existing directory : %s", dir.c_str());
             continue;
         }
         // find the opk files
@@ -190,7 +239,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             // try the next in the list
             continue;
         }
-        TRACE("OpkCache::createMissingOpkDesktopFiles - reading directory : %s", dir.c_str());
+        TRACE("reading directory : %s", dir.c_str());
         while ((dptr = readdir(dirp))) {
             if (dptr->d_type != DT_REG) {
                 // skip anything that isn't a file
@@ -213,7 +262,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                 continue;
             }
 
-            TRACE("OpkCache::createMissingOpkDesktopFiles - found opk : %s", dptr->d_name);
+            TRACE("found opk : %s", dptr->d_name);
             string opkPath = dir + dptr->d_name;
             // we need to 
             // check all the metadata declarations in the opk
@@ -231,13 +280,13 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                 continue;
             }
 
-            TRACE("OpkCache::createMissingOpkDesktopFiles - got opks : %zu", opks->size());
+            TRACE("got opks : %zu", opks->size());
             std::list<OpkHelper::Opk>::iterator categoryIt;
             for (categoryIt = opks->begin(); categoryIt != opks->end(); categoryIt++) {
                 OpkHelper::Opk myOpk = (*categoryIt);
                 string sectionName = myOpk.category;
-                string myHash = myOpk.metadata + "-" + opkPath;
-                TRACE("OpkCache::createMissingOpkDesktopFiles - looking in cache for hash : %s", myHash.c_str());
+                string myHash =  hashKey(myOpk); // myOpk.metadata + "-" + opkPath;
+                TRACE("looking in cache for hash : %s", myHash.c_str());
                 std::list<std::pair<std::string, DesktopFile>> sectionList = (*this->sectionCache)[sectionName];
                 std::list<std::pair<std::string, DesktopFile>>::iterator listIt;
 
@@ -249,46 +298,22 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                     }
                 }
                 if (!exists) {
-                    TRACE("OpkCache::createMissingOpkDesktopFiles - need to create desktop file for : %s",
+                    TRACE("need to create desktop file for : %s",
                          myOpk.name.c_str());
 
-                    string imagePath = this->imageCachePath() + "/" +  fileBaseName(myHash);
-                    TRACE("OpkCache::createMissingOpkDesktopFiles - extracting image to : %s", imagePath.c_str());
-
-                    if (!dirExists(imagePath)) {
-                        if (mkdir(imagePath.c_str(), 0777) == 0) {
-                            TRACE("OpkCache::createMissingOpkDesktopFiles - created dir : %s", imagePath.c_str());
-                        } else {
-                            ERROR("failed to create cache dir : %s", imagePath.c_str());
-                            return false;
-                        }
-                    }
-
-                    // extract he image and save it
-                    string shortIconName = myOpk.icon + ".png";
-                    string opkIconName = opkPath + "#" + shortIconName;
-                    string outFile = imagePath + "/" + base_name(shortIconName);
-
-                    SDL_Surface *tmpIcon = loadPNG(opkIconName, true);
-                    if (tmpIcon) {
-                        TRACE("OpkCache::createMissingOpkDesktopFiles - loaded opk icon ok");
-                        TRACE("OpkCache::createMissingOpkDesktopFiles - saving icon to : %s", outFile.c_str());
-                        if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
-                            TRACE("OpkCache::createMissingOpkDesktopFiles - saved image");
-                        } else {
-                            ERROR("OpkCache::createMissingOpkDesktopFiles - couldn't save icon png");
-                            continue;
-                        }
-                    }
+                    // first extract the image and get the saved path
+                    string outFile = this->savePng(myOpk);
+                    if (outFile.empty())
+                        continue;
 
                     // now create a desktop file, referencing the image path
                     string desktopSectionPath = this->sectionDir_ + "/" + sectionName;
-                    string desktopFilePath =desktopSectionPath + "/" + myOpk.name + ".desktop";
-                    TRACE("OpkCache::createMissingOpkDesktopFiles - saving desktop file to : %s", desktopFilePath.c_str());
-                    
+                    string desktopFilePath = desktopSectionPath + "/" + myOpk.name + ".desktop";
+                    TRACE("saving desktop file to : %s", desktopFilePath.c_str());
+
                     if (!dirExists(desktopSectionPath)) {
                         if (mkdir(desktopSectionPath.c_str(), 0777) == 0) {
-                            TRACE("OpkCache::createMissingOpkDesktopFiles - created dir : %s", desktopSectionPath.c_str());
+                            TRACE("created dir : %s", desktopSectionPath.c_str());
                         } else {
                             ERROR("failed to create section dir : %s", desktopSectionPath.c_str());
                             continue;
@@ -312,44 +337,82 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                     } else {
                         ERROR("Couldn't save desktop file to : %s", desktopFilePath.c_str());
                     }
+                    // and add it to the cache
+                    this->addToCache(sectionName, *finalFile);
                 }
 
             }
         }
-        TRACE("OpkCache::createMissingOpkDesktopFiles - closing dir");
+        TRACE("closing dir");
         closedir(dirp);
     }
 
-    TRACE("OpkCache::createMissingOpkDesktopFiles - exit");
+    TRACE("exit");
     return true;
 }
 
+string OpkCache::savePng(OpkHelper::Opk const & myOpk) {
+
+    string imagePath = this->imageCachePath() + "/" +  fileBaseName(myOpk.fileName);
+    TRACE("extracting image to : %s", imagePath.c_str());
+
+    if (!dirExists(imagePath)) {
+        if (mkdir(imagePath.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", imagePath.c_str());
+        } else {
+            ERROR("failed to create cache dir : %s", imagePath.c_str());
+            return "";
+        }
+    }
+
+    // extract the image and save it
+    string shortIconName = myOpk.icon + ".png";
+    string opkIconName = myOpk.fullPath + "#" + shortIconName;
+    string outFile = imagePath + "/" + base_name(shortIconName);
+
+    SDL_Surface *tmpIcon = loadPNG(opkIconName, true);
+    if (tmpIcon) {
+        TRACE("loaded opk icon ok");
+        TRACE("saving icon to : %s", outFile.c_str());
+        if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
+            TRACE("saved image");
+            return outFile;
+        } else {
+            ERROR("OpkCache::savePng - couldn't save icon png");
+        }
+    }
+    return "";
+}
+
 bool OpkCache::removeUnlinkedDesktopFiles() {
-    TRACE("OpkCache::removeUnlinkedDesktopFiles - enter");
+    TRACE("enter");
 
     std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator section;
     for (section = sectionCache->begin(); section != sectionCache->end(); section++) {
-        TRACE("OpkCache::removeUnlinkedDesktopFiles - section : %s", section->first.c_str());
+        TRACE("section : %s", section->first.c_str());
         list<std::pair<std::string, DesktopFile>> fileList = section->second;
-        TRACE("OpkCache::removeUnlinkedDesktopFiles - checking %zu files", fileList.size());
+        TRACE("checking %zu files", fileList.size());
 
         list<std::pair<std::string, DesktopFile>>::iterator filePair;
         for (filePair = fileList.begin(); filePair != fileList.end(); filePair++) {
             string key = filePair->first;
             DesktopFile file = filePair->second;
-            TRACE("OpkCache::removeUnlinkedDesktopFiles - checking : '%s' (%s)", file.title().c_str(), key.c_str());
+            TRACE("checking : '%s' (%s)", file.title().c_str(), key.c_str());
             string provider = file.provider();
             if (provider.empty())
                 continue;
             if (!fileExists(provider)) {
-                TRACE("OpkCache::removeUnlinkedDesktopFiles - removing '%s' because provider doesn't exist", 
+                TRACE("removing '%s' because provider doesn't exist", 
                     file.title().c_str());
+                
                 // TODO :: maybe clean up images as well??
-                // TODO :: maybe remove from the list too?
+
                 file.remove();
+                // pop from the cache
+                this->removeFromCache(section->first, file);
             }
         }
     }
-    TRACE("OpkCache::removeUnlinkedDesktopFiles - exit");
+    TRACE("exit");
     return true;
 }

@@ -11,6 +11,7 @@ class OpkHelper {
 
         struct Opk {
             string fileName;
+            string fullPath;
             string metadata;
             string category;
             string name;

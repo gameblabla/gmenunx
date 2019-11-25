@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <list>
 #include "desktopfile.h"
+#include "opkhelper.h"
 
 using namespace std;
 
@@ -18,6 +19,7 @@ class OpkCache {
         vector<string> opkDirs_;
         string sectionDir_;
         string cacheDir_;
+        bool loaded_;
 
         //std::unordered_map<string, std::list<DesktopFile>> * sectionCache;
         // key = sections
@@ -26,9 +28,17 @@ class OpkCache {
 
         bool loadCache();
         void scanSection(const string & sectionName, string path);
+
+        void addToCache(const string & section, const DesktopFile & file);
+        void removeFromCache(const string & section, const DesktopFile & file);
+
+        string savePng(OpkHelper::Opk const & myOpk);
+
         bool createMissingOpkDesktopFiles();
         bool removeUnlinkedDesktopFiles();
+        
         string hashKey(DesktopFile const & file);
+        string hashKey(OpkHelper::Opk const & file);
         const string imageCachePath();
         bool ensureCacheDirs();
 
