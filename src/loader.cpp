@@ -102,14 +102,15 @@ bool Loader::fromFile() {
 
 void Loader::run() {
     TRACE("enter");
-
-    bool run = (!fileExists(LOADER_MARKER_FILE) && this->fromFile());
-    if (run) {
-        this->showLoader();
-    } else {
-        this->showFallback();
-    }
-
+    if (!fileExists(LOADER_MARKER_FILE)) {
+        if (this->fromFile()) {
+            this->showLoader();
+        } else this->showFallback();
+        TRACE("setting marker : %s", LOADER_MARKER_FILE.c_str());
+        fstream fs;
+        fs.open(LOADER_MARKER_FILE, ios::out);
+        fs.close();
+    } else this->showFallback();
     TRACE("exit");
 }
 
@@ -214,14 +215,6 @@ void Loader::showLoader() {
         Mix_CloseAudio();
         SDL_CloseAudio();
     }
-
-    //-----------------------------------------------
-    // finally write the marker so it's once per boot up only
-    TRACE("setting marker : %s", LOADER_MARKER_FILE.c_str());
-    fstream fs;
-    fs.open(LOADER_MARKER_FILE, ios::out);
-    fs.close();
-    //-----------------------------------------------
 
     TRACE("exit");
 }
