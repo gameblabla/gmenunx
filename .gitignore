@@ -2,3 +2,5 @@
 /dist/
 *.opk
 **/.vscode/
+log.txt
+
