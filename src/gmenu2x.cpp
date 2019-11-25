@@ -210,23 +210,21 @@ void* mainThread(void* param) {
 
 void GMenu2X::updateAppCache() {
 	TRACE("enter");
-#ifdef HAVE_LIBOPK
+	#ifdef HAVE_LIBOPK
 	if (OPK_USE_CACHE) {
 		TRACE("we're using the opk cache");
 		string externalPath = this->config->externalAppPath();
-		vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath, "/home/mat/Downloads/games/rg-350" };
+		vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
 		string rootDir = getAssetsPath();
 		TRACE("rootDir : %s", rootDir.c_str());
 		if (nullptr == this->opkCache) {
 			this->opkCache = new OpkCache(opkDirs, rootDir);
 		}
 		assert(this->opkCache);
-
 		this->opkCache->update();
-		INFO("MAIN - RUN 2");
-		this->opkCache->update();
+		sync();
 	}
-#endif
+	#endif
 	TRACE("exit");
 }
 GMenu2X::GMenu2X(bool install) : input(screenManager) {
@@ -335,48 +333,30 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 }
 
 void GMenu2X::main() {
-	
 	TRACE("enter");
 
-	TRACE("Kicking off our app cache thread");
-	std::thread thread_1(&GMenu2X::updateAppCache, this);
+	TRACE("kicking off our app cache thread");
+	std::thread thread_cache(&GMenu2X::updateAppCache, this);
 
-	TRACE("setVolume");
-	setVolume(this->config->globalVolume());
-
-	TRACE("input");
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
 	input.setWakeUpInterval(1000);
 
-	TRACE("calling the loading helper");
 	Loader loader(this);
 	loader.run();
 
-	TRACE("setWallpaper");
+	setVolume(this->config->globalVolume());
 	setWallpaper(this->skin->wallpaper);
-
-	TRACE("setPerformanceMode");
 	setPerformanceMode();
-
-	TRACE("checkUDC");
 	checkUDC();
-
-	TRACE("menu");
-	initMenu();
-
-	TRACE("setCpu");
 	setCPU(this->config->cpuMenu());
 
-	// turn the blinker off
-	TRACE("ledOff");
-	ledOff();
+	// we need to re-join before building the menu
+	thread_cache.join();
+	TRACE("app cache thread has finished");
 
-	TRACE("readTmp");
+	initMenu();
 	readTmp();
-
-	//recover last session
-	TRACE("recoverSession test");
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
 		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
@@ -388,9 +368,8 @@ void GMenu2X::main() {
 			this->lastSelectorDir);
 	}
 
-	TRACE("joining app cache thread");
-	thread_1.join();
-	TRACE("app cache thread has finished");
+	// turn the blinker off
+	ledOff();
 
 	bool quit = false;
 
@@ -400,13 +379,9 @@ void GMenu2X::main() {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
 
-	TRACE("new renderer");
 	Renderer *renderer = new Renderer(this);
 
-	TRACE("loop");
 	while (!quit) {
-
-		TRACE("render");
 		try {
 			renderer->render();
 		} catch (int e) {
