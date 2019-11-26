@@ -36,6 +36,7 @@ class PowerManager;
 #include "led.h"
 #include "skin.h"
 #include "config.h"
+#include "progressbar.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
@@ -79,6 +80,10 @@ struct MenuOption {
 char *ms2hms(uint32_t t, bool mm, bool ss);
 
 class Menu;
+class ProgressBar;
+#ifdef HAVE_LIBOPK
+class OpkCache;
+#endif
 
 class GMenu2X {
 private:
@@ -274,7 +279,7 @@ public:
 	void deleteSection();
 
 	void setWallpaper(const string &wallpaper = "");
-	void updateAppCache();
+	void updateAppCache(ProgressBar * pb = nullptr);
 
 	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
 	int drawButton(Button *btn, int x=5, int y=-10);

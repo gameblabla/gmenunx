@@ -40,6 +40,7 @@
 #include "led.h"
 #include "iconbutton.h"
 #include "messagebox.h"
+#include "progressbar.h"
 #include "screenmanager.h"
 #include "inputdialog.h"
 #include "settingsdialog.h"
@@ -152,6 +153,7 @@ GMenu2X::~GMenu2X() {
 }
 
 void GMenu2X::releaseScreen() {
+	TRACE("calling SDL_Quit");
 	SDL_Quit();
 }
 
@@ -162,7 +164,9 @@ void GMenu2X::quit() {
 		writeConfig();
 		ledOff();
 		fflush(NULL);
+		TRACE("clearing the surface collection");
 		this->sc->clear();
+		TRACE("freeing the screen");
 		this->screen->free();
 		releaseScreen();
 	}
@@ -198,7 +202,7 @@ int main(int argc, char * argv[]) {
 
 	return 0;
 }
-
+/*
 bool exitMainThread = false;
 void* mainThread(void* param) {
 	GMenu2X *menu = (GMenu2X*)param;
@@ -207,8 +211,8 @@ void* mainThread(void* param) {
 	}
 	return NULL;
 }
-
-void GMenu2X::updateAppCache() {
+*/
+void GMenu2X::updateAppCache(ProgressBar * pb) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
 	if (OPK_USE_CACHE) {
@@ -221,12 +225,13 @@ void GMenu2X::updateAppCache() {
 			this->opkCache = new OpkCache(opkDirs, rootDir);
 		}
 		assert(this->opkCache);
-		this->opkCache->update();
+		this->opkCache->update(pb);
 		sync();
 	}
 	#endif
 	TRACE("exit");
 }
+
 GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("enter - install flag : %i", install);
@@ -295,12 +300,10 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	if (firstRun) {
 		int exitCode = 0;
+		// make sure screen stays on
+		this->screenManager.setScreenTimeout(600);
 		INFO("GMenu2X::ctor - first run, copying data");
-		MessageBox mb(this, "Copying data for first run...", localAssetsPath + "gmenunx.png");
-		mb.setAutoHide(-1);
-		mb.exec();
 		if (doInstall()) {
-			mb.fadeOut(500);
 			ledOff();
 			quit();
 			exitCode = 0;
@@ -336,7 +339,7 @@ void GMenu2X::main() {
 	TRACE("enter");
 
 	TRACE("kicking off our app cache thread");
-	std::thread thread_cache(&GMenu2X::updateAppCache, this);
+	std::thread thread_cache(&GMenu2X::updateAppCache, this, nullptr);
 
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
@@ -372,13 +375,13 @@ void GMenu2X::main() {
 	ledOff();
 
 	bool quit = false;
-
+/*
 	TRACE("pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
-
+*/
 	Renderer *renderer = new Renderer(this);
 
 	while (!quit) {
@@ -435,10 +438,10 @@ void GMenu2X::main() {
 	}
 
 	delete renderer;
-
+/*
 	exitMainThread = true;
 	pthread_join(thread_id, NULL);
-
+*/
 	TRACE("exit");
 }
 
@@ -2020,6 +2023,7 @@ bool GMenu2X::doUpgrade(bool upgradeConfig) {
 bool GMenu2X::doInstall() {
 	TRACE("enter");
 	bool success = false;
+
 	// check for the writable home directory existing
 	string source = getExePath();
 	string destination = getAssetsPath();
@@ -2029,21 +2033,31 @@ bool GMenu2X::doInstall() {
 	
 	bool fullCopy = !dirExists(destination);
 	if (fullCopy) {
+		string iconPath = this->getExePath() + "gmenunx.png";
+		ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
+		pbInstall->exec();
 		INFO("doing a full copy");
 		stringstream ss;
 		ss << "cp -arp \"" << source << "\" " << destination << " && sync";
 		string call = ss.str();
 		TRACE("going to run :: %s", call.c_str());
 		system(call.c_str());
+		sync();
 		INFO("successful copy of assets");
+		pbInstall->finished();
+		delete pbInstall;
 
 		INFO("setting up the application cache");
-		this->updateAppCache();
-
+		ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
+		pbCache->exec();
+		this->updateAppCache(pbCache);
+		pbCache->updateDetail("Finished");
+		pbCache->finished(200);
+		delete pbCache;
+		sync();
 		success = true;
 	}
 
-	sync();
 	TRACE("exit");
 	return success;
 }

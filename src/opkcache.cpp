@@ -13,6 +13,7 @@
 #include "utilities.h"
 #include "desktopfile.h"
 #include "opkhelper.h"
+#include "progressbar.h"
 
 OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     TRACE("enter - root : %s", rootDir.c_str());
@@ -21,6 +22,7 @@ OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     this->cacheDir_ = rootDir + OPK_CACHE_DIR;
     this->sectionCache = nullptr;
     this->loaded_ = false;
+    this->progressBar = nullptr;
     TRACE("exit");
 }
 
@@ -32,8 +34,12 @@ OpkCache::~OpkCache() {
     TRACE("exit");
 }
 
-bool OpkCache::update() {
+bool OpkCache::update(ProgressBar * pb) {
     TRACE("enter");
+
+    if (nullptr != pb) {
+        this->progressBar = pb;
+    }
 
     if (!this->ensureCacheDirs())
         return false;
@@ -159,6 +165,8 @@ void OpkCache::scanSection(const string & sectionName, string path) {
             DesktopFile file(filepath);
             if (OPK_EXEC == file.exec() && !file.provider().empty()) {
                 TRACE("it's an opk desktop file");
+                this->notify("loading: " + file.title());
+
                 this->addToCache(sectionName, file);
 
             }
@@ -309,6 +317,8 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                 }
                 if (!exists) {
                     TRACE("opk doesn't exist in cache");
+                    this->notify("adding: " + myOpk.name);
+
                     // now create desktop file paths 
                     string sectionPath = this->sectionDir_ + "/" + sectionName;
                     string desktopFilePath = sectionPath + "/" + myOpk.metadata + "-" + fileBaseName(myOpk.fileName) + ".desktop";
@@ -438,6 +448,8 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
                 TRACE("removing '%s' because provider doesn't exist", 
                     file.title().c_str());
 
+                this->notify("removing: " + file.title());
+
                 // TODO :: maybe clean up images as well??
 
                 file.remove();
@@ -448,4 +460,10 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
     }
     TRACE("exit");
     return true;
+}
+
+void OpkCache::notify(std::string message) {
+    if (nullptr != this->progressBar) {
+        ProgressBar::callback(this->progressBar, message);
+    }
 }
