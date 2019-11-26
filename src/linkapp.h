@@ -42,7 +42,9 @@ private:
 
 	int iclock = 0;
 
-	string exec, params, workdir, manual, manualPath, selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
+	string exec, params, workdir, manual, manualPath;
+	string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
+	string provider, providerMetadata;
 	bool selectorbrowser, consoleapp, deletable, editable;
 
 	bool isOPK;
@@ -83,6 +85,10 @@ public:
 	void setSelectorDir(const string &selectordir);
 	bool getSelectorBrowser();
 	void setSelectorBrowser(bool value);
+	const string &getProvider() { return provider; }
+	void setProvider(const string &provider);
+	const string &getProviderMetadata() { return providerMetadata; }
+	void setProviderMetadata(const string &providerMetadata);
 
 	const string &getSelectorScreens();
 	void setSelectorScreens(const string &selectorscreens);

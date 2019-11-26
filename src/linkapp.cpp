@@ -257,13 +257,14 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			} else if (name == "backdrop") {
 					setBackdrop(value);
 					// WARNING("BACKDROP: '%s'", backdrop.c_str());
-			} else if (name == "x-provider" || name == "x-providermetadata") {
-				// eat it
+			} else if (name == "x-provider") {
+				this->setProvider(value);
+			} else if (name == "x-providermetadata") {
+				this->setProviderMetadata(value);
 			} else {
 				WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
 				//break;
 			}
-
 		}
 		TRACE("ctor - closing infile");
 		infile.close();
@@ -775,6 +776,16 @@ void LinkApp::setAliasFile(const string &aliasfile) {
 	}
 }
 
+void LinkApp::setProvider(const string &provider) {
+	this->provider = provider;
+	this->edited = true;
+}
+
+void LinkApp::setProviderMetadata(const string &metadata) {
+	this->providerMetadata = metadata;
+	this->edited = true;
+}
+
 void LinkApp::renameFile(const string &name) {
 	file = name;
 }
@@ -801,9 +812,11 @@ std::string LinkApp::toString() {
 		if (consoleapp           ) out << "consoleapp=true"                     << endl;
 		if (!consoleapp          ) out << "consoleapp=false"                    << endl;
 		if (manual != ""         ) out << "manual="          << manual          << endl;
-		if (!selectorbrowser     ) out << "selectorbrowser=false"               << endl;
-		if (selectorfilter != "" ) out << "selectorfilter="  << selectorfilter  << endl;
+		if (!selectorbrowser     ) out << "selectorBrowser=false"               << endl;
+		if (selectorfilter != "" ) out << "selectorFilter="  << selectorfilter  << endl;
 		if (selectorscreens != "") out << "selectorscreens=" << selectorscreens << endl;
+		if (!provider.empty())     out << "X-Provider="      << provider        << endl;
+		if (!providerMetadata.empty())     out << "X-ProviderMetadata=" << providerMetadata        << endl;
 		if (aliasfile != ""      ) out << "selectoraliases=" << aliasfile       << endl;
 		if (backdrop != ""       ) out << "backdrop="        << backdrop        << endl;
 		if (iclock != 0              ) out << "clock="           << iclock          << endl;
