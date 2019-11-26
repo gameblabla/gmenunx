@@ -20,6 +20,7 @@ OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     this->sectionDir_ = rootDir + "sections";
     this->cacheDir_ = rootDir + OPK_CACHE_DIR;
     this->sectionCache = nullptr;
+    this->loaded_ = false;
     TRACE("exit");
 }
 
@@ -38,6 +39,7 @@ bool OpkCache::update() {
         return false;
 
     if (!this->loaded_) {
+        TRACE("we need to load the cache");
         if (!loadCache()) return false;
     }
     // add any new ones first, so we can run the upgrade logic on any unlinked ones
@@ -295,9 +297,9 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                 string sectionName = myOpk.category;
                 string myHash =  hashKey(myOpk);
                 TRACE("looking in cache for hash : %s", myHash.c_str());
+                //TRACE("cache currently has %zu sections", this->sectionCache->size());
                 std::list<std::pair<std::string, DesktopFile>> sectionList = (*this->sectionCache)[sectionName];
                 std::list<std::pair<std::string, DesktopFile>>::iterator listIt;
-
                 bool exists = false;
                 for (listIt = sectionList.begin(); listIt != sectionList.end(); listIt++) {
                     if (myHash == (*listIt).first) {

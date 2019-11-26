@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <istream>
+#include <stdlib.h>
 
 #define sync() sync(); system("sync");
 
