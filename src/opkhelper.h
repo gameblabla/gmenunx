@@ -22,7 +22,7 @@ class Opk {
         bool needsDownscaling;
         bool startupNotify;
         bool terminal;
-        string params() { return "-m " + this->metadata + " \"" + this->fullPath + "\" " + this->exec; };
+        string params() { return "-m " + this->metadata + " \"" + this->fullPath + "\""; }
 };
 
 class OpkHelper {
