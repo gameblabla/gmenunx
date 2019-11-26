@@ -31,7 +31,7 @@ class Translator {
 private:
 	string _path;
 	string _lang;
-	unordered_map<string, string> translations;
+	std::tr1::unordered_map<string, string> translations;
 
 public:
 	Translator(const string &lang="");
