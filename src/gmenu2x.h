@@ -113,7 +113,6 @@ private:
 	void readTmp();
 
 	void initFont();
-	void initMenu();
 	void showManual();
 
 #ifdef TARGET_GP2X
@@ -213,6 +212,7 @@ public:
 	void skinColors();
 	uint32_t onChangeSkin();
 	void initLayout();
+	void initMenu();
 
 	PowerManager *powerManager;
 

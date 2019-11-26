@@ -85,12 +85,15 @@ void LinkScannerDialog::exec() {
 	}
 
 	sync();
+	gmenu2x->initMenu();
 
 	while (!close) {
 		if (gmenu2x->input.isWaiting()) continue;
 		bool inputAction = gmenu2x->input.update();
 		if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
 	}
+
+
 }
 
 void LinkScannerDialog::scanPath(string path, vector<string> *files) {

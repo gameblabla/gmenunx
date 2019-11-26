@@ -1532,7 +1532,7 @@ void GMenu2X::contextMenu() {
 	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &GMenu2X::renameSection)});
 	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &GMenu2X::hideSection)});
 	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &GMenu2X::deleteSection)});
-	//voices.push_back((MenuOption){tr["Link scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
+	voices.push_back((MenuOption){tr["App scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
 
 	Surface bg(screen);
 	bool close = false, inputAction = false;
@@ -1810,7 +1810,6 @@ int GMenu2X::getBatteryLevel() {
 	return result;
 }
 
-// TODO :: Investigate consumers
 void GMenu2X::setInputSpeed() {
 	input.setInterval(180);
 	input.setInterval(1000, SETTINGS);
@@ -1884,6 +1883,7 @@ int GMenu2X::setVolume(int val) {
 	else if (val > 100) val = 0;
 	if (val == getVolume()) 
 		return val;
+	#ifdef TARGET_RG350
 	int rg350val = (int)(val * (31.0f/100));
 	TRACE("rg350 value : %i", rg350val);
 	stringstream ss;
@@ -1893,6 +1893,7 @@ int GMenu2X::setVolume(int val) {
 	TRACE("cmd : %s", cmd.c_str());
 	string result = exec(cmd.c_str());
 	TRACE("result : %s", result.c_str());
+	#endif
 	return val;
 }
 
