@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+#include <istream>
 
 #define sync() sync(); system("sync");
 
@@ -23,6 +24,14 @@ DesktopFile::DesktopFile(const string & file) {
 
 DesktopFile::~DesktopFile() {
     //TRACE("enter");
+}
+
+DesktopFile * DesktopFile::clone() {
+    DesktopFile *result = new DesktopFile();
+    std::stringstream ss;
+    ss.str (this->toString());
+    result->parse(ss);
+    return result;
 }
 
 string DesktopFile::toString() {
@@ -49,6 +58,49 @@ string DesktopFile::toString() {
 
 }
 
+bool DesktopFile::parse(std::istream & instream) {
+	string line;
+	while (std::getline(instream, line, '\n')) {
+		line = trim(line);
+        if (0 == line.length()) continue;
+        if ('#' == line[0]) continue;
+		string::size_type pos = line.find("=");
+        if (string::npos == pos) continue;
+                
+		string name = trim(line.substr(0,pos));
+		string value = trim(line.substr(pos+1,line.length()));
+
+        if (0 == value.length()) continue;
+        name = toLower(name);
+        //TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
+
+        if (name == "title") {
+            this->title(stripQuotes(value));
+        } else if (name == "description") {
+            this->description(stripQuotes(value));
+        } else if (name == "icon") {
+            this->icon(stripQuotes(value));
+        } else if (name == "exec") {
+            this->exec(stripQuotes(value));
+        } else if (name == "params") {
+            this->params(stripQuotes(value));
+        } else if (name == "selectordir") {
+            this->selectordir(stripQuotes(value));
+        } else if (name == "selectorfilter") {
+            this->selectorfilter(stripQuotes(value));
+        } else if (name == "x-provider") {
+            this->provider(stripQuotes(value));
+        } else if (name == "x-providermetadata") {
+            this->providerMetadata(stripQuotes(value));
+        } else if (name == "consoleapp") {
+            bool console = "false" == stripQuotes(value) ? false : true;
+            this->consoleapp(console);
+        } else {
+            WARNING("unknown key : %s", name.c_str());
+        }
+    };
+}
+
 bool DesktopFile::fromFile(const string & file) {
     TRACE("enter : %s", file.c_str());
     bool success = false;
@@ -58,50 +110,12 @@ bool DesktopFile::fromFile(const string & file) {
 
 		std::ifstream confstream(this->path_.c_str(), std::ios_base::in);
 		if (confstream.is_open()) {
-			string line;
-			while (getline(confstream, line, '\n')) {
-				line = trim(line);
-                if (0 == line.length()) continue;
-                if ('#' == line[0]) continue;
-				string::size_type pos = line.find("=");
-                if (string::npos == pos) continue;
-                
-				string name = trim(line.substr(0,pos));
-				string value = trim(line.substr(pos+1,line.length()));
-
-                if (0 == value.length()) continue;
-                name = toLower(name);
-                //TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
-
-                if (name == "title") {
-                    this->title(stripQuotes(value));
-                } else if (name == "description") {
-                    this->description(stripQuotes(value));
-                } else if (name == "icon") {
-                    this->icon(stripQuotes(value));
-                } else if (name == "exec") {
-                    this->exec(stripQuotes(value));
-                } else if (name == "params") {
-                    this->params(stripQuotes(value));
-                } else if (name == "selectordir") {
-                    this->selectordir(stripQuotes(value));
-                } else if (name == "selectorfilter") {
-                    this->selectorfilter(stripQuotes(value));
-                } else if (name == "x-provider") {
-                    this->provider(stripQuotes(value));
-                } else if (name == "x-providermetadata") {
-                    this->providerMetadata(stripQuotes(value));
-                } else if (name == "consoleapp") {
-                    bool console = "false" == stripQuotes(value) ? false : true;
-                    this->consoleapp(console);
-                } else {
-                    WARNING("DesktopFile::fromFile - unknown key : %s", name.c_str());
-                }
-            };
+			this->parse(confstream);
             confstream.close();
             success = true;
             this->isDirty_ = false;
         }
+
     } else {
         TRACE("desktopfile doesn't exist : %s", file.c_str());
     }

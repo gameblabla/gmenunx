@@ -20,7 +20,6 @@ static const string OPK_EXEC = "/usr/bin/opkrun";
 static const string OPK_EXEC = "/bin/false";
 #endif
 
-
 class OpkCache {
     private:
         vector<string> opkDirs_;
@@ -39,13 +38,14 @@ class OpkCache {
         void addToCache(const string & section, const DesktopFile & file);
         void removeFromCache(const string & section, const DesktopFile & file);
 
-        string savePng(OpkHelper::Opk const & myOpk);
+        string savePng(Opk const & myOpk);
 
         bool createMissingOpkDesktopFiles();
         bool removeUnlinkedDesktopFiles();
-        
+        DesktopFile * findMatchingProvider(const string & section, const Opk & myOpk);
+
         string hashKey(DesktopFile const & file);
-        string hashKey(OpkHelper::Opk const & file);
+        string hashKey(Opk const & file);
         const string imageCachePath();
         bool ensureCacheDirs();
 

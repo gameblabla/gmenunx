@@ -257,9 +257,11 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			} else if (name == "backdrop") {
 					setBackdrop(value);
 					// WARNING("BACKDROP: '%s'", backdrop.c_str());
+			} else if (name == "x-provider" || name == "x-providermetadata") {
+				// eat it
 			} else {
 				WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
-				break;
+				//break;
 			}
 
 		}

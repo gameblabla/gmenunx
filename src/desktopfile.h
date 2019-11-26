@@ -2,6 +2,7 @@
 #define DESKTOPFILE_H_
 
 #include <string>
+#include <istream>
 
 using namespace std;
 
@@ -9,6 +10,7 @@ class DesktopFile {
     private:
 
         void reset();
+        bool parse(std::istream & instream);
 
         bool isDirty_;
         string path_; 
@@ -31,12 +33,20 @@ class DesktopFile {
 
         bool fromFile(const string & file);
         bool save(const string & path = "");
+        DesktopFile * clone();
         void remove();
 
         string toString();
 
         bool isDirty() { return this->isDirty_; }
-    
+
+        string path() const { return this->path_; }
+        void path(string val) { 
+            if (val != this->path_) {
+                this->path_ = val;
+                this->isDirty_ = true;
+            }
+        }
         string title() const { return this->title_; }
         void title(string val) { 
             if (val != this->title_) {

@@ -10,7 +10,7 @@
 // TODO :: fix me to a constants file
 const string OPK_PLATFORM = "gcw0";
 
-std::list<OpkHelper::Opk> * OpkHelper::ToOpkList(const string & path) {
+std::list<Opk> * OpkHelper::ToOpkList(const string & path) {
     TRACE("enter : %s", path.c_str());
 
     if (!fileExists(path)) {
@@ -25,7 +25,7 @@ std::list<OpkHelper::Opk> * OpkHelper::ToOpkList(const string & path) {
     }
     TRACE("opened opk successfully");
 
-    std::list<OpkHelper::Opk> * results = new std::list<OpkHelper::Opk>();
+    std::list<Opk> * results = new std::list<Opk>();
 
     //TRACE("meta outer loop");
     for (;;) {
@@ -63,7 +63,7 @@ std::list<OpkHelper::Opk> * OpkHelper::ToOpkList(const string & path) {
                 size_t lkey, lval;
                 int ret;
 
-                OpkHelper::Opk opkFile;
+                Opk opkFile;
                 opkFile.metadata = metadata;
                 opkFile.fileName = base_name(path);
                 opkFile.fullPath = path;
