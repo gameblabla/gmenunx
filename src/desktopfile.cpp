@@ -59,7 +59,7 @@ string DesktopFile::toString() {
 
 }
 
-bool DesktopFile::parse(std::istream & instream) {
+void DesktopFile::parse(std::istream & instream) {
 	string line;
 	while (std::getline(instream, line, '\n')) {
 		line = trim(line);

@@ -10,7 +10,7 @@ class DesktopFile {
     private:
 
         void reset();
-        bool parse(std::istream & instream);
+        void parse(std::istream & instream);
 
         bool isDirty_;
         string path_; 
