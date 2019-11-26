@@ -403,7 +403,7 @@ bool Skin::fromFile() {
                     menuInfoBarHeight = atoi(value.c_str());
                 } else if (name == "topbarheight") {
                     menuTitleBarHeight = atoi(value.c_str());
-                } else if (name == "infobarheight") {
+                } else if (name == "menuinfobarheight") {
                     menuInfoBarHeight = atoi(value.c_str());
                 } else if (name == "menuinfobarimage") {
                     menuInfoBarImage = stripQuotes(value);
