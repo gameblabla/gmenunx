@@ -308,10 +308,10 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                     }
                 }
                 if (!exists) {
-                    TRACE("opk doesn't exist");
+                    TRACE("opk doesn't exist in cache");
                     // now create desktop file paths 
                     string sectionPath = this->sectionDir_ + "/" + sectionName;
-                    string desktopFilePath = sectionPath + "/" + fileBaseName(myOpk.fileName) + ".desktop";
+                    string desktopFilePath = sectionPath + "/" + myOpk.metadata + "-" + fileBaseName(myOpk.fileName) + ".desktop";
                     DesktopFile *finalFile;
 
                     // first extract the image and get the saved path
