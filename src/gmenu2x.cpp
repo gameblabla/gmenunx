@@ -65,6 +65,7 @@
 #include "rtc.h"
 #include "renderer.h"
 #include "loader.h"
+#include "installer.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
@@ -315,12 +316,9 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	} else 	if (install || MIN_CONFIG_VERSION > config->version()) {
 		// we're doing an upgrade
 		int exitCode = 0;
+		this->screenManager.setScreenTimeout(600);
 		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), MIN_CONFIG_VERSION);
-		MessageBox mb(this, "Upgrading new install...", getExePath() + "gmenunx.png");
-		mb.setAutoHide(-1);
-		mb.exec();
-		if (doUpgrade(MIN_CONFIG_VERSION > config->version())) {
-			mb.fadeOut(500);
+		if (doUpgrade()) {
 			ledOff();
 			quit();
 			exitCode = 0;
@@ -1969,50 +1967,27 @@ string GMenu2X::getAssetsPath() {
 	return result;
 }
 
-bool GMenu2X::doUpgrade(bool upgradeConfig) {
+bool GMenu2X::doUpgrade() {
 	INFO("GMenu2X::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
 	string destination = getAssetsPath();
 
-	INFO("GMenu2X::doUpgrade - from : %s, to : %s", source.c_str(), destination.c_str());
+	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for upgrade...", iconPath);
+	pbInstall->exec();
+	INFO("doing a full copy");
 
-	if (!copyFile(source + "COPYING", destination + "COPYING")) return false;
-	if (!copyFile(source + "ChangeLog.md", destination + "ChangeLog.md")) return false;
-	if (!copyFile(source + "about.txt", destination + "about.txt")) return false;
-	if (!copyFile(source + "gmenunx.png", destination + "gmenunx.png")) return false;
-	if (!copyFile(source + "input.conf", destination + "input.conf")) return false;
-	if (upgradeConfig) {
-		if (!copyFile(source + "gmenunx.conf", destination + "gmenunx.conf")) return false;
+	Installer *installer = new Installer(source, destination, pbInstall);
+	if (installer->upgrade()) {
+		pbInstall->finished();
+	} else {
+		pbInstall->updateDetail("Upgrade failed");
+		pbInstall->finished(2000);
 	}
-
-	stringstream ss;
-	if (!dirExists(destination + "scripts")) {
-		ss << "cp -arp \"" << source + "scripts"  << "\" " << destination << " && sync";
-		string call = ss.str();
-		system(call.c_str());
-	}
-	if (!dirExists(destination + "sections")) {
-		ss << "cp -arp \"" << source + "sections"  << "\" " << destination << " && sync";
-		string call = ss.str();
-		system(call.c_str());
-	}
-	if (!dirExists(destination + "skins")) {
-		ss << "cp -arp \"" << source + "skins"  << "\" " << destination << " && sync";
-		string call = ss.str();
-		system(call.c_str());
-	}
-	if (!dirExists(destination + "skins/Default")) {
-		ss << "cp -arp \"" << source + "skins/Default"  << "\" " << destination + "skins/" << " && sync";
-		string call = ss.str();
-		system(call.c_str());
-	}
-	if (!dirExists(destination + "translations")) {
-		ss << "cp -arp \"" << source + "translations"  << "\" " << destination << " && sync";
-		string call = ss.str();
-		system(call.c_str());
-	}
+	delete pbInstall;
 	INFO("GMenu2X::doUpgrade - Upgrade complete");
 	success = true;
 	sync();
@@ -2031,32 +2006,30 @@ bool GMenu2X::doInstall() {
 	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
 	INFO("testing for writable home dir : %s", destination.c_str());
 	
-	bool fullCopy = !dirExists(destination);
-	if (fullCopy) {
-		string iconPath = this->getExePath() + "gmenunx.png";
-		ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
-		pbInstall->exec();
-		INFO("doing a full copy");
-		stringstream ss;
-		ss << "cp -arp \"" << source << "\" " << destination << " && sync";
-		string call = ss.str();
-		TRACE("going to run :: %s", call.c_str());
-		system(call.c_str());
-		sync();
-		INFO("successful copy of assets");
-		pbInstall->finished();
-		delete pbInstall;
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
+	pbInstall->exec();
+	INFO("doing a full copy");
 
-		INFO("setting up the application cache");
-		ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
-		pbCache->exec();
-		this->updateAppCache(pbCache);
-		pbCache->updateDetail("Finished");
-		pbCache->finished(200);
-		delete pbCache;
-		sync();
-		success = true;
+	Installer *installer = new Installer(source, destination, pbInstall);
+	if (installer->install()) {
+		pbInstall->finished();
+	} else {
+		pbInstall->updateDetail("Install failed");
+		pbInstall->finished(2000);
 	}
+	delete pbInstall;
+
+	INFO("setting up the application cache");
+	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
+	pbCache->exec();
+	this->updateAppCache(pbCache);
+	pbCache->updateDetail("Finished");
+	pbCache->finished(200);
+	delete pbCache;
+
+	sync();
+	success = true;
 
 	TRACE("exit");
 	return success;

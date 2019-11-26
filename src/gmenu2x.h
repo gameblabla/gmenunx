@@ -149,7 +149,7 @@ private:
 	void mountSdDialog();
 	string mountSd();
 	bool doInstall();
-	bool doUpgrade(bool upgradeConfig);
+	bool doUpgrade();
 
 	#ifdef HAVE_LIBOPK
 	OpkCache* opkCache;
