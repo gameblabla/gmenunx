@@ -40,6 +40,7 @@ private:
 	vector<string> buttons;
 	vector<string> buttonLabels;
 	vector<SDL_Rect> buttonPositions;
+	string formatText(int box_w_padding, int buttonWidth);
 
 public:
 	MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon="");
@@ -48,7 +49,6 @@ public:
 	void setAutoHide(int delay);
 	void setBgAlpha(bool bgalpha);
 	void fadeOut(int delay = 250);
-
 };
 
 #endif /*MESSAGEBOX_H_*/

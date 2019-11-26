@@ -81,6 +81,19 @@ void MessageBox::setBgAlpha(bool bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
+string MessageBox::formatText(int box_w_padding, int buttonWidth) {
+	int wrap_size = ((gmenu2x->config->resolutionX() - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
+	TRACE("initial wrap size : %i", wrap_size);
+	if (wrap_size < buttonWidth) {
+		wrap_size = buttonWidth;
+	}
+	TRACE("final wrap size : %i", wrap_size);
+
+	string wrappedText = splitInLines(this->text, wrap_size);
+	TRACE("wrap text : %s", wrappedText.c_str());
+	return wrappedText;
+}
+
 // can oly be called after creating a message box that has a negative value autohide
 void MessageBox::fadeOut(int delay) {
 	if (this->autohide >= 0)
@@ -113,23 +126,15 @@ int MessageBox::exec() {
 	}
 	TRACE("button width : %i", buttonWidth);
 
-	int wrap_size = ((gmenu2x->config->resolutionX() - (box_w_padding / 2)) / gmenu2x->font->getSize() + 15);
-	TRACE("initial wrap size : %i", wrap_size);
-	if (wrap_size < buttonWidth) {
-		wrap_size = buttonWidth;
-	}
-	TRACE("final wrap size : %i", wrap_size);
+	string wrappedText = formatText(box_w_padding, buttonWidth);
 
-	string wrapped_text = splitInLines(text, wrap_size);
-	int textWidthPx = gmenu2x->font->getTextWidth(wrapped_text);
+	int textWidthPx = gmenu2x->font->getTextWidth(wrappedText);
 	if (textWidthPx + box_w_padding > gmenu2x->config->resolutionX()) {
 		textWidthPx = gmenu2x->config->resolutionX(); 
 	}
-	TRACE("wrap text : %s", wrapped_text.c_str());
-
 
 	SDL_Rect box;
-	box.h = gmenu2x->font->getTextHeight(wrapped_text) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
+	box.h = gmenu2x->font->getTextHeight(wrappedText) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
 	if ((*gmenu2x->sc)[icon] != NULL && box.h < 40) box.h = 48;
 	box.w = textWidthPx + box_w_padding;
 	box.x = gmenu2x->config->halfX() - box.w/2 - 2;
@@ -147,7 +152,7 @@ int MessageBox::exec() {
 
 	gmenu2x->screen->write(
 		gmenu2x->font, 
-		wrapped_text, 
+		wrappedText, 
 		box.x+((*gmenu2x->sc)[icon] != NULL ? 47 : 11), 
 		gmenu2x->config->halfY() - gmenu2x->font->getHeight()/5, 
 		VAlignMiddle, 
@@ -158,7 +163,7 @@ int MessageBox::exec() {
 		gmenu2x->screen->flip();
 		if (this->autohide > 0) {
 			SDL_Delay(this->autohide);
-			gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
+			gmenu2x->powerManager->resetSuspendTimer();
 		}
 		return -1;
 	}
@@ -200,7 +205,7 @@ int MessageBox::exec() {
 		bool inputAction = gmenu2x->input.update();
 		if (inputAction) {
 			for (uint32_t i = 0; i < buttons.size(); i++) {
-				if (buttons[i] != "" && gmenu2x->input[i]) {
+				if (!buttons[i].empty() && gmenu2x->input[i]) {
 					result = i;
 					break;
 				}
@@ -213,4 +218,3 @@ int MessageBox::exec() {
 	TRACE("exit : %i", result);
 	return result;
 }
-
