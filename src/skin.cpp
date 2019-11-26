@@ -200,14 +200,19 @@ bool Skin::loadSkin(string name) {
 
 vector<string> Skin::getWallpapers() {
     TRACE("enter");
-    string path = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/wallpapers";
-    TRACE("searching in : %s", path.c_str());
+    string path = this->currentSkinPath() + "/wallpapers";
+    TRACE("searching for wallpapers in : %s", path.c_str());
 
     vector<string> results;
 
+    if (!dirExists(path)) {
+        TRACE("wallpaper directory diesn't exist : %s", path.c_str());
+        return results;
+    }
+
 	DIR *dirp;
 	if ((dirp = opendir(path.c_str())) == NULL) {
-		ERROR("Error: opendir(%s)", path.c_str());
+		ERROR("Error: couldn't open wallpaper dir : %s", path.c_str());
 		return results;
 	}
 
