@@ -1,7 +1,7 @@
 #ifndef __DIALOG_H__
 #define __DIALOG_H__
 
-// #include <string>
+#include <string>
 
 class GMenu2X;
 class Surface;
@@ -19,7 +19,7 @@ protected:
 	void writeTitle(const std::string &title, Surface *s = NULL);
 	void writeSubTitle(const std::string &subtitle, Surface *s = NULL);
 	void drawTopBar(Surface *s, const std::string &title = {}, const std::string &description = {}, const std::string &icon = {});
-	void drawBottomBar(Surface *s=NULL);
+	void drawBottomBar(Surface *s = NULL);
 
 	GMenu2X *gmenu2x;
 private:

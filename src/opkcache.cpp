@@ -48,7 +48,8 @@ bool OpkCache::update(std::function<void(string)> callback) {
     // add any new ones first, so we can run the upgrade logic on any unlinked ones
     if (!createMissingOpkDesktopFiles()) return false;
     if (!removeUnlinkedDesktopFiles()) return false;
-    
+    this->notify("Cache updated");
+
     TRACE("exit");
     return true;
 
