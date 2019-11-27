@@ -213,7 +213,8 @@ void* mainThread(void* param) {
 	return NULL;
 }
 */
-void GMenu2X::updateAppCache(ProgressBar * pb) {
+//void GMenu2X::updateAppCache(ProgressBar * pb) {
+void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
 	if (OPK_USE_CACHE) {
@@ -226,7 +227,8 @@ void GMenu2X::updateAppCache(ProgressBar * pb) {
 			this->opkCache = new OpkCache(opkDirs, rootDir);
 		}
 		assert(this->opkCache);
-		this->opkCache->update(pb);
+		this->opkCache->update(callback);
+		//this->opkCache->update( std::bind( &ProgressBar::myCallback, pb, std::placeholders::_1 ) );
 		sync();
 	}
 	#endif
@@ -1980,7 +1982,11 @@ bool GMenu2X::doUpgrade() {
 	pbInstall->exec();
 	INFO("doing a full copy");
 
-	Installer *installer = new Installer(source, destination, pbInstall);
+	Installer *installer = new Installer(
+		source, 
+		destination, 
+		std::bind( &ProgressBar::myCallback, pbInstall, std::placeholders::_1) );
+
 	if (installer->upgrade()) {
 		pbInstall->finished();
 	} else {
@@ -2011,7 +2017,11 @@ bool GMenu2X::doInstall() {
 	pbInstall->exec();
 	INFO("doing a full copy");
 
-	Installer *installer = new Installer(source, destination, pbInstall);
+	Installer *installer = new Installer(
+		source, 
+		destination, 
+		std::bind( &ProgressBar::myCallback, pbInstall, std::placeholders::_1) );
+
 	if (installer->install()) {
 		pbInstall->finished();
 	} else {
@@ -2023,8 +2033,8 @@ bool GMenu2X::doInstall() {
 	INFO("setting up the application cache");
 	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
 	pbCache->exec();
-	this->updateAppCache(pbCache);
-	pbCache->updateDetail("Finished");
+	this->updateAppCache(std::bind( &ProgressBar::myCallback, pbCache, std::placeholders::_1));
+	pbCache->updateDetail("Finished creating cache");
 	pbCache->finished(200);
 	delete pbCache;
 

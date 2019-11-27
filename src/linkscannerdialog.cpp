@@ -29,7 +29,9 @@ void LinkScannerDialog::exec() {
 	lineY += gmenu2x->font->getHeight();
 	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Updating app cache"], gmenu2x->listRect.x + 4, lineY);
 	gmenu2x->screen->flip();
-	gmenu2x->updateAppCache();
+
+	// TODO :: set a callback for this
+	gmenu2x->updateAppCache(nullptr);
 
 /*
 	lineY += gmenu2x->font->getHeight();

@@ -22,7 +22,7 @@ OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     this->cacheDir_ = rootDir + OPK_CACHE_DIR;
     this->sectionCache = nullptr;
     this->loaded_ = false;
-    this->progressBar = nullptr;
+    this->notifiable = nullptr;
     TRACE("exit");
 }
 
@@ -34,12 +34,9 @@ OpkCache::~OpkCache() {
     TRACE("exit");
 }
 
-bool OpkCache::update(ProgressBar * pb) {
+bool OpkCache::update(std::function<void(string)> callback) {
     TRACE("enter");
-
-    if (nullptr != pb) {
-        this->progressBar = pb;
-    }
+    this->notifiable = callback;
 
     if (!this->ensureCacheDirs())
         return false;
@@ -463,7 +460,7 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
 }
 
 void OpkCache::notify(std::string message) {
-    if (nullptr != this->progressBar) {
-        ProgressBar::callback(this->progressBar, message);
+    if (nullptr != this->notifiable) {
+        this->notifiable(message);
     }
 }

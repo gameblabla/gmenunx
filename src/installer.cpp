@@ -4,18 +4,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sstream>
 
 #include "installer.h"
 #include "debug.h"
 #include "utilities.h"
-#include "progressbar.h"
 
 #define sync() sync(); system("sync");
 
-Installer::Installer(std::string const & source, std::string const & destination, ProgressBar * pb) {
+Installer::Installer(std::string const & source, std::string const & destination, std::function<void(string)> callback) {
     this->sourceRootPath = source;
     this->destinationRootPath = destination;
-    this->progressBar = pb;
+    this->notifiable = callback;
 }
 
 Installer::~Installer() {
@@ -50,8 +50,8 @@ bool Installer::copyFiles() {
     TRACE("enter");
     for (vector<string>::iterator it = this->fileManifest.begin(); it != this->fileManifest.end(); it++) {
         std::string fileName = (*it);
-        string source = this->sourceRootPath + fileName;
-        string destination = this->destinationRootPath + fileName;
+        std::string source = this->sourceRootPath + fileName;
+        std::string destination = this->destinationRootPath + fileName;
         TRACE("copying file from : %s to %s", source.c_str(), destination.c_str());
         this->notify("file: " + fileName);
         if (!copyFile(source, destination)) return false;
@@ -65,8 +65,8 @@ bool Installer::copyDirs(bool force) {
     TRACE("enter");
     for (vector<string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
         std::string directory = (*it);
-        string source = this->sourceRootPath + directory;
-        string destination = this->destinationRootPath + directory;
+        std::string source = this->sourceRootPath + directory;
+        std::string destination = this->destinationRootPath + directory;
         TRACE("copying dir from : %s to %s", source.c_str(), destination.c_str());
         this->notify("directory: " + dir_name(directory));
         if (!dirExists(source)) {
@@ -75,9 +75,9 @@ bool Installer::copyDirs(bool force) {
         }
 
         if (!dirExists(destination) || force) {
-            stringstream ss;
+            std::stringstream ss;
             ss << "/bin/cp -arp \"" << source << "\" " << "\"" << destination << "\"";
-            string call = ss.str();
+            std::string call = ss.str();
             TRACE("running command : %s", call.c_str());
             system(call.c_str());
             sync();
@@ -88,7 +88,7 @@ bool Installer::copyDirs(bool force) {
 }
 
 void Installer::notify(std::string message) {
-    if (nullptr != this->progressBar) {
-        ProgressBar::callback(this->progressBar, message);
+    if (nullptr != this->notifiable) {
+        this->notifiable(message);
     }
 }

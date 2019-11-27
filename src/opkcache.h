@@ -1,6 +1,7 @@
 #ifndef OPKCACHE_H_
 #define OPKCACHE_H_
 
+#include <functional>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -8,7 +9,6 @@
 
 #include "desktopfile.h"
 #include "opkhelper.h"
-#include "progressbar.h"
 
 using namespace std;
 
@@ -22,12 +22,10 @@ static const string OPK_EXEC = "/usr/bin/opkrun";
 static const string OPK_EXEC = "/bin/false";
 #endif
 
-class ProgressBar;
-
 class OpkCache {
     private:
 
-        ProgressBar * progressBar;
+        std::function<void(std::string)> notifiable;
         vector<string> opkDirs_;
         string sectionDir_;
         string cacheDir_;
@@ -59,7 +57,7 @@ class OpkCache {
     public:
         OpkCache(vector<string> opkDirs, const string & sectionsDir);
         ~OpkCache();
-        bool update(ProgressBar * pb = nullptr);
+        bool update(std::function<void(string)> callback = nullptr);
 };
 
 #endif

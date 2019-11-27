@@ -3,17 +3,15 @@
 
 #include <vector>
 #include <string>
-
-#include "progressbar.h"
+#include <functional>
 
 class Installer {
     private:
 
-        ProgressBar * progressBar;
+        std::function<void(std::string)> notifiable;
 
         std::string sourceRootPath;
         std::string destinationRootPath;
-
         std::string const configFile = "gmenunx.conf";
         std::string const defaultSkinPath = "skins/Default";
         std::vector<std::string> fileManifest = {
@@ -35,7 +33,8 @@ class Installer {
         bool copyFiles();
 
     public:
-        Installer(std::string const & source, std::string const & destination, ProgressBar * pb = nullptr);
+        Installer(std::string const & source, std::string const & destination, std::function<void(std::string)> callback = nullptr);
+
         ~Installer();
         bool install();
         bool upgrade();

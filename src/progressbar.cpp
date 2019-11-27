@@ -124,6 +124,10 @@ void ProgressBar::updateDetail(string text) {
 	this->detail_ = formatText(text);
 }
 
+void ProgressBar::myCallback(std::string text) {
+    this->detail_ = text;
+}
+
 void ProgressBar::callback(void * this_pointer, string text) {
     ProgressBar * self = static_cast<ProgressBar*>(this_pointer);
     self->detail_ = text;
