@@ -12,12 +12,12 @@ class Installer {
 
         std::string sourceRootPath;
         std::string destinationRootPath;
-        std::string const configFile = "gmenunx.conf";
-        std::string const defaultSkinPath = "skins/Default";
+
         std::vector<std::string> fileManifest = {
-            "COPYING", 
-            "ChangeLog.md", 
             "about.txt", 
+            "ChangeLog.md", 
+            "COPYING", 
+            "gmenunx.conf", 
             "gmenunx.png", 
             "input.conf"
         };
