@@ -11,9 +11,10 @@ LinkScannerDialog::LinkScannerDialog(GMenu2X *gmenu2x, const string &title, cons
 
 void LinkScannerDialog::exec() {
 	bool close = false;
+	this->lineY = gmenu2x->listRect.y;
+	this->foundFiles = 0;
 	string str = "";
 	stringstream ss;
-	uint32_t lineY = gmenu2x->listRect.y;
 	vector<string> files;
 
 	drawTopBar(this->bg, title, description, icon);
@@ -21,37 +22,24 @@ void LinkScannerDialog::exec() {
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
-
-	this->bg->blit(gmenu2x->screen,0,0);
-
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, lineY);
+	this->bg->blit(gmenu2x->screen, 0, 0);
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, this->lineY);
 
 	lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Updating app cache"], gmenu2x->listRect.x + 4, lineY);
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Updating app cache"], gmenu2x->listRect.x + 4, this->lineY);
 	gmenu2x->screen->flip();
+	gmenu2x->updateAppCache(std::bind( &LinkScannerDialog::foundFile, this, std::placeholders::_1) );
 
-	// TODO :: set a callback for this
-	gmenu2x->updateAppCache(nullptr);
-
-/*
-	lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/mnt/int_sd"], gmenu2x->listRect.x + 4, lineY);
-	gmenu2x->screen->flip();
-
-	scanPath("/mnt/int_sd", &files);
-*/
-
-	lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["/media/sdcard"], gmenu2x->listRect.x + 4, lineY);
+	this->lineY += gmenu2x->font->getHeight();
+	gmenu2x->screen->write(gmenu2x->font, "/media/sdcard", gmenu2x->listRect.x + 4, this->lineY);
 	gmenu2x->screen->flip();
 
 	scanPath("/media/sdcard", &files);
-
-	ss << files.size();
+	ss << this->foundFiles;
 	ss >> str;
 
-	lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr.translate("$1 files found.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
+	this->lineY += gmenu2x->font->getHeight();
+	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr.translate("$1 files found.", str.c_str(), NULL), gmenu2x->listRect.x + 4, this->lineY);
 	gmenu2x->screen->flip();
 
 	if (files.size() > 0) {
@@ -62,9 +50,7 @@ void LinkScannerDialog::exec() {
 
 		string path, file;
 		string::size_type pos;
-		uint32_t linkCount = 0;
 
-		// ledOn();
 		for (size_t i = 0; i < files.size(); ++i) {
 			pos = files[i].rfind("/");
 
@@ -72,22 +58,23 @@ void LinkScannerDialog::exec() {
 				path = files[i].substr(0, pos + 1);
 				file = files[i].substr(pos + 1, files[i].length());
 				if (gmenu2x->menu->addLink(path, file, "linkscanner"))
-					linkCount++;
+					++this->foundFiles;
 			}
 		}
 
 		ss.clear();
-		ss << linkCount;
+		ss << this->foundFiles;
 		ss >> str;
 
-		lineY += gmenu2x->font->getHeight();
-
+		this->lineY += gmenu2x->font->getHeight();
 		gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr.translate("$1 links created.", str.c_str(), NULL), gmenu2x->listRect.x + 4, lineY);
 		gmenu2x->screen->flip();
 	}
 
-	sync();
-	gmenu2x->initMenu();
+	if (this->foundFiles > 0) {
+		sync();
+		gmenu2x->initMenu();
+	}
 
 	while (!close) {
 		if (gmenu2x->input.isWaiting()) continue;
@@ -95,7 +82,13 @@ void LinkScannerDialog::exec() {
 		if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
 	}
 
+}
 
+void LinkScannerDialog::foundFile(string file) {
+	++this->foundFiles;
+	this->lineY += gmenu2x->font->getHeight();
+	gmenu2x->screen->write(gmenu2x->font, file, gmenu2x->listRect.x + 4, this->lineY);
+	gmenu2x->screen->flip();
 }
 
 void LinkScannerDialog::scanPath(string path, vector<string> *files) {
@@ -116,10 +109,13 @@ void LinkScannerDialog::scanPath(string path, vector<string> *files) {
 			scanPath(filepath, files);
 
 		if (statRet != -1) {
-			ext = filepath.substr(filepath.length()-4,4);
-
-			if (ext == ".dge" || ext == ".gpu" || ext == ".gpe" || filepath.substr(filepath.length()-3,3) == ".sh")
+			ext = fileExtension(filepath);
+			if (ext.empty()) 
+				continue;
+			if (ext == "dge" || ext == "gpu" || ext == "gpe" || ext == "sh") {
+				foundFile(filepath);
 				files->push_back(filepath);
+			}
 		}
 	}
 	closedir(dirp);

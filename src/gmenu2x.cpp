@@ -296,11 +296,10 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("power mgr");
 	powerManager = new PowerManager(this,  config->backlightTimeout(), config->powerTimeout());
+	this->screenManager.setScreenTimeout(600);
 
 	if (firstRun) {
 		int exitCode = 0;
-		// make sure screen stays on
-		this->screenManager.setScreenTimeout(600);
 		INFO("GMenu2X::ctor - first run, copying data");
 		if (doInstall()) {
 			ledOff();
@@ -314,7 +313,6 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	} else 	if (install || MIN_CONFIG_VERSION > config->version()) {
 		// we're doing an upgrade
 		int exitCode = 0;
-		this->screenManager.setScreenTimeout(600);
 		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), MIN_CONFIG_VERSION);
 		if (doUpgrade()) {
 			ledOff();
@@ -350,7 +348,6 @@ void GMenu2X::main() {
 
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
-	this->screenManager.setScreenTimeout(600);
 
 	Loader loader(this);
 	loader.run();
@@ -363,6 +360,7 @@ void GMenu2X::main() {
 
 	// we need to re-join before building the menu
 	thread_cache.join();
+	pbLoading->updateDetail("");
 	TRACE("app cache thread has finished");
 
 	TRACE("screen manager");
@@ -370,16 +368,6 @@ void GMenu2X::main() {
 
 	initMenu();
 	readTmp();
-	if (this->lastSelectorElement >- 1 && \
-		this->menu->selLinkApp() != NULL && \
-		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
-		!this->lastSelectorDir.empty())) {
-
-		TRACE("recoverSession happening");
-		this->menu->selLinkApp()->selector(
-			this->lastSelectorElement, 
-			this->lastSelectorDir);
-	}
 
 	TRACE("pthread");
 	pthread_t thread_id;
@@ -393,6 +381,17 @@ void GMenu2X::main() {
 	delete pbLoading;
 
 	ledOff();
+
+	if (this->lastSelectorElement >- 1 && \
+		this->menu->selLinkApp() != NULL && \
+		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
+		!this->lastSelectorDir.empty())) {
+
+		TRACE("recoverSession happening");
+		this->menu->selLinkApp()->selector(
+			this->lastSelectorElement, 
+			this->lastSelectorDir);
+	}
 
 	bool quit = false;
 	while (!quit) {

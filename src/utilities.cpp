@@ -137,18 +137,23 @@ bool rmtree(string path) {
 int max(int a, int b) {
 	return a > b ? a : b;
 }
+
 float max(float a, float b) {
 	return a > b ? a : b;
 }
+
 int min(int a, int b) {
 	return a < b ? a : b;
 }
+
 float min(float a, float b) {
 	return a < b ? a : b;
 }
+
 int constrain(int x, int imin, int imax) {
 	return min(imax, max(imin, x));
 }
+
 float constrain(float x, float imin, float imax) {
 	return min(imax, max(imin, x));
 }
@@ -157,6 +162,7 @@ float constrain(float x, float imin, float imax) {
 int evalIntConf(int val, int def, int imin, int imax) {
 	return evalIntConf(&val, def, imin, imax);
 }
+
 int evalIntConf(int *val, int def, int imin, int imax) {
 	if (*val == 0 && (*val < imin || *val > imax))
 		*val = def;
@@ -168,6 +174,7 @@ int evalIntConf(int *val, int def, int imin, int imax) {
 const string &evalStrConf(const string &val, const string &def) {
 	return val.empty() ? def : val;
 }
+
 const string &evalStrConf(string *val, const string &def) {
 	*val = evalStrConf(*val, def);
 	return *val;
@@ -297,6 +304,7 @@ string fileBaseName(const string & filename) {
 	}
 	return filename;
 }
+
 string fileExtension(const string & filename) {
 	string::size_type i = filename.rfind(".");
 	if (i != string::npos) {
@@ -317,6 +325,7 @@ bool procWriter(string path, string value) {
 	}
 	return false;
 }
+
 bool procWriter(string path, int value) {
 	stringstream ss;
 	string strVal;
@@ -324,6 +333,7 @@ bool procWriter(string path, int value) {
 	std::getline(ss, strVal);
 	return procWriter(path, strVal);
 }
+
 string fileReader(string path) {
 	if (fileExists(path)) {
 		ifstream str(path);
