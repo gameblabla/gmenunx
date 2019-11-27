@@ -22,6 +22,9 @@ protected:
 	void drawBottomBar(Surface *s=NULL);
 
 	GMenu2X *gmenu2x;
+private:
+	int iconWidth;
+
 };
 
 #endif

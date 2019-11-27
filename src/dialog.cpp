@@ -23,6 +23,9 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 	if (i == NULL) i = gmenu2x->sc->skinRes("icons/generic.png");
 
 	i->blit(s, {4, 4, gmenu2x->config->resolutionX() - 8, gmenu2x->skin->menuTitleBarHeight - 8}, VAlignMiddle);
+
+	this->iconWidth = i->raw->w;
+
 	// s->box(4, 4, 32, 32, strtorgba("ffff00ff"));
 }
 
@@ -31,7 +34,7 @@ void Dialog::writeTitle(const std::string &title, Surface *s) {
 	s->write(
 		gmenu2x->fontTitle, 
 		title, 
-		40, 
+		10 + this->iconWidth, 
 		gmenu2x->fontTitle->getHeight()/2, 
 		VAlignMiddle, 
 		gmenu2x->skin->colours.fontAlt, 
@@ -44,7 +47,7 @@ void Dialog::writeSubTitle(const std::string &subtitle, Surface *s) {
 	s->write(
 		gmenu2x->font, 
 		subtitle, 
-		40, 
+		10 + this->iconWidth, 
 		38, 
 		VAlignBottom, 
 		gmenu2x->skin->colours.fontAlt, 
@@ -65,9 +68,10 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 		gmenu2x->skin->menuTitleBarHeight, 
 		gmenu2x->skin->colours.titleBarBackground);
 
+	if (!icon.empty()) drawTitleIcon(icon, s);
 	if (!title.empty()) writeTitle(title, s);
 	if (!description.empty()) writeSubTitle(description, s);
-	if (!icon.empty()) drawTitleIcon(icon, s);
+	
 	s->clearClipRect();
 }
 
