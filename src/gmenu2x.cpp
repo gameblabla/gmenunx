@@ -203,7 +203,7 @@ int main(int argc, char * argv[]) {
 
 	return 0;
 }
-/*
+
 bool exitMainThread = false;
 void* mainThread(void* param) {
 	GMenu2X *menu = (GMenu2X*)param;
@@ -212,7 +212,7 @@ void* mainThread(void* param) {
 	}
 	return NULL;
 }
-*/
+
 //void GMenu2X::updateAppCache(ProgressBar * pb) {
 void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("enter");
@@ -228,7 +228,6 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 		}
 		assert(this->opkCache);
 		this->opkCache->update(callback);
-		//this->opkCache->update( std::bind( &ProgressBar::myCallback, pb, std::placeholders::_1 ) );
 		sync();
 	}
 	#endif
@@ -295,9 +294,6 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	TRACE("initFont");
 	initFont();
 
-	TRACE("screen manager");
-	screenManager.setScreenTimeout( config->backlightTimeout());
-
 	TRACE("power mgr");
 	powerManager = new PowerManager(this,  config->backlightTimeout(), config->powerTimeout());
 
@@ -338,25 +334,39 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 void GMenu2X::main() {
 	TRACE("enter");
 
+	// has to come before the app cache thread kicks off
+	checkUDC();
+
+	// create this early so we can give it to the thread, but don't exec it yet
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar * pbLoading = new ProgressBar(this, "Please wait, loading the everything...", iconPath);
+	pbLoading->updateDetail("Checking for new applications...");
+
 	TRACE("kicking off our app cache thread");
-	std::thread thread_cache(&GMenu2X::updateAppCache, this, nullptr);
+	std::thread thread_cache(
+		&GMenu2X::updateAppCache, 
+		this, 
+		std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
 
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
-	input.setWakeUpInterval(1000);
+	this->screenManager.setScreenTimeout(600);
 
 	Loader loader(this);
 	loader.run();
+	pbLoading->exec();
 
 	setVolume(this->config->globalVolume());
 	setWallpaper(this->skin->wallpaper);
 	setPerformanceMode();
-	checkUDC();
 	setCPU(this->config->cpuMenu());
 
 	// we need to re-join before building the menu
 	thread_cache.join();
 	TRACE("app cache thread has finished");
+
+	TRACE("screen manager");
+	screenManager.setScreenTimeout( config->backlightTimeout());
 
 	initMenu();
 	readTmp();
@@ -371,19 +381,20 @@ void GMenu2X::main() {
 			this->lastSelectorDir);
 	}
 
-	// turn the blinker off
-	ledOff();
-
-	bool quit = false;
-/*
 	TRACE("pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
-*/
+
 	Renderer *renderer = new Renderer(this);
 
+	pbLoading->finished();
+	delete pbLoading;
+
+	ledOff();
+
+	bool quit = false;
 	while (!quit) {
 		try {
 			renderer->render();
@@ -438,10 +449,10 @@ void GMenu2X::main() {
 	}
 
 	delete renderer;
-/*
+
 	exitMainThread = true;
 	pthread_join(thread_id, NULL);
-*/
+
 	TRACE("exit");
 }
 
@@ -1985,7 +1996,7 @@ bool GMenu2X::doUpgrade() {
 	Installer *installer = new Installer(
 		source, 
 		destination, 
-		std::bind( &ProgressBar::myCallback, pbInstall, std::placeholders::_1) );
+		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
 
 	if (installer->upgrade()) {
 		pbInstall->finished();
@@ -2020,7 +2031,7 @@ bool GMenu2X::doInstall() {
 	Installer *installer = new Installer(
 		source, 
 		destination, 
-		std::bind( &ProgressBar::myCallback, pbInstall, std::placeholders::_1) );
+		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
 
 	if (installer->install()) {
 		pbInstall->finished();
@@ -2033,7 +2044,7 @@ bool GMenu2X::doInstall() {
 	INFO("setting up the application cache");
 	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
 	pbCache->exec();
-	this->updateAppCache(std::bind( &ProgressBar::myCallback, pbCache, std::placeholders::_1));
+	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
 	pbCache->updateDetail("Finished creating cache");
 	pbCache->finished(200);
 	delete pbCache;

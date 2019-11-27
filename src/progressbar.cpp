@@ -55,54 +55,57 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
 
 	ProgressBar * me = static_cast<ProgressBar*>(data);
 
-	me->gmenu2x->screen->box(
-        (SDL_Rect){ 0, 0, me->gmenu2x->config->resolutionX(), me->gmenu2x->config->resolutionY() }, 
-        (RGBAColor){0,0,0, me->bgalpha}
-    );
-
-	SDL_Rect box;
-	box.h = me->boxHeight;
-	if ((*me->gmenu2x->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
-	box.w = me->titleWidth + me->boxPadding;
-	box.x = me->gmenu2x->config->halfX() - box.w/2 - 2;
-	box.y = me->gmenu2x->config->halfY() - box.h/2 - 2;
-
-	//outer box
-	me->gmenu2x->screen->box(box, me->gmenu2x->skin->colours.msgBoxBackground);
-	
-	//draw inner rectangle
-	me->gmenu2x->screen->rectangle(
-        box.x+2, 
-        box.y+2, 
-        box.w-4, 
-        box.h-4, 
-        me->gmenu2x->skin->colours.msgBoxBorder);
-
-    //icon+wrapped_text
-    if ((*me->gmenu2x->sc)[me->icon] != NULL)
-        (*me->gmenu2x->sc)[me->icon]->blit(
-            me->gmenu2x->screen, 
-            box.x + 24, 
-            box.y + 24 , 
-            HAlignCenter | VAlignMiddle);
-
-	string finalText = me->title_ + "\n" + me->detail_;
-    me->gmenu2x->screen->write(
-        me->gmenu2x->font, 
-        finalText, 
-        box.x + ((*me->gmenu2x->sc)[me->icon] != NULL ? 47 : 11), 
-        me->gmenu2x->config->halfY() - me->gmenu2x->font->getHeight() / 5, 
-        VAlignMiddle, 
-        me->gmenu2x->skin->colours.fontAlt, 
-        me->gmenu2x->skin->colours.fontAltOutline);
-
-	me->gmenu2x->screen->flip();
-
     if (me->finished_) {
+        TRACE("finished");
         SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(me->timerId_);
         interval = 0;
+    } else {
+        TRACE("rendering");
+        me->gmenu2x->screen->box(
+            (SDL_Rect){ 0, 0, me->gmenu2x->config->resolutionX(), me->gmenu2x->config->resolutionY() }, 
+            (RGBAColor){0,0,0, me->bgalpha}
+        );
+
+        SDL_Rect box;
+        box.h = me->boxHeight;
+        if ((*me->gmenu2x->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
+        box.w = me->titleWidth + me->boxPadding;
+        box.x = me->gmenu2x->config->halfX() - box.w/2 - 2;
+        box.y = me->gmenu2x->config->halfY() - box.h/2 - 2;
+
+        //outer box
+        me->gmenu2x->screen->box(box, me->gmenu2x->skin->colours.msgBoxBackground);
+        
+        //draw inner rectangle
+        me->gmenu2x->screen->rectangle(
+            box.x+2, 
+            box.y+2, 
+            box.w-4, 
+            box.h-4, 
+            me->gmenu2x->skin->colours.msgBoxBorder);
+
+        //icon+wrapped_text
+        if ((*me->gmenu2x->sc)[me->icon] != NULL)
+            (*me->gmenu2x->sc)[me->icon]->blit(
+                me->gmenu2x->screen, 
+                box.x + 24, 
+                box.y + 24 , 
+                HAlignCenter | VAlignMiddle);
+
+        string finalText = me->title_ + "\n" + me->detail_;
+        me->gmenu2x->screen->write(
+            me->gmenu2x->font, 
+            finalText, 
+            box.x + ((*me->gmenu2x->sc)[me->icon] != NULL ? 47 : 11), 
+            me->gmenu2x->config->halfY() - me->gmenu2x->font->getHeight() / 5, 
+            VAlignMiddle, 
+            me->gmenu2x->skin->colours.fontAlt, 
+            me->gmenu2x->skin->colours.fontAltOutline);
+
+        me->gmenu2x->screen->flip();
     }
+
     return(interval);
 }
 
@@ -113,22 +116,14 @@ void ProgressBar::exec() {
     this->timerId_ = SDL_AddTimer(this->interval_, render, this);
 }
 
-void ProgressBar::finished(int millis) { 
+void ProgressBar::finished(int millis) {
+    TRACE("finished called : %ims", millis);
     SDL_RemoveTimer(this->timerId_);
     this->timerId_ = 0;
     this->finished_ = true; 
     std::this_thread::sleep_for(std::chrono::milliseconds(millis));
 }
 
-void ProgressBar::updateDetail(string text) {
-	this->detail_ = formatText(text);
-}
-
-void ProgressBar::myCallback(std::string text) {
+void ProgressBar::updateDetail(std::string text) {
     this->detail_ = text;
-}
-
-void ProgressBar::callback(void * this_pointer, string text) {
-    ProgressBar * self = static_cast<ProgressBar*>(this_pointer);
-    self->detail_ = text;
 }

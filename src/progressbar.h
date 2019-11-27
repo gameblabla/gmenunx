@@ -20,10 +20,8 @@ public:
 	void exec();
     static uint32_t render(uint32_t interval, void * data);
 	void setBgAlpha(bool bgalpha);
-	void updateDetail(std::string text);
     void finished(int millis = 0);
-	void myCallback(std::string text);
-    static void callback(void * this_pointer, string text);
+	void updateDetail(std::string text);
 };
 
 #endif /*PROGRESSBAR_H_*/
