@@ -1,16 +1,10 @@
 #include "renderer.h"
 #include "menu.h"
+#include "constants.h"
 #include "linkapp.h"
 #include "rtc.h"
 #include "debug.h"
 #include "utilities.h"
-
-enum mmc_status {
-	MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
-};
-enum vol_mode_t {
-	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
-};
 
 uint8_t Renderer::getVolumeMode(uint8_t vol) {
 	TRACE("getVolumeMode - enter : %i", vol);
@@ -151,10 +145,10 @@ void Renderer::render() {
 
 			int btnX = 6;
 			int btnY = infoBarRect.y + (infoBarRect.h / 2);
-			btnX = gmenu2x->drawButton(gmenu2x->screen, "select", gmenu2x->tr["edit"], btnX, btnY);
-			btnX = gmenu2x->drawButton(gmenu2x->screen, "start", gmenu2x->tr["config"], btnX, btnY);
-			btnX = gmenu2x->drawButton(gmenu2x->screen, "a", gmenu2x->tr["run"], btnX, btnY);
-			btnX = gmenu2x->drawButton(gmenu2x->screen, "x", gmenu2x->tr["fave"], btnX, btnY);
+			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "select", gmenu2x->tr["edit"], btnX, btnY);
+			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "start", gmenu2x->tr["config"], btnX, btnY);
+			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "a", gmenu2x->tr["run"], btnX, btnY);
+			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "x", gmenu2x->tr["fave"], btnX, btnY);
 
 			/*
 			gmenu2x->screen->write(
@@ -381,7 +375,7 @@ void Renderer::render() {
 	//TRACE("done");
 	gmenu2x->screen->clearClipRect();
 
-	gmenu2x->drawScrollBar(gmenu2x->skin->numLinkRows, 
+	this->gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
 		gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
 		gmenu2x->menu->firstDispRow(), 
 		gmenu2x->linksRect);
@@ -500,4 +494,3 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
 	TRACE("exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 }
-

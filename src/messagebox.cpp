@@ -182,7 +182,12 @@ int MessageBox::exec() {
 			buttonPositions[i].y = box.y + box.h + gmenu2x->font->getHalfHeight();
 			buttonPositions[i].w = btnX;
 
-			btnX = gmenu2x->drawButtonRight(gmenu2x->screen, buttonLabels[i], buttons[i], btnX, buttonPositions[i].y);
+			btnX = gmenu2x->ui->drawButtonRight(
+				gmenu2x->screen, 
+				buttonLabels[i], 
+				buttons[i], 
+				btnX, 
+				buttonPositions[i].y);
 
 			buttonPositions[i].x = btnX;
 			buttonPositions[i].w = buttonPositions[i].x - btnX - 6;

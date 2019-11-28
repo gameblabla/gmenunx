@@ -95,7 +95,7 @@ void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rows
 	}
 
 	gmenu2x->screen->clearClipRect();
-	gmenu2x->drawScrollBar(rowsPerPage, text->size(), firstRow, gmenu2x->listRect);
+	gmenu2x->ui->drawScrollBar(rowsPerPage, text->size(), firstRow, gmenu2x->listRect);
 }
 
 void TextDialog::exec() {
@@ -115,10 +115,22 @@ void TextDialog::exec() {
 
 	drawBottomBar(this->bg);
 
-	gmenu2x->drawButton(this->bg, "down", gmenu2x->tr["Scroll"],
-	gmenu2x->drawButton(this->bg, "up", "",
-	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
-	5))-10);
+	gmenu2x->ui->drawButton(
+		this->bg, 
+		"down", 
+		gmenu2x->tr["Scroll"],
+		gmenu2x->ui->drawButton(
+			this->bg, 
+			"up", 
+			"",
+			gmenu2x->ui->drawButton(
+				this->bg, 
+				"start", 
+				gmenu2x->tr["Exit"],
+				5)
+			)
+		-10
+	);
 
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 

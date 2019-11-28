@@ -70,8 +70,8 @@ bool WallpaperDialog::exec()
 		gmenu2x->screen->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 		TRACE("drawButtons");
-		gmenu2x->drawButton(gmenu2x->screen, "a", gmenu2x->tr["Select"],
-		gmenu2x->drawButton(gmenu2x->screen, "start", gmenu2x->tr["Exit"],5));
+		gmenu2x->ui->drawButton(gmenu2x->screen, "a", gmenu2x->tr["Select"],
+		gmenu2x->ui->drawButton(gmenu2x->screen, "start", gmenu2x->tr["Exit"],5));
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
@@ -86,7 +86,7 @@ bool WallpaperDialog::exec()
 		}
 
 		TRACE("drawScrollBar");
-		gmenu2x->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
+		gmenu2x->ui->drawScrollBar(numRows, wallpapers.size(), firstElement, gmenu2x->listRect);
 		TRACE("flip");
 		gmenu2x->screen->flip();
 

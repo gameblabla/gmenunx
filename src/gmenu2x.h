@@ -21,8 +21,6 @@
 #ifndef GMENU2X_H
 #define GMENU2X_H
 
-class PowerManager;
-
 #include "surfacecollection.h"
 #include "iconbutton.h"
 #include "translator.h"
@@ -36,6 +34,7 @@ class PowerManager;
 #include "led.h"
 #include "skin.h"
 #include "config.h"
+#include "ui.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
@@ -69,7 +68,9 @@ struct MenuOption {
 
 char *ms2hms(uint32_t t, bool mm, bool ss);
 
+class PowerManager;
 class Menu;
+class UI;
 #ifdef HAVE_LIBOPK
 class OpkCache;
 #endif
@@ -108,28 +109,6 @@ private:
 
 	void initFont();
 	void showManual();
-
-#ifdef TARGET_GP2X
-	typedef struct {
-		uint16_t batt;
-		uint16_t remocon;
-	} MMSP2ADC;
-
-	int batteryHandle;
-	string ip, defaultgw;
-	
-	bool inet, //!< Represents the configuration of the basic network services. @see readCommonIni @see usbnet @see samba @see web
-		usbnet,
-		samba,
-		web;
-	volatile uint16_t *MEM_REG;
-	int cx25874; //tv-out
-	void gp2x_tvout_on(bool pal);
-	void gp2x_tvout_off();
-	void readCommonIni();
-	void initServices();
-
-#endif
 
 	//void formatSd();
 	void checkUDC();
@@ -176,10 +155,9 @@ public:
 	Touchscreen ts;
 
 	LED *led;
-	// uint32_t tickSuspend; //, tickPowerOff;
 
 	//firmware type and version
-	string fwType = ""; //, fwVersion;
+	string fwType = "";
 	//gp2x type
 	bool f200 = true;
 
@@ -209,29 +187,6 @@ public:
 	void initMenu();
 
 	PowerManager *powerManager;
-
-#if defined(TARGET_GP2X)
-	void writeConfigOpen2x();
-	void readConfigOpen2x();
-	void settingsOpen2x();
-	// Open2x settings ---------------------------------------------------------
-	bool o2x_usb_net_on_boot, o2x_ftp_on_boot, o2x_telnet_on_boot, o2x_gp2xjoy_on_boot, o2x_usb_host_on_boot, o2x_usb_hid_on_boot, o2x_usb_storage_on_boot;
-	string o2x_usb_net_ip;
-	int savedVolumeMode;		//	just use the const int scale values at top of source
-
-	//  Volume scaling values to store from config files
-	int volumeScalerPhones;
-	int volumeScalerNormal;
-	//--------------------------------------------------------------------------
-	void activateSdUsb();
-	void activateNandUsb();
-	void activateRootUsb();
-	void applyRamTimings();
-	void applyDefaultTimings();
-	void setGamma(int gamma);
-	void setVolumeScaler(int scaler);
-	int getVolumeScaler();
-#endif
 
 	void setTVOut(string _TVOut);
 	string TVOut = "OFF";
@@ -270,15 +225,10 @@ public:
 	void setWallpaper(const string &wallpaper = "");
 	void updateAppCache(std::function<void(string)> callback = nullptr);
 
-	void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
-	int drawButton(Button *btn, int x=5, int y=-10);
-	int drawButton(Surface *s, const string &btn, const string &text, int x=5, int y=-10);
-	int drawButtonRight(Surface *s, const string &btn, const string &text, int x=5, int y=-10);
-	void drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect);
-
 	Menu* menu;
 	Skin* skin;
 	Config* config;
+	UI* ui;
 
 };
 

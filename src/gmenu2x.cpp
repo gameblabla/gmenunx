@@ -124,10 +124,6 @@ int memdev = 0;
 	volatile uint16_t *memregs;
 #endif
 
-enum mmc_status {
-	MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
-};
-
 int16_t tvOutPrev = false, tvOutConnected;
 bool getTVOutStatus() {
 	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
@@ -137,6 +133,7 @@ bool getTVOutStatus() {
 GMenu2X::~GMenu2X() {
 	TRACE("enter\n\n");
 	quit();
+	delete ui;
 	delete menu;
 	delete screen;
 	delete font;
@@ -283,7 +280,10 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
 	this->screen->raw = SDL_SetVideoMode(config->resolutionX(), config->resolutionY(), config->videoBpp(), SDL_HWSURFACE|SDL_DOUBLEBUF);
-	
+
+	TRACE("ui");
+	this->ui = new UI(this);
+
 	this->skin = new Skin(localAssetsPath, config->resolutionX(),  config->resolutionY());
 	if (!this->skin->loadSkin( config->skin())) {
 		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
@@ -660,86 +660,6 @@ void GMenu2X::initMenu() {
 						tr["Umount external SD"], 
 						"skin:icons/eject.png");
 
-
-	/*
-	TRACE("sections loop : %zu", menu->getSections().size());
-	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
-		//Add virtual links in the applications section
-		if (menu->getSections()[i] == "applications") {
-
-			menu->addActionLink(i, 
-						tr["Battery Logger"], 
-						MakeDelegate(this, &GMenu2X::batteryLogger), 
-						tr["Log battery power to battery.csv"], 
-						"skin:icons/ebook.png");
-
-			menu->addActionLink(i, 
-						tr["Explorer"], 
-						MakeDelegate(this, &GMenu2X::explorer), 
-						tr["Browse files and launch apps"], 
-						"skin:icons/explorer.png");
-			
-		}
-
-		//Add virtual links in the setting section
-		else if (menu->getSections()[i] == "settings") {
-
-			menu->addActionLink(
-				i, 
-				tr["About"], 
-				MakeDelegate(this, &GMenu2X::about), 
-				tr["Info about system"], 
-				"skin:icons/about.png");
-
-			if (fileExists(getAssetsPath() + "log.txt"))
-				menu->addActionLink(
-					i, 
-					tr["Log Viewer"], 
-					MakeDelegate(this, &GMenu2X::viewLog), 
-					tr["Displays last launched program's output"], 
-					"skin:icons/ebook.png");
-
-			if (curMMCStatus == MMC_UNMOUNTED)
-				menu->addActionLink(
-					i, 
-					tr["Mount"], 
-					MakeDelegate(this, &GMenu2X::mountSdDialog), 
-					tr["Mount external SD"], 
-					"skin:icons/eject.png");
-
-			menu->addActionLink(
-				i, 
-				tr["Power"], 
-				MakeDelegate(this, &GMenu2X::poweroffDialog), 
-				tr["Power menu"], 
-				"skin:icons/exit.png");
-
-			menu->addActionLink(
-				i, 
-				tr["Settings"], 
-				MakeDelegate(this, &GMenu2X::settings), 
-				tr["Configure system and choose skin"], 
-				"skin:icons/configure.png");
-
-			menu->addActionLink(
-				i, 
-				tr["Skin - " + skin->name], 
-				MakeDelegate(this, &GMenu2X::skinMenu), 
-				tr["Adjust skin settings"], 
-				"skin:icons/skin.png");
-
-			if (curMMCStatus == MMC_MOUNTED)
-				menu->addActionLink(
-					i, 
-					tr["Umount"], 
-					MakeDelegate(this, &GMenu2X::umountSdDialog), 
-					tr["Umount external SD"], 
-					"skin:icons/eject.png");
-
-
-		}
-	}
-	*/
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
@@ -2165,96 +2085,3 @@ string GMenu2X::getDiskFree(const char *path) {
 	TRACE("exit");
 	return df;
 }
-
-int GMenu2X::drawButton(Button *btn, int x, int y) {
-	if (y < 0) y = config->resolutionY() + y;
-	// y = config->resolutionY - 8 - skinConfInt["bottomBarHeight"] / 2;
-	btn->setPosition(x, y - 7);
-	btn->paint();
-	return x + btn->getRect().w + 6;
-}
-
-int GMenu2X::drawButton(Surface *s, const string &btn, const string &text, int x, int y) {
-	if (y < 0) y = config->resolutionY() + y;
-	SDL_Rect re = {x, y, 0, 16};
-	int padding = 4;
-
-	if (this->sc->skinRes("imgs/buttons/" + btn + ".png") != NULL) {
-		int imageWidth = (*this->sc)["imgs/buttons/" + btn + ".png"]->raw->w;
-		(*this->sc)["imgs/buttons/" + btn + ".png"]->blit(
-			s, 
-			re.x + (imageWidth / 2), 
-			re.y, 
-			HAlignCenter | VAlignMiddle);
-		re.w = imageWidth + padding;
-
-		s->write(
-			font, 
-			text, 
-			re.x + re.w, 
-			re.y,
-			VAlignMiddle, 
-			skin->colours.fontAlt, 
-			skin->colours.fontAltOutline);
-		re.w += font->getTextWidth(text);
-	}
-	return x + re.w + (2 * padding);
-}
-
-int GMenu2X::drawButtonRight(Surface *s, const string &btn, const string &text, int x, int y) {
-	if (y < 0) y = config->resolutionY() + y;
-	// y = config->resolutionY - skinConfInt["bottomBarHeight"] / 2;
-	if (this->sc->skinRes("imgs/buttons/" + btn + ".png") != NULL) {
-		x -= 16;
-		(*this->sc)["imgs/buttons/" + btn + ".png"]->blit(s, x + 8, y + 2, HAlignCenter | VAlignMiddle);
-		x -= 3;
-		s->write(
-			font, 
-			text, 
-			x, 
-			y, 
-			HAlignRight | VAlignMiddle, 
-			skin->colours.fontAlt, 
-			skin->colours.fontAltOutline);
-		return x - 6 - font->getTextWidth(text);
-	}
-	return x - 6;
-}
-
-void GMenu2X::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, SDL_Rect scrollRect) {
-	if (totalsize <= pagesize) return;
-
-	//internal bar total height = height-2
-	//bar size
-	uint32_t bs = (scrollRect.h - 3) * pagesize / totalsize;
-	//bar y position
-	uint32_t by = (scrollRect.h - 3) * pagepos / totalsize;
-	by = scrollRect.y + 3 + by;
-	if ( by + bs > scrollRect.y + scrollRect.h - 4) by = scrollRect.y + scrollRect.h - 4 - bs;
-
-	screen->rectangle(scrollRect.x + scrollRect.w - 4, by, 4, bs, skin->colours.listBackground);
-	screen->box(scrollRect.x + scrollRect.w - 3, by + 1, 2, bs - 2, skin->colours.selectionBackground);
-}
-
-void GMenu2X::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
-	SDL_Rect progress = {52, 32, this->config->resolutionX()-84, 8};
-	SDL_Rect box = {20, 20, this->config->resolutionX()-40, 32};
-
-	val = constrain(val, min, max);
-
-	bg.blit(screen,0,0);
-	screen->box(box, this->skin->colours.msgBoxBackground);
-	screen->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, this->skin->colours.msgBoxBorder);
-
-	icon.blit(screen, 28, 28);
-
-	this->screen->box(progress, this->skin->colours.msgBoxBackground);
-	this->screen->box(
-		progress.x + 1, 
-		progress.y + 1, 
-		val * (progress.w - 3) / max + 1, 
-		progress.h - 2, 
-		this->skin->colours.msgBoxSelection);
-	this->screen->flip();
-}
-

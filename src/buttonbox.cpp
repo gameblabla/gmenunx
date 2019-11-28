@@ -22,7 +22,7 @@ void ButtonBox::add(Button *button)
 void ButtonBox::paint(uint32_t posX)
 {
 	for (ButtonList::const_iterator it = buttons.begin(); it != buttons.end(); ++it)
-		posX = gmenu2x->drawButton(*it, posX);
+		posX = gmenu2x->ui->drawButton(*it, posX);
 }
 
 void ButtonBox::handleTS()

@@ -48,12 +48,12 @@ bool BrowseDialog::exec() {
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	if (!showFiles && allowSelectDirectory) {
-		gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Select"]);
+		gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Select"]);
 	} else {
-		gmenu2x->drawButton(
+		gmenu2x->ui->drawButton(
 			this->bg, "start", gmenu2x->tr["Exit"],
-			gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Up"], 
-			gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"]))
+			gmenu2x->ui->drawButton(this->bg, "b", gmenu2x->tr["Up"], 
+			gmenu2x->ui->drawButton(this->bg, "a", gmenu2x->tr["Select"]))
 		);
 	}
 
@@ -107,7 +107,7 @@ bool BrowseDialog::exec() {
 			}
 		}
 		gmenu2x->input.setWakeUpInterval(1000);
-		gmenu2x->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
+		gmenu2x->ui->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
 		gmenu2x->screen->flip();
 
 		do {

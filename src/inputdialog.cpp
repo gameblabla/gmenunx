@@ -127,10 +127,10 @@ bool InputDialog::exec() {
 
 	drawTopBar(this->bg, title, text, icon);
 	drawBottomBar(this->bg);
-	gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Press"],
-	gmenu2x->drawButton(this->bg, "y", gmenu2x->tr["Keys"],
-	gmenu2x->drawButton(this->bg, "r", gmenu2x->tr["Space"],
-	gmenu2x->drawButton(this->bg, "l", gmenu2x->tr["Backspace"]))));
+	gmenu2x->ui->drawButton(this->bg, "a", gmenu2x->tr["Press"],
+	gmenu2x->ui->drawButton(this->bg, "y", gmenu2x->tr["Keys"],
+	gmenu2x->ui->drawButton(this->bg, "r", gmenu2x->tr["Space"],
+	gmenu2x->ui->drawButton(this->bg, "l", gmenu2x->tr["Backspace"]))));
 
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 

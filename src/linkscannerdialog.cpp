@@ -22,7 +22,7 @@ void LinkScannerDialog::exec() {
 	drawBottomBar(this->bg);
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
-	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
+	gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
 	this->bg->blit(gmenu2x->screen, 0, 0);
 	gmenu2x->screen->write(gmenu2x->font, gmenu2x->tr["Scanning..."], gmenu2x->listRect.x + 4, this->lineY);
 

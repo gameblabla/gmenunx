@@ -79,9 +79,9 @@ int Selector::exec(int startSelection) {
 
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
-	gmenu2x->drawButton(this->bg, "a", gmenu2x->tr["Select"],
-	gmenu2x->drawButton(this->bg, "b", gmenu2x->tr["Exit"], 
-	gmenu2x->drawButton(this->bg, "x", gmenu2x->tr["Favourite"])));
+	gmenu2x->ui->drawButton(this->bg, "a", gmenu2x->tr["Select"],
+	gmenu2x->ui->drawButton(this->bg, "b", gmenu2x->tr["Exit"], 
+	gmenu2x->ui->drawButton(this->bg, "x", gmenu2x->tr["Favourite"])));
 
 	prepare(&fl, &screens, &titles);
 	int selected = constrain(startSelection, 0, fl.size() - 1);
@@ -236,7 +236,7 @@ int Selector::exec(int startSelection) {
 			}
 			gmenu2x->input.setWakeUpInterval(1000);
 			gmenu2x->screen->clearClipRect();
-			gmenu2x->drawScrollBar(numRows, fl.size(), firstElement, gmenu2x->listRect);
+			gmenu2x->ui->drawScrollBar(numRows, fl.size(), firstElement, gmenu2x->listRect);
 			gmenu2x->screen->flip();
 		}
 

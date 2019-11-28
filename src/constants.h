@@ -13,5 +13,12 @@ static const std::string USER_PREFIX = ".gmenunx/";
 
 #endif
 
-#endif
+enum mmc_status {
+	MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
+};
+enum vol_mode_t {
+	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
+};
+
+#endif // __CONSTANTS_H__
 

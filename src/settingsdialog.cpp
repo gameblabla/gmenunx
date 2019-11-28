@@ -86,7 +86,11 @@ bool SettingsDialog::exec() {
 			voices[i]->draw(iY);
 		}
 
-		gmenu2x->drawScrollBar(numRows, voices.size(), firstElement, gmenu2x->listRect);
+		gmenu2x->ui->drawScrollBar(
+			numRows, 
+			voices.size(), 
+			firstElement, 
+			gmenu2x->listRect);
 
 		gmenu2x->screen->flip();
 		do {

@@ -14,11 +14,11 @@ void ImageViewerDialog::exec() {
 	drawTopBar(this->bg, title, description, icon);
 	drawBottomBar(this->bg);
 
-	gmenu2x->drawButton(this->bg, "right", gmenu2x->tr["Pan"],
-	gmenu2x->drawButton(this->bg, "down", "",
-	gmenu2x->drawButton(this->bg, "up", "",
-	gmenu2x->drawButton(this->bg, "left", "",
-	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
+	gmenu2x->ui->drawButton(this->bg, "right", gmenu2x->tr["Pan"],
+	gmenu2x->ui->drawButton(this->bg, "down", "",
+	gmenu2x->ui->drawButton(this->bg, "up", "",
+	gmenu2x->ui->drawButton(this->bg, "left", "",
+	gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
 	5))-12)-14)-12);
 
 	this->bg->blit(gmenu2x->screen,0,0);

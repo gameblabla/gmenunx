@@ -18,10 +18,10 @@ void BatteryLoggerDialog::exec() {
 	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
 
 	drawBottomBar(this->bg);
-	gmenu2x->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
-	gmenu2x->drawButton(this->bg, "select", gmenu2x->tr["Del battery.csv"],
-	gmenu2x->drawButton(this->bg, "down", gmenu2x->tr["Scroll"],
-	gmenu2x->drawButton(this->bg, "up", "", 5)-10)));
+	gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
+	gmenu2x->ui->drawButton(this->bg, "select", gmenu2x->tr["Del battery.csv"],
+	gmenu2x->ui->drawButton(this->bg, "down", gmenu2x->tr["Scroll"],
+	gmenu2x->ui->drawButton(this->bg, "up", "", 5)-10)));
 
 	this->bg->blit(gmenu2x->screen,0,0);
 
@@ -84,7 +84,7 @@ void BatteryLoggerDialog::exec() {
 			}
 		}
 
-		gmenu2x->drawScrollBar(rowsPerPage, log.size(), firstRow, gmenu2x->listRect);
+		gmenu2x->ui->drawScrollBar(rowsPerPage, log.size(), firstRow, gmenu2x->listRect);
 
 		gmenu2x->screen->flip();
 
