@@ -41,7 +41,6 @@ void myOpk::constrain() {
 			if (this->exec_.find(token) != this->exec_.npos) {
 				TRACE("exec takes a token");
 				this->selectorDir(EXTERNAL_CARD_PATH);
-                this->exec_ = "";
 				break;
 			}
 		}
@@ -101,17 +100,17 @@ bool myOpk::load(OPK * opk) {
         } else if (loweredKey == "type") {
             this->type(value);
         } else if (loweredKey == "startupnotify") {
-            this->startupNotify(!strncmp(val, "true", lval));
+            this->startupNotify("false" != value ? true : false);
         } else if (loweredKey == "x-od-needsdownscaling") {
-            this->needsDownscaling(!strncmp(val, "true", lval));
+            this->needsDownscaling("false" != value ? true : false);
         } else if (loweredKey == "mimetype") {
             this->mimeType(value);
         } else if (loweredKey == "x-od-needsgsensor") {
-            // TODO :: dont eat it
+            this->needsGSensor("false" != value ? true : false);
         } else if (loweredKey == "x-od-needsjoystick") {
-            // TODO :: dont eat it
+            this->needsJoystick("false" != value ? true : false);
         } else if (loweredKey == "version") {
-            // TODO :: dont eat it
+            this->version(value);
         } else {
             WARNING("Unrecognized OPK link option: '%s'", loweredKey.c_str());
         }
@@ -160,6 +159,9 @@ void myOpk::type(std::string val) { this->type_ = val; }
 std::string myOpk::mimeType() const { return this->mimeType_; }
 void myOpk::mimeType(std::string val) { this->mimeType_ = val; }
 
+std::string myOpk::version() const { return this->version_; }
+void myOpk::version(std::string val) { this->version_ = val; }
+
 bool myOpk::needsDownscaling() const { return this->needsDownscaling_; }
 void myOpk::needsDownscaling(bool val) { this->needsDownscaling_ = val; }
 
@@ -168,6 +170,12 @@ void myOpk::startupNotify(bool val) { this->startupNotify_ = val; }
 
 bool myOpk::terminal() const { return this->terminal_; }
 void myOpk::terminal(bool val) { this->terminal_ = val; }
+
+bool myOpk::needsGSensor() const { return this->needsGSensor_; }
+void myOpk::needsGSensor(bool val) { this->needsGSensor_ = val; }
+
+bool myOpk::needsJoystick() const { return this->needsJoystick_; }
+void myOpk::needsJoystick(bool val) { this->needsJoystick_ = val; }
 
 std::list<myOpk> * OpkHelper::ToOpkList(const std::string & path) {
     TRACE("enter : %s", path.c_str());

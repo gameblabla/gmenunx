@@ -57,6 +57,9 @@ class myOpk {
         std::string mimeType() const;
         void mimeType(std::string val);
 
+        std::string version() const;
+        void version(std::string val);
+
         bool needsDownscaling() const;
         void needsDownscaling(bool val);
 
@@ -65,6 +68,12 @@ class myOpk {
 
         bool terminal() const;
         void terminal(bool val);
+        
+        bool needsGSensor() const;
+        void needsGSensor(bool val);
+        
+        bool needsJoystick() const;
+        void needsJoystick(bool val);
 
     private:
 
@@ -88,9 +97,13 @@ class myOpk {
         std::string selectorFilter_;
         std::string type_;
         std::string mimeType_;
+        std::string version_;
+
         bool needsDownscaling_;
         bool startupNotify_;
         bool terminal_;
+        bool needsGSensor_;
+        bool needsJoystick_;
 
 };
 
