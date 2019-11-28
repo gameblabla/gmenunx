@@ -443,8 +443,17 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
             DesktopFile file = filePair->second;
             TRACE("checking : '%s' (%s)", file.title().c_str(), key.c_str());
             string provider = file.provider();
+
+            // let's also not remove a link if there is no provider, 
+            // as it's a manually created file
             if (provider.empty())
                 continue;
+
+            // let's not remove anything if th ewhole dir is missing
+            // because it probably means we're external card && unmounted
+            if (!dirExists(dir_name(provider)))
+                continue;
+
             if (!fileExists(provider)) {
                 TRACE("removing '%s' because provider doesn't exist", 
                     file.title().c_str());
