@@ -593,25 +593,127 @@ void GMenu2X::initMenu() {
 	TRACE("new menu");
 	menu = new Menu(this);
 
+	TRACE("add built in action links");
+	// TODO :: sort these after adding
+	int i = menu->getSectionIndex("applications");
+	menu->addActionLink(i, 
+						tr["Battery Logger"], 
+						MakeDelegate(this, &GMenu2X::batteryLogger), 
+						tr["Log battery power to battery.csv"], 
+						"skin:icons/ebook.png");
+	menu->addActionLink(i, 
+						tr["Explorer"], 
+						MakeDelegate(this, &GMenu2X::explorer), 
+						tr["Browse files and launch apps"], 
+						"skin:icons/explorer.png");
+
+	i = menu->getSectionIndex("settings");
+	menu->addActionLink(
+						i, 
+						tr["About"], 
+						MakeDelegate(this, &GMenu2X::about), 
+						tr["Info about system"], 
+						"skin:icons/about.png");
+
+	if (fileExists(getAssetsPath() + "log.txt"))
+		menu->addActionLink(
+						i, 
+						tr["Log Viewer"], 
+						MakeDelegate(this, &GMenu2X::viewLog), 
+						tr["Displays last launched program's output"], 
+						"skin:icons/ebook.png");
+
+	if (curMMCStatus == MMC_UNMOUNTED)
+		menu->addActionLink(
+						i, 
+						tr["Mount"], 
+						MakeDelegate(this, &GMenu2X::mountSdDialog), 
+						tr["Mount external SD"], 
+						"skin:icons/eject.png");
+
+	menu->addActionLink(
+						i, 
+						tr["Power"], 
+						MakeDelegate(this, &GMenu2X::poweroffDialog), 
+						tr["Power menu"], 
+						"skin:icons/exit.png");
+
+	menu->addActionLink(
+						i, 
+						tr["Settings"], 
+						MakeDelegate(this, &GMenu2X::settings), 
+						tr["Configure system and choose skin"], 
+						"skin:icons/configure.png");
+
+	menu->addActionLink(
+						i, 
+						tr["Skin - " + skin->name], 
+						MakeDelegate(this, &GMenu2X::skinMenu), 
+						tr["Adjust skin settings"], 
+						"skin:icons/skin.png");
+
+	if (curMMCStatus == MMC_MOUNTED)
+		menu->addActionLink(
+						i, 
+						tr["Umount"], 
+						MakeDelegate(this, &GMenu2X::umountSdDialog), 
+						tr["Umount external SD"], 
+						"skin:icons/eject.png");
+
+
+	/*
 	TRACE("sections loop : %zu", menu->getSections().size());
 	for (uint32_t i = 0; i < menu->getSections().size(); i++) {
 		//Add virtual links in the applications section
 		if (menu->getSections()[i] == "applications") {
+
+			menu->addActionLink(i, 
+						tr["Battery Logger"], 
+						MakeDelegate(this, &GMenu2X::batteryLogger), 
+						tr["Log battery power to battery.csv"], 
+						"skin:icons/ebook.png");
+
 			menu->addActionLink(i, 
 						tr["Explorer"], 
 						MakeDelegate(this, &GMenu2X::explorer), 
 						tr["Browse files and launch apps"], 
 						"skin:icons/explorer.png");
 			
-			menu->addActionLink(i, 
-						tr["Battery Logger"], 
-						MakeDelegate(this, &GMenu2X::batteryLogger), 
-						tr["Log battery power to battery.csv"], 
-						"skin:icons/ebook.png");
 		}
 
 		//Add virtual links in the setting section
 		else if (menu->getSections()[i] == "settings") {
+
+			menu->addActionLink(
+				i, 
+				tr["About"], 
+				MakeDelegate(this, &GMenu2X::about), 
+				tr["Info about system"], 
+				"skin:icons/about.png");
+
+			if (fileExists(getAssetsPath() + "log.txt"))
+				menu->addActionLink(
+					i, 
+					tr["Log Viewer"], 
+					MakeDelegate(this, &GMenu2X::viewLog), 
+					tr["Displays last launched program's output"], 
+					"skin:icons/ebook.png");
+
+			if (curMMCStatus == MMC_UNMOUNTED)
+				menu->addActionLink(
+					i, 
+					tr["Mount"], 
+					MakeDelegate(this, &GMenu2X::mountSdDialog), 
+					tr["Mount external SD"], 
+					"skin:icons/eject.png");
+
+			menu->addActionLink(
+				i, 
+				tr["Power"], 
+				MakeDelegate(this, &GMenu2X::poweroffDialog), 
+				tr["Power menu"], 
+				"skin:icons/exit.png");
+
 			menu->addActionLink(
 				i, 
 				tr["Settings"], 
@@ -634,26 +736,10 @@ void GMenu2X::initMenu() {
 					tr["Umount external SD"], 
 					"skin:icons/eject.png");
 
-			if (curMMCStatus == MMC_UNMOUNTED)
-				menu->addActionLink(
-					i, 
-					tr["Mount"], 
-					MakeDelegate(this, &GMenu2X::mountSdDialog), 
-					tr["Mount external SD"], 
-					"skin:icons/eject.png");
 
-			if (fileExists(getAssetsPath() + "log.txt"))
-				menu->addActionLink(
-					i, 
-					tr["Log Viewer"], 
-					MakeDelegate(this, &GMenu2X::viewLog), 
-					tr["Displays last launched program's output"], 
-					"skin:icons/ebook.png");
-
-			menu->addActionLink(i, tr["About"], MakeDelegate(this, &GMenu2X::about), tr["Info about system"], "skin:icons/about.png");
-			menu->addActionLink(i, tr["Power"], MakeDelegate(this, &GMenu2X::poweroffDialog), tr["Power menu"], "skin:icons/exit.png");
 		}
 	}
+	*/
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
