@@ -392,3 +392,17 @@ std::string toLower(const std::string & input) {
 	transform(copy.begin(), copy.end(), copy.begin(), (int(*)(int)) tolower);
 	return copy;
 }
+
+char *ms2hms(uint32_t t, bool mm, bool ss) {
+	static char buf[10];
+
+	t = t / 1000;
+	int s = (t % 60);
+	int m = (t % 3600) / 60;
+	int h = (t % 86400) / 3600;
+
+	if (!ss) sprintf(buf, "%02d:%02d", h, m);
+	else if (!mm) sprintf(buf, "%02d", h);
+	else sprintf(buf, "%02d:%02d:%02d", h, m, s);
+	return buf;
+};

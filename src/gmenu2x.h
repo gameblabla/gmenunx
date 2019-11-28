@@ -78,6 +78,8 @@ class OpkCache;
 class GMenu2X {
 private:
 
+	int16_t tvOutPrev = false;
+
 	string exe_path; //!< Contains the working directory of GMenu2X
 	string assets_path; // Contains the assets path
 

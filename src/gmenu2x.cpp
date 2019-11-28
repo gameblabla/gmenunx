@@ -89,45 +89,9 @@ using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
 
-char *ms2hms(uint32_t t, bool mm = true, bool ss = true) {
-	static char buf[10];
-
-	t = t / 1000;
-	int s = (t % 60);
-	int m = (t % 3600) / 60;
-	int h = (t % 86400) / 3600;
-
-	if (!ss) sprintf(buf, "%02d:%02d", h, m);
-	else if (!mm) sprintf(buf, "%02d", h);
-	else sprintf(buf, "%02d:%02d:%02d", h, m, s);
-	return buf;
-};
-
-void printbin(const char *id, int n) {
-	printf("%s: 0x%08x ", id, n);
-	for(int i = 31; i >= 0; i--) {
-		printf("%d", !!(n & 1 << i));
-		if (!(i % 8)) printf(" ");
-	}
-	printf("\e[0K\n");
-}
-
 static void quit_all(int err) {
 	delete app;
 	exit(err);
-}
-
-int memdev = 0;
-#ifdef TARGET_RS97
-	volatile uint32_t *memregs;
-#else
-	volatile uint16_t *memregs;
-#endif
-
-int16_t tvOutPrev = false, tvOutConnected;
-bool getTVOutStatus() {
-	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
-	return false;
 }
 
 GMenu2X::~GMenu2X() {
@@ -1292,14 +1256,113 @@ void GMenu2X::explorer() {
 	TRACE("exit");
 }
 
-void GMenu2X::ledOn() {
-	TRACE("ledON");
-	led->flash();
+const string &GMenu2X::getExePath() {
+	TRACE("enter path: %s", exe_path.c_str());
+	if (exe_path.empty()) {
+		char buf[255];
+		memset(buf, 0, 255);
+		int l = readlink("/proc/self/exe", buf, 255);
+
+		exe_path = buf;
+		exe_path = exe_path.substr(0, l);
+		l = exe_path.rfind("/");
+		exe_path = exe_path.substr(0, l + 1);
+	}
+	TRACE("exit path:%s", exe_path.c_str());
+	return exe_path;
 }
 
-void GMenu2X::ledOff() {
-	TRACE("ledOff");
-	led->reset();
+string GMenu2X::getAssetsPath() {
+	if (assets_path.length())
+		return assets_path;
+	string result = USER_PREFIX;
+	#ifdef TARGET_LINUX
+	const char *homedir;
+	if ((homedir = getenv("HOME")) == NULL) {
+		homedir = getpwuid(getuid())->pw_dir;
+	}
+	TRACE("homedir : %s", homedir);
+	result = (string)homedir + "/" + USER_PREFIX;
+	#endif
+	TRACE("exit : %s", result.c_str());
+	assets_path = result;
+	return result;
+}
+
+bool GMenu2X::doUpgrade() {
+	INFO("GMenu2X::doUpgrade - enter");
+	bool success = false;
+	// check for the writable home directory existing
+	string source = getExePath();
+	string destination = getAssetsPath();
+
+	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for upgrade...", iconPath);
+	pbInstall->exec();
+	INFO("doing a full copy");
+
+	Installer *installer = new Installer(
+		source, 
+		destination, 
+		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
+
+	if (installer->upgrade()) {
+		pbInstall->finished();
+	} else {
+		pbInstall->updateDetail("Upgrade failed");
+		pbInstall->finished(2000);
+	}
+	delete pbInstall;
+	INFO("GMenu2X::doUpgrade - Upgrade complete");
+	success = true;
+	sync();
+	TRACE("exit");
+	return success;
+}
+
+bool GMenu2X::doInstall() {
+	TRACE("enter");
+	bool success = false;
+
+	// check for the writable home directory existing
+	string source = getExePath();
+	string destination = getAssetsPath();
+
+	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
+	INFO("testing for writable home dir : %s", destination.c_str());
+	
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
+	pbInstall->exec();
+	INFO("doing a full copy");
+
+	Installer *installer = new Installer(
+		source, 
+		destination, 
+		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
+
+	if (installer->install()) {
+		pbInstall->finished();
+	} else {
+		pbInstall->updateDetail("Install failed");
+		pbInstall->finished(2000);
+	}
+	delete pbInstall;
+
+	INFO("setting up the application cache");
+	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
+	pbCache->exec();
+	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
+	pbCache->updateDetail("Finished creating cache");
+	pbCache->finished(200);
+	delete pbCache;
+
+	sync();
+	success = true;
+
+	TRACE("exit");
+	return success;
 }
 
 void GMenu2X::restartDialog(bool showDialog) {
@@ -1336,24 +1399,6 @@ void GMenu2X::poweroffDialog() {
 		setBacklight(0);
 		system("sync; reboot");
 	}
-}
-
-void GMenu2X::setTVOut(string TVOut) {
-	#if defined(TARGET_RS97)
-	system("echo 0 > /proc/jz/tvselect"); // always reset tv out
-	if (TVOut == "NTSC")		system("echo 2 > /proc/jz/tvselect");
-	else if (TVOut == "PAL")	system("echo 1 > /proc/jz/tvselect");
-	#endif
-}
-
-string GMenu2X::mountSd() {
-	TRACE("enter");
-	string command = "mount -t auto /dev/mmcblk1p1 " + EXTERNAL_CARD_PATH + " 2>&1";
-	string result = exec(command.c_str());
-	TRACE("result : %s", result.c_str());
-	system("sleep 1");
-	checkUDC();
-	return result;
 }
 
 void GMenu2X::mountSdDialog() {
@@ -1393,15 +1438,6 @@ void GMenu2X::mountSdDialog() {
 	}
 }
 
-string GMenu2X::umountSd() {
-	system("sync");
-	string command = "umount -fl " + EXTERNAL_CARD_PATH + " 2>&1";
-	string result = exec(command.c_str());
-	system("sleep 1");
-	checkUDC();
-	return result;
-}
-
 void GMenu2X::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
@@ -1431,100 +1467,6 @@ void GMenu2X::umountSdDialog() {
 		mb.setAutoHide(wait);
 		mb.exec();
 	}
-}
-
-void GMenu2X::checkUDC() {
-	TRACE("enter");
-	curMMCStatus = MMC_ERROR;
-	unsigned long size;
-	TRACE("reading /sys/block/mmcblk1/size");
-	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
-	if (fsize >> size) {
-		if (size > 0) {
-			// ok, so we're inserted, are we mounted
-			TRACE("size was : %lu, reading /proc/mounts", size);
-			std::ifstream procmounts( "/proc/mounts" );
-			if (!procmounts) {
-				curMMCStatus = MMC_ERROR;
-				WARNING("GMenu2X::checkUDC - couldn't open /proc/mounts");
-			} else {
-				string line;
-				size_t found;
-				curMMCStatus = MMC_UNMOUNTED;
-				while (std::getline(procmounts, line)) {
-					if ( !(procmounts.fail() || procmounts.bad()) ) {
-						found = line.find("mcblk1");
-						if (found != std::string::npos) {
-							curMMCStatus = MMC_MOUNTED;
-							TRACE("inserted && mounted because line : %s", line.c_str());
-							break;
-						}
-					} else {
-						curMMCStatus = MMC_ERROR;
-						WARNING("GMenu2X::checkUDC - error reading /proc/mounts");
-						break;
-					}
-				}
-				procmounts.close();
-			}
-		} else {
-			curMMCStatus = MMC_MISSING;
-			TRACE("not inserted");
-		}
-	} else {
-		curMMCStatus = MMC_ERROR;
-		WARNING("GMenu2X::checkUDC - error, no card");
-	}
-	fsize.close();
-	TRACE("exit - %i",  curMMCStatus);
-}
-
-/*
-void GMenu2X::formatSd() {
-	MessageBox mb(this, tr["Format internal SD card?"], "skin:icons/format.png");
-	mb.setButton(CONFIRM, tr["Yes"]);
-	mb.setButton(CANCEL,  tr["No"]);
-	if (mb.exec() == CONFIRM) {
-		MessageBox mb(this, tr["Formatting internal SD card..."], "skin:icons/format.png");
-		mb.setAutoHide(100);
-		mb.exec();
-
-		system("/usr/bin/format_int_sd.sh");
-		{ // new mb scope
-			MessageBox mb(this, tr["Complete!"]);
-			mb.setAutoHide(0);
-			mb.exec();
-		}
-	}
-}
-*/
-void GMenu2X::setPerformanceMode() {
-	TRACE("enter - %s", config->performance().c_str());
-	string current = getPerformanceMode();
-	string desired = "ondemand";
-	if ("Performance" == config->performance()) {
-		desired = "performance";
-	}
-	if (current.compare(desired) != 0) {
-		TRACE("update needed : current %s vs. desired %s", current.c_str(), desired.c_str());
-		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
-			initMenu();
-		}
-	} else {
-		TRACE("nothing to do");
-	}
-	TRACE("exit");	
-}
-
-string GMenu2X::getPerformanceMode() {
-	TRACE("enter");
-	string result = "ondemand";
-	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-		result = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-	}
-	TRACE("exit - %s", result.c_str());
-	return full_trim(result);
 }
 
 void GMenu2X::contextMenu() {
@@ -1804,6 +1746,160 @@ void GMenu2X::deleteSection() {
 	}
 }
 
+void GMenu2X::setInputSpeed() {
+	input.setInterval(180);
+	input.setInterval(1000, SETTINGS);
+	input.setInterval(1000, MENU);
+	input.setInterval(1000, CONFIRM);
+	input.setInterval(1500, POWER);
+}
+
+/* TODO ::EXTRACT TO HW PLATFORM SPECIFIC CODE */
+
+int memdev = 0;
+#ifdef TARGET_RS97
+	volatile uint32_t *memregs;
+#else
+	volatile uint16_t *memregs;
+#endif
+
+bool getTVOutStatus() {
+	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
+	return false;
+}
+
+void GMenu2X::setPerformanceMode() {
+	TRACE("enter - %s", config->performance().c_str());
+	string current = getPerformanceMode();
+	string desired = "ondemand";
+	if ("Performance" == config->performance()) {
+		desired = "performance";
+	}
+	if (current.compare(desired) != 0) {
+		TRACE("update needed : current %s vs. desired %s", current.c_str(), desired.c_str());
+		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
+			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
+			initMenu();
+		}
+	} else {
+		TRACE("nothing to do");
+	}
+	TRACE("exit");	
+}
+
+string GMenu2X::getPerformanceMode() {
+	TRACE("enter");
+	string result = "ondemand";
+	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
+		result = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+	}
+	TRACE("exit - %s", result.c_str());
+	return full_trim(result);
+}
+
+string GMenu2X::mountSd() {
+	TRACE("enter");
+	string command = "mount -t auto /dev/mmcblk1p1 " + EXTERNAL_CARD_PATH + " 2>&1";
+	string result = exec(command.c_str());
+	TRACE("result : %s", result.c_str());
+	system("sleep 1");
+	checkUDC();
+	return result;
+}
+
+string GMenu2X::umountSd() {
+	system("sync");
+	string command = "umount -fl " + EXTERNAL_CARD_PATH + " 2>&1";
+	string result = exec(command.c_str());
+	system("sleep 1");
+	checkUDC();
+	return result;
+}
+
+void GMenu2X::checkUDC() {
+	TRACE("enter");
+	curMMCStatus = MMC_ERROR;
+	unsigned long size;
+	TRACE("reading /sys/block/mmcblk1/size");
+	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
+	if (fsize >> size) {
+		if (size > 0) {
+			// ok, so we're inserted, are we mounted
+			TRACE("size was : %lu, reading /proc/mounts", size);
+			std::ifstream procmounts( "/proc/mounts" );
+			if (!procmounts) {
+				curMMCStatus = MMC_ERROR;
+				WARNING("GMenu2X::checkUDC - couldn't open /proc/mounts");
+			} else {
+				string line;
+				size_t found;
+				curMMCStatus = MMC_UNMOUNTED;
+				while (std::getline(procmounts, line)) {
+					if ( !(procmounts.fail() || procmounts.bad()) ) {
+						found = line.find("mcblk1");
+						if (found != std::string::npos) {
+							curMMCStatus = MMC_MOUNTED;
+							TRACE("inserted && mounted because line : %s", line.c_str());
+							break;
+						}
+					} else {
+						curMMCStatus = MMC_ERROR;
+						WARNING("GMenu2X::checkUDC - error reading /proc/mounts");
+						break;
+					}
+				}
+				procmounts.close();
+			}
+		} else {
+			curMMCStatus = MMC_MISSING;
+			TRACE("not inserted");
+		}
+	} else {
+		curMMCStatus = MMC_ERROR;
+		WARNING("GMenu2X::checkUDC - error, no card");
+	}
+	fsize.close();
+	TRACE("exit - %i",  curMMCStatus);
+}
+
+/*
+void GMenu2X::formatSd() {
+	MessageBox mb(this, tr["Format internal SD card?"], "skin:icons/format.png");
+	mb.setButton(CONFIRM, tr["Yes"]);
+	mb.setButton(CANCEL,  tr["No"]);
+	if (mb.exec() == CONFIRM) {
+		MessageBox mb(this, tr["Formatting internal SD card..."], "skin:icons/format.png");
+		mb.setAutoHide(100);
+		mb.exec();
+
+		system("/usr/bin/format_int_sd.sh");
+		{ // new mb scope
+			MessageBox mb(this, tr["Complete!"]);
+			mb.setAutoHide(0);
+			mb.exec();
+		}
+	}
+}
+*/
+
+void GMenu2X::setTVOut(string TVOut) {
+	#if defined(TARGET_RS97)
+	system("echo 0 > /proc/jz/tvselect"); // always reset tv out
+	if (TVOut == "NTSC")		system("echo 2 > /proc/jz/tvselect");
+	else if (TVOut == "PAL")	system("echo 1 > /proc/jz/tvselect");
+	#endif
+}
+
+void GMenu2X::ledOn() {
+	TRACE("ledON");
+	led->flash();
+}
+
+void GMenu2X::ledOff() {
+	TRACE("ledOff");
+	led->reset();
+}
+
 int GMenu2X::getBatteryLevel() {
 	//TRACE("enter");
 
@@ -1828,14 +1924,6 @@ int GMenu2X::getBatteryLevel() {
 	#endif
 	TRACE("scaled battery level : %i", result);
 	return result;
-}
-
-void GMenu2X::setInputSpeed() {
-	input.setInterval(180);
-	input.setInterval(1000, SETTINGS);
-	input.setInterval(1000, MENU);
-	input.setInterval(1000, CONFIRM);
-	input.setInterval(1500, POWER);
 }
 
 void GMenu2X::setCPU(uint32_t mhz) {
@@ -1951,115 +2039,6 @@ int GMenu2X::setBacklight(int val) {
 	}
 	#endif
 	return val;	
-}
-
-const string &GMenu2X::getExePath() {
-	TRACE("enter path: %s", exe_path.c_str());
-	if (exe_path.empty()) {
-		char buf[255];
-		memset(buf, 0, 255);
-		int l = readlink("/proc/self/exe", buf, 255);
-
-		exe_path = buf;
-		exe_path = exe_path.substr(0, l);
-		l = exe_path.rfind("/");
-		exe_path = exe_path.substr(0, l + 1);
-	}
-	TRACE("exit path:%s", exe_path.c_str());
-	return exe_path;
-}
-
-string GMenu2X::getAssetsPath() {
-	if (assets_path.length())
-		return assets_path;
-	string result = USER_PREFIX;
-	#ifdef TARGET_LINUX
-	const char *homedir;
-	if ((homedir = getenv("HOME")) == NULL) {
-		homedir = getpwuid(getuid())->pw_dir;
-	}
-	TRACE("homedir : %s", homedir);
-	result = (string)homedir + "/" + USER_PREFIX;
-	#endif
-	TRACE("exit : %s", result.c_str());
-	assets_path = result;
-	return result;
-}
-
-bool GMenu2X::doUpgrade() {
-	INFO("GMenu2X::doUpgrade - enter");
-	bool success = false;
-	// check for the writable home directory existing
-	string source = getExePath();
-	string destination = getAssetsPath();
-
-	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
-	string iconPath = this->getExePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for upgrade...", iconPath);
-	pbInstall->exec();
-	INFO("doing a full copy");
-
-	Installer *installer = new Installer(
-		source, 
-		destination, 
-		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
-
-	if (installer->upgrade()) {
-		pbInstall->finished();
-	} else {
-		pbInstall->updateDetail("Upgrade failed");
-		pbInstall->finished(2000);
-	}
-	delete pbInstall;
-	INFO("GMenu2X::doUpgrade - Upgrade complete");
-	success = true;
-	sync();
-	TRACE("exit");
-	return success;
-}
-
-bool GMenu2X::doInstall() {
-	TRACE("enter");
-	bool success = false;
-
-	// check for the writable home directory existing
-	string source = getExePath();
-	string destination = getAssetsPath();
-
-	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
-	INFO("testing for writable home dir : %s", destination.c_str());
-	
-	string iconPath = this->getExePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
-	pbInstall->exec();
-	INFO("doing a full copy");
-
-	Installer *installer = new Installer(
-		source, 
-		destination, 
-		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
-
-	if (installer->install()) {
-		pbInstall->finished();
-	} else {
-		pbInstall->updateDetail("Install failed");
-		pbInstall->finished(2000);
-	}
-	delete pbInstall;
-
-	INFO("setting up the application cache");
-	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
-	pbCache->exec();
-	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
-	pbCache->updateDetail("Finished creating cache");
-	pbCache->finished(200);
-	delete pbCache;
-
-	sync();
-	success = true;
-
-	TRACE("exit");
-	return success;
 }
 
 string GMenu2X::getDiskFree(const char *path) {
