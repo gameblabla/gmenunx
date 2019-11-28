@@ -54,13 +54,6 @@ const int VOLUME_SCALER_PHONES = 65;
 const int VOLUME_SCALER_NORMAL = 100;
 const int BATTERY_READS = 10;
 
-#ifdef TARGET_RG350
-const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
-#else
-// $HOME/ gets prepended to this
-const string USER_PREFIX = ".gmenunx/";
-#endif
-
 using std::string;
 using std::vector;
 using fastdelegate::FastDelegate0;
