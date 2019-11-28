@@ -41,14 +41,14 @@ class OpkCache {
         void addToCache(const string & section, const DesktopFile & file);
         void removeFromCache(const string & section, const DesktopFile & file);
 
-        string savePng(Opk const & myOpk);
+        string savePng(myOpk const & myOpk);
 
         bool createMissingOpkDesktopFiles();
         bool removeUnlinkedDesktopFiles();
-        DesktopFile * findMatchingProvider(const string & section, const Opk & myOpk);
+        DesktopFile * findMatchingProvider(const string & section, myOpk const & myOpk);
 
         string hashKey(DesktopFile const & file);
-        string hashKey(Opk const & file);
+        string hashKey(myOpk const & file);
         const string imageCachePath();
         bool ensureCacheDirs();
 

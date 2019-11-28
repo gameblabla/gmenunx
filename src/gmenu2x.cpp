@@ -66,6 +66,7 @@
 #include "renderer.h"
 #include "loader.h"
 #include "installer.h"
+#include "constants.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
@@ -76,8 +77,6 @@
 	#define __BUILDTIME__ __DATE__ " " __TIME__ 
 #endif
 
-// TODO this should probably point to /media/sdcard
-const char *CARD_ROOT = "/media/data/local/home/";
 const int MIN_CONFIG_VERSION = 1;
 const string RG350_GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
 const string RG350_SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
@@ -1150,7 +1149,7 @@ void GMenu2X::about() {
 	checkUDC();
 	string externalSize;
  	if (curMMCStatus == MMC_MOUNTED) {
-		externalSize = getDiskFree("/media/sdcard");
+		externalSize = getDiskFree(EXTERNAL_CARD_PATH.c_str());
 	} else if (curMMCStatus == MMC_UNMOUNTED) {
 		externalSize = tr["Inserted, not mounted"];
 	} else {
@@ -1343,7 +1342,8 @@ void GMenu2X::setTVOut(string TVOut) {
 
 string GMenu2X::mountSd() {
 	TRACE("enter");
-	string result = exec("mount -t auto /dev/mmcblk1p1 /media/sdcard 2>&1");
+	string command = "mount -t auto /dev/mmcblk1p1 " + EXTERNAL_CARD_PATH + " 2>&1";
+	string result = exec(command.c_str());
 	TRACE("result : %s", result.c_str());
 	system("sleep 1");
 	checkUDC();
@@ -1389,7 +1389,8 @@ void GMenu2X::mountSdDialog() {
 
 string GMenu2X::umountSd() {
 	system("sync");
-	string result = exec("umount -fl /media/sdcard 2>&1");
+	string command = "umount -fl " + EXTERNAL_CARD_PATH + " 2>&1";
+	string result = exec(command.c_str());
 	system("sleep 1");
 	checkUDC();
 	return result;
@@ -1650,7 +1651,7 @@ void GMenu2X::editLink() {
 	string dialogIcon = menu->selLinkApp()->getIconPath();
 
 	SettingsDialog sd(this, ts, dialogTitle, dialogIcon);
-	sd.addSetting(new MenuSettingFile(			this, tr["Executable"],		tr["Application this link points to"], &linkExec, ".dge,.gpu,.gpe,.sh,.bin,.elf,", CARD_ROOT, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingFile(			this, tr["Executable"],		tr["Application this link points to"], &linkExec, ".dge,.gpu,.gpe,.sh,.bin,.elf,", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingString(		this, tr["Title"],			tr["Link title"], &linkTitle, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingString(		this, tr["Description"],	tr["Link description"], &linkDescription, dialogTitle, dialogIcon));
 	
@@ -1660,12 +1661,12 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon, skin->name));
 	//sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, config->cpuMenu, config->cpuMin, config->cpuMax, 6));
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, CARD_ROOT, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	//sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
-	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, CARD_ROOT, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAliases, ".txt,.dat", CARD_ROOT, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", CARD_ROOT, dialogTitle, dialogIcon, skin->name));
+	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAliases, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon, skin->name));
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
 
 	if (sd.exec() && sd.edited() && sd.save) {

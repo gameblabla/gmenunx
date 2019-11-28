@@ -1,6 +1,8 @@
 #include "browsedialog.h"
 #include "FastDelegate.h"
 #include "debug.h"
+#include "constants.h"
+
 #include <algorithm>
 
 using namespace fastdelegate;
@@ -10,7 +12,7 @@ BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &
 : Dialog(gmenu2x), title(title), description(description), icon(icon) {
 	
 	TRACE("enter");
-	fl = new FileLister(CARD_ROOT, true, false);
+	fl = new FileLister(EXTERNAL_CARD_PATH, true, false);
 }
 
 BrowseDialog::~BrowseDialog() {
@@ -29,7 +31,7 @@ bool BrowseDialog::exec() {
 
 	string path = fl->getPath();
 	if (path.empty() || !dirExists(path))
-		setPath(CARD_ROOT);
+		setPath(EXTERNAL_CARD_PATH);
 
 	fl->browse();
 

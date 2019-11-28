@@ -471,7 +471,7 @@ bool Skin::fromFile() {
                 } else if (name == "imagestograyscale") {
                     this->imagesToGrayscale = atoi(value.c_str());
                 } else {
-                    WARNING("unknown key : %s", name.c_str());
+                    WARNING("unknown skin key : %s", name.c_str());
                 }
 
             };

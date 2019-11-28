@@ -54,8 +54,6 @@ const int VOLUME_SCALER_PHONES = 65;
 const int VOLUME_SCALER_NORMAL = 100;
 const int BATTERY_READS = 10;
 
-extern const char *CARD_ROOT;
-
 #ifdef TARGET_RG350
 const string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 #else

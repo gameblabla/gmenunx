@@ -61,7 +61,7 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
         SDL_RemoveTimer(me->timerId_);
         interval = 0;
     } else {
-        TRACE("rendering");
+        //TRACE("rendering");
         me->gmenu2x->screen->box(
             (SDL_Rect){ 0, 0, me->gmenu2x->config->resolutionX(), me->gmenu2x->config->resolutionY() }, 
             (RGBAColor){0,0,0, me->bgalpha}

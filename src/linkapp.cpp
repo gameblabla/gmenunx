@@ -34,6 +34,7 @@
 #include "selector.h"
 #include "imageio.h"
 #include "debug.h"
+#include "constants.h"
 
 using namespace std;
 
@@ -74,7 +75,6 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 	isOPK = (0 != opk);
 	TRACE("ctor - setting metadata : %s", metadata_);
 
-	bool appTakesFileArg = true;
 /* ---------------------------------------------------------------- */
 
 	if (isOPK) {
@@ -96,7 +96,6 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 		string metaIcon;
 
 		TRACE("ctor - opkMount : %s", opkMount.c_str());
-		appTakesFileArg = false;
 		category = "applications";
 
 		TRACE("ctor - reading pairs from meta begins");
@@ -136,8 +135,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 				for (auto token : tokens) {
 					if (exec.find(token) != exec.npos) {
 						TRACE("exec takes a token");
-						selectordir = CARD_ROOT;
-						appTakesFileArg = true;
+						selectordir = EXTERNAL_CARD_PATH.c_str();
 						break;
 					}
 				}

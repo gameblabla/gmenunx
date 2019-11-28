@@ -267,7 +267,7 @@ bool Config::fromFile() {
                 } else if (name == "version") {
                     this->version(atoi(value.c_str()));
                 } else {
-                    WARNING("unknown key : %s", name.c_str());
+                    WARNING("unknown config key : %s", name.c_str());
                 }
 
             };

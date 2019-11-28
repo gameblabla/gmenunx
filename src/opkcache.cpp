@@ -88,8 +88,8 @@ string OpkCache::hashKey(DesktopFile const & file) {
     return file.providerMetadata() + "-" + file.provider();
 }
 
-string OpkCache::hashKey(Opk const & file) {
-    return file.metadata + "-" + file.fullPath;
+string OpkCache::hashKey(myOpk const & file) {
+    return file.metadata() + "-" + file.fullPath();
 }
 
 /*
@@ -218,12 +218,12 @@ void OpkCache::removeFromCache(const string & section, const DesktopFile & file)
     utility function to see if another cached desktop file provides the same functionality, 
     based on name and metadata
 */
-DesktopFile * OpkCache::findMatchingProvider(const string & section, const Opk & myOpk) {
+DesktopFile * OpkCache::findMatchingProvider(const string & section, myOpk const & myOpk) {
     TRACE("enter");
     DesktopFile *result = nullptr;
     list<std::pair<std::string, DesktopFile>>::iterator fileIt;
     for (fileIt = (*this->sectionCache)[section].begin(); fileIt != (*this->sectionCache)[section].end(); fileIt++) {
-        if (fileIt->second.title() == myOpk.name && fileIt->second.providerMetadata() == myOpk.metadata) {
+        if (fileIt->second.title() == myOpk.name() && fileIt->second.providerMetadata() == myOpk.metadata()) {
             TRACE("found a matching provider");
             result = &fileIt->second;
             break;
@@ -289,7 +289,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             // - extract image to ./cache/images/basename(filename)/image.jpg
             // - create desktop file
 
-            list<Opk> * opks = OpkHelper::ToOpkList(opkPath);
+            list<myOpk> * opks = OpkHelper::ToOpkList(opkPath);
             if (NULL == opks) {
                 TRACE("got null back");
                 WARNING("got null back");
@@ -297,11 +297,11 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             }
 
             TRACE("got opks : %zu", opks->size());
-            std::list<Opk>::iterator categoryIt;
+            std::list<myOpk>::iterator categoryIt;
             for (categoryIt = opks->begin(); categoryIt != opks->end(); categoryIt++) {
-                Opk myOpk = (*categoryIt);
-                string sectionName = myOpk.category;
-                string myHash =  hashKey(myOpk);
+                myOpk theOpk = (*categoryIt);
+                string sectionName = theOpk.category();
+                string myHash =  hashKey(theOpk);
                 TRACE("looking in cache for hash : %s", myHash.c_str());
                 //TRACE("cache currently has %zu sections", this->sectionCache->size());
                 std::list<std::pair<std::string, DesktopFile>> sectionList = (*this->sectionCache)[sectionName];
@@ -315,36 +315,39 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                 }
                 if (!exists) {
                     TRACE("opk doesn't exist in cache");
-                    this->notify("adding: " + myOpk.name);
+                    this->notify("adding: " + theOpk.name());
 
                     // now create desktop file paths 
                     string sectionPath = this->sectionDir_ + "/" + sectionName;
-                    string desktopFilePath = sectionPath + "/" + myOpk.metadata + "-" + fileBaseName(myOpk.fileName) + ".desktop";
+                    string desktopFilePath = sectionPath + "/" + theOpk.metadata() + "-" + fileBaseName(theOpk.fileName()) + ".desktop";
                     DesktopFile *finalFile;
 
                     // first extract the image and get the saved path
-                    string imgFile = this->savePng(myOpk);
+                    string imgFile = this->savePng(theOpk);
                     if (imgFile.empty())
                         continue;
 
                     TRACE("checking for upgrade");
-                    DesktopFile * previous = findMatchingProvider(sectionName, myOpk);
+                    DesktopFile * previous = findMatchingProvider(sectionName, theOpk);
                     if (nullptr != previous) {
                         TRACE("found another version");
                         if (!fileExists(previous->provider())) {
                             // do an upgrade to preserve selector filters, dir etc
-                            TRACE("upgrading the provider from : %s to : %s", previous->provider().c_str(), myOpk.fullPath.c_str());
+                            TRACE("upgrading the provider from : %s to : %s", 
+                                previous->provider().c_str(), 
+                                theOpk.fullPath().c_str());
+
                             finalFile = previous->clone();
                             finalFile->path(desktopFilePath);
-                            finalFile->provider(myOpk.fullPath);
-                            finalFile->params(myOpk.params());
+                            finalFile->provider(theOpk.fullPath());
+                            finalFile->params(theOpk.params());
                             finalFile->icon(imgFile);
                             finalFile->save();
                             this->addToCache(sectionName, *finalFile);
                             continue;
                         }
                     }
-                    TRACE("need to create desktop file for : %s", myOpk.name.c_str());
+                    TRACE("need to create desktop file for : %s", theOpk.name().c_str());
 
                     TRACE("saving desktop file to : %s", desktopFilePath.c_str());
                     if (!dirExists(sectionPath)) {
@@ -357,15 +360,15 @@ bool OpkCache::createMissingOpkDesktopFiles() {
                     }
                     finalFile = new DesktopFile();
                     finalFile->icon(imgFile);
-                    finalFile->title(myOpk.name);
+                    finalFile->title(theOpk.name());
                     finalFile->exec(OPK_EXEC);
-                    finalFile->params(myOpk.params());
-                    finalFile->selectordir(myOpk.selectorDir);
-                    finalFile->selectorfilter(myOpk.selectorFilter);
-                    finalFile->consoleapp(myOpk.terminal);
-                    finalFile->description(myOpk.comment);
+                    finalFile->params(theOpk.params());
+                    finalFile->selectordir(theOpk.selectorDir());
+                    finalFile->selectorfilter(theOpk.selectorFilter());
+                    finalFile->consoleapp(theOpk.terminal());
+                    finalFile->description(theOpk.comment());
                     finalFile->provider(opkPath);
-                    finalFile->providerMetadata(myOpk.metadata);
+                    finalFile->providerMetadata(theOpk.metadata());
 
                     // and save it to the right section
                     if (finalFile->save(desktopFilePath)) {
@@ -389,9 +392,9 @@ bool OpkCache::createMissingOpkDesktopFiles() {
     return true;
 }
 
-string OpkCache::savePng(Opk const & myOpk) {
+string OpkCache::savePng(myOpk const & theOpk) {
     
-    string imagePath = this->imageCachePath() + "/" +  fileBaseName(myOpk.fileName);
+    string imagePath = this->imageCachePath() + "/" +  fileBaseName(theOpk.fileName());
     if (fileExists(imagePath)) {
         TRACE("image already exists : %s", imagePath.c_str());
         return imagePath;
@@ -407,8 +410,8 @@ string OpkCache::savePng(Opk const & myOpk) {
     }
 
     // extract the image and save it
-    string shortIconName = myOpk.icon + ".png";
-    string opkIconName = myOpk.fullPath + "#" + shortIconName;
+    string shortIconName = theOpk.icon() + ".png";
+    string opkIconName = theOpk.fullPath() + "#" + shortIconName;
     string outFile = imagePath + "/" + base_name(shortIconName);
 
     SDL_Surface *tmpIcon = loadPNG(opkIconName, true);

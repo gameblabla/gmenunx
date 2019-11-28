@@ -1,5 +1,6 @@
 #include "linkscannerdialog.h"
 #include "debug.h"
+#include "constants.h"
 
 LinkScannerDialog::LinkScannerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
 	: Dialog(gmenu2x)
@@ -31,10 +32,10 @@ void LinkScannerDialog::exec() {
 	gmenu2x->updateAppCache(std::bind( &LinkScannerDialog::foundFile, this, std::placeholders::_1) );
 
 	this->lineY += gmenu2x->font->getHeight();
-	gmenu2x->screen->write(gmenu2x->font, "/media/sdcard", gmenu2x->listRect.x + 4, this->lineY);
+	gmenu2x->screen->write(gmenu2x->font, EXTERNAL_CARD_PATH, gmenu2x->listRect.x + 4, this->lineY);
 	gmenu2x->screen->flip();
 
-	scanPath("/media/sdcard", &files);
+	scanPath(EXTERNAL_CARD_PATH, &files);
 	ss << this->foundFiles;
 	ss >> str;
 

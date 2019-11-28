@@ -96,8 +96,10 @@ void DesktopFile::parse(std::istream & instream) {
         } else if (name == "consoleapp") {
             bool console = "false" == stripQuotes(value) ? false : true;
             this->consoleapp(console);
+        } else if (name == "selectorbrowser") {
+            // eat it
         } else {
-            WARNING("unknown key : %s", name.c_str());
+            WARNING("unknown .desktop key : %s", name.c_str());
         }
     };
 }

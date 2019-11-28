@@ -4,15 +4,16 @@
 #include <string>
 #include <vector>
 #include "utilities.h"
+#include "constants.h"
 
 using std::string;
 using std::vector;
 
 static const string CONFIG_FILE_NAME = "gmenunx.conf";
 static const int CONFIG_CURRENT_VERSION = 1;
-static const string EXTERNAL_LAUNCHER_PATH = "/media/sdcard/ROMS";
+static const string EXTERNAL_LAUNCHER_PATH = EXTERNAL_CARD_PATH + "/ROMS";
 static const string HOME_DIR = "/media/home";
-static const string APP_EXTERNAL_PATH = "/media/sdcard/APPS";
+static const string APP_EXTERNAL_PATH = EXTERNAL_CARD_PATH + "/APPS";
 
 class Config {
 
