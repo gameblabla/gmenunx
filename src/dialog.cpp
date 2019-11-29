@@ -12,21 +12,24 @@ Dialog::~Dialog() {
 }
 
 void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
-	if (s == NULL) s = gmenu2x->screen;
+	if (s == NULL) 
+		s = gmenu2x->screen;
 
 	Surface *i = NULL;
 	if (!icon.empty()) {
 		i = (*gmenu2x->sc)[icon];
 		if (i == NULL) i = gmenu2x->sc->skinRes(icon);
 	}
+	if (i == NULL) 
+		i = gmenu2x->sc->skinRes("icons/generic.png");
 
-	if (i == NULL) i = gmenu2x->sc->skinRes("icons/generic.png");
-
-	i->blit(s, {4, 4, gmenu2x->config->resolutionX() - 8, gmenu2x->skin->menuTitleBarHeight - 8}, VAlignMiddle);
+	i->blit(
+		s, 
+		{ 4, 4, gmenu2x->config->resolutionX() - 8, gmenu2x->skin->menuTitleBarHeight - 8 }, 
+		VAlignMiddle);
 
 	this->iconWidth = i->raw->w;
 
-	// s->box(4, 4, 32, 32, strtorgba("ffff00ff"));
 }
 
 void Dialog::writeTitle(const std::string &title, Surface *s) {

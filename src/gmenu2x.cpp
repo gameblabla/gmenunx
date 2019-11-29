@@ -1104,17 +1104,18 @@ void GMenu2X::about() {
 	int n = sprintf (buffer, "%i %%", battPercent);
 	string batt(buffer);
 
-	temp = tr["Build date: "] + __DATE__ + "\n";
+	temp = "\n";
+	temp += tr["Build date: "] + __DATE__ + " - " + __TIME__ + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
-	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";	
-	temp += tr["Storage free:"];
-	temp += "\n    " + tr["Internal: "] + this->hw->getDiskFree("/media/data");
+	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
+	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
+	temp += tr["Internal storage free: "] + this->hw->getDiskFree("/media/data") + "\n";
 
 	this->hw->checkUDC();
 	string externalSize;
 	switch(this->hw->getCardStatus()) {
 		case IHardware::MMC_MOUNTED:
-			externalSize = this->hw->getDiskFree(EXTERNAL_CARD_PATH.c_str());
+			externalSize = this->hw->getDiskSize(this->hw->getExternalMountDevice());
 			break;
 		case IHardware::MMC_UNMOUNTED:
 			externalSize = tr["Inserted, not mounted"];
@@ -1123,12 +1124,12 @@ void GMenu2X::about() {
 			externalSize = tr["Not inserted"];
 	};
 
-	temp += "\n    " + tr["External: "] + externalSize + "\n";
+	temp += tr["External storage size: "] + externalSize + "\n";
 	temp += "----\n";
 
 	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
 	td.appendText(temp);
-	
+
 	#ifdef TARGET_RG350
 	TRACE("append - command /usr/bin/system_info");
 	td.appendCommand("/usr/bin/system_info");

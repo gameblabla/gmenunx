@@ -135,7 +135,7 @@ void Menu::loadIcons() {
 		string sectionIcon = "sections/" + sections[i] + ".png";
 		TRACE("section : %s", sections[i].c_str());
 		if (!gmenu2x->skin->getSkinFilePath(sectionIcon).empty()) {
-			TRACE("section  icon: skin:%s", sectionIcon.c_str());
+			TRACE("section icon: skin: %s", sectionIcon.c_str());
 			gmenu2x->sc->addIcon("skin:" + sectionIcon);
 		}
 
@@ -150,14 +150,14 @@ void Menu::loadIcons() {
 			LinkApp *linkapp = dynamic_cast<LinkApp*>(sectionLinks(i)->at(x));
 
 			if (linkapp != NULL) {
-				TRACE("link - searching backdrop and manuals");
+				TRACE("link : searching backdrop and manuals");
 				linkapp->searchBackdrop();
 				linkapp->searchManual();
 			}
 
 			TRACE("link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
-				linkIcon = gmenu2x->skin->getSkinFilePath(linkIcon.substr(5,linkIcon.length()));
+				linkIcon = gmenu2x->skin->getSkinFilePath(linkIcon.substr(5, linkIcon.length()));
 				if (linkapp != NULL && !fileExists(linkIcon))
 					linkapp->searchIcon();
 				else

@@ -1,6 +1,11 @@
 #ifndef _HWFACTORY_
 #define _HWFACTORY_
 
+// getDiskSize
+#include <sys/types.h>
+#include <sys/ioctl.h>
+#include <linux/fs.h>
+
 #include <unistd.h>
 #include <sys/statvfs.h>
 #include <sys/sysinfo.h>
@@ -26,6 +31,7 @@ class IHardware {
         int16_t curMMCStatus;
 
         std::string BLOCK_DEVICE;
+        std::string INTERNAL_MOUNT_DEVICE;
         std::string EXTERNAL_MOUNT_DEVICE;
         std::string EXTERNAL_MOUNT_POINT;
         std::string EXTERNAL_MOUNT_FORMAT;// = "auto";
@@ -148,15 +154,43 @@ class IHardware {
                 TRACE("raw numbers - free: %lu, total: %lu, block size: %lu", b.f_bfree, b.f_blocks, b.f_bsize);
                 std::stringstream ss;
                 if (totalMiB >= 10000) {
-                    ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "
-                    << (totalMiB / 1024) << "." << ((totalMiB % 1024) * 10) / 1024 << " GiB";
+                    ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " GiB";
                 } else {
-                    ss << freeMiB << " / " << totalMiB << " MiB";
+                    ss << freeMiB << " MiB";
                 }
                 std::getline(ss, df);
             } else WARNING("statvfs failed with error '%s'.", strerror(errno));
             TRACE("exit");
             return df;
+        }
+
+        string getDiskSize(const std::string &mountDevice) {
+            TRACE("reading disk size for : %s", mountDevice);
+            string result = "0 GiB";
+            if (mountDevice.empty())
+                return result;
+
+            unsigned long long size;
+            int fd = open(mountDevice.c_str(), O_RDONLY);
+            ioctl(fd, BLKGETSIZE64, &size);
+            close(fd);
+            std::stringstream ss;
+            std::uint64_t totalMiB = (size >> 20);
+            if (totalMiB >= 10000) {
+                ss << (totalMiB / 1024) << "." << ((totalMiB % 1024) * 10) / 1024 << " GiB";
+            } else {
+                ss << totalMiB << " MiB";
+            }
+            std::getline(ss, result);
+            return result;
+        }
+
+        std::string getExternalMountDevice() {
+            return this->EXTERNAL_MOUNT_DEVICE;
+        }
+
+        std::string getInternalMountDevice() {
+            return this->INTERNAL_MOUNT_DEVICE;
         }
 
         std::string uptime() {
@@ -233,6 +267,7 @@ class HwRg350 : IHardware {
         HwRg350() {
             TRACE("enter");
             this->BLOCK_DEVICE = "/sys/block/mmcblk1/size";
+            this->INTERNAL_MOUNT_DEVICE = "/dev/mmcblk0";
             this->EXTERNAL_MOUNT_DEVICE = "/dev/mmcblk1p1";
             this->EXTERNAL_MOUNT_FORMAT = "auto";
             this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;

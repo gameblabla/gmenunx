@@ -105,13 +105,9 @@ void TextDialog::exec() {
 
 	bool close = false, inputAction = false;
 
-	drawTopBar(this->bg, title, description);
-
-	//link icon
-	if (gmenu2x->sc->skinRes(icon)==NULL)
-		drawTitleIcon("icons/ebook.png", this->bg);
-	else
-		drawTitleIcon(icon, this->bg);
+	if (this->icon.empty())
+		this->icon = "skin:icons/ebook.png";
+	drawTopBar(this->bg, this->title, this->description, this->icon);
 
 	drawBottomBar(this->bg);
 
