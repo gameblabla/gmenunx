@@ -72,15 +72,9 @@
 #include "opkcache.h"
 #endif
 
-#define sync() sync(); system("sync");
 #ifndef __BUILDTIME__
 	#define __BUILDTIME__ __DATE__ " " __TIME__ 
 #endif
-
-const int MIN_CONFIG_VERSION = 1;
-const string RG350_GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
-const string RG350_SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
-const string RG350_BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
 
 static GMenu2X *app;
 
@@ -103,7 +97,8 @@ GMenu2X::~GMenu2X() {
 	delete font;
 	delete fontTitle;
 	delete fontSectionTitle;
-	delete led;
+	//delete led;
+	delete hw;
 	delete skin;
 	delete sc;
 	delete config;
@@ -123,7 +118,7 @@ void GMenu2X::quit() {
 	if (!this->sc->empty()) {
 		TRACE("SURFACE EXISTED");
 		writeConfig();
-		ledOff();
+		this->hw->ledOff();
 		fflush(NULL);
 		TRACE("clearing the surface collection");
 		this->sc->clear();
@@ -160,7 +155,6 @@ int main(int argc, char * argv[]) {
 	app = new GMenu2X(install);
 	TRACE("Starting app->main()");
 	app->main();
-
 	return 0;
 }
 
@@ -173,7 +167,6 @@ void* mainThread(void* param) {
 	return NULL;
 }
 
-//void GMenu2X::updateAppCache(ProgressBar * pb) {
 void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
@@ -198,10 +191,12 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("enter - install flag : %i", install);
 	TRACE("creating LED instance");
-	led = new LED();
+	this->hw = HwFactory::GetHardware();
+
+	//led = new LED();
 	
 	TRACE("ledOn");
-	ledOn();
+	this->hw->ledOn();
 
 	TRACE("getExePath");
 	exe_path = getExePath();
@@ -224,7 +219,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	// set this ASAP
 	TRACE("backlight");
-	setBacklight(config->backlightLevel());
+	this->hw->setBacklightLevel(config->backlightLevel());
 
 	//Screen
 	TRACE("setEnv");
@@ -265,7 +260,7 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 		int exitCode = 0;
 		INFO("GMenu2X::ctor - first run, copying data");
 		if (doInstall()) {
-			ledOff();
+			this->hw->ledOff();
 			quit();
 			exitCode = 0;
 		} else {
@@ -273,12 +268,12 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 			exitCode = 1;
 		}
 		quit_all(exitCode);
-	} else 	if (install || MIN_CONFIG_VERSION > config->version()) {
+	} else 	if (install || APP_MIN_CONFIG_VERSION > config->version()) {
 		// we're doing an upgrade
 		int exitCode = 0;
-		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), MIN_CONFIG_VERSION);
+		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), APP_MIN_CONFIG_VERSION);
 		if (doUpgrade()) {
-			ledOff();
+			this->hw->ledOff();
 			quit();
 			exitCode = 0;
 		} else {
@@ -296,7 +291,7 @@ void GMenu2X::main() {
 	TRACE("enter");
 
 	// has to come before the app cache thread kicks off
-	checkUDC();
+	this->hw->checkUDC();
 
 	// create this early so we can give it to the thread, but don't exec it yet
 	string iconPath = this->getExePath() + "gmenunx.png";
@@ -316,10 +311,11 @@ void GMenu2X::main() {
 	loader.run();
 	pbLoading->exec();
 
-	setVolume(this->config->globalVolume());
+	this->hw->setVolumeLevel(this->config->globalVolume());
+	this->hw->setPerformanceMode(this->config->performance());
+	this->hw->setCPUSpeed(this->config->cpuMenu());
+
 	setWallpaper(this->skin->wallpaper);
-	setPerformanceMode();
-	setCPU(this->config->cpuMenu());
 
 	// we need to re-join before building the menu
 	thread_cache.join();
@@ -343,7 +339,7 @@ void GMenu2X::main() {
 	pbLoading->finished();
 	delete pbLoading;
 
-	ledOff();
+	this->hw->ledOff();
 
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
@@ -587,7 +583,7 @@ void GMenu2X::initMenu() {
 						tr["Displays last launched program's output"], 
 						"skin:icons/ebook.png");
 
-	if (curMMCStatus == MMC_UNMOUNTED)
+	if (this->hw->getCardStatus() == IHardware::MMC_UNMOUNTED)
 		menu->addActionLink(
 						i, 
 						tr["Mount"], 
@@ -616,7 +612,7 @@ void GMenu2X::initMenu() {
 						tr["Adjust skin settings"], 
 						"skin:icons/skin.png");
 
-	if (curMMCStatus == MMC_MOUNTED)
+	if (this->hw->getCardStatus() == IHardware::MMC_MOUNTED)
 		menu->addActionLink(
 						i, 
 						tr["Umount"], 
@@ -654,7 +650,7 @@ void GMenu2X::settings() {
 	string lang = tr.lang();
 	string skin = config->skin();
 	string batteryType = config->batteryType();
-	string performanceMode = config->performance();
+	string performanceMode = this->hw->getPerformanceMode();
 	string appsPath = config->externalAppPath();
 
 	int saveSelection = config->saveSelection();
@@ -682,9 +678,7 @@ void GMenu2X::settings() {
 	opFactory.push_back(">>");
 	string tmp = ">>";
 
-	vector<string> performanceModes;
-	performanceModes.push_back("On demand");
-	performanceModes.push_back("Performance");
+	vector<string> performanceModes = this->hw->getPerformanceModes();
 
 	RTC *rtc = new RTC();
 	string currentDatetime = rtc->getDateTime();
@@ -697,13 +691,14 @@ void GMenu2X::settings() {
 
 	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenuNX"], &skin, &skinList));
 
-	sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &performanceMode, &performanceModes));
+	if (performanceModes.size() > 1)
+		sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &performanceMode, &performanceModes));
 
 	sd.addSetting(new MenuSettingBool(this, tr["Save last selection"], tr["Save the last selected link and section on exit"], &saveSelection));
 	if (!config->sectionFilter().empty()) {
 		sd.addSetting(new MenuSettingBool(this, tr["Unhide all sections"], tr["Remove the hide sections filter"], &unhideSections));
 	}
-	
+
 	sd.addSetting(new MenuSettingDir(
 		this, 
 		tr["External apps path"], 
@@ -740,9 +735,13 @@ void GMenu2X::settings() {
 			config->externalAppPath(appsPath);
 			refreshNeeded = true;
 		}
+		if (performanceMode != this->hw->getPerformanceMode()) {
+			config->performance(performanceMode);
+			this->hw->setPerformanceMode(performanceMode);
+			refreshNeeded = true;
+		}
 		config->skin(skin);
 		config->batteryType(batteryType);
-		config->performance(performanceMode);
 		config->saveSelection(saveSelection);
 		config->outputLogs(outputLogs);
 		config->backlightTimeout(backlightTimeout);
@@ -752,10 +751,10 @@ void GMenu2X::settings() {
 
 		TRACE("updating the settings");
 		if (curGlobalVolume != config->globalVolume()) {
-			curGlobalVolume = setVolume(config->globalVolume());
+			curGlobalVolume = this->hw->setVolumeLevel(config->globalVolume());
 		}
 		if (curGlobalBrightness != config->backlightLevel()) {
-			curGlobalBrightness = setBacklight(config->backlightLevel());
+			curGlobalBrightness = this->hw->setBacklightLevel(config->backlightLevel());
 		}
 
 		bool restartNeeded = prevSkin != config->skin();
@@ -871,7 +870,7 @@ void GMenu2X::cpuSettings() {
 		config->cpuMenu(cpuMenu);
 		config->cpuMax(cpuMax);
 		config->cpuMin(cpuMin);
-		setCPU(config->cpuMenu());
+		this-hw->setCPUSpeed(config->cpuMenu());
 		writeConfig();
 	}
 	TRACE("exit");
@@ -893,10 +892,9 @@ void GMenu2X::readTmp() {
 		else if (name == "link") menu->setLinkIndex(atoi(value.c_str()));
 		else if (name == "selectorelem") lastSelectorElement = atoi(value.c_str());
 		else if (name == "selectordir") lastSelectorDir = value;
-		else if (name == "TVOut") TVOut = value;
-		else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
+		else if (name == "TVOut") this->hw->setTVOutMode(value);
+		//else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
 	}
-	if (TVOut != "NTSC" && TVOut != "PAL") TVOut = "OFF";
 	//	udcConnectedOnBoot = 0;
 	inf.close();
 	unlink("/tmp/gmenunx.tmp");
@@ -910,8 +908,8 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 		inf << "link=" << menu->selLinkIndex() << endl;
 		if (selelem >- 1) inf << "selectorelem=" << selelem << endl;
 		if (selectordir != "") inf << "selectordir=" << selectordir << endl;
-		inf << "tvOutPrev=" << tvOutPrev << endl;
-		inf << "TVOut=" << TVOut << endl;
+		//inf << "tvOutPrev=" << tvOutPrev << endl;
+		inf << "TVOut=" << this->hw->getTVOutMode() << endl;
 		inf.close();
 	}
 }
@@ -930,7 +928,7 @@ void GMenu2X::readConfig() {
 
 void GMenu2X::writeConfig() {
 	TRACE("enter");
-	ledOn();
+	this->hw->ledOn();
 	// don't try and save to RO file system
 	if (getExePath() != getAssetsPath()) {
 		if (config->saveSelection() && menu != NULL) {
@@ -940,15 +938,15 @@ void GMenu2X::writeConfig() {
 		config->save();
 	}
 	TRACE("ledOff");
-	ledOff();
+	this->hw->ledOff();
 	TRACE("exit");
 }
 
 void GMenu2X::writeSkinConfig() {
 	TRACE("enter");
-	ledOn();
+	this->hw->ledOn();
 	skin->save();
-	ledOff();
+	this->hw->ledOff();
 	TRACE("exit");
 }
 
@@ -1101,7 +1099,7 @@ void GMenu2X::about() {
 	string temp;
 
 	char *hms = ms2hms(SDL_GetTicks());
-	int battLevel = getBatteryLevel();
+	int battLevel = this->hw->getBatteryLevel();
 	TRACE("batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
 	TRACE("batt percent : %i", battPercent);
@@ -1114,17 +1112,21 @@ void GMenu2X::about() {
 	temp += tr["Uptime: "] + hms + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";	
 	temp += tr["Storage free:"];
-	temp += "\n    " + tr["Internal: "] + getDiskFree("/media/data");
+	temp += "\n    " + tr["Internal: "] + this->hw->getDiskFree("/media/data");
 
-	checkUDC();
+	this->hw->checkUDC();
 	string externalSize;
- 	if (curMMCStatus == MMC_MOUNTED) {
-		externalSize = getDiskFree(EXTERNAL_CARD_PATH.c_str());
-	} else if (curMMCStatus == MMC_UNMOUNTED) {
-		externalSize = tr["Inserted, not mounted"];
-	} else {
-		externalSize = tr["Not inserted"];
-	}
+	switch(this->hw->getCardStatus()) {
+		case IHardware::MMC_MOUNTED:
+			externalSize = this->hw->getDiskFree(EXTERNAL_CARD_PATH.c_str());
+			break;
+		case IHardware::MMC_UNMOUNTED:
+			externalSize = tr["Inserted, not mounted"];
+			break;
+		default:
+			externalSize = tr["Not inserted"];
+	};
+
 	temp += "\n    " + tr["External: "] + externalSize + "\n";
 	temp += "----\n";
 
@@ -1160,19 +1162,19 @@ void GMenu2X::viewLog() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
-		ledOn();
+		this->hw->ledOn();
 		unlink(logfile.c_str());
 		sync();
 		menu->deleteSelectedLink();
-		ledOff();
+		this->hw->ledOff();
 	}
 }
 
 void GMenu2X::batteryLogger() {
-	ledOn();
+	this->hw->ledOn();
 	BatteryLoggerDialog bl(this, tr["Battery Logger"], tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
 	bl.exec();
-	ledOff();
+	this->hw->ledOff();
 }
 
 void GMenu2X::linkScanner() {
@@ -1243,7 +1245,7 @@ void GMenu2X::explorer() {
 			string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
 			quit();
-			setCPU(config->cpuMenu());
+			this->hw->setCPUSpeed(config->cpuMenu());
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 
 			//if execution continues then something went wrong and as we already called SDL_Quit we cannot continue
@@ -1389,15 +1391,17 @@ void GMenu2X::poweroffDialog() {
 		MessageBox mb(this, tr["Poweroff"]);
 		mb.setAutoHide(500);
 		mb.exec();
-		setBacklight(0);
-		system("sync; poweroff");
+		this->hw->setBacklightLevel(0);
+		sync();
+		std::system("poweroff");
 	}
 	else if (response == SECTION_NEXT) {
 		MessageBox mb(this, tr["Rebooting"]);
 		mb.setAutoHide(500);
 		mb.exec();
-		setBacklight(0);
-		system("sync; reboot");
+		this->hw->setBacklightLevel(0);
+		sync();
+		std::system("reboot");
 	}
 }
 
@@ -1409,7 +1413,7 @@ void GMenu2X::mountSdDialog() {
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		string result = mountSd();
+		string result = this->hw->mountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
@@ -1417,8 +1421,8 @@ void GMenu2X::mountSdDialog() {
 		string msg, icon;
 		int wait = 1000;
 		bool error = false;
-		switch(curMMCStatus) {
-			case MMC_MOUNTED:
+		switch(this->hw->getCardStatus()) {
+			case IHardware::MMC_MOUNTED:
 				msg = "SD card mounted";
 				icon = "skin:icons/eject.png";
 				break;
@@ -1445,15 +1449,15 @@ void GMenu2X::umountSdDialog() {
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		string result = umountSd();
+		string result = this->hw->umountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
 
 		string msg, icon;
 		int wait = 1000;
-		switch(curMMCStatus) {
-			case MMC_UNMOUNTED:
+		switch(this->hw->getCardStatus()) {
+			case IHardware::MMC_UNMOUNTED:
 				msg = "SD card umounted";
 				icon = "skin:icons/eject.png";
 				break;
@@ -1563,12 +1567,12 @@ void GMenu2X::addLink() {
 	fd.showFiles = true;
 	fd.setFilter(".dge,.gpu,.gpe,.sh,.bin,.elf,");
 	if (fd.exec()) {
-		ledOn();
+		this->hw->ledOn();
 		if (menu->addLink(fd.getPath(), fd.getFile())) {
 			editLink();
 		}
 		sync();
-		ledOff();
+		this->hw->ledOff();
 	}
 }
 
@@ -1618,7 +1622,7 @@ void GMenu2X::editLink() {
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
 
 	if (sd.exec() && sd.edited() && sd.save) {
-		ledOn();
+		this->hw->ledOn();
 
 		menu->selLinkApp()->setExec(linkExec);
 		menu->selLinkApp()->setTitle(linkTitle);
@@ -1655,7 +1659,7 @@ void GMenu2X::editLink() {
 		}
 		menu->selLinkApp()->save();
 		sync();
-		ledOff();
+		this->hw->ledOff();
 	}
 	config->section(menu->selSectionIndex());
 	config->link(menu->selLinkIndex());
@@ -1668,10 +1672,10 @@ void GMenu2X::deleteLink() {
 		mb.setButton(CONFIRM, tr["Yes"]);
 		mb.setButton(CANCEL,  tr["No"]);
 		if (mb.exec() == CONFIRM) {
-			ledOn();
+			this->hw->ledOn();
 			menu->deleteSelectedLink();
 			sync();
-			ledOff();
+			this->hw->ledOff();
 		}
 	}
 }
@@ -1682,12 +1686,12 @@ void GMenu2X::addSection() {
 		//only if a section with the same name does not exist
 		if (find(menu->getSections().begin(), menu->getSections().end(), id.getInput()) == menu->getSections().end()) {
 			//section directory doesn't exists
-			ledOn();
+			this->hw->ledOn();
 			if (menu->addSection(id.getInput())) {
 				menu->setSectionIndex( menu->getSections().size() - 1 ); //switch to the new section
 				sync();
 			}
-			ledOff();
+			this->hw->ledOff();
 		}
 	}
 }
@@ -1710,7 +1714,7 @@ void GMenu2X::renameSection() {
 			//section directory doesn't exists
 			string newsectiondir = "sections/" + id.getInput();
 			string sectiondir = "sections/" + menu->selSection();
-			ledOn();
+			this->hw->ledOn();
 			if (rename(sectiondir.c_str(), "tmpsection")==0 && rename("tmpsection", newsectiondir.c_str())==0) {
 				string oldpng = sectiondir + ".png", newpng = newsectiondir+".png";
 				string oldicon = this->skin->getSkinFilePath(oldpng), newicon = this->skin->getSkinFilePath(newpng);
@@ -1727,7 +1731,7 @@ void GMenu2X::renameSection() {
 				menu->renameSection(menu->selSectionIndex(), id.getInput());
 				sync();
 			}
-			ledOff();
+			this->hw->ledOff();
 		}
 	}
 }
@@ -1737,12 +1741,12 @@ void GMenu2X::deleteSection() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
-		ledOn();
+		this->hw->ledOn();
 		if (rmtree(getAssetsPath() + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}
-		ledOff();
+		this->hw->ledOff();
 	}
 }
 
@@ -1752,315 +1756,4 @@ void GMenu2X::setInputSpeed() {
 	input.setInterval(1000, MENU);
 	input.setInterval(1000, CONFIRM);
 	input.setInterval(1500, POWER);
-}
-
-/* TODO ::EXTRACT TO HW PLATFORM SPECIFIC CODE */
-
-int memdev = 0;
-#ifdef TARGET_RS97
-	volatile uint32_t *memregs;
-#else
-	volatile uint16_t *memregs;
-#endif
-
-bool getTVOutStatus() {
-	if (memdev > 0) return !(memregs[0x10300 >> 2] >> 25 & 0b1);
-	return false;
-}
-
-void GMenu2X::setPerformanceMode() {
-	TRACE("enter - %s", config->performance().c_str());
-	string current = getPerformanceMode();
-	string desired = "ondemand";
-	if ("Performance" == config->performance()) {
-		desired = "performance";
-	}
-	if (current.compare(desired) != 0) {
-		TRACE("update needed : current %s vs. desired %s", current.c_str(), desired.c_str());
-		if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-			procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
-			initMenu();
-		}
-	} else {
-		TRACE("nothing to do");
-	}
-	TRACE("exit");	
-}
-
-string GMenu2X::getPerformanceMode() {
-	TRACE("enter");
-	string result = "ondemand";
-	if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-		result = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-	}
-	TRACE("exit - %s", result.c_str());
-	return full_trim(result);
-}
-
-string GMenu2X::mountSd() {
-	TRACE("enter");
-	string command = "mount -t auto /dev/mmcblk1p1 " + EXTERNAL_CARD_PATH + " 2>&1";
-	string result = exec(command.c_str());
-	TRACE("result : %s", result.c_str());
-	system("sleep 1");
-	checkUDC();
-	return result;
-}
-
-string GMenu2X::umountSd() {
-	system("sync");
-	string command = "umount -fl " + EXTERNAL_CARD_PATH + " 2>&1";
-	string result = exec(command.c_str());
-	system("sleep 1");
-	checkUDC();
-	return result;
-}
-
-void GMenu2X::checkUDC() {
-	TRACE("enter");
-	curMMCStatus = MMC_ERROR;
-	unsigned long size;
-	TRACE("reading /sys/block/mmcblk1/size");
-	std::ifstream fsize("/sys/block/mmcblk1/size", ios::in | ios::binary);
-	if (fsize >> size) {
-		if (size > 0) {
-			// ok, so we're inserted, are we mounted
-			TRACE("size was : %lu, reading /proc/mounts", size);
-			std::ifstream procmounts( "/proc/mounts" );
-			if (!procmounts) {
-				curMMCStatus = MMC_ERROR;
-				WARNING("GMenu2X::checkUDC - couldn't open /proc/mounts");
-			} else {
-				string line;
-				size_t found;
-				curMMCStatus = MMC_UNMOUNTED;
-				while (std::getline(procmounts, line)) {
-					if ( !(procmounts.fail() || procmounts.bad()) ) {
-						found = line.find("mcblk1");
-						if (found != std::string::npos) {
-							curMMCStatus = MMC_MOUNTED;
-							TRACE("inserted && mounted because line : %s", line.c_str());
-							break;
-						}
-					} else {
-						curMMCStatus = MMC_ERROR;
-						WARNING("GMenu2X::checkUDC - error reading /proc/mounts");
-						break;
-					}
-				}
-				procmounts.close();
-			}
-		} else {
-			curMMCStatus = MMC_MISSING;
-			TRACE("not inserted");
-		}
-	} else {
-		curMMCStatus = MMC_ERROR;
-		WARNING("GMenu2X::checkUDC - error, no card");
-	}
-	fsize.close();
-	TRACE("exit - %i",  curMMCStatus);
-}
-
-/*
-void GMenu2X::formatSd() {
-	MessageBox mb(this, tr["Format internal SD card?"], "skin:icons/format.png");
-	mb.setButton(CONFIRM, tr["Yes"]);
-	mb.setButton(CANCEL,  tr["No"]);
-	if (mb.exec() == CONFIRM) {
-		MessageBox mb(this, tr["Formatting internal SD card..."], "skin:icons/format.png");
-		mb.setAutoHide(100);
-		mb.exec();
-
-		system("/usr/bin/format_int_sd.sh");
-		{ // new mb scope
-			MessageBox mb(this, tr["Complete!"]);
-			mb.setAutoHide(0);
-			mb.exec();
-		}
-	}
-}
-*/
-
-void GMenu2X::setTVOut(string TVOut) {
-	#if defined(TARGET_RS97)
-	system("echo 0 > /proc/jz/tvselect"); // always reset tv out
-	if (TVOut == "NTSC")		system("echo 2 > /proc/jz/tvselect");
-	else if (TVOut == "PAL")	system("echo 1 > /proc/jz/tvselect");
-	#endif
-}
-
-void GMenu2X::ledOn() {
-	TRACE("ledON");
-	led->flash();
-}
-
-void GMenu2X::ledOff() {
-	TRACE("ledOff");
-	led->reset();
-}
-
-int GMenu2X::getBatteryLevel() {
-	//TRACE("enter");
-
-	int online, result = 0;
-	#ifdef TARGET_RG350
-	sscanf(fileReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
-	if (online) {
-		result = 6;
-	} else {
-		int battery_level = 0;
-		sscanf(fileReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
-		TRACE("raw battery level - %i", battery_level);
-		if (battery_level >= 100) result = 5;
-		else if (battery_level > 80) result = 4;
-		else if (battery_level > 60) result = 3;
-		else if (battery_level > 40) result = 2;
-		else if (battery_level > 20) result = 1;
-		result = 0;
-	}
-	#else
-	result = 6;
-	#endif
-	TRACE("scaled battery level : %i", result);
-	return result;
-}
-
-void GMenu2X::setCPU(uint32_t mhz) {
-	// mhz = constrain(mhz, CPU_CLK_MIN, CPU_CLK_MAX);
-	if (memdev > 0) {
-		TRACE("Setting clock to %d", mhz);
-
-	#if defined(TARGET_GP2X)
-		uint32_t v, mdiv, pdiv=3, scale=0;
-
-		#define SYS_CLK_FREQ 7372800
-		mhz *= 1000000;
-		mdiv = (mhz * pdiv) / SYS_CLK_FREQ;
-		mdiv = ((mdiv-8)<<8) & 0xff00;
-		pdiv = ((pdiv-2)<<2) & 0xfc;
-		scale &= 3;
-		v = mdiv | pdiv | scale;
-		MEM_REG[0x910>>1] = v;
-
-	#elif defined(TARGET_CAANOO) || defined(TARGET_WIZ)
-		volatile uint32_t *memregl = static_cast<volatile uint32_t*>((volatile void*)memregs);
-		int mdiv, pdiv = 9, sdiv = 0;
-		uint32_t v;
-
-		#define SYS_CLK_FREQ 27
-		#define PLLSETREG0   (memregl[0xF004>>2])
-		#define PWRMODE      (memregl[0xF07C>>2])
-		mdiv = (mhz * pdiv) / SYS_CLK_FREQ;
-		if (mdiv & ~0x3ff) return;
-		v = pdiv<<18 | mdiv<<8 | sdiv;
-
-		PLLSETREG0 = v;
-		PWRMODE |= 0x8000;
-		for (int i = 0; (PWRMODE & 0x8000) && i < 0x100000; i++);
-
-	#elif defined(TARGET_RS97)
-		uint32_t m = mhz / 6;
-		memregs[0x10 >> 2] = (m << 24) | 0x090520;
-		INFO("Set CPU clock: %d", mhz);
-	#endif
-		setTVOut(TVOut);
-	}
-}
-
-int GMenu2X::getVolume() {
-	TRACE("enter");
-	int vol = -1;
-	#ifdef TARGET_RG350
-	string result = exec(RG350_GET_VOLUME_PATH.c_str());
-	if (result.length() > 0) {
-		vol = atoi(trim(result).c_str());
-	}
-	// scale 0 - 31, turn to percent
-	vol = vol * 100 / 31;
-	TRACE("exit : %i", vol);
-	#else
-	vol = 100;
-	#endif
-	return vol;
-}
-
-int GMenu2X::setVolume(int val) {
-	TRACE("enter - %i", val);
-	if (val < 0) val = 100;
-	else if (val > 100) val = 0;
-	if (val == getVolume()) 
-		return val;
-	#ifdef TARGET_RG350
-	int rg350val = (int)(val * (31.0f/100));
-	TRACE("rg350 value : %i", rg350val);
-	stringstream ss;
-	string cmd;
-	ss << RG350_SET_VOLUME_PATH << rg350val;
-	std::getline(ss, cmd);
-	TRACE("cmd : %s", cmd.c_str());
-	string result = exec(cmd.c_str());
-	TRACE("result : %s", result.c_str());
-	#endif
-	return val;
-}
-
-int GMenu2X::getBacklight() {
-	TRACE("enter");
-	int level = 0;
-	#ifdef TARGET_RG350
-	//force  scale 0 - 5
-	string result = fileReader(RG350_BACKLIGHT_PATH);
-	if (result.length() > 0) {
-		level = atoi(trim(result).c_str()) / 51;
-	}
-	#else
-	level = 5;
-	#endif
-	TRACE("exit : %i", level);
-	return level;
-}
-
-int GMenu2X::setBacklight(int val) {
-	TRACE("enter - %i", val);
-	if (val <= 0) val = 100;
-	else if (val > 100) val = 0;
-	#ifdef TARGET_RG350
-	int rg350val = (int)(val * (255.0f/100));
-	TRACE("rg350 value : %i", rg350val);
-	// save a write
-	if (rg350val == getBacklight()) 
-		return val;
-
-	if (procWriter(RG350_BACKLIGHT_PATH, rg350val)) {
-		TRACE("success");
-	} else {
-		ERROR("Couldn't update backlight value to : %i", rg350val);
-	}
-	#endif
-	return val;	
-}
-
-string GMenu2X::getDiskFree(const char *path) {
-	TRACE("enter - %s", path);
-	string df = "N/A";
-	struct statvfs b;
-
-	if (statvfs(path, &b) == 0) {
-		TRACE("read statvfs ok");
-		// Make sure that the multiplication happens in 64 bits.
-		uint32_t freeMiB = ((uint64_t)b.f_bfree * b.f_bsize) / (1024 * 1024);
-		uint32_t totalMiB = ((uint64_t)b.f_blocks * b.f_frsize) / (1024 * 1024);
-		TRACE("raw numbers - free: %lu, total: %lu, block size: %lu", b.f_bfree, b.f_blocks, b.f_bsize);
-		stringstream ss;
-		if (totalMiB >= 10000) {
-			ss << (freeMiB / 1024) << "." << ((freeMiB % 1024) * 10) / 1024 << " / "
-			   << (totalMiB / 1024) << "." << ((totalMiB % 1024) * 10) / 1024 << " GiB";
-		} else {
-			ss << freeMiB << " / " << totalMiB << " MiB";
-		}
-		std::getline(ss, df);
-	} else WARNING("statvfs failed with error '%s'.\n", strerror(errno));
-	TRACE("exit");
-	return df;
 }

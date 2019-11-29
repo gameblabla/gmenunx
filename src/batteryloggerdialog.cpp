@@ -25,11 +25,13 @@ void BatteryLoggerDialog::exec() {
 
 	this->bg->blit(gmenu2x->screen,0,0);
 
-	gmenu2x->setBacklight(100);
+	gmenu2x->hw->setBacklightLevel(100);
 
 	gmenu2x->screen->flip();
 
-	MessageBox mb(gmenu2x, gmenu2x->tr["Welcome to the Battery Logger.\nMake sure the battery is fully charged.\nAfter pressing OK, leave the device ON until\nthe battery has been fully discharged.\nThe log will be saved in 'battery.csv'."]);
+	MessageBox mb(
+		gmenu2x, 
+		gmenu2x->tr["Welcome to the Battery Logger.\nMake sure the battery is fully charged.\nAfter pressing OK, leave the device ON until\nthe battery has been fully discharged.\nThe log will be saved in 'battery.csv'."]);
 	mb.exec();
 
 	uint32_t rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
@@ -59,7 +61,13 @@ void BatteryLoggerDialog::exec() {
 		if ((tickNow - tickBatteryLogger) >= 60000) {
 			tickBatteryLogger = tickNow;
 
-			sprintf(buf, "echo '%s,%d' >> %s/battery.csv; sync", ms2hms(tickNow - tickStart, true, false), gmenu2x->getBatteryLevel(), cmdclean(gmenu2x->getAssetsPath()).c_str());
+			sprintf(
+				buf, 
+				"echo '%s,%d' >> %s/battery.csv; sync", 
+				ms2hms(tickNow - tickStart, true, false), 
+				gmenu2x->hw->getBatteryLevel(), 
+				cmdclean(gmenu2x->getAssetsPath()).c_str());
+
 			system(buf);
 
 			ifstream inf(logfile.c_str(), ios_base::in);
@@ -112,5 +120,5 @@ void BatteryLoggerDialog::exec() {
 			}
 		}
 	}
-	gmenu2x->setBacklight(gmenu2x->config->backlightLevel());
+	gmenu2x->hw->setBacklightLevel(gmenu2x->config->backlightLevel());
 }

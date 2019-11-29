@@ -77,13 +77,13 @@ void Renderer::render() {
 		if (tickNow - tickBattery >= 1000) {
 			TRACE("updating helper icon status");
 			tickBattery = tickNow;
-			batteryIcon = gmenu2x->getBatteryLevel();
+			batteryIcon = gmenu2x->hw->getBatteryLevel();
 			if (batteryIcon > 5) batteryIcon = 6;
 
-			brightnessIcon = gmenu2x->getBacklight();
+			brightnessIcon = gmenu2x->hw->getBacklightLevel();
 			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
 
-			int currentVolume = gmenu2x->getVolume();
+			int currentVolume = gmenu2x->hw->getVolumeLevel();
 			currentVolumeMode = this->getVolumeMode(currentVolume);
             rtc.refresh();
 			TRACE("helper icon status updated");
@@ -415,7 +415,7 @@ void Renderer::render() {
 
 		helpers.push_back(iconVolume[currentVolumeMode]);
 		helpers.push_back(iconBattery[batteryIcon]);
-		if (gmenu2x->curMMCStatus == MMC_MOUNTED) {
+		if (gmenu2x->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
 			helpers.push_back(iconSD);
 		}
 		helpers.push_back(iconBrightness[brightnessIcon]);

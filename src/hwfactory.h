@@ -8,12 +8,16 @@
 #include <fstream>
 #include <string>
 #include <errno.h>
+#include <vector>
+#include <algorithm>
+#include <unordered_map>
 
 #include "utilities.h"
 #include "constants.h"
 #include "debug.h"
 
 class IHardware {
+
     protected:
 
         int16_t curMMCStatus;
@@ -24,12 +28,19 @@ class IHardware {
         const string EXTERNAL_MOUNT_FORMAT = "auto";
 
     public:
-        IHardware();
-        virtual bool getTVOutStatus() = 0;
-        virtual void setTVOut(string TVOut) = 0;
 
-        virtual void setPerformanceMode(std::string alias) = 0;
+        enum CARD_STATUS:int16_t {
+            MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
+        };
+
+        virtual bool getTVOutStatus() = 0;
+        virtual void setTVOutMode(string mode) = 0;
+        virtual std::string getTVOutMode() = 0;
+
+        virtual void setPerformanceMode(std::string alias = "") = 0;
         virtual std::string getPerformanceMode() = 0;
+        virtual std::vector<std::string>getPerformanceModes() = 0;
+
         virtual uint32_t setCPUSpeed(uint32_t mhz) = 0;
 
         virtual void ledOn(int flashSpeed = 250) = 0;
@@ -69,9 +80,9 @@ class IHardware {
 
         void checkUDC() {
             TRACE("enter");
-            curMMCStatus = MMC_ERROR;
+            this->curMMCStatus = MMC_ERROR;
             unsigned long size;
-            TRACE("reading " + BLOCK_DEVICE);
+            TRACE("reading block device : %s", BLOCK_DEVICE.c_str());
             std::ifstream fsize(BLOCK_DEVICE.c_str(), std::ios::in | std::ios::binary);
             if (fsize >> size) {
                 if (size > 0) {
@@ -79,22 +90,22 @@ class IHardware {
                     TRACE("size was : %lu, reading /proc/mounts", size);
                     std::ifstream procmounts( "/proc/mounts" );
                     if (!procmounts) {
-                        curMMCStatus = MMC_ERROR;
+                        this->curMMCStatus = MMC_ERROR;
                         WARNING("couldn't open /proc/mounts");
                     } else {
                         std::string line;
                         std::size_t found;
-                        curMMCStatus = MMC_UNMOUNTED;
+                        this->curMMCStatus = MMC_UNMOUNTED;
                         while (std::getline(procmounts, line)) {
                             if ( !(procmounts.fail() || procmounts.bad()) ) {
                                 found = line.find("mcblk1");
                                 if (found != std::string::npos) {
-                                    curMMCStatus = MMC_MOUNTED;
+                                    this->curMMCStatus = MMC_MOUNTED;
                                     TRACE("inserted && mounted because line : %s", line.c_str());
                                     break;
                                 }
                             } else {
-                                curMMCStatus = MMC_ERROR;
+                                this->curMMCStatus = MMC_ERROR;
                                 WARNING("error reading /proc/mounts");
                                 break;
                             }
@@ -102,15 +113,19 @@ class IHardware {
                         procmounts.close();
                     }
                 } else {
-                    curMMCStatus = MMC_MISSING;
+                    this->curMMCStatus = MMC_MISSING;
                     TRACE("not inserted");
                 }
             } else {
-                curMMCStatus = MMC_ERROR;
-                WARNING("error, no card");
+                this->curMMCStatus = MMC_ERROR;
+                WARNING("error, no card present");
             }
             fsize.close();
-            TRACE("exit - %i",  curMMCStatus);
+            TRACE("exit - %i",  this->curMMCStatus);
+        }
+
+        CARD_STATUS getCardStatus() {
+            return (CARD_STATUS)this->curMMCStatus;
         }
 
         void formatSdCard() {
@@ -150,8 +165,10 @@ class HwRg350 : IHardware {
 			TIMER
 		};
 
+        std::unordered_map<std::string, std::string> performanceModes_;
 		std::string ledMaxBrightness_;
         std::string performanceMode_ = "ondemand";
+        const std::string defaultPerformanceMode = "ondemand";
         int volumeLevel_ = 0;
         int backlightLevel_ = 0;
 		const string LED_PREFIX = "/sys/class/leds/power/";
@@ -163,6 +180,16 @@ class HwRg350 : IHardware {
         const string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
         const string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
         const string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
+
+        std::string performanceModeMap(std::string fromInternal) {
+            std::unordered_map<string, string>::iterator it;
+            for (it = this->performanceModes_.begin();it != this->performanceModes_.end(); it++) {
+                if (fromInternal == it->first) {
+                    return it->second;;
+                }
+            }
+            return "On demand";
+        }
 
 		string triggerToString(LedAllowedTriggers t) {
             TRACE("mode : %i", t);
@@ -188,6 +215,8 @@ class HwRg350 : IHardware {
             this->ledMaxBrightness_ = fileReader(LED_MAX_BRIGHTNESS_PATH);
             this->getBacklightLevel();
             this->getVolumeLevel();
+            this->performanceModes_.insert({"ondemand", "On demand"});
+            this->performanceModes_.insert({"performance", "Performance"});
             TRACE(
                 "brightness - max : %s, current : %i, volume : %i", 
                 ledMaxBrightness_.c_str(), 
@@ -197,31 +226,57 @@ class HwRg350 : IHardware {
         }
 
         bool getTVOutStatus() { return 0; };
-        void setTVOut(string TVOut) { return; };
+        std::string getTVOutMode() { return "OFF"; }
+        void setTVOutMode(std::string mode) {
+            string val = mode;
+            if (val != "NTSC" && val != "PAL") val = "OFF";
+        }
 
         std::string getPerformanceMode() { 
             TRACE("enter");
             this->performanceMode_ = "ondemand";
             if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-                this->performanceMode_ = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+                string rawValue = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+                this->performanceMode_ = full_trim(rawValue);
             }
-            TRACE("exit - %s", this->performanceMode_.c_str());
-            return full_trim(this->performanceMode_);
-        };
-        void setPerformanceMode(std::string alias) { 
-            TRACE("enter - desired : %s", alias.c_str());
-            std::string desired = toLower(alias);
-            if (desired != this->performanceMode_) {
-                TRACE("update needed : current %s vs. desired %s", this->performanceMode_.c_str(), desired.c_str());
+            TRACE("read - %s", this->performanceMode_.c_str());
+            return this->performanceModeMap(this->performanceMode_);
+        }
+
+        void setPerformanceMode(std::string alias = "") {
+            TRACE("raw desired : %s", alias.c_str());
+            string mode = this->defaultPerformanceMode;
+            if (!alias.empty()) {
+                std::unordered_map<string, string>::iterator it;
+                for (it = this->performanceModes_.begin();it != this->performanceModes_.end(); it++) {
+                    TRACE("checking '%s' aginst <%s, %s>", alias.c_str(), it->first.c_str(), it->second.c_str());
+                    if (alias == it->second) {
+                        TRACE("matched it as : %s", it->first.c_str());
+                        mode = it->first;
+                        break;
+                    }
+                }
+            }
+            TRACE("internal desired : %s", mode.c_str());
+            if (mode != this->performanceMode_) {
+                TRACE("update needed : current '%s' vs. desired '%s'", this->performanceMode_.c_str(), mode.c_str());
                 if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-                    procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", desired);
-                    this->performanceMode_ = desired;
+                    procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", mode);
+                    this->performanceMode_ = mode;
                 }
             } else {
                 TRACE("nothing to do");
             }
             TRACE("exit");
-        };
+        }
+        std::vector<std::string> getPerformanceModes() {
+            std::vector<std::string> results;
+            std::unordered_map<std::string, std::string>::iterator it;
+            for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
+                results.push_back(it->second);
+            }
+            return results;
+        }
         uint32_t setCPUSpeed(uint32_t mhz) { return mhz; };
 
         void ledOn(int flashSpeed = 250) {
@@ -331,11 +386,17 @@ class HwRg350 : IHardware {
 
 class HwGeneric : IHardware {
      public:
+        HwGeneric() {};
         bool getTVOutStatus() { return 0; };
-        void setTVOut(string TVOut) { return; };
+        std::string getTVOutMode() { return "OFF"; }
+        void setTVOutMode(std::string mode) {
+            string val = mode;
+            if (val != "NTSC" && val != "PAL") val = "OFF";
+        }
 
-        void setPerformanceMode(std::string alias) { return; };
-        std::string getPerformanceMode() { return "default"; };
+        void setPerformanceMode(std::string alias = "") { return; };
+        std::string getPerformanceMode() { return "Default"; };
+        std::vector<std::string>getPerformanceModes() { return vector<string> { "Default"}; }
         uint32_t setCPUSpeed(uint32_t mhz) { return mhz; };
 
         void ledOn(int flashSpeed = 250) { return; };
@@ -350,13 +411,14 @@ class HwGeneric : IHardware {
 };
 
 class HwFactory {
-    static IHardware * GetHardware() {
-        #ifdef TARGET_RG350
-        return (IHardware*)new HwRg350();
-        #else
-        return (IHardware*)new HwGeneric();
-        #endif
-    }
+    public:
+        static IHardware * GetHardware() {
+            #ifdef TARGET_RG350
+            return (IHardware*)new HwRg350();
+            #else
+            return (IHardware*)new HwGeneric();
+            #endif
+        }
 };
 
 #endif // _HWFACTORY_

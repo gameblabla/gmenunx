@@ -35,11 +35,13 @@
 #include "skin.h"
 #include "config.h"
 #include "ui.h"
+#include "hwfactory.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
 #endif
 
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -71,23 +73,21 @@ char *ms2hms(uint32_t t, bool mm, bool ss);
 class PowerManager;
 class Menu;
 class UI;
+
 #ifdef HAVE_LIBOPK
 class OpkCache;
 #endif
 
+/*
+const string RG350_GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
+const string RG350_SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
+const string RG350_BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
+*/
+
 class GMenu2X {
 private:
-
-	int16_t tvOutPrev = false;
-
 	string exe_path; //!< Contains the working directory of GMenu2X
 	string assets_path; // Contains the assets path
-
-	/*!
-	Retrieves the free disk space on the sd
-	@return String containing a human readable representation of the free disk space
-	*/
-	string getDiskFree(const char *path);
 
 	/*!
 	Starts the scanning of the nand and sd filesystems, searching for gpe and gpu files and creating the links in 2 dedicated sections.
@@ -112,12 +112,28 @@ private:
 	void initFont();
 	void showManual();
 
+	void mountSdDialog();
+	void umountSdDialog();
+/*
+	hardware section begins
+*/ 
+	//int16_t tvOutPrev = false;
+
+	/*!
+	Retrieves the free disk space on the sd
+	@return String containing a human readable representation of the free disk space
+	*/
+/*
+	string getDiskFree(const char *path);
 	//void formatSd();
 	void checkUDC();
-	void umountSdDialog();
 	string umountSd();
-	void mountSdDialog();
 	string mountSd();
+*/
+/*
+	hardware section ends
+*/ 
+
 	bool doInstall();
 	bool doUpgrade();
 
@@ -131,9 +147,7 @@ public:
 	void quit();
 	void releaseScreen();
 
-	int getBacklight();
-	int getVolume();
-	int16_t curMMCStatus;
+	bool f200 = true;
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 
@@ -156,13 +170,6 @@ public:
 	InputManager input;
 	Touchscreen ts;
 
-	LED *led;
-
-	//firmware type and version
-	string fwType = "";
-	//gp2x type
-	bool f200 = true;
-
 	SurfaceCollection *sc;
 	Translator tr;
 	Surface *screen, *bg;
@@ -176,12 +183,6 @@ public:
 	void resetSettings();
 	void cpuSettings();
 
-	/*!
-	Reads the current battery state and returns a number representing it's level of charge
-	@return A number representing battery charge. 0 means fully discharged. 5 means fully charged. 6 represents a gp2x using AC power.
-	*/
-	int getBatteryLevel();
-
 	void skinMenu();
 	void skinColors();
 	uint32_t onChangeSkin();
@@ -190,31 +191,18 @@ public:
 
 	PowerManager *powerManager;
 
-	void setTVOut(string _TVOut);
-	string TVOut = "OFF";
 	void about();
 	void viewLog();
 	void batteryLogger();
 	void performanceMenu();
-	void setPerformanceMode();
-	string getPerformanceMode();
 	void contextMenu();
 	void changeWallpaper();
-
-	void setCPU(uint32_t mhz);
-	const string getDateTime();
-	void setDateTime();
-	int setVolume(int val);
-	int setBacklight(int val);
 
 	void setInputSpeed();
 
 	void writeConfig();
 	void writeSkinConfig();
 	void writeTmp(int selelem=-1, const string &selectordir = "");
-
-	void ledOn();
-	void ledOff();
 
 	void addLink();
 	void editLink();
@@ -231,6 +219,7 @@ public:
 	Skin* skin;
 	Config* config;
 	UI* ui;
+	IHardware * hw;
 
 };
 
