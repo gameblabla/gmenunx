@@ -37,7 +37,6 @@
 #include "gmenu2x.h"
 #include "filelister.h"
 
-#include "led.h"
 #include "iconbutton.h"
 #include "messagebox.h"
 #include "progressbar.h"
@@ -97,7 +96,6 @@ GMenu2X::~GMenu2X() {
 	delete font;
 	delete fontTitle;
 	delete fontSectionTitle;
-	//delete led;
 	delete hw;
 	delete skin;
 	delete sc;
@@ -190,11 +188,10 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 GMenu2X::GMenu2X(bool install) : input(screenManager) {
 
 	TRACE("enter - install flag : %i", install);
-	TRACE("creating LED instance");
+
+	TRACE("creating hardware layer");
 	this->hw = HwFactory::GetHardware();
 
-	//led = new LED();
-	
 	TRACE("ledOn");
 	this->hw->ledOn();
 
@@ -738,7 +735,6 @@ void GMenu2X::settings() {
 		if (performanceMode != this->hw->getPerformanceMode()) {
 			config->performance(performanceMode);
 			this->hw->setPerformanceMode(performanceMode);
-			refreshNeeded = true;
 		}
 		config->skin(skin);
 		config->batteryType(batteryType);

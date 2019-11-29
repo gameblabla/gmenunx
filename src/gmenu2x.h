@@ -31,7 +31,6 @@
 #include "screenmanager.h"
 #include "surface.h"
 #include "fonthelper.h"
-#include "led.h"
 #include "skin.h"
 #include "config.h"
 #include "ui.h"
@@ -77,12 +76,6 @@ class UI;
 #ifdef HAVE_LIBOPK
 class OpkCache;
 #endif
-
-/*
-const string RG350_GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
-const string RG350_SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
-const string RG350_BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
-*/
 
 class GMenu2X {
 private:
