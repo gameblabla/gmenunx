@@ -46,10 +46,6 @@ private:
 	string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
 	string provider, providerMetadata;
 	bool selectorbrowser, consoleapp, deletable, editable;
-
-	bool isOPK;
-	string opkMount, opkFile, category, metadata;
-
 	string aliasfile;
 	string file;
 	
@@ -59,13 +55,9 @@ private:
 
 public:
 
-	LinkApp(GMenu2X *gmenu2x, const char* linkfile, bool deletable, struct OPK *opk = NULL, const char *metadata = NULL);
+	LinkApp(GMenu2X *gmenu2x, const char* linkfile, bool deletable);
 
 	const std::string getFavouriteFolder() { return FAVOURITE_FOLDER; }
-	const std::string &getCategory() { return category; }
-	bool isOpk() { return isOPK; }
-	const std::string &getOpkFile() { return opkFile; }
-
 	virtual const string &searchIcon();
 	virtual const string &searchIcon(string path, bool fallBack = true);
 	virtual const string &searchBackdrop();
@@ -98,7 +90,6 @@ public:
 	void setAliasFile(const string &aliasfile);
 
 	int clock();
-	// const string &clockStr(int maxClock);
 	void setCPU(int mhz = 0);
 
 	bool save();

@@ -172,7 +172,7 @@ class IHardware {
         }
 
         string getDiskSize(const std::string &mountDevice) {
-            TRACE("reading disk size for : %s", mountDevice);
+            TRACE("reading disk size for : %s", mountDevice.c_str());
             string result = "0 GiB";
             if (mountDevice.empty())
                 return result;

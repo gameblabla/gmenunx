@@ -39,18 +39,9 @@
 using namespace std;
 
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
-#ifdef HAVE_LIBOPK
-#ifdef TARGET_RG350
-static const string OPKRUN_PATH = "/usr/bin/opkrun";
-#else
-// just for testing, make sure the target test resolves
-static const string OPKRUN_PATH = "/bin/false";
-#endif
-#endif
-
 const string LinkApp::FAVOURITE_FOLDER = "favourites";
 
-LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struct OPK *opk, const char *metadata_) :
+LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
 	inputMgr(gmenu2x->input) {
 
@@ -71,142 +62,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 
 	deletable = deletable_;
 
-	TRACE("ctor - setting opk by testing value of : %p", opk);
-	isOPK = (0 != opk);
-	TRACE("ctor - setting metadata : %s", metadata_);
-
-/* ---------------------------------------------------------------- */
-
-	if (isOPK) {
-		TRACE("ctor - handling opk :%s", file.c_str());
-		// let's override these guys for sure
-		deletable = editable = false;
-
-		string::size_type pos;
-		const char *key, *val;
-		size_t lkey, lval;
-		int ret;
-
-		metadata.assign(metadata_);
-		opkFile = file;
-		pos = file.rfind('/');
-		opkMount = file.substr(pos+1);
-		pos = opkMount.rfind('.');
-		opkMount = opkMount.substr(0, pos);
-		string metaIcon;
-
-		TRACE("ctor - opkMount : %s", opkMount.c_str());
-		category = "applications";
-
-		TRACE("ctor - reading pairs from meta begins");
-		while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
-			if (ret < 0) {
-				ERROR("Unable to read meta-data");
-				break;
-			}
-
-			char buf[lval + 1];
-			sprintf(buf, "%.*s", (int)lval, val);
-
-			if (!strncmp(key, "Categories", lkey)) {
-				category = buf;
-				pos = category.find(';');
-				if (pos != category.npos)
-					category = category.substr(0, pos);
-				TRACE("category : %s", category.c_str());
-			} else if (!strncmp(key, "Name", lkey)) {
-				title = buf;
-				TRACE("title : %s", title.c_str());
-			} else if (!strncmp(key, "Comment", lkey) && description.empty()) {
-				description = buf;
-				TRACE("description : %s", description.c_str());
-			} else if (!strncmp(key, "Terminal", lkey)) {
-				consoleapp = !strncmp(val, "true", lval);
-				TRACE("consoleapp : %i", consoleapp);
-			} else if (!strncmp(key, "X-OD-Manual", lkey)) {
-				manual = buf;
-				TRACE("manual : %s", manual.c_str());
-			} else if (!strncmp(key, "Icon", lkey)) {
-				metaIcon = (string)buf;
-				TRACE("icon : %s", metaIcon.c_str());
-			} else if (!strncmp(key, "Exec", lkey)) {
-				exec = buf;
-				TRACE("raw exec : %s", exec.c_str());
-				for (auto token : tokens) {
-					if (exec.find(token) != exec.npos) {
-						TRACE("exec takes a token");
-						selectordir = EXTERNAL_CARD_PATH.c_str();
-						break;
-					}
-				}
-				continue;
-			} else if (!strncmp(key, "selectordir", lkey)) {
-				TRACE("selector dir : %s", buf);
-				setSelectorDir(buf);
-			} else if (!strncmp(key, "selectorfilter", lkey)) {
-				TRACE("selector filter : %s", buf);
-				setSelectorFilter(buf);
-			} else if (!strncmp(key, "Type", lkey)) {
-				TRACE("Type : %s", buf);
-			} else if (!strncmp(key, "StartupNotify", lkey)) {
-				TRACE("StartupNotify : %s", buf);
-			} else if (!strncmp(key, "X-OD-NeedsDownscaling", lkey)) {
-				TRACE("X-OD-NeedsDownscaling : %s", buf);
-			} else if (!strncmp(key, "MimeType", lkey)) {
-				TRACE("MimeType : %s", buf);
-			} else {
-				//WARNING("Unrecognized OPK link option: '%s'", key);
-			}
-		}
-
-		// let's sort out icons
-		string shortFileName = metaIcon + ".png";
-		string ip = "icons/" + shortFileName;
-		TRACE("ctor - looking for icon at : %s", ip.c_str());
-		// Read the icon from the OPK if it doesn't exist on the skin
-		searchIcon(metaIcon, false);
-		if (!iconPath.empty()) {
-			TRACE("ctor - icon found in local skin");
-			this->icon = iconPath;
-		} else {
-			// let's extract the image and use for now, and save it locally for the future
-			TRACE("ctor - icon not found, looking in the opk");
-			string opkImagePath = file + "#" + shortFileName;
-			TRACE("ctor - loading OPK icon from : %s", opkImagePath.c_str());
-			SDL_Surface *tmpIcon = loadPNG(opkImagePath, true);
-			if (tmpIcon) {
-				TRACE("ctor - loaded opk icon ok");
-				string outPath = gmenu2x->skin->currentSkinPath() + "/icons";
-				if (dirExists(outPath)) {
-					string outFile = outPath + "/" + basename(shortFileName.c_str());
-					TRACE("ctor - saving icon to : %s", outFile.c_str());
-					if (0 == saveSurfacePng((char*)outFile.c_str(), tmpIcon)) {
-						string workingName = "skin:" + ip;
-						TRACE("ctor - working name is : %s", workingName.c_str());
-						this->icon = workingName;
-					} else {
-						ERROR("LinkApp::LinkApp - ctor - couldn't save icon png");
-					}
-				} else {
-					ERROR("LinkApp::LinkApp - ctor - directory doesn't exist : %s", outPath.c_str());
-				}
-			} else {
-				TRACE("ctor - loaded opk icon failed");
-				this->icon = opkImagePath;
-			}
-		}
-
-		TRACE("icon set to : %s", this->icon.c_str());
-
-		// end of icons
-
-		// update the filename to point at the opk's section category and friendly name
-		file = gmenu2x->getAssetsPath() + "/sections/" + category + '/' + opkMount;
-		// define the mount point
-		opkMount = (string) "/mnt/" + opkMount + '/';
-	}	// isOPK
-
-	else {
+	{
 		this->editable = this->deletable = deletable;
 		TRACE("ctor - handling normal desktop file :%s", linkfile);
 		string line;
@@ -273,7 +129,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_, struc
 			searchIcon(exec, true);
 		}
 
-	}	// !opk
+	}
 
 	TRACE("ctor exit : %s", this->toString().c_str());
 	edited = false;
@@ -397,11 +253,6 @@ bool LinkApp::save() {
 		TRACE("not edited, nothing to save");
 		return false;
 	}
-	if (isOpk()) {
-		TRACE("OPK, nothing to save");
-		return false;
-	}
-
 	std::ostringstream out;
 	out << this->toString();
 
@@ -460,26 +311,17 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	}
 	*/
 
-	LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true, NULL, NULL);
+	LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true);
 	fave->setTitle(cleanTitle);
 	fave->setIcon(this->icon);
 	fave->setDescription(description);
 	fave->consoleapp = this->consoleapp;
 
-	if (this->isOPK) {
-		string opkParams = "-m " + this->metadata + " " + cmdclean(this->opkFile) + " " + launchArgs;
-		TRACE("saving an opk favourite to : %s", favePath.c_str());
-		TRACE("opk exec path : %s", OPKRUN_PATH.c_str());
-		TRACE("opk params : %s", opkParams.c_str());
-		fave->setExec(OPKRUN_PATH);
-		fave->setParams(opkParams);
-	} else {
-		TRACE("saving a normal favourite to : %s", favePath.c_str());
-		TRACE("normal exec path : %s", this->exec.c_str());
-		TRACE("normal params : %s", launchArgs.c_str());
-		fave->setExec(this->exec);
-		fave->setParams(launchArgs);
-	}
+	TRACE("saving a normal favourite to : %s", favePath.c_str());
+	TRACE("normal exec path : %s", this->exec.c_str());
+	TRACE("normal params : %s", launchArgs.c_str());
+	fave->setExec(this->exec);
+	fave->setParams(launchArgs);
 
 	MessageBox mb(
 		this->gmenu2x, 
@@ -607,15 +449,11 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 void LinkApp::launch(string launchArgs) {
 	TRACE("enter - args: %si", launchArgs.c_str());
 
-	if (!isOpk()) {
-		TRACE("not an opk");
-		//Set correct working directory
-		string wd = getRealWorkdir();
-		TRACE("real work dir = %s", wd.c_str());
-		if (!wd.empty()) {
-			chdir(wd.c_str());
-			TRACE("changed into wrkdir");
-		}
+	//Set correct working directory
+	string wd = getRealWorkdir();
+	TRACE("real work dir = %s", wd.c_str());
+	if (!wd.empty()) {
+		chdir(wd.c_str());
 	}
 
 	if (gmenu2x->config->saveSelection()) {
@@ -628,28 +466,18 @@ void LinkApp::launch(string launchArgs) {
 	commandLine = { "/bin/sh", "-c" };
 	string execute;
 
-	if (isOpk()) {
-		execute = "/usr/bin/opkrun -m " + metadata + " \"" + opkFile + "\"";
-		TRACE("running an opk via : %s", execute.c_str());
-		if (!launchArgs.empty()) {
-			TRACE("running an opk with extra params : %s", launchArgs.c_str());
-			execute += " " + launchArgs;
-		}
+	// Check to see if permissions are desirable
+	struct stat fstat;
+	if ( stat( exec.c_str(), &fstat ) == 0 ) {
+		struct stat newstat = fstat;
+		if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
+		if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
+		if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
+	} // else, well.. we are no worse off :)
 
-	} else {
-		TRACE("running a standard desktop file");
-		// Check to see if permissions are desirable
-		struct stat fstat;
-		if ( stat( exec.c_str(), &fstat ) == 0 ) {
-			struct stat newstat = fstat;
-			if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
-			if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
-			if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
-		} // else, well.. we are no worse off :)
+	execute = exec + " " + launchArgs;
+	TRACE("standard file cmd lime : %s",  execute.c_str());
 
-		execute = exec + " " + launchArgs;
-		TRACE("standard file cmd lime : %s",  execute.c_str());
-	}
 	if (gmenu2x->config->outputLogs()) {
 		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
 		TRACE("adding logging");
@@ -791,16 +619,7 @@ void LinkApp::renameFile(const string &name) {
 std::string LinkApp::toString() {
 	
 	std::ostringstream out;
-	if (isOpk()) {
-		if (!category.empty()) out << "Categories=" << category           << endl;
-		if (!title.empty()) out << "Name=" << title << endl;
-		if (!description.empty()) out << "Comment=" << description << endl;
-		if (consoleapp           ) out << "Terminal=true"                     << endl;
-		if (!consoleapp          ) out << "Terminal=false"                    << endl;
-		if (!manual.empty()) out << "X-OD-Manual=" << manual << endl;
-		if (!this->icon.empty()) out << "Icon=" << this->icon << endl;
-		if (!exec.empty()) out << "Exec=" << exec << endl;
-	} else {
+	{
 		if (title != ""          ) out << "title="           << title           << endl;
 		if (description != ""    ) out << "description="     << description     << endl;
 		if (icon != ""           ) out << "icon="            << icon            << endl;

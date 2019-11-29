@@ -68,10 +68,13 @@
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
+const string OPK_FOLDER_NAME = "apps";
+const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
+const string OPK_PLATFORM = "gcw0";
 #endif
 
 #ifndef __BUILDTIME__
-	#define __BUILDTIME__ __DATE__ " " __TIME__ 
+	#define __BUILDTIME__ __DATE__ " - " __TIME__ 
 #endif
 
 static GMenu2X *app;
@@ -127,7 +130,7 @@ void GMenu2X::quit() {
 }
 
 int main(int argc, char * argv[]) {
-	INFO("GMenuNX starting: Build Date - %s - %s", __DATE__, __TIME__);
+	INFO("GMenuNX starting: Build Date - %s", __BUILDTIME__);
 
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
@@ -167,19 +170,18 @@ void* mainThread(void* param) {
 void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
-	if (OPK_USE_CACHE) {
-		TRACE("we're using the opk cache");
-		string externalPath = this->config->externalAppPath();
-		vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
-		string rootDir = getAssetsPath();
-		TRACE("rootDir : %s", rootDir.c_str());
-		if (nullptr == this->opkCache) {
-			this->opkCache = new OpkCache(opkDirs, rootDir);
-		}
-		assert(this->opkCache);
-		this->opkCache->update(callback);
-		sync();
+
+	string externalPath = this->config->externalAppPath();
+	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
+	string rootDir = getAssetsPath();
+	TRACE("rootDir : %s", rootDir.c_str());
+	if (nullptr == this->opkCache) {
+		this->opkCache = new OpkCache(opkDirs, rootDir);
 	}
+	assert(this->opkCache);
+	this->opkCache->update(callback);
+	sync();
+
 	#endif
 	TRACE("exit");
 }
@@ -1104,7 +1106,7 @@ void GMenu2X::about() {
 	string batt(buffer);
 
 	temp = "\n";
-	temp += tr["Build date: "] + __DATE__ + " - " + __TIME__ + "\n";
+	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
