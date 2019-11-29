@@ -316,7 +316,7 @@ void GMenu2X::main() {
 
 	// we need to re-join before building the menu
 	thread_cache.join();
-	pbLoading->updateDetail("");
+	pbLoading->updateDetail("Initialising hardware");
 	TRACE("app cache thread has finished");
 
 	TRACE("screen manager");
