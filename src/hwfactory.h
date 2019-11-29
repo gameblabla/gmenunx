@@ -6,6 +6,9 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 
+// systemDateTime
+#include <ctime>
+
 #include <unistd.h>
 #include <sys/statvfs.h>
 #include <sys/sysinfo.h>
@@ -23,6 +26,7 @@
 #include "utilities.h"
 #include "constants.h"
 #include "debug.h"
+#include "rtc.h"
 
 class IHardware {
 
@@ -41,6 +45,9 @@ class IHardware {
         enum CARD_STATUS:int16_t {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
+
+        virtual std::string getSystemdateTime() = 0;
+        virtual bool setSystemDateTime(std::string datetime) = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(string mode) = 0;
@@ -223,6 +230,8 @@ class HwRg350 : IHardware {
 			TIMER
 		};
 
+        RTC *rtc;
+
         std::unordered_map<std::string, std::string> performanceModes_;
 		std::string ledMaxBrightness_;
         std::string performanceMode_ = "ondemand";
@@ -272,6 +281,8 @@ class HwRg350 : IHardware {
             this->EXTERNAL_MOUNT_FORMAT = "auto";
             this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
+            this->rtc = new RTC();
+
             this->ledMaxBrightness_ = fileReader(LED_MAX_BRIGHTNESS_PATH);
             this->getBacklightLevel();
             this->getVolumeLevel();
@@ -283,6 +294,17 @@ class HwRg350 : IHardware {
                 this->backlightLevel_, 
                 this->volumeLevel_
             );
+        }
+        ~HwRg350() {
+            delete rtc;
+        }
+
+        std::string getSystemdateTime() {
+            this->rtc->refresh();
+            return this->rtc->getDateTime();
+        };
+        bool setSystemDateTime(std::string datetime) {
+            return this->rtc->setTime(datetime);
         }
 
         bool getTVOutStatus() { return 0; };
@@ -447,6 +469,16 @@ class HwRg350 : IHardware {
 class HwGeneric : IHardware {
      public:
         HwGeneric() {};
+
+        std::string getSystemdateTime() { 
+            time_t now = time(0);
+            char* dt = ctime(&now);
+            tm *gmtm = gmtime(&now);
+            dt = asctime(gmtm);
+            return dt;
+        };
+        bool setSystemDateTime(std::string datetime) { return true; };
+
         bool getTVOutStatus() { return 0; };
         std::string getTVOutMode() { return "OFF"; }
         void setTVOutMode(std::string mode) {

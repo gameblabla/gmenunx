@@ -61,7 +61,6 @@
 #include "debug.h"
 #include "skin.h"
 #include "config.h"
-#include "rtc.h"
 #include "renderer.h"
 #include "loader.h"
 #include "installer.h"
@@ -678,9 +677,7 @@ void GMenu2X::settings() {
 	string tmp = ">>";
 
 	vector<string> performanceModes = this->hw->getPerformanceModes();
-
-	RTC *rtc = new RTC();
-	string currentDatetime = rtc->getDateTime();
+	string currentDatetime = this->hw->getSystemdateTime();
 	string prevDateTime = currentDatetime;
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
@@ -781,14 +778,13 @@ void GMenu2X::settings() {
 			MessageBox mb(this, tr["Updating system time"]);
 			mb.setAutoHide(500);
 			mb.exec();
-			rtc->setTime(currentDatetime);
+			this->hw->setSystemDateTime(currentDatetime);
 		}
 		if (restartNeeded) {
 			TRACE("restarting because skins changed");
 			restartDialog();
 		}
 	}
-	delete rtc;
 	TRACE("exit");
 }
 
