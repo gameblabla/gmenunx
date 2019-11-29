@@ -324,7 +324,6 @@ class HwRg350 : IHardware {
             TRACE("read - %s", this->performanceMode_.c_str());
             return this->performanceModeMap(this->performanceMode_);
         }
-
         void setPerformanceMode(std::string alias = "") {
             TRACE("raw desired : %s", alias.c_str());
             string mode = this->defaultPerformanceMode;
@@ -359,6 +358,7 @@ class HwRg350 : IHardware {
             }
             return results;
         }
+
         uint32_t setCPUSpeed(uint32_t mhz) { return mhz; };
 
         void ledOn(int flashSpeed = 250) {
@@ -395,7 +395,7 @@ class HwRg350 : IHardware {
                 else if (battery_level > 60) result = 3;
                 else if (battery_level > 40) result = 2;
                 else if (battery_level > 20) result = 1;
-                result = 0;
+                else result = 0;
             }
             TRACE("scaled battery level : %i", result);
             return result;
