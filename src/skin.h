@@ -79,6 +79,7 @@ public:
     int iconsToGrayscale;
 
     int version;
+    int showLoader;
 
     LinkDisplayModes linkDisplayMode;
 

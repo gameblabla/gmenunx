@@ -304,8 +304,10 @@ void GMenu2X::main() {
 	this->input.init(this->getAssetsPath() + "input.conf");
 	setInputSpeed();
 
-	Loader loader(this);
-	loader.run();
+	if (this->skin->showLoader) {
+		Loader loader(this);
+		loader.run();
+	}
 	pbLoading->exec();
 
 	this->hw->setVolumeLevel(this->config->globalVolume());
@@ -1009,6 +1011,7 @@ void GMenu2X::skinMenu() {
 
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
+		sd.addSetting(new MenuSettingBool(this, tr["Show loader"], tr["Show loader animation, if exists"], &skin->showLoader));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));

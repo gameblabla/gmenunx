@@ -140,6 +140,10 @@ string Skin::toString() {
     vec.push_back(string_format("showClock=%i", showClock));
     vec.push_back("");
 
+    vec.push_back("# display the loader on first boot, if there is one");
+    vec.push_back(string_format("showLoader=%i", showLoader));
+    vec.push_back("");
+
     vec.push_back("# display skin backgrounds for emulators etc");
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
     vec.push_back("");
@@ -295,6 +299,7 @@ void Skin::reset() {
     showSectionIcons = true;
     sectionInfoBarVisible = false;
     showClock = true;
+    showLoader = false;
     skinBackdrops = false;
     sectionBar = SB_LEFT;
     wallpaper = "";
@@ -427,6 +432,8 @@ bool Skin::fromFile() {
                     showSectionIcons = atoi(value.c_str());
                 } else if (name == "showclock") {
                     showClock = atoi(value.c_str());
+                } else if (name == "showloader") {
+                    showLoader = atoi(value.c_str());
                 } else if (name == "sectioninfobarvisible") {
                     sectionInfoBarVisible = atoi(value.c_str());
                 } else if (name == "skinbackdrops") {
