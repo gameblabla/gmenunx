@@ -3,6 +3,9 @@
 
 #include <unistd.h>
 #include <sys/statvfs.h>
+#include <sys/sysinfo.h>
+#include <chrono>
+#include <time.h>
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -22,10 +25,10 @@ class IHardware {
 
         int16_t curMMCStatus;
 
-        const string BLOCK_DEVICE;
-        const string EXTERNAL_MOUNT_DEVICE;
-        const string EXTERNAL_MOUNT_POINT;
-        const string EXTERNAL_MOUNT_FORMAT = "auto";
+        std::string BLOCK_DEVICE;
+        std::string EXTERNAL_MOUNT_DEVICE;
+        std::string EXTERNAL_MOUNT_POINT;
+        std::string EXTERNAL_MOUNT_FORMAT;// = "auto";
 
     public:
 
@@ -155,6 +158,27 @@ class IHardware {
             TRACE("exit");
             return df;
         }
+
+        std::string uptime() {
+            string result = "";
+            std::chrono::milliseconds uptime(0u);
+            struct sysinfo x;
+            if (sysinfo(&x) == 0) {
+                uptime = std::chrono::milliseconds(
+                    static_cast<unsigned long long>(x.uptime) * 1000ULL
+                );
+
+                int secs = uptime.count() / 1000;
+                int s = (secs % 60);
+                int m = (secs % 3600) / 60;
+                int h = (secs % 86400) / 3600;
+
+                static char buf[10];
+                sprintf(buf, "%02d:%02d:%02d", h, m, s);
+                result = buf;
+            }
+            return result;
+        }
 };
 
 class HwRg350 : IHardware {
@@ -204,14 +228,15 @@ class HwRg350 : IHardware {
         }
     
     protected:
-        const string BLOCK_DEVICE = "/sys/block/mmcblk1/size";
-        const string EXTERNAL_MOUNT_DEVICE = "/dev/mmcblk1p1";
-        const string EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
-        const string EXTERNAL_MOUNT_FORMAT = "auto";
 
      public:
         HwRg350() {
             TRACE("enter");
+            this->BLOCK_DEVICE = "/sys/block/mmcblk1/size";
+            this->EXTERNAL_MOUNT_DEVICE = "/dev/mmcblk1p1";
+            this->EXTERNAL_MOUNT_FORMAT = "auto";
+            this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
+
             this->ledMaxBrightness_ = fileReader(LED_MAX_BRIGHTNESS_PATH);
             this->getBacklightLevel();
             this->getVolumeLevel();

@@ -10,6 +10,20 @@ BatteryLoggerDialog::BatteryLoggerDialog(GMenu2X *gmenu2x, const string &title, 
 	this->icon = icon;
 }
 
+char *BatteryLoggerDialog::ms2hms(uint32_t t, bool mm, bool ss) {
+	static char buf[10];
+
+	t = t / 1000;
+	int s = (t % 60);
+	int m = (t % 3600) / 60;
+	int h = (t % 86400) / 3600;
+
+	if (!ss) sprintf(buf, "%02d:%02d", h, m);
+	else if (!mm) sprintf(buf, "%02d", h);
+	else sprintf(buf, "%02d:%02d:%02d", h, m, s);
+	return buf;
+}
+
 void BatteryLoggerDialog::exec() {
 	bool close = false;
 
@@ -64,7 +78,7 @@ void BatteryLoggerDialog::exec() {
 			sprintf(
 				buf, 
 				"echo '%s,%d' >> %s/battery.csv; sync", 
-				ms2hms(tickNow - tickStart, true, false), 
+				this->ms2hms(tickNow - tickStart, true, false), 
 				gmenu2x->hw->getBatteryLevel(), 
 				cmdclean(gmenu2x->getAssetsPath()).c_str());
 

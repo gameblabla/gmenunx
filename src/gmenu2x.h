@@ -67,8 +67,6 @@ struct MenuOption {
 	MenuAction action;
 };
 
-char *ms2hms(uint32_t t, bool mm, bool ss);
-
 class PowerManager;
 class Menu;
 class UI;

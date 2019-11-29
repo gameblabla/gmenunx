@@ -35,6 +35,9 @@ using std::ifstream;
 using std::ios_base;
 
 class BatteryLoggerDialog : protected Dialog {
+private:
+	char *ms2hms(uint32_t t, bool mm = true, bool ss = true);
+
 protected:
 	string title, description, icon;
 

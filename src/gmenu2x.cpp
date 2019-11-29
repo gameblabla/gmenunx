@@ -1094,7 +1094,7 @@ void GMenu2X::about() {
 	vector<string> text;
 	string temp;
 
-	char *hms = ms2hms(SDL_GetTicks());
+	string uptime = this->hw->uptime();
 	int battLevel = this->hw->getBatteryLevel();
 	TRACE("batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
@@ -1105,7 +1105,7 @@ void GMenu2X::about() {
 	string batt(buffer);
 
 	temp = tr["Build date: "] + __DATE__ + "\n";
-	temp += tr["Uptime: "] + hms + "\n";
+	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";	
 	temp += tr["Storage free:"];
 	temp += "\n    " + tr["Internal: "] + this->hw->getDiskFree("/media/data");

@@ -61,7 +61,7 @@ const string OpkCache::imageCachePath() {
 
 bool OpkCache::ensureCacheDirs() {
     TRACE("enter");
-
+    this->notify("Checking cache directory exists");
     if (!dirExists(this->cacheDir_)) {
         if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
             TRACE("created dir : %s", this->cacheDir_.c_str());
@@ -100,6 +100,7 @@ string OpkCache::hashKey(myOpk const & file) {
 bool OpkCache::loadCache() {
     TRACE("enter");
 
+    this->notify("Loading cache");
     assert(nullptr == this->sectionCache);
     this->sectionCache = new std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>();
     assert(this->sectionCache);
@@ -132,6 +133,7 @@ bool OpkCache::loadCache() {
         }
     }
     this->loaded_ = true;
+    this->notify("Cache loaded");
     TRACE("exit - success : %i", success);
     return success;
 }
@@ -235,7 +237,7 @@ DesktopFile * OpkCache::findMatchingProvider(const string & section, myOpk const
 
 bool OpkCache::createMissingOpkDesktopFiles() {
     TRACE("enter");
-
+    this->notify("Adding missing files");
     for (std::vector<string>::iterator opkDir = this->opkDirs_.begin(); opkDir != this->opkDirs_.end(); opkDir++) {
         string dir = (*opkDir);
         TRACE("checking opk directory : %s", dir.c_str());
@@ -387,7 +389,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
         TRACE("closing dir");
         closedir(dirp);
     }
-
+    this->notify("Missing files added");
     TRACE("exit");
     return true;
 }
@@ -430,7 +432,7 @@ string OpkCache::savePng(myOpk const & theOpk) {
 
 bool OpkCache::removeUnlinkedDesktopFiles() {
     TRACE("enter");
-
+    this->notify("Removing any deleted files");
     std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator section;
     for (section = sectionCache->begin(); section != sectionCache->end(); section++) {
         TRACE("section : %s", section->first.c_str());
@@ -468,6 +470,7 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
             }
         }
     }
+    this->notify("Missing files removed");
     TRACE("exit");
     return true;
 }
