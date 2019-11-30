@@ -277,8 +277,6 @@ void GMenu2X::main() {
 	} else {
 
 		pbLoading->updateDetail("Checking for new applications...");
-		pbLoading->exec();
-
 		TRACE("kicking off our app cache thread");
 		thread_cache = new std::thread(
 			&GMenu2X::updateAppCache, 
@@ -289,7 +287,7 @@ void GMenu2X::main() {
 			Loader loader(this);
 			loader.run();
 		}
-	
+		pbLoading->exec();
 	}
 	pbLoading->updateDetail("Initialising hardware");
 	this->hw->setVolumeLevel(this->config->globalVolume());
