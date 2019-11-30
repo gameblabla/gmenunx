@@ -51,7 +51,7 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("got %zu filter sections", filter.size());
 
 	TRACE("opening sections");
-	string resolvedPath = this->gmenu2x->getAssetsPath() + "sections/";
+	string resolvedPath = this->gmenu2x->getWriteablePath() + "sections/";
 	TRACE("looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
@@ -83,15 +83,15 @@ Menu::Menu(GMenu2X *gmenu2x) {
 			}
 		}
 	}
-	TRACE("dirp has been read");
-	
+	TRACE("dirp has been read, closing");
+	closedir(dirp);
+
 	TRACE("add sections");
 	addSection("settings");
 	TRACE("add applications");
 	addSection("applications");
 
-	TRACE("close dirp");
-	closedir(dirp);
+
 	TRACE("sort");
 	sort(sections.begin(),sections.end(),case_less());
 	TRACE("set index 0");
@@ -256,14 +256,14 @@ bool Menu::addLink(string path, string file, string section) {
 	string title = fileBaseName(file);
 	string ext = fileExtension(file);
 
-	string linkpath = gmenu2x->getAssetsPath() + "sections/" + section + "/" + title;
+	string linkpath = gmenu2x->getWriteablePath() + "sections/" + section + "/" + title;
 	int x = 2;
 	while (fileExists(linkpath)) {
 		stringstream ss;
 		linkpath = "";
 		ss << x;
 		ss >> linkpath;
-		linkpath = gmenu2x->getAssetsPath()  + "sections/" + section + "/" + title + linkpath;
+		linkpath = gmenu2x->getWriteablePath()  + "sections/" + section + "/" + title + linkpath;
 		x++;
 	}
 
@@ -311,7 +311,7 @@ bool Menu::addLink(string path, string file, string section) {
 
 bool Menu::addSection(const string &sectionName) {
 	TRACE("enter %s", sectionName.c_str());
-	string sectiondir = gmenu2x->getAssetsPath() + "sections/" + sectionName;
+	string sectiondir = gmenu2x->getWriteablePath() + "sections/" + sectionName;
 
 	if (mkdir(sectiondir.c_str(),0777) == 0) {
 		sections.push_back(sectionName);
@@ -350,7 +350,7 @@ void Menu::deleteSelectedLink() {
 void Menu::deleteSelectedSection() {
 	INFO("Deleting section '%s'", selSection().c_str());
 
-	gmenu2x->sc->del(gmenu2x->getAssetsPath() + "sections/" + selSection() + ".png");
+	gmenu2x->sc->del(gmenu2x->getWriteablePath() + "sections/" + selSection() + ".png");
 	links.erase( links.begin() + selSectionIndex() );
 	sections.erase( sections.begin() + selSectionIndex() );
 	setSectionIndex(0); //reload sections
@@ -438,10 +438,15 @@ LinkApp *Menu::selLinkApp() {
 }
 
 void Menu::setLinkIndex(int i) {
+
+	if ((int)sectionLinks()->size() == 0)
+		return;
+
 	if (i < 0)
 		i = sectionLinks()->size() - 1;
 	else if (i >= (int)sectionLinks()->size())
 		i = 0;
+
 
 	if (i >= (int)(iFirstDispRow * gmenu2x->skin->numLinkCols + gmenu2x->skin->numLinkCols * gmenu2x->skin->numLinkRows))
 		iFirstDispRow = i / gmenu2x->skin->numLinkCols - gmenu2x->skin->numLinkRows + 1;
@@ -462,7 +467,7 @@ void Menu::readLinks() {
 	struct stat st;
 	struct dirent *dptr;
 	string filepath;
-	string assets_path = gmenu2x->getAssetsPath();
+	string assets_path = gmenu2x->getWriteablePath();
 	
 	for (uint32_t i = 0; i < links.size(); i++) {
 		links[i].clear();

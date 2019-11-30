@@ -281,7 +281,7 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 		supportingFile.c_str());
 
 	// need to make a new favourite
-	string path = this->gmenu2x->getAssetsPath() + "sections/" + FAVOURITE_FOLDER;
+	string path = this->gmenu2x->getWriteablePath() + "sections/" + FAVOURITE_FOLDER;
 	if (!this->gmenu2x->menu->sectionExists(FAVOURITE_FOLDER)) {
 		if (!this->gmenu2x->menu->addSection(FAVOURITE_FOLDER)) {
 			 ERROR("LinkApp::selector - Couldn't make favourites folder : %s", path.c_str());
@@ -356,9 +356,10 @@ void LinkApp::run() {
 	if (!selectordir.empty()) {
 		selector();
 	} else {
-		string launchArgs = resolveArgs();
+		std::string launchArgs = resolveArgs();
 		launch(launchArgs);
 	}
+	TRACE("exit");
 }
 
 /*
@@ -479,7 +480,7 @@ void LinkApp::launch(string launchArgs) {
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
 	if (gmenu2x->config->outputLogs()) {
-		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getAssetsPath()) + "log.txt";
+		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getWriteablePath()) + "log.txt";
 		TRACE("adding logging");
 	}
 	TRACE("Final command : %s", execute.c_str());

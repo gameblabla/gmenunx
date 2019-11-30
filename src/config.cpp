@@ -181,7 +181,20 @@ void Config::constrain() {
     if (!dirExists(this->launcherPath())) {
         this->launcherPath(HOME_DIR);
     }
+	if (!dirExists(this->prefix + "skins/" + this->skin())) {
+		this->skin("Default");
+	}
+}
 
+bool Config::configExistsUnderPath(const string & path) {
+    std::string filePath = path + CONFIG_FILE_NAME;
+    TRACE("checking for config under : %s", filePath.c_str());
+    return fileExists(path + CONFIG_FILE_NAME);
+}
+
+bool Config::remove() {
+    std::string filePath = this->prefix + CONFIG_FILE_NAME;
+    unlink(filePath.c_str());
 }
 
 bool Config::fromFile() {

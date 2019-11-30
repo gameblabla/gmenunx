@@ -18,8 +18,9 @@
 OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     TRACE("enter - root : %s", rootDir.c_str());
     this->opkDirs_ = opkDirs;
-    this->sectionDir_ = rootDir + "sections";
-    this->cacheDir_ = rootDir + OPK_CACHE_DIR;
+    this->rootDir_ = rootDir;
+    this->sectionDir_ = this->rootDir_ + "sections";
+    this->cacheDir_ = this->rootDir_ + OPK_CACHE_DIR;
     this->sectionCache = nullptr;
     this->loaded_ = false;
     this->notifiable = nullptr;
@@ -61,6 +62,25 @@ const string OpkCache::imageCachePath() {
 
 bool OpkCache::ensureCacheDirs() {
     TRACE("enter");
+
+    this->notify("Checking root directory exists");
+    if (!dirExists(this->rootDir_)) {
+        if (mkdir(this->rootDir_.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", this->rootDir_.c_str());
+        } else {
+            ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->rootDir_.c_str());
+            return false;
+        }
+    }
+    this->notify("Checking sections directory exists");
+    if (!dirExists(this->sectionDir_)) {
+        if (mkdir(this->sectionDir_.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", this->sectionDir_.c_str());
+        } else {
+            ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->sectionDir_.c_str());
+            return false;
+        }
+    }
     this->notify("Checking cache directory exists");
     if (!dirExists(this->cacheDir_)) {
         if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
@@ -70,6 +90,7 @@ bool OpkCache::ensureCacheDirs() {
             return false;
         }
     }
+    this->notify("Checking image cache directory exists");
     string imageDir = this->imageCachePath();
     if (!dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {

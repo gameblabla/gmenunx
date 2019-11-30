@@ -136,23 +136,7 @@ int main(int argc, char * argv[]) {
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
-	// handle cmd args
-    int opt = opterr = 0;
-	bool install = false;
-
-    // Retrieve the options:
-    while ( (opt = getopt(argc, argv, "ih")) != -1 ) {
-        switch ( opt ) {
-            case 'i':
-				install = true;
-				break;
-			case 'h':
-				cout << "run with -i to install dependencies to writeable path";
-				exit(0);
-		};
-	};
-
-	app = new GMenu2X(install);
+	app = new GMenu2X();
 	TRACE("Starting app->main()");
 	app->main();
 	return 0;
@@ -173,7 +157,7 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 
 	string externalPath = this->config->externalAppPath();
 	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
-	string rootDir = getAssetsPath();
+	string rootDir = this->getWriteablePath();
 	TRACE("rootDir : %s", rootDir.c_str());
 	if (nullptr == this->opkCache) {
 		this->opkCache = new OpkCache(opkDirs, rootDir);
@@ -186,9 +170,9 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("exit");
 }
 
-GMenu2X::GMenu2X(bool install) : input(screenManager) {
+GMenu2X::GMenu2X() : input(screenManager) {
 
-	TRACE("enter - install flag : %i", install);
+	TRACE("enter");
 
 	TRACE("creating hardware layer");
 	this->hw = HwFactory::GetHardware();
@@ -196,26 +180,26 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	TRACE("ledOn");
 	this->hw->ledOn();
 
-	TRACE("getExePath");
-	exe_path = getExePath();
+	TRACE("get paths");
+	this->getExePath();
+	this->getWriteablePath();
+	this->needsInstalling = !Config::configExistsUnderPath(this->getWriteablePath());
 
-	bool firstRun = !dirExists(getAssetsPath());
-	string localAssetsPath;
-	if (firstRun) {
-		localAssetsPath = exe_path;
-	} else {
-		localAssetsPath = getAssetsPath();
-	}
-	TRACE("first run : %i, localAssetsPath : %s", firstRun, localAssetsPath.c_str());
+	string localAssetsPath = this->getReadablePath();
+	TRACE("needs deploying : %i, localAssetsPath : %s", 
+		this->needsInstalling, 
+		localAssetsPath.c_str());
 
 	TRACE("init translations");
-	tr.setPath(localAssetsPath);
+	this->tr.setPath(localAssetsPath);
 
-	TRACE("readConfig from : %s", localAssetsPath.c_str());
+	TRACE("reading config from : %s", localAssetsPath.c_str());
 	this->config = new Config(localAssetsPath);
-	readConfig();
+	this->config->loadConfig();
+	if (!config->lang().empty()) {
+		this->tr.setLang(this->config->lang());
+	}
 
-	// set this ASAP
 	TRACE("backlight");
 	this->hw->setBacklightLevel(config->backlightLevel());
 
@@ -232,19 +216,32 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	TRACE("disabling the cursor");
 	SDL_ShowCursor(SDL_DISABLE);
 
-	TRACE("surface");
+	TRACE("new surface");
 	this->screen = new Surface();
 
-	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", config->resolutionX(), config->resolutionY(), config->videoBpp());
-	this->screen->raw = SDL_SetVideoMode(config->resolutionX(), config->resolutionY(), config->videoBpp(), SDL_HWSURFACE|SDL_DOUBLEBUF);
+	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", 
+		config->resolutionX(), 
+		config->resolutionY(), 
+		config->videoBpp());
+	this->screen->raw = SDL_SetVideoMode(
+		config->resolutionX(), 
+		config->resolutionY(), 
+		config->videoBpp(), 
+		SDL_HWSURFACE|SDL_DOUBLEBUF);
 
-	TRACE("ui");
+	TRACE("new ui");
 	this->ui = new UI(this);
 
-	this->skin = new Skin(localAssetsPath, config->resolutionX(),  config->resolutionY());
+	TRACE("new skin");
+	this->skin = new Skin(localAssetsPath, 
+		config->resolutionX(),  
+		config->resolutionY());
+
 	if (!this->skin->loadSkin( config->skin())) {
 		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
 	}
+
+	TRACE("new surface collection");
 	this->sc = new SurfaceCollection(this->skin, true);
 
 	TRACE("initFont");
@@ -254,32 +251,8 @@ GMenu2X::GMenu2X(bool install) : input(screenManager) {
 	powerManager = new PowerManager(this,  config->backlightTimeout(), config->powerTimeout());
 	this->screenManager.setScreenTimeout(600);
 
-	if (firstRun) {
-		int exitCode = 0;
-		INFO("GMenu2X::ctor - first run, copying data");
-		if (doInstall()) {
-			this->hw->ledOff();
-			quit();
-			exitCode = 0;
-		} else {
-			ERROR("Fatal, can't copy core files");
-			exitCode = 1;
-		}
-		quit_all(exitCode);
-	} else 	if (install || APP_MIN_CONFIG_VERSION > config->version()) {
-		// we're doing an upgrade
-		int exitCode = 0;
-		INFO("GMenu2X::ctor - upgrade requested, config versions are %i and %i", config->version(), APP_MIN_CONFIG_VERSION);
-		if (doUpgrade()) {
-			this->hw->ledOff();
-			quit();
-			exitCode = 0;
-		} else {
-			ERROR("Fatal, can't upgrade core files");
-			exitCode = 2;
-		}
-		quit_all(exitCode);
-	}
+	this->input.init(this->getReadablePath() + "input.conf");
+	setInputSpeed();
 
 	TRACE("exit");
 
@@ -289,38 +262,48 @@ void GMenu2X::main() {
 	TRACE("enter");
 
 	// has to come before the app cache thread kicks off
+	TRACE("checking sd card");
 	this->hw->checkUDC();
 
 	// create this early so we can give it to the thread, but don't exec it yet
-	string iconPath = this->getExePath() + "gmenunx.png";
+	string iconPath = this->getReadablePath() + "gmenunx.png";
 	ProgressBar * pbLoading = new ProgressBar(this, "Please wait, loading the everything...", iconPath);
-	pbLoading->updateDetail("Checking for new applications...");
 
-	TRACE("kicking off our app cache thread");
-	std::thread thread_cache(
-		&GMenu2X::updateAppCache, 
-		this, 
-		std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
+	std::thread * thread_cache = nullptr;
 
-	this->input.init(this->getAssetsPath() + "input.conf");
-	setInputSpeed();
+	if (this->needsInstalling && !dirExists(this->getWriteablePath())) {
+		this->doInitialSetup();
+		pbLoading->exec();
+	} else {
 
-	if (this->skin->showLoader) {
-		Loader loader(this);
-		loader.run();
+		pbLoading->updateDetail("Checking for new applications...");
+		pbLoading->exec();
+
+		TRACE("kicking off our app cache thread");
+		thread_cache = new std::thread(
+			&GMenu2X::updateAppCache, 
+			this, 
+			std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
+
+		if (this->skin->showLoader) {
+			Loader loader(this);
+			loader.run();
+		}
+	
 	}
-	pbLoading->exec();
-
+	pbLoading->updateDetail("Initialising hardware");
 	this->hw->setVolumeLevel(this->config->globalVolume());
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
 
 	setWallpaper(this->skin->wallpaper);
 
-	// we need to re-join before building the menu
-	thread_cache.join();
-	pbLoading->updateDetail("Initialising hardware");
-	TRACE("app cache thread has finished");
+	if (thread_cache != nullptr) {
+		// we need to re-join before building the menu
+		thread_cache->join();
+		delete thread_cache;
+		TRACE("app cache thread has finished");
+	}
 
 	TRACE("screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
@@ -334,6 +317,7 @@ void GMenu2X::main() {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
 
+	TRACE("new renderer");
 	Renderer *renderer = new Renderer(this);
 
 	pbLoading->finished();
@@ -368,15 +352,14 @@ void GMenu2X::main() {
 				quit = true;
 			} else if ( input[CONFIRM] && menu->selLink() != NULL ) {
 				TRACE("******************RUNNING THIS*******************");
-
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
 					mb.setAutoHide(500);
 					mb.exec();
 				}
-
 				TRACE("******************RUNNING THIS -- RUN*******************");
 				menu->selLink()->run();
+				TRACE("Run called");
 			} else if ( input[INC] ) {
 				TRACE("******************favouriting an app THIS*******************");
 				menu->selLinkApp()->makeFavourite();
@@ -443,7 +426,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 			string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("searching for wallpaper in :%s", relativePath.c_str());
 
-			FileLister fl(getAssetsPath() + relativePath, false, true);
+			FileLister fl(this->getReadablePath() + relativePath, false, true);
 			fl.setFilter(".png,.jpg,.jpeg,.bmp");
 			fl.browse();
 			if (fl.getFiles().size() > 0) {
@@ -553,6 +536,8 @@ void GMenu2X::initMenu() {
 	TRACE("new menu");
 	menu = new Menu(this);
 
+	bool isDefaultLauncher = Installer::isDefaultLauncher(getOpkPath());
+
 	TRACE("add built in action links");
 	// TODO :: sort these after adding
 	int i = menu->getSectionIndex("applications");
@@ -575,7 +560,16 @@ void GMenu2X::initMenu() {
 						tr["Info about system"], 
 						"skin:icons/about.png");
 
-	if (fileExists(getAssetsPath() + "log.txt"))
+	if (!isDefaultLauncher) {
+		menu->addActionLink(
+							i, 
+							tr["Install me"], 
+							MakeDelegate(this, &GMenu2X::doInstall), 
+							tr["Set " + APP_NAME + " as your launcher"], 
+							this->getReadablePath() + "gmenunx.png");
+	}
+
+	if (fileExists(getWriteablePath() + "log.txt"))
 		menu->addActionLink(
 						i, 
 						tr["Log Viewer"], 
@@ -619,7 +613,25 @@ void GMenu2X::initMenu() {
 						MakeDelegate(this, &GMenu2X::umountSdDialog), 
 						tr["Umount external SD"], 
 						"skin:icons/eject.png");
+	if (isDefaultLauncher) {
+		menu->addActionLink(
+							i, 
+							tr["UnInstall me"], 
+							MakeDelegate(this, &GMenu2X::doUnInstall), 
+							tr["Remove " + APP_NAME + " as your launcher"], 
+							this->getReadablePath() + "gmenunx.png");
+	}
 
+/*
+	if (!this->needsInstalling) {
+		menu->addActionLink(
+							i, 
+							tr["Upgrade me"], 
+							MakeDelegate(this, &GMenu2X::doUpgrade), 
+							tr["Upgrade " + APP_NAME], 
+							this->getReadablePath() + "gmenunx.png");
+	}
+*/
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
@@ -640,10 +652,10 @@ void GMenu2X::settings() {
 	int curGlobalBrightness = config->backlightLevel();
 	bool unhideSections = false;
 	string prevSkin = config->skin();
-	vector<string> skinList = Skin::getSkins(getAssetsPath());
+	vector<string> skinList = Skin::getSkins(getReadablePath());
 
 	TRACE("getting translations");
-	FileLister fl_tr(getAssetsPath() + "translations");
+	FileLister fl_tr(getReadablePath() + "translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
 	// local vals
@@ -773,7 +785,11 @@ void GMenu2X::settings() {
 		screenManager.resetScreenTimer();
 		screenManager.setScreenTimeout(config->backlightTimeout());
 
-		this->writeConfig();
+		if (!this->needsInstalling) {
+			this->writeConfig();
+		} else {
+			restartNeeded = false;
+		}
 
 		if (prevDateTime != currentDatetime) {
 			TRACE("updating datetime");
@@ -841,13 +857,11 @@ void GMenu2X::resetSettings() {
 					menu->selLinkApp()->save();
 			}
 		}
-		if (reset_skin) {
-			tmppath = getAssetsPath() + "skins/Default/skin.conf";
-			unlink(tmppath.c_str());
+		if (reset_skin && !this->needsInstalling) {
+			this->skin->remove();
 		}
-		if (reset_gmenu) {
-			tmppath = getAssetsPath() + "gmenunx.conf";
-			unlink(tmppath.c_str());
+		if (reset_gmenu && !this->needsInstalling) {
+			this->config->remove();
 		}
 		restartDialog();
 	}
@@ -910,23 +924,11 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 	}
 }
 
-void GMenu2X::readConfig() {
-	TRACE("enter");
-	config->loadConfig();
-	if (!config->lang().empty()) {
-		tr.setLang(config->lang());
-	}
-	if (!dirExists(getAssetsPath() + "skins/" + config->skin())) {
-		config->skin("Default");
-	}
-	TRACE("exit");
-}
-
 void GMenu2X::writeConfig() {
 	TRACE("enter");
 	this->hw->ledOn();
 	// don't try and save to RO file system
-	if (getExePath() != getAssetsPath()) {
+	if (!this->needsInstalling) {
 		if (config->saveSelection() && menu != NULL) {
 			config->section(menu->selSectionIndex());
 			config->link(menu->selLinkIndex());
@@ -1024,8 +1026,8 @@ void GMenu2X::skinMenu() {
 		// unless we have chosen 'None'
 		if (wpCurrent != wpPrev) {
 			if (wpCurrent != "None") {
-				if (this->sc->addImage(getAssetsPath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
-					skin->wallpaper = getAssetsPath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
+				if (this->sc->addImage(getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
+					skin->wallpaper = getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
 			} else skin->wallpaper = "";
 			setWallpaper(skin->wallpaper);
 		}
@@ -1105,8 +1107,13 @@ void GMenu2X::about() {
 	int n = sprintf (buffer, "%i %%", battPercent);
 	string batt(buffer);
 
+	string opkPath = getOpkPath();
+	if (opkPath.length() == 0) {
+		opkPath = "Not found";
+	}
 	temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
+	temp += "Opk: " + opkPath + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
@@ -1142,18 +1149,18 @@ void GMenu2X::about() {
 	#endif
 	td.appendText("----\n");
 	
-	TRACE("append - file %sabout.txt", getAssetsPath().c_str());
-	td.appendFile(getAssetsPath() + "about.txt");
+	TRACE("append - file %sabout.txt", getReadablePath().c_str());
+	td.appendFile(getReadablePath() + "about.txt");
 	td.exec();
 	TRACE("exit");
 }
 
 void GMenu2X::viewLog() {
-	string logfile = getAssetsPath() + "log.txt";
+	string logfile = getWriteablePath() + "log.txt";
 	if (!fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
-	td.appendFile(getAssetsPath() + "log.txt");
+	td.appendFile(getWriteablePath() + "log.txt");
 	td.exec();
 
 	MessageBox mb(this, tr["Do you want to delete the log file?"], "skin:icons/ebook.png");
@@ -1170,13 +1177,21 @@ void GMenu2X::viewLog() {
 
 void GMenu2X::batteryLogger() {
 	this->hw->ledOn();
-	BatteryLoggerDialog bl(this, tr["Battery Logger"], tr["Log battery power to battery.csv"], "skin:icons/ebook.png");
+	BatteryLoggerDialog bl(
+		this, 
+		tr["Battery Logger"], 
+		tr["Log battery power to battery.csv"], 
+		"skin:icons/ebook.png");
 	bl.exec();
 	this->hw->ledOff();
 }
 
 void GMenu2X::linkScanner() {
-	LinkScannerDialog ls(this, tr["Link scanner"], tr["Scan for applications and games"], "skin:icons/configure.png");
+	LinkScannerDialog ls(
+		this, 
+		tr["Link scanner"], 
+		tr["Scan for applications and games"], 
+		"skin:icons/configure.png");
 	ls.exec();
 }
 
@@ -1272,9 +1287,9 @@ const string &GMenu2X::getExePath() {
 	return exe_path;
 }
 
-string GMenu2X::getAssetsPath() {
-	if (assets_path.length())
-		return assets_path;
+const string &GMenu2X::getWriteablePath() {
+	if (this->writeable_path.length())
+		return this->writeable_path;
 	string result = USER_PREFIX;
 	#ifdef TARGET_LINUX
 	const char *homedir;
@@ -1284,20 +1299,24 @@ string GMenu2X::getAssetsPath() {
 	TRACE("homedir : %s", homedir);
 	result = (string)homedir + "/" + USER_PREFIX;
 	#endif
-	TRACE("exit : %s", result.c_str());
-	assets_path = result;
-	return result;
+	this->writeable_path = result;
+	TRACE("exit : %s", this->writeable_path.c_str());
+	return this->writeable_path;
 }
 
-bool GMenu2X::doUpgrade() {
+const string &GMenu2X::getReadablePath() {
+	return (this->needsInstalling ? this->getExePath() : this->getWriteablePath());
+}
+
+void GMenu2X::doUpgrade() {
 	INFO("GMenu2X::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
-	string destination = getAssetsPath();
+	string destination = getWriteablePath();
 
 	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
-	string iconPath = this->getExePath() + "gmenunx.png";
+	string iconPath = this->getReadablePath() + "gmenunx.png";
 	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for upgrade...", iconPath);
 	pbInstall->exec();
 	INFO("doing a full copy");
@@ -1318,22 +1337,68 @@ bool GMenu2X::doUpgrade() {
 	success = true;
 	sync();
 	TRACE("exit");
-	return success;
 }
 
-bool GMenu2X::doInstall() {
+void GMenu2X::doInstall() {
 	TRACE("enter");
+	bool success = false;
+
+	string iconPath = this->getReadablePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "Installing launcher script...", iconPath);
+	pbInstall->exec();
+
+	if (Installer::deployLauncher()) {
+		pbInstall->updateDetail("Install successful");
+		pbInstall->finished(2000);
+		success = true;
+	} else {
+		pbInstall->updateDetail("Install failed");
+		pbInstall->finished(2000);
+	}
+	delete pbInstall;
+
+	if (success) {
+		this->initMenu();
+		//this->restartDialog(true);
+	}
+	TRACE("exit");
+}
+
+void GMenu2X::doUnInstall() {
+	TRACE("enter");
+	bool success = false;
+	string iconPath = this->getExePath() + "gmenunx.png";
+	ProgressBar *pbInstall = new ProgressBar(this, "UnInstalling launcher script...", iconPath);
+	pbInstall->exec();
+
+	if (Installer::removeLauncher()) {
+		pbInstall->updateDetail("UnInstall successful");
+		pbInstall->finished(2000);
+		success = true;
+	} else {
+		pbInstall->updateDetail("UnInstall failed");
+		pbInstall->finished(2000);
+	}
+	delete pbInstall;
+	if (success) {
+		this->initMenu();
+		//this->restartDialog(true);
+	}
+	TRACE("exit");
+}
+
+bool GMenu2X::doInitialSetup() {
 	bool success = false;
 
 	// check for the writable home directory existing
 	string source = getExePath();
-	string destination = getAssetsPath();
+	string destination = getWriteablePath();
 
 	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
 	INFO("testing for writable home dir : %s", destination.c_str());
 	
 	string iconPath = this->getExePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for first run...", iconPath);
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying data to home directory...", iconPath);
 	pbInstall->exec();
 	INFO("doing a full copy");
 
@@ -1351,7 +1416,7 @@ bool GMenu2X::doInstall() {
 	delete pbInstall;
 
 	INFO("setting up the application cache");
-	ProgressBar * pbCache = new ProgressBar(this, "Creating the application cache...", iconPath);
+	ProgressBar * pbCache = new ProgressBar(this, "Updating the application cache...", iconPath);
 	pbCache->exec();
 	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
 	pbCache->updateDetail("Finished creating cache");
@@ -1360,7 +1425,6 @@ bool GMenu2X::doInstall() {
 
 	sync();
 	success = true;
-
 	TRACE("exit");
 	return success;
 }
@@ -1740,7 +1804,7 @@ void GMenu2X::deleteSection() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		this->hw->ledOn();
-		if (rmtree(getAssetsPath() + "sections/" + menu->selSection())) {
+		if (rmtree(getWriteablePath() + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}

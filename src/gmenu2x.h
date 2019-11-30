@@ -77,8 +77,10 @@ class OpkCache;
 
 class GMenu2X {
 private:
+
+	bool needsInstalling;
 	string exe_path; //!< Contains the working directory of GMenu2X
-	string assets_path; // Contains the assets path
+	string writeable_path; // Contains the assets path
 
 	/*!
 	Starts the scanning of the nand and sd filesystems, searching for gpe and gpu files and creating the links in 2 dedicated sections.
@@ -97,7 +99,6 @@ private:
 
 	string lastSelectorDir;
 	int lastSelectorElement;
-	void readConfig();
 	void readTmp();
 
 	void initFont();
@@ -105,35 +106,18 @@ private:
 
 	void mountSdDialog();
 	void umountSdDialog();
-/*
-	hardware section begins
-*/ 
-	//int16_t tvOutPrev = false;
 
-	/*!
-	Retrieves the free disk space on the sd
-	@return String containing a human readable representation of the free disk space
-	*/
-/*
-	string getDiskFree(const char *path);
-	//void formatSd();
-	void checkUDC();
-	string umountSd();
-	string mountSd();
-*/
-/*
-	hardware section ends
-*/ 
-
-	bool doInstall();
-	bool doUpgrade();
+	void doInstall();
+	void doUnInstall();
+	void doUpgrade();
+	bool doInitialSetup();
 
 	#ifdef HAVE_LIBOPK
 	OpkCache* opkCache;
 	#endif
 
 public:
-	GMenu2X(bool install = false);
+	GMenu2X();
 	~GMenu2X();
 	void quit();
 	void releaseScreen();
@@ -142,20 +126,9 @@ public:
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 
-	/*!
-	Retrieves the parent directory of GMenu2X.
-	This functions is used to initialize the "exe_path" variable.
-	@see exe_path
-	@return String containing the parent directory
-	*/
 	const string &getExePath();
-	/*!
-	Retrieves the directory that gmenunx assets live in.
-	This functions is used to initialize the "assets_path" variable.
-	@see assets_path
-	@return String containing the parent directory
-	*/
-	string getAssetsPath();
+	const string &getWriteablePath();
+	const string &getReadablePath();
 
 	ScreenManager screenManager;
 	InputManager input;

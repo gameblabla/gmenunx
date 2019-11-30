@@ -118,6 +118,9 @@ void ProgressBar::exec() {
 
 void ProgressBar::finished(int millis) {
     TRACE("finished called : %ims", millis);
+    if (millis > 0) {
+        ProgressBar::render(this->interval_, this);
+    }
     SDL_RemoveTimer(this->timerId_);
     this->timerId_ = 0;
     this->finished_ = true; 

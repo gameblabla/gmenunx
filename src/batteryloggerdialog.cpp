@@ -51,10 +51,10 @@ void BatteryLoggerDialog::exec() {
 	uint32_t rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
 
 	int32_t firstRow = 0, tickNow = 0, tickStart = SDL_GetTicks(), tickBatteryLogger = -1000000;
-	string logfile = gmenu2x->getAssetsPath() + "battery.csv";
+	string logfile = gmenu2x->getWriteablePath() + "battery.csv";
 
 	char buf[100];
-	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(gmenu2x->getAssetsPath()).c_str());
+	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(gmenu2x->getWriteablePath()).c_str());
 	system(buf);
 
 	if (!fileExists(logfile)) return;
@@ -80,7 +80,7 @@ void BatteryLoggerDialog::exec() {
 				"echo '%s,%d' >> %s/battery.csv; sync", 
 				this->ms2hms(tickNow - tickStart, true, false), 
 				gmenu2x->hw->getBatteryLevel(), 
-				cmdclean(gmenu2x->getAssetsPath()).c_str());
+				cmdclean(gmenu2x->getWriteablePath()).c_str());
 
 			system(buf);
 
@@ -128,7 +128,7 @@ void BatteryLoggerDialog::exec() {
 			mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
 			mb.setButton(CANCEL,  gmenu2x->tr["No"]);
 			if (mb.exec() == CONFIRM) {
-				string cmd = "rm " + gmenu2x->getAssetsPath() + "battery.csv";
+				string cmd = "rm " + gmenu2x->getWriteablePath() + "battery.csv";
 				system(cmd.c_str());
 				log.clear();
 			}

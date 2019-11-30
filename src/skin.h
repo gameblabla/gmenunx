@@ -56,6 +56,7 @@ public:
     vector<string> getWallpapers();
     std::string toString();
     bool save();
+    bool remove();
 
     string name;
     string sectionTitleBarImage;

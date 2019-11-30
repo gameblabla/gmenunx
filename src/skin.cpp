@@ -178,7 +178,12 @@ string Skin::toString() {
     for (const auto &piece : vec) s += (piece + "\n");
     return s;
 }
-    
+
+bool Skin::remove() {
+    string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
+    unlink(fileName.c_str());
+}
+
 bool Skin::save() {
     TRACE("enter");
     string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;

@@ -213,6 +213,11 @@ public:
     string toString();
     string now();
     bool save();
+    bool remove();
+
+    static bool configExistsUnderPath(const string & path);
+
+    // TODO :: cache this
     int halfX() { return this->resolutionX() / 2; }
     int halfY() { return this->resolutionY() / 2; }
 

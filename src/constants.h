@@ -4,6 +4,7 @@
 #include <string>
 
 static const int APP_MIN_CONFIG_VERSION = 1;
+static const std::string APP_NAME = "GMenuNX";
 
 #ifdef TARGET_RG350
 static const std::string & EXTERNAL_CARD_PATH = "/media/sdcard";

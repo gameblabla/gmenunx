@@ -5,8 +5,12 @@
 #include <string>
 #include <functional>
 
+
 class Installer {
+
     private:
+
+        static const std::string LAUNCHER_PATH;
 
         std::function<void(std::string)> notifiable;
 
@@ -33,11 +37,17 @@ class Installer {
         bool copyFiles();
 
     public:
-        Installer(std::string const & source, std::string const & destination, std::function<void(std::string)> callback = nullptr);
 
+        Installer(std::string const & source, std::string const & destination, std::function<void(std::string)> callback = nullptr);
         ~Installer();
+
+        static const bool isDefaultLauncher(const std::string &opkPath);
+        static const bool removeLauncher();
+        static const bool deployLauncher();
+
         bool install();
         bool upgrade();
+
 };
 
 #endif

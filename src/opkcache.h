@@ -29,6 +29,7 @@ class OpkCache {
         vector<string> opkDirs_;
         string sectionDir_;
         string cacheDir_;
+        string rootDir_;
         bool loaded_;
 
         // key = sections

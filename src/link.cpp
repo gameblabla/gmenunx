@@ -37,7 +37,9 @@ Link::Link(GMenu2X *gmenu2x_, LinkAction action)
 }
 
 void Link::run() {
+	TRACE("calling action");
 	this->action();
+	TRACE("action called");
 }
 
 const string &Link::getTitle() {
