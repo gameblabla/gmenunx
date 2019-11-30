@@ -35,11 +35,10 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 		gmenu2x->sc->skinRes("imgs/volume.png"),
 	} {
 
+	this->finished_ = false;
 	this->gmenu2x = gmenu2x;
     this->rtc.refresh();
 
-    this->tickBattery = -4800;
-    this->tickNow = 0;
 	this->prevBackdrop = gmenu2x->skin->wallpaper;
 	this->currBackdrop = prevBackdrop;
 
@@ -53,51 +52,76 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 
 	helpers.clear();
 
+	this->timerId_ = SDL_AddTimer(this->interval_, poll, this);
+	this->locked_ = false;
+
 }
 
 Renderer::~Renderer() {
     TRACE("~Renderer");
+	this->quit();
+}
 
+void Renderer::quit() {
+	this->finished_ = true;
+    if (this->timerId_ > 0) {
+		SDL_SetTimer(0, NULL);
+        SDL_RemoveTimer(this->timerId_);
+		this->interval_ = 0;
+		this->timerId_ = 0;
+    }
+}
+
+uint32_t Renderer::poll(uint32_t interval, void * data) {
+	TRACE("enter");
+	Renderer * me = static_cast<Renderer*>(data);
+	if (me->finished_) {
+		return (0);
+	}
+	// if we're going to draw helpers, get their latest value
+	TRACE("section bar test");
+	if (me->gmenu2x->skin->sectionBar) {
+		TRACE("section bar exists in skin settings");
+		TRACE("updating helper icon status");
+		me->batteryIcon = me->gmenu2x->hw->getBatteryLevel();
+		if (me->batteryIcon > 5) me->batteryIcon = 6;
+
+		me->brightnessIcon = me->gmenu2x->hw->getBacklightLevel();
+		if (me->brightnessIcon > 4 || me->iconBrightness[me->brightnessIcon] == NULL) 
+			me->brightnessIcon = 5;
+
+		int currentVolume = me->gmenu2x->hw->getVolumeLevel();
+		me->currentVolumeMode = me->getVolumeMode(currentVolume);
+        me->rtc.refresh();
+		TRACE("helper icon status updated");
+    }
+
+	return interval;
 }
 
 void Renderer::render() {
-    TRACE("enter");
+
+	if (this->locked_) 
+		return;
+	this->locked_ = true;
 
     int x = 0;
     int y = 0;
     int ix = 0;
     int iy = 0;
 
-	// if we're going to draw helpers, get their latest value
-	TRACE("section bar test");
-	if (gmenu2x->skin->sectionBar) {
-		TRACE("section bar exists in skin settings");
-		tickNow = SDL_GetTicks();
-		// update helper icons every 1 secs
-		if (tickNow - tickBattery >= 1000) {
-			TRACE("updating helper icon status");
-			tickBattery = tickNow;
-			batteryIcon = gmenu2x->hw->getBatteryLevel();
-			if (batteryIcon > 5) batteryIcon = 6;
-
-			brightnessIcon = gmenu2x->hw->getBacklightLevel();
-			if (brightnessIcon > 4 || iconBrightness[brightnessIcon] == NULL) brightnessIcon = 5;
-
-			int currentVolume = gmenu2x->hw->getVolumeLevel();
-			currentVolumeMode = this->getVolumeMode(currentVolume);
-            rtc.refresh();
-			TRACE("helper icon status updated");
-		}
-    }
-
     TRACE("setting the clearing box");
-	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0, 0, 0, 255});
+	gmenu2x->screen->box(
+		(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
+		(RGBAColor){0, 0, 0, 255});
 
 	// do a background image or a background colour 
 	if ((*gmenu2x->sc)[currBackdrop]) {
 		(*gmenu2x->sc)[currBackdrop]->blit(gmenu2x->screen,0,0);
 	} else {
-		gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, gmenu2x->skin->colours.background);
+		gmenu2x->screen->box(
+			(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
+			gmenu2x->skin->colours.background);
 	}
 
 	// info bar
@@ -133,22 +157,26 @@ void Renderer::render() {
 				TRACE("infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
 				if ((*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 					TRACE("infoBar image is being scaled");
-					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(gmenu2x->config->resolutionX(), infoBarRect.h);
+					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(
+						gmenu2x->config->resolutionX(), 
+						infoBarRect.h);
 				}
 				(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->blit(
 					gmenu2x->screen, 
 					infoBarRect);
 			} else {
 				TRACE("infoBar has no image, going for a simple box");
-				gmenu2x->screen->box(infoBarRect, gmenu2x->skin->colours.infoBarBackground);
+				gmenu2x->screen->box(
+					infoBarRect, 
+					gmenu2x->skin->colours.infoBarBackground);
 			}
 
 			int btnX = 6;
 			int btnY = infoBarRect.y + (infoBarRect.h / 2);
-			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "select", gmenu2x->tr["edit"], btnX, btnY);
-			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "start", gmenu2x->tr["config"], btnX, btnY);
-			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "a", gmenu2x->tr["run"], btnX, btnY);
-			btnX = this->gmenu2x->ui->drawButton(gmenu2x->screen, "x", gmenu2x->tr["fave"], btnX, btnY);
+			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "select", gmenu2x->tr["edit"], btnX, btnY);
+			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "start", gmenu2x->tr["config"], btnX, btnY);
+			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "a", gmenu2x->tr["run"], btnX, btnY);
+			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "x", gmenu2x->tr["fave"], btnX, btnY);
 
 			/*
 			gmenu2x->screen->write(
@@ -312,7 +340,7 @@ void Renderer::render() {
 		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
 			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
 
-				string title =  gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle());
+				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle());
 				int textWidth = gmenu2x->font->getTextWidth(title);
 				/*
 		                TRACE("SCALE::TEXT-WIDTH: %i, TEXT-LENGTH: %i, LINK-WIDTH: %i", 
@@ -375,7 +403,7 @@ void Renderer::render() {
 	//TRACE("done");
 	gmenu2x->screen->clearClipRect();
 
-	this->gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
+	gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
 		gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
 		gmenu2x->menu->firstDispRow(), 
 		gmenu2x->linksRect);
@@ -392,6 +420,8 @@ void Renderer::render() {
 		gmenu2x->sc->del(prevBackdrop);
 		prevBackdrop = currBackdrop;
 		// input.setWakeUpInterval(1);
+
+		this->locked_ = false;
 		return;
 	}
 
@@ -464,8 +494,8 @@ void Renderer::render() {
 
     TRACE("flip"); 
 	gmenu2x->screen->flip();
-    TRACE("exit"); 
- 
+	this->locked_ = false;
+    TRACE("exit");
 }
 
 void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow) {

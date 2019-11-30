@@ -80,7 +80,7 @@ using namespace std;
 
 InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenManager) {
 	wakeUpTimer = NULL;
-	waiting_ = false;
+	//waiting_ = false;
 }
 
 InputManager::~InputManager() {
@@ -220,15 +220,11 @@ void InputManager::setActionsCount(int count) {
 
 bool InputManager::update(bool wait) {
 	//TRACE("update started : wait = %i", wait);
-	if (waiting_) 
-		return false;
-
 	bool anyactions = false;
 	SDL_JoystickUpdate();
 	SDL_Event event;
 
 	if (wait) {
-		waiting_ = true;
 		SDL_WaitEvent(&event);
 		
 		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type && SDL_JOYAXISMOTION != event.type) {
@@ -335,7 +331,6 @@ bool InputManager::update(bool wait) {
 			
 			TRACE("event.type == %i", event.type);
 			screenManager.resetScreenTimer();
-			waiting_ = false;
 			return false;
 		}
 
@@ -348,15 +343,15 @@ bool InputManager::update(bool wait) {
 			SDL_Event evcopy = event;
 			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
 		}
-	} //else {
-		while (SDL_PollEvent(&event)) {
-			if (event.type == SDL_KEYUP) {
-				anyactions = true;
-				SDL_Event evcopy = event;
-				TRACE("POLL KEYUP : %i", event.key.keysym.sym);
-			}
+	} 
+
+	while (SDL_PollEvent(&event)) {
+		if (event.type == SDL_KEYUP) {
+			anyactions = true;
+			SDL_Event evcopy = event;
+			TRACE("POLL KEYUP : %i", event.key.keysym.sym);
 		}
-	//}
+	}
 
 	for (uint32_t x = 0; x < actions.size(); x++) {
 		actions[x].active = isActive(x);
@@ -379,7 +374,6 @@ bool InputManager::update(bool wait) {
 	}
 
 	//TRACE("update completed");
-	waiting_ = false;
 	return anyactions;
 }
 

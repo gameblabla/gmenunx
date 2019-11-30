@@ -33,7 +33,6 @@
 #include "fonthelper.h"
 #include "surface.h"
 #include "browsedialog.h"
-#include "powermanager.h"
 #include "gmenu2x.h"
 #include "filelister.h"
 
@@ -247,10 +246,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 	TRACE("initFont");
 	initFont();
 
-	TRACE("power mgr");
-	powerManager = new PowerManager(this,  config->backlightTimeout(), config->powerTimeout());
+	TRACE("screen mgr");
 	this->screenManager.setScreenTimeout(600);
-
+	TRACE("input");
 	this->input.init(this->getReadablePath() + "input.conf");
 	setInputSpeed();
 
@@ -266,8 +264,10 @@ void GMenu2X::main() {
 	this->hw->checkUDC();
 
 	// create this early so we can give it to the thread, but don't exec it yet
-	string iconPath = this->getReadablePath() + "gmenunx.png";
-	ProgressBar * pbLoading = new ProgressBar(this, "Please wait, loading the everything...", iconPath);
+	ProgressBar * pbLoading = new ProgressBar(
+		this, 
+		"Please wait, loading the everything...", 
+		"skin:icons/device.png");
 
 	std::thread * thread_cache = nullptr;
 
@@ -323,6 +323,7 @@ void GMenu2X::main() {
 	pbLoading->finished();
 	delete pbLoading;
 
+	input.setWakeUpInterval(1000);
 	this->hw->ledOff();
 
 	if (this->lastSelectorElement >- 1 && \
@@ -339,12 +340,12 @@ void GMenu2X::main() {
 	bool quit = false;
 	while (!quit) {
 		try {
+			TRACE("loop");
 			renderer->render();
 		} catch (int e) {
-			ERROR("render - e : %i", e);
+			ERROR("render - error : %i", e);
 		}
 
-		if (input.isWaiting()) continue;
 		bool inputAction = input.update();
 
 		if (inputAction) {
@@ -566,7 +567,7 @@ void GMenu2X::initMenu() {
 							tr["Install me"], 
 							MakeDelegate(this, &GMenu2X::doInstall), 
 							tr["Set " + APP_NAME + " as your launcher"], 
-							this->getReadablePath() + "gmenunx.png");
+							"skin:icons/device.png");
 	}
 
 	if (fileExists(getWriteablePath() + "log.txt"))
@@ -619,19 +620,19 @@ void GMenu2X::initMenu() {
 							tr["UnInstall me"], 
 							MakeDelegate(this, &GMenu2X::doUnInstall), 
 							tr["Remove " + APP_NAME + " as your launcher"], 
-							this->getReadablePath() + "gmenunx.png");
+							"skin:icons/device.png");
 	}
 
-/*
+
 	if (!this->needsInstalling) {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
 							MakeDelegate(this, &GMenu2X::doUpgrade), 
 							tr["Upgrade " + APP_NAME], 
-							this->getReadablePath() + "gmenunx.png");
+							"skin:icons/device.png");
 	}
-*/
+
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
@@ -1316,8 +1317,7 @@ void GMenu2X::doUpgrade() {
 	string destination = getWriteablePath();
 
 	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
-	string iconPath = this->getReadablePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying data for upgrade...", iconPath);
+	ProgressBar *pbInstall = new ProgressBar(this, "Copying new data for upgrade...", "skin:icons/device.png");
 	pbInstall->exec();
 	INFO("doing a full copy");
 
@@ -1343,8 +1343,7 @@ void GMenu2X::doInstall() {
 	TRACE("enter");
 	bool success = false;
 
-	string iconPath = this->getReadablePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Installing launcher script...", iconPath);
+	ProgressBar *pbInstall = new ProgressBar(this, "Installing launcher script...", "skin:icons/device.png");
 	pbInstall->exec();
 
 	if (Installer::deployLauncher()) {
@@ -1367,8 +1366,11 @@ void GMenu2X::doInstall() {
 void GMenu2X::doUnInstall() {
 	TRACE("enter");
 	bool success = false;
-	string iconPath = this->getExePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "UnInstalling launcher script...", iconPath);
+	ProgressBar *pbInstall = new ProgressBar(
+		this, 
+		"UnInstalling launcher script...", 
+		"skin:icons/device.png");
+
 	pbInstall->exec();
 
 	if (Installer::removeLauncher()) {
@@ -1397,8 +1399,11 @@ bool GMenu2X::doInitialSetup() {
 	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
 	INFO("testing for writable home dir : %s", destination.c_str());
 	
-	string iconPath = this->getExePath() + "gmenunx.png";
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying data to home directory...", iconPath);
+	ProgressBar *pbInstall = new ProgressBar(
+		this, 
+		"Copying data to home directory...", 
+		"skin:icons/device.png");
+
 	pbInstall->exec();
 	INFO("doing a full copy");
 
@@ -1416,7 +1421,11 @@ bool GMenu2X::doInitialSetup() {
 	delete pbInstall;
 
 	INFO("setting up the application cache");
-	ProgressBar * pbCache = new ProgressBar(this, "Updating the application cache...", iconPath);
+	ProgressBar * pbCache = new ProgressBar(
+		this, 
+		"Updating the application cache...", 
+		"skin:icons/device.png");
+
 	pbCache->exec();
 	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
 	pbCache->updateDetail("Finished creating cache");
@@ -1450,17 +1459,19 @@ void GMenu2X::poweroffDialog() {
 	mb.setButton(CANCEL,  tr["Cancel"]);
 	int response = mb.exec();
 	if (response == CONFIRM) {
-		MessageBox mb(this, tr["Poweroff"]);
-		mb.setAutoHide(500);
-		mb.exec();
+		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png");
+		pbShutdown.updateDetail     ("   ~ now ~   ");
+		pbShutdown.exec();
+		pbShutdown.finished(500);
 		this->hw->setBacklightLevel(0);
 		sync();
 		std::system("poweroff");
 	}
 	else if (response == SECTION_NEXT) {
-		MessageBox mb(this, tr["Rebooting"]);
-		mb.setAutoHide(500);
-		mb.exec();
+		ProgressBar pbReboot(this, " Rebooting", "skin:icons/device.png");
+		pbReboot.updateDetail     ("  ~ now ~ ");
+		pbReboot.exec();
+		pbReboot.finished(500);
 		this->hw->setBacklightLevel(0);
 		sync();
 		std::system("reboot");

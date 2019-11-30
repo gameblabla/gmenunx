@@ -67,7 +67,6 @@ struct MenuOption {
 	MenuAction action;
 };
 
-class PowerManager;
 class Menu;
 class UI;
 
@@ -152,8 +151,6 @@ public:
 	uint32_t onChangeSkin();
 	void initLayout();
 	void initMenu();
-
-	PowerManager *powerManager;
 
 	void about();
 	void viewLog();

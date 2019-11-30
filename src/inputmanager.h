@@ -71,7 +71,6 @@ Manages all input peripherals
 */
 class InputManager {
 private:
-	bool waiting_;
 
 	InputMap getInputMapping(int action);
 	SDL_TimerID wakeUpTimer;
@@ -99,7 +98,6 @@ public:
 	void initJoysticks();
 	bool readConfFile(const string &conffile = "input.conf");
 
-	bool isWaiting() { return waiting_; }
 	bool update(bool wait = true);
 	bool combo();
 	void dropEvents();

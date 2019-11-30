@@ -1,6 +1,4 @@
 #include "batteryloggerdialog.h"
-#include "powermanager.h"
-// #include "debug.h"
 
 BatteryLoggerDialog::BatteryLoggerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
 	: Dialog(gmenu2x)
@@ -62,8 +60,6 @@ void BatteryLoggerDialog::exec() {
 	ifstream inf(logfile.c_str(), ios_base::in);
 	if (!inf.is_open()) return;
 	vector<string> log;
-
-	gmenu2x->powerManager->clearTimer();
 
 	string line;
 	while (getline(inf, line, '\n'))

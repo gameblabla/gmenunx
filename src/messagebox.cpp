@@ -22,7 +22,6 @@
 #include <stdlib.h>
 
 #include "messagebox.h"
-#include "powermanager.h"
 #include "debug.h"
 #include "utilities.h"
 
@@ -99,14 +98,11 @@ void MessageBox::fadeOut(int delay) {
 	if (this->autohide >= 0)
 		return;
 	SDL_Delay(delay);
-	gmenu2x->powerManager->resetSuspendTimer(); // = SDL_GetTicks(); // prevent immediate suspend
 }
 
 int MessageBox::exec() {
 	TRACE("enter");
 	int result = -1;
-
-	gmenu2x->powerManager->clearTimer();
 
 	// Surface bg(gmenu2x->s);
 	//Darken background
@@ -163,7 +159,6 @@ int MessageBox::exec() {
 		gmenu2x->screen->flip();
 		if (this->autohide > 0) {
 			SDL_Delay(this->autohide);
-			gmenu2x->powerManager->resetSuspendTimer();
 		}
 		return -1;
 	}
@@ -206,7 +201,6 @@ int MessageBox::exec() {
 			}
 		}
 
-		if (gmenu2x->input.isWaiting()) continue;
 		bool inputAction = gmenu2x->input.update();
 		if (inputAction) {
 			for (uint32_t i = 0; i < buttons.size(); i++) {
@@ -218,8 +212,7 @@ int MessageBox::exec() {
 		}
 	}
 
-	gmenu2x->input.dropEvents(); // prevent passing input away
-	gmenu2x->powerManager->resetSuspendTimer();
+	gmenu2x->input.dropEvents();
 	TRACE("exit : %i", result);
 	return result;
 }

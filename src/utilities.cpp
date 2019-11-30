@@ -406,7 +406,6 @@ std::string getOpkPath() {
 	// and then read /proc/pid/cmdline
 	// and parse that
 	std::string cmd = "/bin/ps | /bin/grep opkrun";
-	TRACE("cmd : %s", cmd.c_str());
 	std::string response = exec(cmd.c_str());
 	TRACE("response : %s", response.c_str());
 	std::istringstream stm(response);

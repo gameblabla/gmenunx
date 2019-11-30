@@ -5,7 +5,6 @@
 #include <chrono>
 
 #include "progressbar.h"
-#include "powermanager.h"
 #include "debug.h"
 #include "utilities.h"
 
@@ -35,7 +34,6 @@ ProgressBar::~ProgressBar() {
         SDL_RemoveTimer(this->timerId_);
     }
     this->gmenu2x->input.dropEvents(); 
-	this->gmenu2x->powerManager->resetSuspendTimer();
     TRACE("exit");
 }
 
@@ -112,7 +110,6 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
 void ProgressBar::exec() {
 	TRACE("enter");
 	this->finished_ = false;
-	gmenu2x->powerManager->clearTimer();
     this->timerId_ = SDL_AddTimer(this->interval_, render, this);
 }
 

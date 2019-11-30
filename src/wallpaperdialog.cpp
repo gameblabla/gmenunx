@@ -92,7 +92,6 @@ bool WallpaperDialog::exec()
 
 		TRACE("loop");
 		do {
-			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 
 			TRACE("got an action");

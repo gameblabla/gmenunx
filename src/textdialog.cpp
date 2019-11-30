@@ -137,7 +137,6 @@ void TextDialog::exec() {
 		gmenu2x->screen->flip();
 
 		do {
-			if (gmenu2x->input.isWaiting()) continue;
 			inputAction = gmenu2x->input.update();
 			
 			if ( gmenu2x->input[UP  ] && firstRow > 0 ) firstRow--;

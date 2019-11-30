@@ -8,11 +8,14 @@
 class Renderer {
 
 private:
+
+    SDL_TimerID timerId_;
+    int interval_ = 2000;
+    bool finished_;
+    bool locked_;
     GMenu2X *gmenu2x;
     RTC rtc;
 
-    uint32_t tickBattery;
-    uint32_t tickNow;
 	string prevBackdrop;
 	string currBackdrop;
 
@@ -37,6 +40,9 @@ public:
     Renderer(GMenu2X * gmenu2x);
     ~Renderer();
     void render();
+    void quit();
+
+    static uint32_t poll(uint32_t interval, void * data);
 
 };
 

@@ -75,7 +75,7 @@ bool Installer::copyFiles() {
 
 bool Installer::copyDirs(bool force) {
     TRACE("enter");
-    string cp = force ? "/bin/cp -arp" : "/bin/cp -arnp";
+    string cp = force ? "/bin/cp -arfp" : "/bin/cp -arp";
     for (vector<string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
         std::string directory = (*it);
         std::string source = this->sourceRootPath + directory;
@@ -86,15 +86,12 @@ bool Installer::copyDirs(bool force) {
             ERROR("Source directory doesn't exist : %s", source.c_str());
             return false;
         }
-
-        if (!dirExists(destination) || force) {
-            std::stringstream ss;
-            ss << cp << " \"" << source << "\" " << "\"" << destination << "\"";
-            std::string call = ss.str();
-            TRACE("running command : %s", call.c_str());
-            system(call.c_str());
-            sync();
-        }
+        std::stringstream ss;
+        ss << cp << " \"" << source << "\" " << "\"" << destination << "\"";
+        std::string call = ss.str();
+        TRACE("running command : %s", call.c_str());
+        system(call.c_str());
+        sync();
     }
     TRACE("exit");
     return true;

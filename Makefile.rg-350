@@ -73,6 +73,8 @@ dist: all
 	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/gmenunx.png
+	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Default/icons/device.png
+	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Minimal/icons/device.png
 
 opk: dist
 	./make_opk.sh
