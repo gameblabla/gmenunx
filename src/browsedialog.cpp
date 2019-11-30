@@ -12,7 +12,13 @@ BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &
 : Dialog(gmenu2x), title(title), description(description), icon(icon) {
 	
 	TRACE("enter");
-	fl = new FileLister(EXTERNAL_CARD_PATH, true, false);
+	string startPath = USER_HOME;
+	if (dirExists(gmenu2x->config->launcherPath())) {
+		startPath = gmenu2x->config->launcherPath();
+	} else if (dirExists(EXTERNAL_CARD_PATH)) {
+		startPath = EXTERNAL_CARD_PATH;
+	}
+	fl = new FileLister(startPath, true, false);
 }
 
 BrowseDialog::~BrowseDialog() {
