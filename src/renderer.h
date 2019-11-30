@@ -35,6 +35,8 @@ private:
 	void layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow);
     uint8_t getVolumeMode(uint8_t vol);
 
+    void pollHW();
+
 public:
 
     Renderer(GMenu2X * gmenu2x);
@@ -42,7 +44,7 @@ public:
     void render();
     void quit();
 
-    static uint32_t poll(uint32_t interval, void * data);
+    static uint32_t callback(uint32_t interval, void * data);
 
 };
 

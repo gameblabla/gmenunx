@@ -52,9 +52,31 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 
 	helpers.clear();
 
-	this->timerId_ = SDL_AddTimer(this->interval_, poll, this);
+	this->timerId_ = SDL_AddTimer(this->interval_, callback, this);
 	this->locked_ = false;
 
+	this->pollHW();
+
+}
+
+void Renderer::pollHW() {
+	// if we're going to draw helpers, get their latest value
+	TRACE("section bar test");
+	if (this->gmenu2x->skin->sectionBar) {
+		TRACE("section bar exists in skin settings");
+		TRACE("updating helper icon status");
+		this->batteryIcon = this->gmenu2x->hw->getBatteryLevel();
+		if (this->batteryIcon > 5) this->batteryIcon = 6;
+
+		this->brightnessIcon = this->gmenu2x->hw->getBacklightLevel();
+		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
+			this->brightnessIcon = 5;
+
+		int currentVolume = this->gmenu2x->hw->getVolumeLevel();
+		this->currentVolumeMode = this->getVolumeMode(currentVolume);
+        this->rtc.refresh();
+		TRACE("helper icon status updated");
+    }
 }
 
 Renderer::~Renderer() {
@@ -72,30 +94,13 @@ void Renderer::quit() {
     }
 }
 
-uint32_t Renderer::poll(uint32_t interval, void * data) {
+uint32_t Renderer::callback(uint32_t interval, void * data) {
 	TRACE("enter");
 	Renderer * me = static_cast<Renderer*>(data);
 	if (me->finished_) {
 		return (0);
 	}
-	// if we're going to draw helpers, get their latest value
-	TRACE("section bar test");
-	if (me->gmenu2x->skin->sectionBar) {
-		TRACE("section bar exists in skin settings");
-		TRACE("updating helper icon status");
-		me->batteryIcon = me->gmenu2x->hw->getBatteryLevel();
-		if (me->batteryIcon > 5) me->batteryIcon = 6;
-
-		me->brightnessIcon = me->gmenu2x->hw->getBacklightLevel();
-		if (me->brightnessIcon > 4 || me->iconBrightness[me->brightnessIcon] == NULL) 
-			me->brightnessIcon = 5;
-
-		int currentVolume = me->gmenu2x->hw->getVolumeLevel();
-		me->currentVolumeMode = me->getVolumeMode(currentVolume);
-        me->rtc.refresh();
-		TRACE("helper icon status updated");
-    }
-
+	me->pollHW();
 	return interval;
 }
 
