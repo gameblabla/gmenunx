@@ -35,6 +35,15 @@ OpkCache::~OpkCache() {
     TRACE("exit");
 }
 
+int OpkCache::size() {
+    int result = 0;
+    std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator it;
+    for (it = this->sectionCache->begin(); it != this->sectionCache->end(); it++) {
+        result += it->second.size();
+    }
+    return result;
+}
+
 bool OpkCache::update(std::function<void(string)> callback) {
     TRACE("enter");
     this->notifiable = callback;

@@ -175,6 +175,7 @@ public:
 
 	void setWallpaper(const string &wallpaper = "");
 	void updateAppCache(std::function<void(string)> callback = nullptr);
+	int cacheSize();
 
 	Menu* menu;
 	Skin* skin;

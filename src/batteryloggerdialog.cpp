@@ -36,9 +36,7 @@ void BatteryLoggerDialog::exec() {
 	gmenu2x->ui->drawButton(this->bg, "up", "", 5)-10)));
 
 	this->bg->blit(gmenu2x->screen,0,0);
-
 	gmenu2x->hw->setBacklightLevel(100);
-
 	gmenu2x->screen->flip();
 
 	MessageBox mb(
@@ -102,7 +100,11 @@ void BatteryLoggerDialog::exec() {
 			}
 		}
 
-		gmenu2x->ui->drawScrollBar(rowsPerPage, log.size(), firstRow, gmenu2x->listRect);
+		gmenu2x->ui->drawScrollBar(
+			rowsPerPage, 
+			log.size(), 
+			firstRow, 
+			gmenu2x->listRect);
 
 		gmenu2x->screen->flip();
 
@@ -120,7 +122,10 @@ void BatteryLoggerDialog::exec() {
 		}
 		else if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
 		else if (gmenu2x->input[MENU]) {
-			MessageBox mb(gmenu2x, gmenu2x->tr.translate("Deleting $1", "battery.csv", NULL) + "\n" + gmenu2x->tr["Are you sure?"]);
+			MessageBox mb(
+				gmenu2x, 
+				gmenu2x->tr.translate("Deleting $1", "battery.csv", NULL) + "\n" + gmenu2x->tr["Are you sure?"]);
+
 			mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
 			mb.setButton(CANCEL,  gmenu2x->tr["No"]);
 			if (mb.exec() == CONFIRM) {

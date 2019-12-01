@@ -5,26 +5,33 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sstream>
+#include <vector>
 
 #include "gmenu2x.h"
 #include "dialog.h"
 #include "menu.h"
 #include "messagebox.h"
 
-using namespace std;
-
 class LinkScannerDialog : protected Dialog {
+
+private:
+	std::vector<std::string> messages_;
+	bool finished_;
+	int maxMessagesOnScreen;
+
 protected:
-	string title, description, icon;
-	string lastFile;
-	void scanPath(string path, vector<string> *files);
-	uint32_t lineY;
 	int foundFiles = 0;
+	int selectedItem = 0;
+	std::string title, description, icon;
+	void scanPath(std::string path, std::vector<std::string> *files);
+	void quit();
+	void render();
 
 public:
-	LinkScannerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon);
+	LinkScannerDialog(GMenu2X *gmenu2x, const std::string &title, const std::string &description, const std::string &icon);
+	~LinkScannerDialog();
 	void exec();
-	void foundFile(string file);
+	void notify(std::string message);
 };
 
 #endif /*LINKSCANNERDIALOG_H_*/

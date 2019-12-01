@@ -144,7 +144,14 @@ class IHardware {
             return (CARD_STATUS)this->curMMCStatus;
         }
 
-        void formatSdCard() {
+        bool formatSdCard() {
+            this->checkUDC();
+            if (this->curMMCStatus == CARD_STATUS::MMC_MOUNTED) {
+                this->umountSd();
+            }
+            if (this->curMMCStatus != CARD_STATUS::MMC_UNMOUNTED) {
+                return false;
+            }
             // TODO :: implement me
         }
 

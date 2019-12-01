@@ -437,6 +437,7 @@ void Menu::letterPrevious() {
 	if (!found) 
 		this->setLinkIndex(this->sectionLinks()->size() - 1);
 }
+
 void Menu::letterNext() {
 	char currentStartChar = this->selLink()->getTitle()[0];
 	bool found = false;

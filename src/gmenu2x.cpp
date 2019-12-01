@@ -168,7 +168,13 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	#endif
 	TRACE("exit");
 }
-
+int GMenu2X::cacheSize() {
+	#ifdef HAVE_LIBOPK
+	return this->opkCache->size();
+	#else
+	return 0;
+	#endif
+}
 GMenu2X::GMenu2X() : input(screenManager) {
 
 	TRACE("enter");

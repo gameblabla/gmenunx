@@ -59,6 +59,7 @@ class OpkCache {
         OpkCache(vector<string> opkDirs, const string & sectionsDir);
         ~OpkCache();
         bool update(std::function<void(string)> callback = nullptr);
+        int size();
 };
 
 #endif
