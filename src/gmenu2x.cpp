@@ -168,6 +168,7 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	#endif
 	TRACE("exit");
 }
+
 int GMenu2X::cacheSize() {
 	#ifdef HAVE_LIBOPK
 	return this->opkCache->size();
@@ -175,6 +176,7 @@ int GMenu2X::cacheSize() {
 	return 0;
 	#endif
 }
+
 GMenu2X::GMenu2X() : input(screenManager) {
 
 	TRACE("enter");
@@ -269,33 +271,31 @@ void GMenu2X::main() {
 	TRACE("checking sd card");
 	this->hw->checkUDC();
 
+	if (this->needsInstalling) {
+		if(dirExists(this->getWriteablePath())) {
+			this->doUpgrade();
+		} else this->doInitialSetup();
+	} 
+
 	// create this early so we can give it to the thread, but don't exec it yet
 	ProgressBar * pbLoading = new ProgressBar(
 		this, 
 		"Please wait, loading the everything...", 
 		"skin:icons/device.png");
 
-	std::thread * thread_cache = nullptr;
+	pbLoading->updateDetail("Checking for new applications...");
+	TRACE("kicking off our app cache thread");
+	std::thread * thread_cache = new std::thread(
+		&GMenu2X::updateAppCache, 
+		this, 
+		std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
 
-	if (this->needsInstalling) {
-		if(dirExists(this->getWriteablePath())) {
-			this->doUpgrade();
-		} else this->doInitialSetup();
-		pbLoading->exec();
-	} else {
-		pbLoading->updateDetail("Checking for new applications...");
-		TRACE("kicking off our app cache thread");
-		thread_cache = new std::thread(
-			&GMenu2X::updateAppCache, 
-			this, 
-			std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
-
-		if (this->skin->showLoader) {
-			Loader loader(this);
-			loader.run();
-		}
-		pbLoading->exec();
+	if (this->skin->showLoader) {
+		Loader loader(this);
+		loader.run();
 	}
+	pbLoading->exec();
+
 	pbLoading->updateDetail("Initialising hardware");
 	this->hw->setVolumeLevel(this->config->globalVolume());
 	this->hw->setPerformanceMode(this->config->performance());
@@ -1425,13 +1425,18 @@ bool GMenu2X::doInitialSetup() {
 		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
 
 	if (installer->install()) {
+		TRACE("changing paths to : %s", destination.c_str());
+		this->config->changePath(destination);
+		this->skin->changePath(destination);
+		this->needsInstalling = false;
 		pbInstall->finished();
+		success = true;
 	} else {
 		pbInstall->updateDetail("Install failed");
 		pbInstall->finished(2000);
 	}
 	delete pbInstall;
-
+/*
 	INFO("setting up the application cache");
 	ProgressBar * pbCache = new ProgressBar(
 		this, 
@@ -1443,9 +1448,9 @@ bool GMenu2X::doInitialSetup() {
 	pbCache->updateDetail("Finished creating cache");
 	pbCache->finished(200);
 	delete pbCache;
-
+*/
 	sync();
-	success = true;
+	
 	TRACE("exit");
 	return success;
 }

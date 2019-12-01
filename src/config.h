@@ -18,6 +18,7 @@ public:
 
     Config(std::string const &prefix);
     ~Config();
+    void changePath(std::string const &prefix) { this->prefix = prefix; }
 
     // accessors
     std::string skin() const { return this->skin_; }

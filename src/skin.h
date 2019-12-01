@@ -48,6 +48,7 @@ public:
     Skin(string const &prefix, int const &maxX, int const &maxY);
     ~Skin();
 
+    void changePath(std::string const &prefix) { this->assetsPrefix = prefix; }
     static vector<string> getSkins(string assetsPath) ;
 
     std::string getSkinFilePath(const string &file);
