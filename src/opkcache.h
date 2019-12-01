@@ -31,6 +31,7 @@ class OpkCache {
         string cacheDir_;
         string rootDir_;
         bool loaded_;
+        bool dirty_;
 
         // key = sections
         // pair <string = hash, DesktopFile = object>
@@ -60,6 +61,7 @@ class OpkCache {
         ~OpkCache();
         bool update(std::function<void(string)> callback = nullptr);
         int size();
+        bool isDirty() { return this->dirty_; }
 };
 
 #endif

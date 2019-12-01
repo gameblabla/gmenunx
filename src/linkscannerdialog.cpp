@@ -98,7 +98,7 @@ void LinkScannerDialog::exec() {
 		this->notify(str + " links created");
 	}
 
-	if (this->foundFiles > 0 || cacheChanged) {
+	if (this->foundFiles > 0 || gmenu2x->cacheIsDirty()) {
 		sync();
 		this->notify("Updating the menu");
 		gmenu2x->initMenu();

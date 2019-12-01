@@ -47,6 +47,7 @@ int OpkCache::size() {
 bool OpkCache::update(std::function<void(string)> callback) {
     TRACE("enter");
     this->notifiable = callback;
+    this->dirty_ = false;
 
     if (!this->ensureCacheDirs())
         return false;
@@ -216,6 +217,8 @@ void OpkCache::addToCache(const string & section, const DesktopFile & file) {
     std::pair<std::string, DesktopFile> myPair {hash, file};
     (*this->sectionCache)[section].push_back(myPair);
 
+    this->dirty_ = true;
+
     TRACE("exit - section count for '%s' = %zu", 
         section.c_str(), 
         (*this->sectionCache)[section].size());
@@ -240,6 +243,7 @@ void OpkCache::removeFromCache(const string & section, const DesktopFile & file)
                 section.c_str(), 
                 (*this->sectionCache)[section].size());
 
+            this->dirty_ = true;
             return;
         }
     }

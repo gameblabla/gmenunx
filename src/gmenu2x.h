@@ -176,6 +176,7 @@ public:
 	void setWallpaper(const string &wallpaper = "");
 	void updateAppCache(std::function<void(string)> callback = nullptr);
 	int cacheSize();
+	bool cacheIsDirty() { return this->opkCache->isDirty(); }
 
 	Menu* menu;
 	Skin* skin;
