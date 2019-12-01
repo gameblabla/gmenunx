@@ -77,6 +77,8 @@ public:
 	void setSelectorDir(const string &selectordir);
 	bool getSelectorBrowser();
 	void setSelectorBrowser(bool value);
+	bool getConsoleApp();
+	void setConsoleApp(bool value);
 	const string &getProvider() { return provider; }
 	void setProvider(const string &provider);
 	const string &getProviderMetadata() { return providerMetadata; }

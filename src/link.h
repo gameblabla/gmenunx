@@ -48,6 +48,7 @@ protected:
 	GMenu2X *gmenu2x;
 	bool edited;
 	string title, description, icon, iconPath;
+	string displayTitle;
 
 public:
 	// linkaction
@@ -55,6 +56,7 @@ public:
 
 	virtual ~Link() {};
 	const string &getTitle();
+	const string &getDisplayTitle();
 	void setTitle(const string &title);
 	const string &getDescription();
 	void setDescription(const string &description);

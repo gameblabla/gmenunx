@@ -86,14 +86,12 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	TRACE("dirp has been read, closing");
 	closedir(dirp);
 
-	TRACE("add sections");
+	TRACE("add compulsary sections: settings, applications");
 	addSection("settings");
-	TRACE("add applications");
 	addSection("applications");
 
-
-	TRACE("sort");
-	sort(sections.begin(),sections.end(),case_less());
+	TRACE("sort sections");
+	sort(sections.begin(), sections.end(), case_less());
 	TRACE("set index 0");
 	setSectionIndex(0);
 	TRACE("read links");
@@ -507,13 +505,8 @@ void Menu::readLinks() {
 				delete link;
 			}
 		}
-
 		closedir(dirp);
 	}
-
-	TRACE("orderLinks");
-	orderLinks();
-
 	TRACE("exit");
 }
 

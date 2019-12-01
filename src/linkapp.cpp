@@ -45,7 +45,7 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
 	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
 	inputMgr(gmenu2x->input) {
 
-	TRACE("linkfile : %s", linkfile);
+	TRACE("ctor - handling normal desktop file :%s", linkfile);
 	manual = manualPath = "";
 	file = linkfile;
 
@@ -59,77 +59,70 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
 	consoleapp = true;
 	workdir = "";
 	backdrop = backdropPath = "";
+	this->editable = this->deletable = deletable;
 
-	deletable = deletable_;
+	string line;
+	TRACE("ctor - creating ifstream");
+	ifstream infile (linkfile, ios_base::in);
+	TRACE("ctor - iterating thru infile : %s", linkfile);
+	while (getline(infile, line, '\n')) {
 
-	{
-		this->editable = this->deletable = deletable;
-		TRACE("ctor - handling normal desktop file :%s", linkfile);
-		string line;
-		TRACE("ctor - creating ifstream");
-		ifstream infile (linkfile, ios_base::in);
-		TRACE("ctor - iterating thru infile : %s", linkfile);
-		while (getline(infile, line, '\n')) {
+		line = trim(line);
+		if (line.empty()) continue;
+		if (line[0] == '#') continue;
 
-			line = trim(line);
-			if (line.empty()) continue;
-			if (line[0] == '#') continue;
+		std::size_t position = line.find("=");
+		string name = toLower(trim(line.substr(0,position)));
+		string value = trim(line.substr(position+1));
 
-			std::size_t position = line.find("=");
-			string name = toLower(trim(line.substr(0,position)));
-			string value = trim(line.substr(position+1));
-
-			if (name == "clock") {
-				setCPU( atoi(value.c_str()) );
-			} else if (name == "selectordir") {
-				setSelectorDir( value );
-			} else if (name == "selectorbrowser") {
-				selectorbrowser = (value == "true" ? true : false);
-			} else if (name == "title") {
-					title = value;
-			} else if (name == "description") {
-					description = value;
-			} else if (name == "icon") {
-					TRACE("ctor - setting icon value to %s", value.c_str());
-					setIcon(value);
-			} else if (name == "exec") {
-					exec = value;
-			} else if (name == "params") {
-					params = value;
-			} else if (name == "workdir") {
-					workdir = value;
-			} else if (name == "manual") {
-					setManual(value);
-			} else if (name == "consoleapp") {
-					consoleapp = (value == "true" ? true : false);
-			} else if (name == "selectorfilter") {
-					setSelectorFilter( value );
-			} else if (name == "selectorscreens") {
-					setSelectorScreens( value );
-			} else if (name == "selectoraliases") {
-					setAliasFile( value );
-			} else if (name == "backdrop") {
-					setBackdrop(value);
-					// WARNING("BACKDROP: '%s'", backdrop.c_str());
-			} else if (name == "x-provider") {
-				this->setProvider(value);
-			} else if (name == "x-providermetadata") {
-				this->setProviderMetadata(value);
-			} else {
-				WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
-				//break;
-			}
+		if (name == "clock") {
+			this->setCPU( atoi(value.c_str()) );
+		} else if (name == "selectordir") {
+			this->setSelectorDir( value );
+		} else if (name == "selectorbrowser") {
+			this->setSelectorBrowser(value == "true" ? true : false);
+		} else if (name == "title") {
+			this->setTitle(value);
+		} else if (name == "description") {
+			this->setDescription(value);
+		} else if (name == "icon") {
+			this->setIcon(value);
+		} else if (name == "exec") {
+			this->setExec(value);
+		} else if (name == "params") {
+			this->setParams(value);
+		} else if (name == "workdir") {
+			this->setWorkdir(value);
+		} else if (name == "manual") {
+			this->setManual(value);
+		} else if (name == "consoleapp") {
+			this->setConsoleApp(value == "true" ? true : false);
+		} else if (name == "selectorfilter") {
+			this->setSelectorFilter( value );
+		} else if (name == "selectorscreens") {
+			this->setSelectorScreens( value );
+		} else if (name == "selectoraliases") {
+			this->setAliasFile( value );
+		} else if (name == "backdrop") {
+			this->setBackdrop(value);
+		} else if (name == "x-provider") {
+			this->setProvider(value);
+		} else if (name == "x-providermetadata") {
+			this->setProviderMetadata(value);
+		} else {
+			WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
 		}
-		TRACE("ctor - closing infile");
-		infile.close();
-
-		// try and find an icon 
-		if (iconPath.empty()) {
-			TRACE("ctor - searching for icon");
-			searchIcon(exec, true);
-		}
-
 	}
+	TRACE("ctor - closing infile");
+	infile.close();
+
+	// try and find an icon 
+	if (iconPath.empty()) {
+		TRACE("ctor - searching for icon");
+		searchIcon(exec, true);
+	}
+
+
 
 	TRACE("ctor exit : %s", this->toString().c_str());
 	edited = false;
@@ -565,19 +558,19 @@ void LinkApp::setSelectorDir(const string &selectordir) {
 	edited = true;
 }
 
-bool LinkApp::getSelectorBrowser() {
-	return selectorbrowser;
-}
-
+bool LinkApp::getSelectorBrowser() { return this->selectorbrowser; }
 void LinkApp::setSelectorBrowser(bool value) {
 	selectorbrowser = value;
 	edited = true;
 }
 
-const string &LinkApp::getSelectorFilter() {
-	return selectorfilter;
+bool LinkApp::getConsoleApp() { return this->consoleapp; }
+void LinkApp::setConsoleApp(bool value) {
+	this->consoleapp = value;
+	this->edited = true;
 }
 
+const string &LinkApp::getSelectorFilter() { return this->selectorfilter; }
 void LinkApp::setSelectorFilter(const string &selectorfilter) {
 	this->selectorfilter = selectorfilter;
 	edited = true;

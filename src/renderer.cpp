@@ -287,7 +287,7 @@ void Renderer::render() {
 			}
 				
 			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::TEXT) {
-				//TRACE("adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getTitle().c_str());
+				//TRACE("adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle().c_str());
 				int localXpos = ix + gmenu2x->linkSpacing + padding;
 				int localAlignTitle = VAlignMiddle;
 				int totalFontHeight = gmenu2x->fontTitle->getHeight() + gmenu2x->font->getHeight();
@@ -304,7 +304,7 @@ void Renderer::render() {
 				}
 				gmenu2x->screen->write(
 					gmenu2x->fontTitle, 
-					gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle()), 
+					gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle()), 
 					localXpos, 
 					iy + (gmenu2x->fontTitle->getHeight() / 2), 
 					localAlignTitle);
@@ -325,7 +325,7 @@ void Renderer::render() {
 		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
 			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
 
-				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getTitle());
+				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle());
 				int textWidth = gmenu2x->font->getTextWidth(title);
 				/*
 		                TRACE("SCALE::TEXT-WIDTH: %i, TEXT-LENGTH: %i, LINK-WIDTH: %i", 

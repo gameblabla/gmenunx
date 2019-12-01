@@ -30,9 +30,10 @@ Link::Link(GMenu2X *gmenu2x_, LinkAction action)
 	, gmenu2x(gmenu2x_)
 {
 	this->action = action;
-	edited = false;
-	iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
-	padding = 4;
+	this->edited = false;
+	this->iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+	this->padding = 4;
+	this->displayTitle = "";
 
 }
 
@@ -43,12 +44,33 @@ void Link::run() {
 }
 
 const string &Link::getTitle() {
-	return title;
+	return this->title;
+}
+
+const string &Link::getDisplayTitle() {
+	return this->displayTitle;
 }
 
 void Link::setTitle(const string &title) {
-	this->title = title;
-	edited = true;
+	if (title != this->title) {
+		this->title = title;
+		this->edited = true;
+
+		//Reduce title length to fit the link width
+		// TODO :: maybe move to a format function, called after loading in LinkApp
+		//  and called again after skin column change etc
+		string temp = string(title);
+		temp = strreplace(temp, "-", " ");
+		temp = strreplace(temp, "  ", " ");
+		int maxWidth = (gmenu2x->linkWidth);
+		if ((int)gmenu2x->font->getTextWidth(temp) > maxWidth) {
+			while ((int)gmenu2x->font->getTextWidth(temp + "..") > maxWidth) {
+				temp = temp.substr(0, temp.length() - 1);
+			}
+			temp += "..";
+		}
+		this->displayTitle = temp;
+	}
 }
 
 const string &Link::getDescription() {
