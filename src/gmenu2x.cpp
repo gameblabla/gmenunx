@@ -271,11 +271,12 @@ void GMenu2X::main() {
 
 	std::thread * thread_cache = nullptr;
 
-	if (this->needsInstalling && !dirExists(this->getWriteablePath())) {
-		this->doInitialSetup();
+	if (this->needsInstalling) {
+		if(dirExists(this->getWriteablePath())) {
+			this->doUpgrade();
+		} else this->doInitialSetup();
 		pbLoading->exec();
 	} else {
-
 		pbLoading->updateDetail("Checking for new applications...");
 		TRACE("kicking off our app cache thread");
 		thread_cache = new std::thread(

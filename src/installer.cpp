@@ -48,10 +48,6 @@ bool Installer::install() {
 }
 
 bool Installer::upgrade() {
-    string opk = getOpkPath();
-    if (opk.empty()) {
-        return false;
-    }
     if (this->copyFiles()) {
         return this->copyDirs(false);
     }
