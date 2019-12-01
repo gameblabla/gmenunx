@@ -6,32 +6,29 @@
 #include "utilities.h"
 #include "constants.h"
 
-using std::string;
-using std::vector;
-
-static const string CONFIG_FILE_NAME = "gmenunx.conf";
+static const std::string CONFIG_FILE_NAME = "gmenunx.conf";
 static const int CONFIG_CURRENT_VERSION = 1;
-static const string EXTERNAL_LAUNCHER_PATH = EXTERNAL_CARD_PATH + "/ROMS";
-static const string HOME_DIR = "/media/home";
-static const string APP_EXTERNAL_PATH = EXTERNAL_CARD_PATH + "/APPS";
+static const std::string EXTERNAL_LAUNCHER_PATH = EXTERNAL_CARD_PATH + "/ROMS";
+static const std::string HOME_DIR = "/media/home";
+static const std::string APP_EXTERNAL_PATH = EXTERNAL_CARD_PATH + "/APPS";
 
 class Config {
 
 public:
 
-    Config(string const &prefix);
+    Config(std::string const &prefix);
     ~Config();
 
     // accessors
-    string skin() const { return this->skin_; }
-    void skin(string val) { 
+    std::string skin() const { return this->skin_; }
+    void skin(std::string val) { 
         if (val != this->skin_) {
             this->skin_ = val;
             this->isDirty = true;
         }
      }
-    string externalAppPath() const { return this->externalAppPath_; }
-    void externalAppPath(string val) { 
+    std::string externalAppPath() const { return this->externalAppPath_; }
+    void externalAppPath(std::string val) { 
         if (val != this->externalAppPath_) {
             if (dirExists(val)) {
                 this->externalAppPath_ = val;
@@ -39,43 +36,43 @@ public:
             }
         }
      }
-    string performance() const { return this->performance_; }
-    void performance(string val) {
+    std::string performance() const { return this->performance_; }
+    void performance(std::string val) {
         if (val != this->performance_) {
             this->performance_ = val;
             this->isDirty = true;
         }
     }
-    string tvOutMode() const { return this->tvOutMode_; }
-    void tvOutMode(string val) {
+    std::string tvOutMode() const { return this->tvOutMode_; }
+    void tvOutMode(std::string val) {
         if (val != this->tvOutMode_) {
             this->tvOutMode_ = val;
             this->isDirty = true;
         }
     }
-    string lang() const { return this->lang_; }
-    void lang(string val) {
+    std::string lang() const { return this->lang_; }
+    void lang(std::string val) {
         if (val != this->lang_) {
             this->lang_ = val;
             this->isDirty = true;
         }
     }
-    string batteryType() const { return this->batteryType_; }
-    void batteryType(string val) {
+    std::string batteryType() const { return this->batteryType_; }
+    void batteryType(std::string val) {
         if (val != this->batteryType_) {
             this->batteryType_ = val;
             this->isDirty = true;
         }
     }
-    string sectionFilter() const { return this->sectionFilter_; }
-    void sectionFilter(string val) {
+    std::string sectionFilter() const { return this->sectionFilter_; }
+    void sectionFilter(std::string val) {
         if (val != this->sectionFilter_) {
             this->sectionFilter_ = val;
             this->isDirty = true;
         }
     }
-    string launcherPath() const { return this->launcherPath_; }
-    void launcherPath(string val) {
+    std::string launcherPath() const { return this->launcherPath_; }
+    void launcherPath(std::string val) {
         if (val != this->launcherPath_) {
             this->launcherPath_ = val;
             this->isDirty = true;
@@ -209,13 +206,14 @@ public:
         }
     }
 
+    std::string configFile() { return this->prefix + CONFIG_FILE_NAME; }
     bool loadConfig();
-    string toString();
-    string now();
+    std::string toString();
+    std::string now();
     bool save();
     bool remove();
 
-    static bool configExistsUnderPath(const string & path);
+    static bool configExistsUnderPath(const std::string & path);
 
     // TODO :: cache this
     int halfX() { return this->resolutionX() / 2; }
@@ -223,17 +221,17 @@ public:
 
 private:
 
-    string prefix;
+    std::string prefix;
     bool isDirty;
 
-    string externalAppPath_;// = APP_EXTERNAL_PATH;
-    string skin_; //="Default"
-    string performance_; //="On demand"
-    string tvOutMode_; //="NTSC"
-    string lang_; //=""
-    string batteryType_; //="BL-5B"
-    string sectionFilter_; //="applications,foo"
-    string launcherPath_; //="/media/sdcard/ROMS"
+    std::string externalAppPath_;// = APP_EXTERNAL_PATH;
+    std::string skin_; //="Default"
+    std::string performance_; //="On demand"
+    std::string tvOutMode_; //="NTSC"
+    std::string lang_; //=""
+    std::string batteryType_; //="BL-5B"
+    std::string sectionFilter_; //="applications,foo"
+    std::string launcherPath_; //="/media/sdcard/ROMS"
 
     int buttonRepeatRate_; //=10
     int resolutionX_; //=320

@@ -538,7 +538,6 @@ void GMenu2X::initMenu() {
 	bool isDefaultLauncher = Installer::isDefaultLauncher(getOpkPath());
 
 	TRACE("add built in action links");
-	// TODO :: sort these after adding
 	int i = menu->getSectionIndex("applications");
 	menu->addActionLink(i, 
 						tr["Battery Logger"], 
@@ -1115,6 +1114,8 @@ void GMenu2X::about() {
 	temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
 	temp += "Opk: " + opkPath + "\n";
+	temp += "Config: " + this->config->configFile() + "\n";
+	temp += "Skin: " + this->skin->name + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";

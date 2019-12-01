@@ -200,7 +200,7 @@ bool Config::remove() {
 bool Config::fromFile() {
     TRACE("enter");
     bool result = false;
-    string fileName = this->prefix + CONFIG_FILE_NAME;
+    string fileName = this->configFile();
     TRACE("loading config file from : %s", fileName.c_str());
 
 	if (fileExists(fileName)) {
