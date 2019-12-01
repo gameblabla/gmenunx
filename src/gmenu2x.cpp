@@ -383,6 +383,10 @@ void GMenu2X::main() {
 				menu->decSectionIndex();
 			} else if ( input[SECTION_NEXT] ) {
 				menu->incSectionIndex();
+			} else if (this->input[PAGEUP]) {
+				menu->letterPrevious();
+			} else if (this->input[PAGEDOWN]) {
+				menu->letterNext();
 			} else if (input[MANUAL] && menu->selLinkApp() != NULL) {
 				showManual();
 			}
@@ -622,7 +626,7 @@ void GMenu2X::initMenu() {
 	}
 
 
-	if (!this->needsInstalling) {
+	if (this->config->version() < APP_MIN_CONFIG_VERSION || !this->needsInstalling) {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 

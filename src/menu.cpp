@@ -422,6 +422,37 @@ void Menu::linkDown() {
 	setLinkIndex(l);
 }
 
+void Menu::letterPrevious() {
+	char currentStartChar = this->selLink()->getTitle()[0];
+	bool found = false;
+	int l = iLink;
+	while (l >= 0) {
+		if (this->sectionLinks()->at(l)->getTitle()[0] != currentStartChar) {
+			this->setLinkIndex(l);
+			found = true;
+			break;
+		}
+		--l;
+	};
+	if (!found) 
+		this->setLinkIndex(this->sectionLinks()->size() - 1);
+}
+void Menu::letterNext() {
+	char currentStartChar = this->selLink()->getTitle()[0];
+	bool found = false;
+	int l = iLink;
+	while (l < this->sectionLinks()->size()) {
+		if (this->sectionLinks()->at(l)->getTitle()[0] != currentStartChar) {
+			this->setLinkIndex(l);
+			found = true;
+			break;
+		}
+		++l;
+	};
+	if (!found) 
+		this->setLinkIndex(0);
+}
+
 int Menu::selLinkIndex() {
 	return iLink;
 }

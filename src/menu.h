@@ -83,6 +83,8 @@ public:
 	void linkUp();
 	void linkDown();
 	void setLinkIndex(int i);
+	void letterPrevious();
+	void letterNext();
 
 	string sectionPath(int section = -1);
 
