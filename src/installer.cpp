@@ -150,13 +150,15 @@ const bool Installer::deployLauncher() {
 
 const bool Installer::isDefaultLauncher(const string &opkPath) {
     TRACE("checking if we're the launcher for opk : %s", opkPath.c_str());
-    bool result = false;
+    if (opkPath.empty())
+        return false;
     std::fstream file( Installer::LAUNCHER_PATH );
     if (!file) {
         TRACE("couldn't read launcher file : %s", Installer::LAUNCHER_PATH.c_str());
         return false;
     }
     std::string line;
+    bool result = false;
     bool appMatches = false;
     bool opkMatches = false;
     while(getline(file, line)) {
