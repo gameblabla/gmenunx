@@ -222,10 +222,11 @@ bool split(vector<string> &vec, const string &str, const string &delim, bool des
 }
 
 string strreplace(string orig, const string &search, const string &replace) {
-	string::size_type pos = orig.find( search, 0 );
+	if (0 == search.compare(replace)) return orig;
+	string::size_type pos = orig.find( search );
 	while (pos != string::npos) {
-		orig.replace(pos,search.length(),replace);
-		pos = orig.find( search, pos+replace.length() );
+		orig.replace(pos, search.length(), replace);
+		pos = orig.find( search );
 	}
 	return orig;
 }
