@@ -418,24 +418,26 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 		} else dir = "/";
 		TRACE("dir : %s", dir.c_str());
 
-		if (params.empty()) {
+		if (this->params.empty()) {
 			launchArgs = "\"" + dir + selectedFile + "\"";
 			TRACE("no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
-			
+			TRACE("params need handling : %s", params.c_str());
 			launchArgs = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
 			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
 			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
 			launchArgs = strreplace(launchArgs, "[selExt]", cmdclean(selectedFileExtension));
 			// if this is true, then we've made no subs, so we still need to add the selected file
-			if (params == launchArgs) 
+			if (this->params == launchArgs) 
 				launchArgs += " \"" + dir + selectedFile + "\"";
 
 		}
 		// save the last dir
+		TRACE("setting the launcher path : %s", dir.c_str());
 		gmenu2x->config->launcherPath(dir);
 	} else launchArgs = params;
 
+	TRACE("exit : %s", launchArgs.c_str());
 	return launchArgs;
 
 }

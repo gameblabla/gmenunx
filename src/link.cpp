@@ -56,12 +56,16 @@ void Link::setTitle(const string &title) {
 		this->title = title;
 		this->edited = true;
 
-		//Reduce title length to fit the link width
+		// Reduce title length to fit the link width
 		// TODO :: maybe move to a format function, called after loading in LinkApp
-		//  and called again after skin column change etc
+		// and called again after skin column change etc
 		string temp = string(title);
 		temp = strreplace(temp, "-", " ");
-		temp = strreplace(temp, "  ", " ");
+		string::size_type pos = temp.find( "  ", 0 );
+		while (pos != string::npos) {
+			temp = strreplace(temp, "  ", " ");
+			pos = temp.find( "  ", 0 );
+		};
 		int maxWidth = (gmenu2x->linkWidth);
 		if ((int)gmenu2x->font->getTextWidth(temp) > maxWidth) {
 			while ((int)gmenu2x->font->getTextWidth(temp + "..") > maxWidth) {
