@@ -540,7 +540,8 @@ const string Menu::getSectionIcon(int i) {
 static bool compare_links(Link *a, Link *b) {
 	LinkApp *app1 = dynamic_cast<LinkApp *>(a);
 	LinkApp *app2 = dynamic_cast<LinkApp *>(b);
-	return a->getTitle().compare(b->getTitle()) <= 0;
+	return strcasecmp(a->getTitle().c_str(), b->getTitle().c_str()) < 0;
+	//return a->getTitle().compare(b->getTitle()) <= 0;
 }
 
 void Menu::orderLinks() {

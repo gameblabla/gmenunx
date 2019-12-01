@@ -640,6 +640,8 @@ void GMenu2X::initMenu() {
 		menu->setSectionIndex(0);
 		menu->setLinkIndex(0);
 	}
+	TRACE("re-order now we've added these guys");
+	menu->orderLinks();
 	TRACE("menu->loadIcons");
 	menu->loadIcons();
 	TRACE("exit");

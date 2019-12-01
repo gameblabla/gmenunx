@@ -47,7 +47,6 @@ private:
 
 	void readLinks();
 	void freeLinks();
-	void orderLinks();
 
 public:
 	Menu(GMenu2X *gmenu2x);
@@ -93,6 +92,7 @@ public:
 	int getSectionIndex(const string &name);
 	const string getSectionIcon(int i);
 
+	void orderLinks();
 };
 
 #endif
