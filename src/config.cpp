@@ -194,7 +194,7 @@ bool Config::configExistsUnderPath(const string & path) {
 
 bool Config::remove() {
     std::string filePath = this->prefix + CONFIG_FILE_NAME;
-    unlink(filePath.c_str());
+    return (0 == unlink(filePath.c_str()));
 }
 
 bool Config::fromFile() {

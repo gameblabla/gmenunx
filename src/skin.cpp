@@ -181,7 +181,7 @@ string Skin::toString() {
 
 bool Skin::remove() {
     string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
-    unlink(fileName.c_str());
+    return (0 ==unlink(fileName.c_str()));
 }
 
 bool Skin::save() {
