@@ -59,26 +59,6 @@ Renderer::Renderer(GMenu2X *gmenu2x) :
 
 }
 
-void Renderer::pollHW() {
-	// if we're going to draw helpers, get their latest value
-	TRACE("section bar test");
-	if (this->gmenu2x->skin->sectionBar) {
-		TRACE("section bar exists in skin settings");
-		TRACE("updating helper icon status");
-		this->batteryIcon = this->gmenu2x->hw->getBatteryLevel();
-		if (this->batteryIcon > 5) this->batteryIcon = 6;
-
-		this->brightnessIcon = this->gmenu2x->hw->getBacklightLevel();
-		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
-			this->brightnessIcon = 5;
-
-		int currentVolume = this->gmenu2x->hw->getVolumeLevel();
-		this->currentVolumeMode = this->getVolumeMode(currentVolume);
-        this->rtc.refresh();
-		TRACE("helper icon status updated");
-    }
-}
-
 Renderer::~Renderer() {
     TRACE("~Renderer");
 	this->quit();
@@ -529,3 +509,24 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
 	TRACE("exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 }
+
+void Renderer::pollHW() {
+	// if we're going to draw helpers, get their latest value
+	TRACE("section bar test");
+	if (this->gmenu2x->skin->sectionBar) {
+		TRACE("section bar exists in skin settings");
+		TRACE("updating helper icon status");
+		this->batteryIcon = this->gmenu2x->hw->getBatteryLevel();
+		if (this->batteryIcon > 5) this->batteryIcon = 6;
+
+		this->brightnessIcon = this->gmenu2x->hw->getBacklightLevel();
+		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
+			this->brightnessIcon = 5;
+
+		int currentVolume = this->gmenu2x->hw->getVolumeLevel();
+		this->currentVolumeMode = this->getVolumeMode(currentVolume);
+        this->rtc.refresh();
+		TRACE("helper icon status updated");
+    }
+}
+
