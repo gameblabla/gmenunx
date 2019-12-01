@@ -29,10 +29,6 @@ Installer::~Installer() {
 bool Installer::install() {
     TRACE("enter");
     bool result = false;
-    string opk = getOpkPath();
-    if (opk.empty()) {
-        return false;
-    }
     if (!dirExists(this->destinationRootPath)) {
         if (mkdir(this->destinationRootPath.c_str(),0777) != 0) {
             ERROR("Couldn't create install root dir : %s", this->destinationRootPath.c_str());
