@@ -200,9 +200,11 @@ void LinkScannerDialog::scanPath(string path, vector<string> *files) {
 			scanPath(filepath, files);
 		} else if (statRet != -1) {
 			ext = fileExtension(dirItem);
+			//TRACE("got file extension %s for file : %s", ext.c_str(), dirItem.c_str());
 			if (ext.empty()) 
 				continue;
-			if (ext == "dge" || ext == "gpu" || ext == "gpe" || ext == "sh") {
+			if (ext == ".dge" || ext == ".gpu" || ext == ".gpe" || ext == ".sh" || ext == ".bin") {
+				TRACE("found executable file : %s", filepath.c_str());
 				this->notify("Found file : " + dirItem);
 				files->push_back(filepath);
 				this->foundFiles++;

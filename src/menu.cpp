@@ -247,12 +247,11 @@ bool Menu::addLink(string path, string file, string section) {
 			return false;
 	}
 
-	//if the extension is not equal to gpu or gpe then enable the wrapper by default
+	// if the extension is not equal to gpu or gpe then enable the wrapper by default
 	// bool wrapper = true;
 
-	//strip the extension from the filename
+	// strip the extension from the filename
 	string title = fileBaseName(file);
-	string ext = fileExtension(file);
 
 	string linkpath = gmenu2x->getWriteablePath() + "sections/" + section + "/" + title;
 	int x = 2;
