@@ -259,6 +259,7 @@ void Renderer::render() {
 
 	int i = gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols;
 
+	// single column mode
 	if (gmenu2x->skin->numLinkCols == 1) {
 		//TRACE("column mode : %i", gmenu2x->menu->sectionLinks()->size());
 		// LIST
@@ -322,29 +323,18 @@ void Renderer::render() {
 	} else {
 		//TRACE("row mode : %i", gmenu2x->menu->sectionLinks()->size());
         int ix, iy = 0;
+		int padding = 2;
 		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
 			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
 
 				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle());
-				int textWidth = gmenu2x->font->getTextWidth(title);
-				/*
-		                TRACE("SCALE::TEXT-WIDTH: %i, TEXT-LENGTH: %i, LINK-WIDTH: %i", 
-							textWidth, 
-							title.size(), 
-							linkWidth);
-                */
-				if (textWidth > gmenu2x->linkWidth) {
-					int wrapFactor = textWidth / gmenu2x->linkWidth;
-					int wrapMax = title.size() / wrapFactor;
-					title = splitInLines(title, wrapMax);
-					//TRACE("SCALE::WRAP::number of wraps needed: %i, wrap at max chars: %i, title: %s", wrapFactor, wrapMax, title.c_str());
-				}
 
 				// calc cell x && y
 				ix = gmenu2x->linksRect.x + (x * gmenu2x->linkWidth)  + (x + 1) * gmenu2x->linkSpacing;
 				iy = gmenu2x->linksRect.y + (y * gmenu2x->linkHeight) + (y + 1) * gmenu2x->linkSpacing;
 
 				gmenu2x->screen->setClipRect({ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight});
+				Surface * icon = (*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()];
 
 				// selected link highlight
 				if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
@@ -358,21 +348,35 @@ void Renderer::render() {
 
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("adding icon and text : %s", title.c_str());
-					(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+					icon->blit(
 						gmenu2x->screen, 
-						{ix + 2, iy + 2, gmenu2x->linkWidth - 4, gmenu2x->linkHeight - 4}, 
+						{ ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight}, 
 						HAlignCenter | VAlignMiddle);
 				} else if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
-					(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+					// get the combined height
+					int totalHeight = gmenu2x->font->getHeight() + icon->raw->h + padding;
+					// is it bigger that we have available?
+					if (totalHeight > gmenu2x->linkHeight) {
+						// go negative padding if we need to and pull the text up
+						padding = gmenu2x->linkHeight - totalHeight;
+						totalHeight = gmenu2x->linkHeight;
+					}
+					int totalHalfHeight = totalHeight / 2;
+					int cellHalfHeight = gmenu2x->linkHeight / 2;
+					int iconTop = iy + (cellHalfHeight - totalHalfHeight);
+					int textTop = iconTop + icon->raw->h + padding;
+
+					icon->blit(
 						gmenu2x->screen, 
-						{ix + 2, iy, gmenu2x->linkWidth - 4, gmenu2x->linkHeight}, 
-						HAlignCenter | VAlignTop);
+						{ ix, iconTop, gmenu2x->linkWidth, gmenu2x->linkHeight }, 
+						HAlignCenter);
 
 					gmenu2x->screen->write(gmenu2x->font, 
 						title, 
 						ix + (gmenu2x->linkWidth / 2), 
-						iy + gmenu2x->linkHeight,
-						HAlignCenter | VAlignBottom);
+						textTop, 
+						HAlignCenter);
+
 				} else {
 					//TRACE("adding text only : %s", title.c_str());
 					gmenu2x->screen->write(gmenu2x->font, 
