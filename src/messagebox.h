@@ -47,7 +47,7 @@ public:
 	void setButton(int action, const string &btn);
 	int exec();
 	void setAutoHide(int delay);
-	void setBgAlpha(bool bgalpha);
+	void setBgAlpha(int bgalpha);
 	void fadeOut(int delay = 250);
 };
 

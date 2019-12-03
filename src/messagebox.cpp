@@ -76,7 +76,7 @@ void MessageBox::setAutoHide(int autohide) {
 	this->autohide = autohide;
 }
 
-void MessageBox::setBgAlpha(bool bgalpha) {
+void MessageBox::setBgAlpha(int bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
@@ -104,9 +104,11 @@ int MessageBox::exec() {
 	TRACE("enter");
 	int result = -1;
 
-	// Surface bg(gmenu2x->s);
 	//Darken background
-	gmenu2x->screen->box((SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, (RGBAColor){0,0,0,bgalpha});
+	gmenu2x->screen->box(
+		(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
+		(RGBAColor){ 0, 0, 0, bgalpha }
+	);
 	TRACE("resx : %i", gmenu2x->config->resolutionX());
 	TRACE("text width : %i, size: %i", gmenu2x->font->getTextWidth(text), gmenu2x->font->getSize());
 
@@ -131,20 +133,32 @@ int MessageBox::exec() {
 
 	SDL_Rect box;
 	box.h = gmenu2x->font->getTextHeight(wrappedText) * gmenu2x->font->getHeight() + gmenu2x->font->getHeight();
-	if ((*gmenu2x->sc)[icon] != NULL && box.h < 40) box.h = 48;
+	if ((*gmenu2x->sc)[icon] != NULL && box.h < 40) {
+		box.h = 48;
+	}
 	box.w = textWidthPx + box_w_padding;
-	box.x = gmenu2x->config->halfX() - box.w/2 - 2;
-	box.y = gmenu2x->config->halfY() - box.h/2 - 2;
+	box.x = gmenu2x->config->halfX() - box.w / 2 - 2;
+	box.y = gmenu2x->config->halfY() - box.h / 2 - 2;
 
 	//outer box
 	gmenu2x->screen->box(box, gmenu2x->skin->colours.msgBoxBackground);
 	
 	//draw inner rectangle
-	gmenu2x->screen->rectangle(box.x+2, box.y+2, box.w-4, box.h-4, gmenu2x->skin->colours.msgBoxBorder);
+	gmenu2x->screen->rectangle(
+			box.x + 2, 
+			box.y + 2, 
+			box.w - 4, 
+			box.h - 4, 
+			gmenu2x->skin->colours.msgBoxBorder);
 
 	//icon+wrapped_text
-	if ((*gmenu2x->sc)[icon] != NULL)
-		(*gmenu2x->sc)[icon]->blit( gmenu2x->screen, box.x + 24, box.y + 24 , HAlignCenter | VAlignMiddle);
+	if ((*gmenu2x->sc)[icon] != NULL) {
+		(*gmenu2x->sc)[icon]->blit(
+			gmenu2x->screen, 
+			box.x + 24, 
+			box.y + 24 , 
+			HAlignCenter | VAlignMiddle);
+	}
 
 	gmenu2x->screen->write(
 		gmenu2x->font, 
@@ -166,7 +180,7 @@ int MessageBox::exec() {
 	//draw buttons rectangle
 	gmenu2x->screen->box(
 		box.x, 
-		box.y+box.h, 
+		box.y + box.h, 
 		box.w, 
 		gmenu2x->font->getHeight(), 
 		gmenu2x->skin->colours.msgBoxBackground);
@@ -194,7 +208,7 @@ int MessageBox::exec() {
 		//touchscreen
 		if (gmenu2x->f200 && gmenu2x->ts.poll()) {
 			for (uint32_t i = 0; i < buttons.size(); i++) {
-				if (buttons[i] != "" && gmenu2x->ts.inRect(buttonPositions[i])) {
+				if (!buttons[i].empty() && gmenu2x->ts.inRect(buttonPositions[i])) {
 					result = i;
 					break;
 				}
@@ -211,7 +225,6 @@ int MessageBox::exec() {
 			}
 		}
 	}
-
 	gmenu2x->input.dropEvents();
 	TRACE("exit : %i", result);
 	return result;
