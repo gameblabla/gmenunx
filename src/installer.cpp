@@ -15,6 +15,7 @@
 #define sync() sync(); system("sync");
 
 const std::string Installer::LAUNCHER_PATH="/usr/local/sbin/frontend_start";
+const std::string Installer::INSTALLER_MARKER_FILE = "/tmp/gmenunx.marker";
 
 Installer::Installer(std::string const & source, std::string const & destination, std::function<void(string)> callback) {
     this->sourceRootPath = source;
@@ -119,10 +120,15 @@ const bool Installer::deployLauncher() {
 		launcher << "#!/bin/sh\n\n";
         launcher << "# launcher script for " << APP_NAME << "\n\n";
         launcher << "OPK_PATH=" << opk << "\n";
-        launcher << "if [ -f ${OPK_PATH} ]; then\n";
+        launcher << "MARKER=" << Installer::INSTALLER_MARKER_FILE << "\n";
+        launcher << "\n";
+        launcher << "if [ -f ${OPK_PATH} ] && [ ! -f ${MARKER} ]; then\n";
         launcher << "\trm -f /tmp/gmenunx.run.log\n";
         launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> /tmp/gmenunx.run.log\n";
         launcher << "else\n";
+        launcher << "\tif [ -f ${MARKER} ];then\n";
+        launcher << "\t\trm -f ${MARKER}\n";
+        launcher << "fi\n";
         launcher << "\t/usr/bin/gmenu2x\n";
         launcher << "fi\n";
 		launcher.close();
@@ -168,4 +174,21 @@ const bool Installer::isDefaultLauncher(const string &opkPath) {
     }
     file.close();
     return result;
+}
+
+const bool Installer::leaveBootMarker() {
+    try {
+        std::fstream fs;
+        fs.open(Installer::INSTALLER_MARKER_FILE, std::ios::out);
+        fs.close();
+        return true;
+    } catch(...) {
+        return false;
+    }
+}
+
+const bool Installer::removeBootMarker() {
+    if (fileExists(Installer::INSTALLER_MARKER_FILE))
+        return 0 == unlink(Installer::INSTALLER_MARKER_FILE.c_str());
+    return true;
 }

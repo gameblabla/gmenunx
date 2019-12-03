@@ -11,6 +11,7 @@ class Installer {
     private:
 
         static const std::string LAUNCHER_PATH;
+        static const std::string INSTALLER_MARKER_FILE;
 
         std::function<void(std::string)> notifiable;
 
@@ -44,9 +45,13 @@ class Installer {
         static const bool isDefaultLauncher(const std::string &opkPath);
         static const bool removeLauncher();
         static const bool deployLauncher();
+        static const bool leaveBootMarker();
+        static const bool removeBootMarker();
 
         bool install();
         bool upgrade();
+
+
 
 };
 
