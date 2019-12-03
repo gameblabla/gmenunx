@@ -362,9 +362,9 @@ void GMenu2X::main() {
 				// double flip for a nice screen
 				renderer->render();
 
-				string message = " ~< Welcome to " + APP_NAME + " >~ \n";
-				message += "You can set me as your default launcher\n";
-				message += "by installing me from the settings menu";
+				string message = "     ~< Welcome to " + APP_NAME + " >~ \n";
+				message += "You can set me as your default launcher ";
+				message += "by running 'install' from the settings menu";
 				MessageBox * mbWelcome = new MessageBox(
 					this, 
 					message, 

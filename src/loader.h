@@ -10,7 +10,7 @@
 
 using namespace std;
 
-static const string LOADER_MARKER_FILE = "/tmp/gmenunx.marker";
+static const string LOADER_MARKER_FILE = "/tmp/gmenunx.has.run";
 static const string LOADER_FOLDER = "loader";
 static const string LOADER_CONFIG_FILE = "loader.conf";
 

@@ -101,8 +101,9 @@ bool Loader::fromFile() {
 }
 
 void Loader::run() {
-    TRACE("enter");
+    TRACE("enter, looking for marker : %s", LOADER_MARKER_FILE.c_str());
     if (!fileExists(LOADER_MARKER_FILE)) {
+        TRACE("no marker file : %s", LOADER_MARKER_FILE.c_str());
         if (this->fromFile()) {
             this->showLoader();
         }
@@ -110,6 +111,8 @@ void Loader::run() {
         fstream fs;
         fs.open(LOADER_MARKER_FILE, ios::out);
         fs.close();
+    } else {
+        TRACE("not first boot, loader marker exists : %s", LOADER_MARKER_FILE.c_str());
     }
     TRACE("exit");
 }
