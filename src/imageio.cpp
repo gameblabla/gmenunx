@@ -2,8 +2,6 @@
 // Based on the libpng example.c source, with some additional inspiration
 // from SDL_image and openMSX.
 // License: GPL version 2 or later.
-
-
 #include "imageio.h"
 #include "debug.h"
 
@@ -22,6 +20,7 @@ static void __readFromOpk(png_structp png_ptr, png_bytep ptr, png_size_t length)
 	memcpy(ptr, *buf, length);
 	*buf += length;
 }
+
 #endif
 
 /* png saving section */
@@ -36,11 +35,9 @@ static int png_colortype_from_surface(SDL_Surface *surface) {
 	return colortype;
 }
 
-
 void png_user_warn(png_structp ctx, png_const_charp str) {
 	fprintf(stderr, "libpng: warning: %s\n", str);
 }
-
 
 void png_user_error(png_structp ctx, png_const_charp str) {
 	fprintf(stderr, "libpng: error: %s\n", str);
@@ -167,7 +164,6 @@ int saveSurfacePng(char *filename, SDL_Surface *surf) {
 }
 /* png saving section */
 
-
 SDL_Surface *loadPNG(const std::string &path, bool loadAlpha) {
 	// Declare these with function scope and initialize them to NULL,
 	// so we can use a single cleanup block at the end of the function.
@@ -204,7 +200,7 @@ SDL_Surface *loadPNG(const std::string &path, bool loadAlpha) {
 	if (pos != path.npos) {
 		TRACE("loadPNG - We have found a hash, time for opk action");
 		int ret;
-		size_t length;
+		std::size_t length;
 
 		TRACE("loadPNG - opening opk");
 		opk = opk_open(path.substr(0, pos).c_str());
@@ -237,7 +233,8 @@ SDL_Surface *loadPNG(const std::string &path, bool loadAlpha) {
 	// The call to png_read_info() gives us all of the information from the
 	// PNG file before the first IDAT (image data chunk).
 	png_read_info(png, info);
-	png_uint_32 width, height;
+	png_uint_32 width;
+	png_uint_32 height;
 	int bitDepth, colorType;
 	png_get_IHDR(
 		png, info, &width, &height, &bitDepth, &colorType, NULL, NULL, NULL);
