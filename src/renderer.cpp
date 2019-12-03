@@ -95,7 +95,7 @@ void Renderer::render() {
     int ix = 0;
     int iy = 0;
 
-    TRACE("setting the clearing box");
+    //TRACE("setting the clearing box");
 	gmenu2x->screen->box(
 		(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
 		(RGBAColor){0, 0, 0, 255});
@@ -110,10 +110,10 @@ void Renderer::render() {
 	}
 
 	// info bar
-	TRACE("infoBar test");
+	//TRACE("infoBar test");
 	if (gmenu2x->skin->sectionInfoBarVisible) {
 		if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
-			TRACE("infobar needs drawing");
+			//TRACE("infobar needs drawing");
 
 			SDL_Rect infoBarRect;
 			switch(gmenu2x->skin->sectionBar) {
@@ -139,9 +139,9 @@ void Renderer::render() {
 
 			// do we have an image
 			if (!gmenu2x->skin->sectionInfoBarImage.empty()) {
-				TRACE("infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
+				//TRACE("infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
 				if ((*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
-					TRACE("infoBar image is being scaled");
+					//TRACE("infoBar image is being scaled");
 					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(
 						gmenu2x->config->resolutionX(), 
 						infoBarRect.h);
@@ -150,7 +150,7 @@ void Renderer::render() {
 					gmenu2x->screen, 
 					infoBarRect);
 			} else {
-				TRACE("infoBar has no image, going for a simple box");
+				//TRACE("infoBar has no image, going for a simple box");
 				gmenu2x->screen->box(
 					infoBarRect, 
 					gmenu2x->skin->colours.infoBarBackground);
@@ -175,12 +175,12 @@ void Renderer::render() {
 	}
 		
 	// SECTIONS
-	TRACE("sections");
+	//TRACE("sections");
 	if (gmenu2x->skin->sectionBar) {
 
 		// do we have an image
 		if (!gmenu2x->skin->sectionTitleBarImage.empty()) {
-			TRACE("sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
+			//TRACE("sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
 			if ((*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
 				TRACE("sectionBar image is being scaled");
 				(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
@@ -189,20 +189,20 @@ void Renderer::render() {
 				gmenu2x->screen, 
 				gmenu2x->sectionBarRect);
 		} else {
-			TRACE("sectionBar has no image, going for a simple box");
+			//TRACE("sectionBar has no image, going for a simple box");
 			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.titleBarBackground);
 		}
 
 		x = gmenu2x->sectionBarRect.x; 
 		y = gmenu2x->sectionBarRect.y;
 
-        TRACE("checking mode");
+        //TRACE("checking mode");
 		// we're in section text mode....
 		if (!gmenu2x->skin->showSectionIcons && (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM)) {
-            TRACE("section text mode");
+            //TRACE("section text mode");
             string sectionName = gmenu2x->menu->selSection();
 
-            TRACE("section text mode - writing title");
+            //TRACE("section text mode - writing title");
 			gmenu2x->screen->write(
 				gmenu2x->fontSectionTitle, 
 				"\u00AB " + gmenu2x->tr.translate(sectionName) + " \u00BB", 
@@ -210,12 +210,12 @@ void Renderer::render() {
 				gmenu2x->sectionBarRect.y + (gmenu2x->sectionBarRect.h / 2),
 				HAlignCenter | VAlignMiddle);
 
-            TRACE("section text mode - checking clock");
+            //TRACE("section text mode - checking clock");
 			if (gmenu2x->skin->showClock) {	
 
-                TRACE("section text mode - writing clock");
+                //TRACE("section text mode - writing clock");
                 string clockTime = rtc.getClockTime(true);
-                TRACE("section text mode - got clock time : %s", clockTime.c_str());
+                //TRACE("section text mode - got clock time : %s", clockTime.c_str());
 				gmenu2x->screen->write(
 					gmenu2x->fontSectionTitle, 
 					clockTime, 
@@ -327,16 +327,21 @@ void Renderer::render() {
 		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
 			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
 
+				// TRACE("getting title");
 				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle());
+				// TRACE("got title : %s for index %i", title.c_str(), i);
 
 				// calc cell x && y
+				// TRACE("calculating heights");
 				ix = gmenu2x->linksRect.x + (x * gmenu2x->linkWidth)  + (x + 1) * gmenu2x->linkSpacing;
 				iy = gmenu2x->linksRect.y + (y * gmenu2x->linkHeight) + (y + 1) * gmenu2x->linkSpacing;
 
+				// TRACE("setting clip rect");
 				gmenu2x->screen->setClipRect({ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight});
 				Surface * icon = (*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()];
 
 				// selected link highlight
+				// TRACE("checking highlight");
 				if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
 					gmenu2x->screen->box(
 						ix, 
@@ -392,10 +397,13 @@ void Renderer::render() {
 	//TRACE("done");
 	gmenu2x->screen->clearClipRect();
 
-	gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
-		gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
-		gmenu2x->menu->firstDispRow(), 
-		gmenu2x->linksRect);
+	// add a scroll bar if we're not in single row world
+	if (this->gmenu2x->skin->numLinkRows > 1) {
+		gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
+			gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
+			gmenu2x->menu->firstDispRow(), 
+			gmenu2x->linksRect);
+	}
 
 	currBackdrop = gmenu2x->skin->wallpaper;
 	if (gmenu2x->menu->selLink() != NULL && gmenu2x->menu->selLinkApp() != NULL && !gmenu2x->menu->selLinkApp()->getBackdropPath().empty() && gmenu2x->sc->addImage(gmenu2x->menu->selLinkApp()->getBackdropPath()) != NULL) {
@@ -430,7 +438,7 @@ void Renderer::render() {
 		}
 		int rootXPos = gmenu2x->sectionBarRect.x + gmenu2x->sectionBarRect.w - 18;
 		int rootYPos = gmenu2x->sectionBarRect.y + gmenu2x->sectionBarRect.h - 18;
-		TRACE("hitting up the helpers");
+		//TRACE("hitting up the helpers");
 
 		helpers.push_back(iconVolume[currentVolumeMode]);
 		helpers.push_back(iconBattery[batteryIcon]);
@@ -450,11 +458,11 @@ void Renderer::render() {
 				}
 			}
 		}
-		TRACE("layoutHelperIcons");
+		//TRACE("layoutHelperIcons");
 		int * xPosPtr = & rootXPos;
 		int * yPosPtr = & rootYPos;
 		layoutHelperIcons(helpers, gmenu2x->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
-		TRACE("helpers.clear()");
+		//TRACE("helpers.clear()");
 		helpers.clear();
 
 		if (gmenu2x->skin->showClock) {
@@ -481,7 +489,7 @@ void Renderer::render() {
 		}
 	} // gmenu2x->skin->sectionBar
 
-    TRACE("flip"); 
+    //TRACE("flip"); 
 	gmenu2x->screen->flip();
 	this->locked_ = false;
     TRACE("exit");
