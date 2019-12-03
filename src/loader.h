@@ -25,7 +25,6 @@ class Loader {
 
         bool fromFile();
         void showLoader();
-        void showFallback();
 
     public:
         Loader(GMenu2X *app);

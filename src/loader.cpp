@@ -105,20 +105,12 @@ void Loader::run() {
     if (!fileExists(LOADER_MARKER_FILE)) {
         if (this->fromFile()) {
             this->showLoader();
-        } //else this->showFallback();
+        }
         TRACE("setting marker : %s", LOADER_MARKER_FILE.c_str());
         fstream fs;
         fs.open(LOADER_MARKER_FILE, ios::out);
         fs.close();
-    } //else this->showFallback();
-    TRACE("exit");
-}
-
-void Loader::showFallback() {
-    TRACE("enter");
-    MessageBox mb(this->app, this->app->tr["Loading"]);
-    mb.setAutoHide(1);
-    mb.exec();
+    }
     TRACE("exit");
 }
 
