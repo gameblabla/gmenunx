@@ -148,6 +148,17 @@ string Skin::toString() {
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
     vec.push_back("");
     
+    vec.push_back("# if there is a highlight image supplied with the skin, ");
+    vec.push_back("# it needs to be located at imgs/iconbg_on.png");
+    vec.push_back("# then this flag declares if it is scaleable or not....");
+    vec.push_back("# because of the limitations of SDL 1.2, software scaling kills the Alpha channel,");
+    vec.push_back("# and so we take the colour of pixel (0, 0) AKA top left");
+    vec.push_back("# and consider anything else that colour to be transparent");
+    vec.push_back("# we also don't keep aspect ration in the scaling, ");
+    vec.push_back("# because cell sizes change ratio with row and column count");
+    vec.push_back(string_format("scaleableHighlightImage=%i", scaleableHighlightImage));
+    vec.push_back("");
+
     vec.push_back("# the current selected wallpaper");
     vec.push_back("# when designing a skin, set the filename only, no path, ");
     vec.push_back("# the path is resolved at run time");
@@ -306,6 +317,7 @@ void Skin::reset() {
     showClock = true;
     showLoader = false;
     skinBackdrops = false;
+    scaleableHighlightImage = false;
     sectionBar = SB_LEFT;
     wallpaper = "";
     menuInfoBarImage = "";
@@ -347,6 +359,7 @@ void Skin::constrain() {
     evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
     evalIntConf( &this->sectionInfoBarVisible, 0, 0, 1);
+    evalIntConf( &this->scaleableHighlightImage, 0, 0, 1);
     evalIntConf( &this->numLinkCols, 1, 1, 10);
     evalIntConf( &this->numLinkRows, 6, 1, 16);
     evalIntConf( (int)*(&this->linkDisplayMode), ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
@@ -484,6 +497,8 @@ bool Skin::fromFile() {
                             this->iconsToGrayscale = atoi(value.c_str());
                         } else if (name == "imagestograyscale") {
                             this->imagesToGrayscale = atoi(value.c_str());
+                        } else if (name == "scaleablehighlightimage") {
+                            this->scaleableHighlightImage = atoi(value.c_str());
                         } else {
                             WARNING("unknown skin key : %s", name.c_str());
                         }

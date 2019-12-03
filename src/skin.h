@@ -87,6 +87,7 @@ public:
 
     int showSectionIcons;
     int showClock;
+    int scaleableHighlightImage;
     int sectionInfoBarVisible;
     int skinBackdrops;
     SectionBar sectionBar;

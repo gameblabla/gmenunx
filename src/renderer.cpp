@@ -257,7 +257,7 @@ void Renderer::render() {
 	gmenu2x->screen->setClipRect(gmenu2x->linksRect);
 	gmenu2x->screen->box(gmenu2x->linksRect, gmenu2x->skin->colours.listBackground);
 
-	int i = gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols;
+	int i = (gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols);
 
 	// single column mode
 	if (gmenu2x->skin->numLinkCols == 1) {
@@ -343,14 +343,61 @@ void Renderer::render() {
 				// selected link highlight
 				// TRACE("checking highlight");
 				if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
-					gmenu2x->screen->box(
-						ix, 
-						iy, 
-						gmenu2x->linkWidth, 
-						gmenu2x->linkHeight, 
-						gmenu2x->skin->colours.selectionBackground);
-				}
 
+					Surface *highlighter = (*gmenu2x->sc)["skin:imgs/iconbg_on.png"];
+					if (NULL != highlighter) {
+						
+						int imageX = ix;
+						int imageY = iy;
+						int imageWidth = gmenu2x->linkWidth;
+						int imageHeight = gmenu2x->linkHeight;
+
+						if (highlighter->raw->h > imageHeight || highlighter->raw->w > imageWidth) {
+							if (gmenu2x->skin->scaleableHighlightImage) {
+								//TRACE("Highlight image is being scaled");
+								highlighter->softStretch(
+									imageWidth, 
+									imageHeight, 
+									false, 
+									true);
+								// dirty hack
+								SDL_SetColorKey(
+									highlighter->raw, 
+									SDL_SRCCOLORKEY | SDL_RLEACCEL, 
+									highlighter->pixel(0, 0));
+							} else {
+								int widthDiff = (highlighter->raw->w - imageWidth) / 2;
+								int heightDiff = (highlighter->raw->h - imageHeight) / 2;
+
+								imageX -= widthDiff;
+								imageWidth = highlighter->raw->w;
+								imageY -= heightDiff;
+								imageHeight = highlighter->raw->h;
+							}
+						}
+
+						(*gmenu2x->sc)["skin:imgs/iconbg_on.png"]->blit(
+							gmenu2x->screen, 
+							{ 
+								imageX, 
+								imageY, 
+								imageWidth, 
+								imageHeight
+							}, 
+							HAlignCenter | VAlignMiddle);
+
+					} else {
+
+						gmenu2x->screen->box(
+							ix, 
+							iy, 
+							gmenu2x->linkWidth, 
+							gmenu2x->linkHeight, 
+							gmenu2x->skin->colours.selectionBackground);
+
+					}
+
+				}
 				if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("adding icon and text : %s", title.c_str());
 					icon->blit(
