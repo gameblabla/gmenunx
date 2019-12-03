@@ -490,16 +490,13 @@ bool Skin::fromFile() {
                     }
                     catch (int param) { 
                         ERROR("int exception : %i from <%s, %s>", 
-                            param, name.c_str(), 
-                            value.c_str()); }
-                    catch (char param) { 
+                            param, name.c_str(), value.c_str()); }
+                    catch (char *param) { 
                         ERROR("char exception : %s from <%s, %s>", 
-                            param, name.c_str(), 
-                            value.c_str()); }
+                            param, name.c_str(), value.c_str()); }
                     catch (...) { 
                             ERROR("unknown error reading value from <%s, %s>", 
-                                name.c_str(), 
-                                value.c_str());
+                                name.c_str(), value.c_str());
                     }
                 } 
                 catch (...) {
