@@ -181,6 +181,9 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 	TRACE("enter");
 
+	TRACE("leaving the boot marker");
+	Installer::leaveBootMarker();
+
 	TRACE("creating hardware layer");
 	this->hw = HwFactory::GetHardware();
 
@@ -270,17 +273,21 @@ void GMenu2X::main() {
 	// has to come before the app cache thread kicks off
 	TRACE("checking sd card");
 	this->hw->checkUDC();
-
+	bool showGreeting = false;
+	std::string title = "Please wait, loading the everything...";
 	if (this->needsInstalling) {
 		if(dirExists(this->getWriteablePath())) {
 			this->doUpgrade();
-		} else this->doInitialSetup();
+		} else {
+			title = "Please wait, building application cache";
+			showGreeting = this->doInitialSetup();
+		}
 	} 
 
 	// create this early so we can give it to the thread, but don't exec it yet
 	ProgressBar * pbLoading = new ProgressBar(
 		this, 
-		"Please wait, loading the everything...", 
+		title, 
 		"skin:icons/device.png");
 
 	pbLoading->updateDetail("Checking for new applications...");
@@ -331,6 +338,9 @@ void GMenu2X::main() {
 	input.setWakeUpInterval(1000);
 	this->hw->ledOff();
 
+	TRACE("removing the boot marker");
+	Installer::removeBootMarker();
+
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
 		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
@@ -345,8 +355,26 @@ void GMenu2X::main() {
 	bool quit = false;
 	while (!quit) {
 		try {
-			TRACE("loop");
+			// TRACE("loop");
 			renderer->render();
+
+			if (showGreeting) {
+				// double flip for a nice screen
+				renderer->render();
+
+				string message = " ~< Welcome to " + APP_NAME + " >~ \n";
+				message += "You can set me as your default launcher\n";
+				message += "by installing me from the settings menu";
+				MessageBox * mbWelcome = new MessageBox(
+					this, 
+					message, 
+					"skin:icons/device.png");
+				mbWelcome->setButton(actions::CONFIRM, "ok");
+				mbWelcome->exec();
+				delete mbWelcome;
+				showGreeting = false;
+			}
+
 		} catch (int e) {
 			ERROR("render - error : %i", e);
 		}
@@ -1436,19 +1464,6 @@ bool GMenu2X::doInitialSetup() {
 		pbInstall->finished(2000);
 	}
 	delete pbInstall;
-/*
-	INFO("setting up the application cache");
-	ProgressBar * pbCache = new ProgressBar(
-		this, 
-		"Updating the application cache...", 
-		"skin:icons/device.png");
-
-	pbCache->exec();
-	this->updateAppCache(std::bind( &ProgressBar::updateDetail, pbCache, std::placeholders::_1));
-	pbCache->updateDetail("Finished creating cache");
-	pbCache->finished(200);
-	delete pbCache;
-*/
 	sync();
 	
 	TRACE("exit");
