@@ -366,126 +366,145 @@ bool Skin::fromFile() {
 		if (skinconf.is_open()) {
 			string line;
 			while (getline(skinconf, line, '\n')) {
-				line = trim(line);
-                if (0 == line.length()) continue;
-                if ('#' == line[0]) continue;
-				string::size_type pos = line.find("=");
-                if (string::npos == pos) continue;
-                
-				string name = trim(line.substr(0,pos));
-				string value = trim(line.substr(pos+1,line.length()));
+                try {
+                    line = trim(line);
+                    if (0 == line.length()) continue;
+                    if ('#' == line[0]) continue;
+                    string::size_type pos = line.find("=");
+                    if (string::npos == pos) continue;
+                    
+                    string name = trim(line.substr(0, pos));
+                    string value = trim(line.substr(pos + 1,line.length()));
 
-                if (0 == value.length()) continue;
-                name = toLower(name);
-                TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
+                    if (0 == value.length()) continue;
+                    name = toLower(name);
+                    TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
-                if (name == "version") {
-                    version = atoi(value.c_str());
-                } else if (name == "fontsize") {
-                    this->fontSize = atoi(value.c_str());
-                } else if (name == "fontsizetitle") {
-                    this->fontSizeTitle = atoi(value.c_str());
-                } else if (name == "fontsizesectiontitle") {
-                    this->fontSizeSectionTitle = atoi(value.c_str());
-                } else if (name == "linkrows") {
-                    numLinkRows = atoi(value.c_str());
-                } else if (name == "linkcols") {
-                    numLinkCols = atoi(value.c_str());
-                } else if (name == "sectionbarsize") {
-                    sectionTitleBarSize = atoi(value.c_str());
-                } else if (name == "sectiontitlebarsize") {
-                    sectionTitleBarSize = atoi(value.c_str());
-                } else if (name == "sectiontitlebarimage") {
-                    sectionTitleBarImage = stripQuotes(value);
-                    if (!sectionTitleBarImage.empty() && sectionTitleBarImage == base_name(sectionTitleBarImage)) {
-                        sectionTitleBarImage = skinPath + "imgs/" + sectionTitleBarImage;
+                    try {
+                        if (name == "version") {
+                            version = atoi(value.c_str());
+                        } else if (name == "fontsize") {
+                            this->fontSize = atoi(value.c_str());
+                        } else if (name == "fontsizetitle") {
+                            this->fontSizeTitle = atoi(value.c_str());
+                        } else if (name == "fontsizesectiontitle") {
+                            this->fontSizeSectionTitle = atoi(value.c_str());
+                        } else if (name == "linkrows") {
+                            numLinkRows = atoi(value.c_str());
+                        } else if (name == "linkcols") {
+                            numLinkCols = atoi(value.c_str());
+                        } else if (name == "sectionbarsize") {
+                            sectionTitleBarSize = atoi(value.c_str());
+                        } else if (name == "sectiontitlebarsize") {
+                            sectionTitleBarSize = atoi(value.c_str());
+                        } else if (name == "sectiontitlebarimage") {
+                            sectionTitleBarImage = stripQuotes(value);
+                            if (!sectionTitleBarImage.empty() && sectionTitleBarImage == base_name(sectionTitleBarImage)) {
+                                sectionTitleBarImage = skinPath + "imgs/" + sectionTitleBarImage;
+                            }
+                            sectionTitleBarImage = trim(sectionTitleBarImage);
+                        } else if (name == "sectioninfobarsize") {
+                            sectionInfoBarSize = atoi(value.c_str());
+                        } else if (name == "sectioninfobarimage") {
+                            sectionInfoBarImage = stripQuotes(value);
+                            if (!sectionInfoBarImage.empty() && sectionInfoBarImage == base_name(sectionInfoBarImage)) {
+                                sectionInfoBarImage = skinPath + "imgs/" + sectionInfoBarImage;
+                            }
+                            sectionInfoBarImage = trim(sectionInfoBarImage);
+                        } else if (name == "bottombarheight") {
+                            menuInfoBarHeight = atoi(value.c_str());
+                        } else if (name == "topbarheight") {
+                            menuTitleBarHeight = atoi(value.c_str());
+                        } else if (name == "menuinfobarheight") {
+                            menuInfoBarHeight = atoi(value.c_str());
+                        } else if (name == "menuinfobarimage") {
+                            menuInfoBarImage = stripQuotes(value);
+                            if (!menuInfoBarImage.empty() && menuInfoBarImage == base_name(menuInfoBarImage)) {
+                                menuInfoBarImage = skinPath + "imgs/" + menuInfoBarImage;
+                            }
+                            menuInfoBarImage = trim(menuInfoBarImage);
+                        } else if (name == "menutitlebarheight") {
+                            menuTitleBarHeight = atoi(value.c_str());
+                        } else if (name == "menutitlebarimage") {
+                            menuTitleBarImage = stripQuotes(value);
+                            if (!menuTitleBarImage.empty() && menuTitleBarImage == base_name(menuTitleBarImage)) {
+                                menuTitleBarImage = skinPath + "imgs/" + menuTitleBarImage;
+                            }
+                            menuTitleBarImage = trim(menuTitleBarImage);
+                        } else if (name == "previewwidth") {
+                            previewWidth = atoi(value.c_str());
+                        } else if (name == "linkdisplaymode") {
+                            linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
+                        } else if (name == "showsectionicons") {
+                            showSectionIcons = atoi(value.c_str());
+                        } else if (name == "showclock") {
+                            showClock = atoi(value.c_str());
+                        } else if (name == "showloader") {
+                            showLoader = atoi(value.c_str());
+                        } else if (name == "sectioninfobarvisible") {
+                            sectionInfoBarVisible = atoi(value.c_str());
+                        } else if (name == "skinbackdrops") {
+                            skinBackdrops = atoi(value.c_str());
+                        } else if (name == "sectionbar") {
+                            sectionBar = (SectionBar)atoi(value.c_str());
+                        } else if (name == "wallpaper") {
+                            wallpaper = stripQuotes(value);
+                            if (!wallpaper.empty() && wallpaper == base_name(wallpaper)) {
+                                wallpaper = skinPath + "wallpapers/" + wallpaper;
+                            }
+                        } else if (name == "background") {
+                            colours.background = strtorgba(value);
+                        } else if (name == "topbarbg") {
+                            colours.titleBarBackground = strtorgba(value);
+                        } else if (name == "titlebarbg") {
+                            colours.titleBarBackground = strtorgba(value);
+                        } else if (name == "listbg") {
+                            colours.listBackground = strtorgba(value);
+                        } else if (name == "bottombarbg") {
+                            colours.infoBarBackground = strtorgba(value);
+                        } else if (name == "infobarbg") {
+                            colours.infoBarBackground = strtorgba(value);
+                        } else if (name == "selectionbg") {
+                            colours.selectionBackground = strtorgba(value);
+                        } else if (name == "messageboxbg") {
+                            colours.msgBoxBackground = strtorgba(value);
+                        } else if (name == "messageboxborder") {
+                            colours.msgBoxBorder = strtorgba(value);
+                        } else if (name == "messageboxselection") {
+                            colours.msgBoxSelection = strtorgba(value);
+                        } else if (name == "font") {
+                            colours.font = strtorgba(value);
+                        } else if (name == "fontoutline") {
+                            colours.fontOutline = strtorgba(value);
+                        } else if (name == "fontalt") {
+                            colours.fontAlt = strtorgba(value);
+                        } else if (name == "fontaltoutline") {
+                            colours.fontAltOutline = strtorgba(value);
+                        } else if (name == "iconstograyscale") {
+                            this->iconsToGrayscale = atoi(value.c_str());
+                        } else if (name == "imagestograyscale") {
+                            this->imagesToGrayscale = atoi(value.c_str());
+                        } else {
+                            WARNING("unknown skin key : %s", name.c_str());
+                        }
                     }
-                    sectionTitleBarImage = trim(sectionTitleBarImage);
-                } else if (name == "sectioninfobarsize") {
-                    sectionInfoBarSize = atoi(value.c_str());
-                } else if (name == "sectioninfobarimage") {
-                    sectionInfoBarImage = stripQuotes(value);
-                    if (!sectionInfoBarImage.empty() && sectionInfoBarImage == base_name(sectionInfoBarImage)) {
-                        sectionInfoBarImage = skinPath + "imgs/" + sectionInfoBarImage;
+                    catch (int param) { 
+                        ERROR("int exception : %i from <%s, %s>", 
+                            param, name.c_str(), 
+                            value.c_str()); }
+                    catch (char param) { 
+                        ERROR("char exception : %s from <%s, %s>", 
+                            param, name.c_str(), 
+                            value.c_str()); }
+                    catch (...) { 
+                            ERROR("unknown error reading value from <%s, %s>", 
+                                name.c_str(), 
+                                value.c_str());
                     }
-                    sectionInfoBarImage = trim(sectionInfoBarImage);
-                } else if (name == "bottombarheight") {
-                    menuInfoBarHeight = atoi(value.c_str());
-                } else if (name == "topbarheight") {
-                    menuTitleBarHeight = atoi(value.c_str());
-                } else if (name == "menuinfobarheight") {
-                    menuInfoBarHeight = atoi(value.c_str());
-                } else if (name == "menuinfobarimage") {
-                    menuInfoBarImage = stripQuotes(value);
-                    if (!menuInfoBarImage.empty() && menuInfoBarImage == base_name(menuInfoBarImage)) {
-                        menuInfoBarImage = skinPath + "imgs/" + menuInfoBarImage;
-                    }
-                    menuInfoBarImage = trim(menuInfoBarImage);
-                } else if (name == "menutitlebarheight") {
-                    menuTitleBarHeight = atoi(value.c_str());
-                } else if (name == "menutitlebarimage") {
-                    menuTitleBarImage = stripQuotes(value);
-                    if (!menuTitleBarImage.empty() && menuTitleBarImage == base_name(menuTitleBarImage)) {
-                        menuTitleBarImage = skinPath + "imgs/" + menuTitleBarImage;
-                    }
-                    menuTitleBarImage = trim(menuTitleBarImage);
-                } else if (name == "previewwidth") {
-                    previewWidth = atoi(value.c_str());
-                } else if (name == "linkdisplaymode") {
-                    linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
-                } else if (name == "showsectionicons") {
-                    showSectionIcons = atoi(value.c_str());
-                } else if (name == "showclock") {
-                    showClock = atoi(value.c_str());
-                } else if (name == "showloader") {
-                    showLoader = atoi(value.c_str());
-                } else if (name == "sectioninfobarvisible") {
-                    sectionInfoBarVisible = atoi(value.c_str());
-                } else if (name == "skinbackdrops") {
-                    skinBackdrops = atoi(value.c_str());
-                } else if (name == "sectionbar") {
-                    sectionBar = (SectionBar)atoi(value.c_str());
-                } else if (name == "wallpaper") {
-                    wallpaper = stripQuotes(value);
-                    if (!wallpaper.empty() && wallpaper == base_name(wallpaper)) {
-                        wallpaper = skinPath + "wallpapers/" + wallpaper;
-                    }
-                } else if (name == "background") {
-                    colours.background = strtorgba(value);
-                } else if (name == "topbarbg") {
-                    colours.titleBarBackground = strtorgba(value);
-                } else if (name == "titlebarbg") {
-                    colours.titleBarBackground = strtorgba(value);
-                } else if (name == "listbg") {
-                    colours.listBackground = strtorgba(value);
-                } else if (name == "bottombarbg") {
-                    colours.infoBarBackground = strtorgba(value);
-                } else if (name == "infobarbg") {
-                    colours.infoBarBackground = strtorgba(value);
-                } else if (name == "selectionbg") {
-                    colours.selectionBackground = strtorgba(value);
-                } else if (name == "messageboxbg") {
-                    colours.msgBoxBackground = strtorgba(value);
-                } else if (name == "messageboxborder") {
-                    colours.msgBoxBorder = strtorgba(value);
-                } else if (name == "messageboxselection") {
-                    colours.msgBoxSelection = strtorgba(value);
-                } else if (name == "font") {
-                    colours.font = strtorgba(value);
-                } else if (name == "fontoutline") {
-                    colours.fontOutline = strtorgba(value);
-                } else if (name == "fontalt") {
-                    colours.fontAlt = strtorgba(value);
-                } else if (name == "fontaltoutline") {
-                    colours.fontAltOutline = strtorgba(value);
-                } else if (name == "iconstograyscale") {
-                    this->iconsToGrayscale = atoi(value.c_str());
-                } else if (name == "imagestograyscale") {
-                    this->imagesToGrayscale = atoi(value.c_str());
-                } else {
-                    WARNING("unknown skin key : %s", name.c_str());
+                } 
+                catch (...) {
+                    ERROR("Error reading skin config line : %s", line.c_str());
                 }
-
             };
             skinconf.close();
             this->constrain();
@@ -495,4 +514,3 @@ bool Skin::fromFile() {
     TRACE("exit");
     return result;
 }
-

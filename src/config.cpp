@@ -209,80 +209,99 @@ bool Config::fromFile() {
 		if (confstream.is_open()) {
 			string line;
 			while (getline(confstream, line, '\n')) {
-				line = trim(line);
-                if (0 == line.length()) continue;
-                if ('#' == line[0]) continue;
-				string::size_type pos = line.find("=");
-                if (string::npos == pos) continue;
-                
-				string name = trim(line.substr(0,pos));
-				string value = trim(line.substr(pos+1,line.length()));
+                try {
+                    line = trim(line);
+                    if (0 == line.length()) continue;
+                    if ('#' == line[0]) continue;
+                    string::size_type pos = line.find("=");
+                    if (string::npos == pos) continue;
+                    
+                    string name = trim(line.substr(0,pos));
+                    string value = trim(line.substr(pos+1,line.length()));
 
-                if (0 == value.length()) continue;
-                name = toLower(name);
+                    if (0 == value.length()) continue;
+                    name = toLower(name);
 
-                TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
+                    TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
-                // strings
-                if (name == "externalapppath") {
-                    this->externalAppPath(stripQuotes(value));
-                } else if (name == "skin") {
-                    this->skin(stripQuotes(value));
-                } else if (name == "performance") {
-                    this->performance(stripQuotes(value));
-                } else if (name == "tvoutmode") {
-                    this->tvOutMode(stripQuotes(value));
-                } else if (name == "lang") {
-                    this->lang(stripQuotes(value));
-                } else if (name == "batterytype") {
-                    this->batteryType(stripQuotes(value));
-                } else if (name == "sectionfilter") {
-                    this->sectionFilter(stripQuotes(value));
-                } else if (name == "launcherpath") {
-                    this->launcherPath(stripQuotes(value));
+                    try {
+                        // strings
+                        if (name == "externalapppath") {
+                            this->externalAppPath(stripQuotes(value));
+                        } else if (name == "skin") {
+                            this->skin(stripQuotes(value));
+                        } else if (name == "performance") {
+                            this->performance(stripQuotes(value));
+                        } else if (name == "tvoutmode") {
+                            this->tvOutMode(stripQuotes(value));
+                        } else if (name == "lang") {
+                            this->lang(stripQuotes(value));
+                        } else if (name == "batterytype") {
+                            this->batteryType(stripQuotes(value));
+                        } else if (name == "sectionfilter") {
+                            this->sectionFilter(stripQuotes(value));
+                        } else if (name == "launcherpath") {
+                            this->launcherPath(stripQuotes(value));
+                        } 
+
+                        // ints
+                        else if (name == "buttonrepeatrate") {
+                            this->buttonRepeatRate(atoi(value.c_str()));
+                        } else if (name == "resolutionx") {
+                            this->resolutionX(atoi(value.c_str()));
+                        } else if (name == "resolutiony") {
+                            this->resolutionY(atoi(value.c_str()));
+                        } else if (name == "videobpp") {
+                            this->videoBpp(atoi(value.c_str()));
+                        } else if (name == "backlightlevel") {
+                            this->backlightLevel(atoi(value.c_str()));
+                        } else if (name == "backlighttimeout") {
+                            this->backlightTimeout(atoi(value.c_str()));
+                        } else if (name == "powertimeout") {
+                            this->powerTimeout(atoi(value.c_str()));
+                        } else if (name == "minbattery") {
+                            this->minBattery(atoi(value.c_str()));
+                        } else if (name == "maxbattery") {
+                            this->maxBattery(atoi(value.c_str()));
+                        } else if (name == "cpumin") {
+                            this->cpuMin(atoi(value.c_str()));
+                        } else if (name == "cpumax") {
+                            this->cpuMax(atoi(value.c_str()));
+                        } else if (name == "cpumenu") {
+                            this->cpuMenu(atoi(value.c_str()));
+                        } else if (name == "globalvolume") {
+                            this->globalVolume(atoi(value.c_str()));
+                        } else if (name == "outputlogs") {
+                            this->outputLogs(atoi(value.c_str()));
+                        } else if (name == "saveselection") {
+                            this->saveSelection(atoi(value.c_str()));
+                        } else if (name == "section") {
+                            this->section(atoi(value.c_str()));
+                        } else if (name == "link") {
+                            this->link(atoi(value.c_str()));
+                        } else if (name == "version") {
+                            this->version(atoi(value.c_str()));
+                        } else {
+                            WARNING("unknown config key : %s", name.c_str());
+                        }
+                    }
+                    catch (int param) { 
+                        ERROR("int exception : %i from <%s, %s>", 
+                            param, name.c_str(), 
+                            value.c_str()); }
+                    catch (char param) { 
+                        ERROR("char exception : %s from <%s, %s>", 
+                            param, name.c_str(), 
+                            value.c_str()); }
+                    catch (...) { 
+                            ERROR("unknown error reading value from <%s, %s>", 
+                                name.c_str(), 
+                                value.c_str());
+                    }
                 } 
-
-                // ints
-                else if (name == "buttonrepeatrate") {
-                    this->buttonRepeatRate(atoi(value.c_str()));
-                } else if (name == "resolutionx") {
-                    this->resolutionX(atoi(value.c_str()));
-                } else if (name == "resolutiony") {
-                    this->resolutionY(atoi(value.c_str()));
-                } else if (name == "videobpp") {
-                    this->videoBpp(atoi(value.c_str()));
-                } else if (name == "backlightlevel") {
-                    this->backlightLevel(atoi(value.c_str()));
-                } else if (name == "backlighttimeout") {
-                    this->backlightTimeout(atoi(value.c_str()));
-                } else if (name == "powertimeout") {
-                    this->powerTimeout(atoi(value.c_str()));
-                } else if (name == "minbattery") {
-                    this->minBattery(atoi(value.c_str()));
-                } else if (name == "maxbattery") {
-                    this->maxBattery(atoi(value.c_str()));
-                } else if (name == "cpumin") {
-                    this->cpuMin(atoi(value.c_str()));
-                } else if (name == "cpumax") {
-                    this->cpuMax(atoi(value.c_str()));
-                } else if (name == "cpumenu") {
-                    this->cpuMenu(atoi(value.c_str()));
-                } else if (name == "globalvolume") {
-                    this->globalVolume(atoi(value.c_str()));
-                } else if (name == "outputlogs") {
-                    this->outputLogs(atoi(value.c_str()));
-                } else if (name == "saveselection") {
-                    this->saveSelection(atoi(value.c_str()));
-                } else if (name == "section") {
-                    this->section(atoi(value.c_str()));
-                } else if (name == "link") {
-                    this->link(atoi(value.c_str()));
-                } else if (name == "version") {
-                    this->version(atoi(value.c_str()));
-                } else {
-                    WARNING("unknown config key : %s", name.c_str());
+                catch (...) {
+                    ERROR("Error reading config line : %s", line.c_str());
                 }
-
             };
             confstream.close();
             result = true;
