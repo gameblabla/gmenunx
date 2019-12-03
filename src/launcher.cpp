@@ -34,7 +34,7 @@ Launcher::Launcher(vector<string> && commandLine, bool consoleApp)
 void Launcher::exec() {
 	TRACE("enter");
 	
-	if (consoleApp) {
+	if (this->consoleApp) {
 		TRACE("console app");
 
 		/* Enable the framebuffer console */
@@ -42,7 +42,7 @@ void Launcher::exec() {
 		char c = '1';
 		int fd = open("/sys/devices/virtual/vtconsole/vtcon1/bind", O_WRONLY);
 		if (fd < 0) {
-			WARNING("Unable to open fbcon handle\n");
+			WARNING("Unable to open fbcon handle");
 		} else {
 			write(fd, &c, 1);
 			close(fd);
@@ -50,13 +50,12 @@ void Launcher::exec() {
 		TRACE("opening tty handle");
 		fd = open("/dev/tty1", O_RDWR);
 		if (fd < 0) {
-			WARNING("Unable to open tty1 handle\n");
+			WARNING("Unable to open tty1 handle");
 		} else {
 			if (ioctl(fd, VT_ACTIVATE, 1) < 0)
-				WARNING("Unable to activate tty1\n");
+				WARNING("Unable to activate tty1");
 			close(fd);
 		}
-
 		TRACE("end of console specific work");
 	}
 
@@ -75,7 +74,7 @@ void Launcher::exec() {
 	TRACE("exec-ing : %s", s.c_str());
 
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
-	WARNING("Failed to exec '%s': %s\n",
+	WARNING("Failed to exec '%s': %s",
 			commandLine[0].c_str(), strerror(errno));
 	
 	TRACE("exit");

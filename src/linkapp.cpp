@@ -46,83 +46,103 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
 	inputMgr(gmenu2x->input) {
 
 	TRACE("ctor - handling normal desktop file :%s", linkfile);
-	manual = manualPath = "";
-	file = linkfile;
+	this->manual = manualPath = "";
+	this->file = linkfile;
 
 	TRACE("ctor - setCPU");
 	setCPU(gmenu2x->config->cpuMenu());
 
-	selectordir = "";
-	selectorfilter = "";
-	icon = iconPath = "";
-	selectorbrowser = true;
-	consoleapp = true;
-	workdir = "";
-	backdrop = backdropPath = "";
+	this->selectordir = "";
+	this->selectorfilter = "";
+	this->icon = iconPath = "";
+	this->selectorbrowser = true;
+	this->consoleapp = true;
+	this->workdir = "";
+	this->backdrop = backdropPath = "";
 	this->editable = this->deletable = deletable;
 
 	string line;
 	TRACE("ctor - creating ifstream");
 	ifstream infile (linkfile, ios_base::in);
-	TRACE("ctor - iterating thru infile : %s", linkfile);
-	while (getline(infile, line, '\n')) {
+	if (infile.is_open()) {
+		TRACE("ctor - iterating thru desktop file : %s", linkfile);
+		try {
+			while (getline(infile, line, '\n')) {
 
-		line = trim(line);
-		if (line.empty()) continue;
-		if (line[0] == '#') continue;
+				line = trim(line);
+				if (line.empty()) continue;
+				if (line[0] == '#') continue;
 
-		std::size_t position = line.find("=");
-		string name = toLower(trim(line.substr(0,position)));
-		string value = trim(line.substr(position+1));
+				std::size_t position = line.find("=");
+				string name = toLower(trim(line.substr(0,position)));
+				string value = trim(line.substr(position+1));
 
-		if (name == "clock") {
-			this->setCPU( atoi(value.c_str()) );
-		} else if (name == "selectordir") {
-			this->setSelectorDir( value );
-		} else if (name == "selectorbrowser") {
-			this->setSelectorBrowser(value == "true" ? true : false);
-		} else if (name == "title") {
-			this->setTitle(value);
-		} else if (name == "description") {
-			this->setDescription(value);
-		} else if (name == "icon") {
-			this->setIcon(value);
-		} else if (name == "exec") {
-			this->setExec(value);
-		} else if (name == "params") {
-			this->setParams(value);
-		} else if (name == "workdir") {
-			this->setWorkdir(value);
-		} else if (name == "manual") {
-			this->setManual(value);
-		} else if (name == "consoleapp") {
-			this->setConsoleApp(value == "true" ? true : false);
-		} else if (name == "selectorfilter") {
-			this->setSelectorFilter( value );
-		} else if (name == "selectorscreens") {
-			this->setSelectorScreens( value );
-		} else if (name == "selectoraliases") {
-			this->setAliasFile( value );
-		} else if (name == "backdrop") {
-			this->setBackdrop(value);
-		} else if (name == "x-provider") {
-			this->setProvider(value);
-		} else if (name == "x-providermetadata") {
-			this->setProviderMetadata(value);
-		} else {
-			WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
+				try {
+					if (name == "clock") {
+						this->setCPU( atoi(value.c_str()) );
+					} else if (name == "selectordir") {
+						this->setSelectorDir( value );
+					} else if (name == "selectorbrowser") {
+						this->setSelectorBrowser(value == "true" ? true : false);
+					} else if (name == "title") {
+						this->setTitle(value);
+					} else if (name == "description") {
+						this->setDescription(value);
+					} else if (name == "icon") {
+						this->setIcon(value);
+					} else if (name == "exec") {
+						this->setExec(value);
+					} else if (name == "params") {
+						this->setParams(value);
+					} else if (name == "workdir") {
+						this->setWorkdir(value);
+					} else if (name == "manual") {
+						this->setManual(value);
+					} else if (name == "consoleapp") {
+						this->setConsoleApp(value == "true" ? true : false);
+					} else if (name == "selectorfilter") {
+						this->setSelectorFilter( value );
+					} else if (name == "selectorscreens") {
+						this->setSelectorScreens( value );
+					} else if (name == "selectoraliases") {
+						this->setAliasFile( value );
+					} else if (name == "backdrop") {
+						this->setBackdrop(value);
+					} else if (name == "x-provider") {
+						this->setProvider(value);
+					} else if (name == "x-providermetadata") {
+						this->setProviderMetadata(value);
+					} else {
+						WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
+					}
+				}                     
+				catch (int param) { 
+					ERROR("int exception : %i from <%s, %s>", 
+						param, name.c_str(), value.c_str()); }
+				catch (char *param) { 
+					ERROR("char exception : %s from <%s, %s>", 
+						param, name.c_str(), value.c_str()); }
+				catch (...) { 
+						ERROR("unknown error reading value from <%s, %s>", 
+							name.c_str(), value.c_str());
+				}
+			}
 		}
+		catch (...) {
+			ERROR("Error reading desktop file : %s", linkfile);
+		}
+		TRACE("ctor - closing infile");
+		if (infile.is_open())
+			infile.close();
+	} else {
+		WARNING("Couldn't open desktop file : %s for reading", linkfile);
 	}
-	TRACE("ctor - closing infile");
-	infile.close();
 
 	// try and find an icon 
 	if (iconPath.empty()) {
 		TRACE("ctor - searching for icon");
 		searchIcon(exec, true);
 	}
-
-
 
 	TRACE("ctor exit : %s", this->toString().c_str());
 	edited = false;
@@ -458,30 +478,27 @@ void LinkApp::launch(string launchArgs) {
 		gmenu2x->config->link(gmenu2x->menu->selLinkIndex());
 	}
 
-	vector<string> commandLine;
-	commandLine = { "/bin/sh", "-c" };
-	string execute;
-
 	// Check to see if permissions are desirable
 	struct stat fstat;
-	if ( stat( exec.c_str(), &fstat ) == 0 ) {
+	if ( stat( this->exec.c_str(), &fstat ) == 0 ) {
 		struct stat newstat = fstat;
 		if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
 		if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
 		if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
 	} // else, well.. we are no worse off :)
 
-	execute = exec + " " + launchArgs;
+	std::string execute = this->exec + " " + launchArgs;
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
 	if (gmenu2x->config->outputLogs()) {
 		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getWriteablePath()) + "log.txt";
 		TRACE("adding logging");
 	}
-	TRACE("Final command : %s", execute.c_str());
+	TRACE("final command : %s", execute.c_str());
+	std::vector<string> commandLine = { "/bin/sh", "-c" };
 	commandLine.push_back(execute);
 
-	Launcher *toLaunch = new Launcher(commandLine, consoleapp);
+	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (toLaunch) {
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
