@@ -1,6 +1,6 @@
 # Esoteric
 
-[Esoteric](https://github.com/podulator/esoteric/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the RG-350, released under the GNU GPL license v2.
+[Esoteric](https://github.com/podulator/esoteric/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the ANBERNICRG-350 - (hence 350teric), released under the GNU GPL license v2.
 
 View releases [changelog](ChangeLog.md).
 
