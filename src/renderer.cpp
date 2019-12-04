@@ -587,5 +587,8 @@ void Renderer::pollHW() {
         this->rtc.refresh();
 		TRACE("helper icon status updated");
     }
+	if (this->gmenu2x->cache->isDirty()) {
+		this->gmenu2x->initMenu();
+	}
 }
 

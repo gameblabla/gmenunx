@@ -61,7 +61,10 @@ class OpkCache {
         ~OpkCache();
         bool update(std::function<void(string)> callback = nullptr);
         int size();
-        bool isDirty() { return this->dirty_; }
+        /*  returns the cache state, 
+            AND resets the flag, 
+            so you must handle the state in one read */
+        bool isDirty() { bool result = this->dirty_; this->dirty_ = false; return result; }
 };
 
 #endif

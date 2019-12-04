@@ -111,10 +111,6 @@ private:
 	void doUpgrade();
 	bool doInitialSetup();
 
-	#ifdef HAVE_LIBOPK
-	OpkCache* opkCache;
-	#endif
-
 public:
 	GMenu2X();
 	~GMenu2X();
@@ -175,14 +171,16 @@ public:
 
 	void setWallpaper(const string &wallpaper = "");
 	void updateAppCache(std::function<void(string)> callback = nullptr);
-	int cacheSize();
-	bool cacheIsDirty() { return this->opkCache->isDirty(); }
 
 	Menu* menu;
 	Skin* skin;
 	Config* config;
 	UI* ui;
 	IHardware * hw;
+
+	#ifdef HAVE_LIBOPK
+	OpkCache* cache;
+	#endif
 
 };
 

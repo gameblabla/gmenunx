@@ -44,13 +44,13 @@ void LinkScannerDialog::exec() {
 
 	this->notify("Scanning...");
 	this->notify("Updating application cache");
-	int preSize = gmenu2x->cacheSize();
+	int preSize = gmenu2x->cache->size();
 	ss.clear();
 	ss << preSize;
 	ss >> str;
 	this->notify("Current cache size : " + str);
 	gmenu2x->updateAppCache(std::bind( &LinkScannerDialog::notify, this, std::placeholders::_1) );
-	int postSize = gmenu2x->cacheSize();
+	int postSize = gmenu2x->cache->size();
 	ss.clear();
 	ss << postSize;
 	ss >> str;
@@ -91,14 +91,13 @@ void LinkScannerDialog::exec() {
 				}
 			}
 		}
-
 		ss.clear();
 		ss << this->foundFiles;
 		ss >> str;
 		this->notify(str + " links created");
 	}
 
-	if (this->foundFiles > 0 || gmenu2x->cacheIsDirty()) {
+	if (this->foundFiles > 0 || gmenu2x->cache->isDirty()) {
 		sync();
 		this->notify("Updating the menu");
 		gmenu2x->initMenu();

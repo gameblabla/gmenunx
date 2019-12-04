@@ -102,7 +102,7 @@ GMenu2X::~GMenu2X() {
 	delete sc;
 	delete config;
 	#ifdef HAVE_LIBOPK
-	delete opkCache;
+	delete cache;
 	#endif
 	TRACE("exit\n\n");
 }
@@ -158,23 +158,15 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
 	string rootDir = this->getWriteablePath();
 	TRACE("rootDir : %s", rootDir.c_str());
-	if (nullptr == this->opkCache) {
-		this->opkCache = new OpkCache(opkDirs, rootDir);
+	if (nullptr == this->cache) {
+		this->cache = new OpkCache(opkDirs, rootDir);
 	}
-	assert(this->opkCache);
-	this->opkCache->update(callback);
+	assert(this->cache);
+	this->cache->update(callback);
 	sync();
 
 	#endif
 	TRACE("exit");
-}
-
-int GMenu2X::cacheSize() {
-	#ifdef HAVE_LIBOPK
-	return this->opkCache->size();
-	#else
-	return 0;
-	#endif
 }
 
 GMenu2X::GMenu2X() : input(screenManager) {
