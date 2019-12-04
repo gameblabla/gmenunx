@@ -11,7 +11,7 @@ static const std::string & EXTERNAL_CARD_PATH = "/media/sdcard";
 static const std::string USER_PREFIX = "/media/data/local/home/.gmenunx/";
 static const std::string USER_HOME = "/media/data/local/home/";
 #else
-static const std::string & EXTERNAL_CARD_PATH = "/mnt";
+static const std::string & EXTERNAL_CARD_PATH = "/media";
 // $HOME/ gets prepended to this
 static const std::string USER_PREFIX = ".gmenunx/";
 static const std::string USER_HOME = "~/";

@@ -16,9 +16,9 @@ CFLAGS = -ggdb \
     -I/usr/local/include/ \
     -std=gnu++11 \
 	-DTARGET_$(TARGET) \
-    -std=gnu++11 \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
+	-DENABLE_INOTIFY \
     -Wno-narrowing \
     -g3
 

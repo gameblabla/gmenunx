@@ -9,6 +9,7 @@
 
 #include "desktopfile.h"
 #include "opkhelper.h"
+#include "opkmonitor.h"
 
 static const std::string OPK_CACHE_DIR = "cache";
 static const std::string OPK_CACHE_IMAGE_DIR = "images";
@@ -35,6 +36,8 @@ class OpkCache {
         // pair <string = hash, DesktopFile = object>
         std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>> * sectionCache;
 
+        std::list<OpkMonitor *> directoryMonitors;
+
         bool loadCache();
         void scanSection(const std::string & sectionName, string path);
 
@@ -45,7 +48,9 @@ class OpkCache {
 
         bool createMissingOpkDesktopFiles();
         bool removeUnlinkedDesktopFiles();
-        bool handleNewOpk(const std::string & path);
+        void handleNewOpk(const std::string & path);
+        void handleRemovedOpk(const std::string path);
+
         DesktopFile * findMatchingProvider(const std::string & section, myOpk const & myOpk);
 
         std::string hashKey(DesktopFile const & file);
@@ -56,6 +61,7 @@ class OpkCache {
         void notify(std::string text);
 
     public:
+
         OpkCache(std::vector<std::string> opkDirs, const std::string & sectionsDir);
         ~OpkCache();
         bool update(std::function<void(std::string)> callback = nullptr);

@@ -9,6 +9,7 @@
 #include "imageio.h"
 
 #include "opkcache.h"
+#include "opkmonitor.h"
 #include "debug.h"
 #include "utilities.h"
 #include "desktopfile.h"
@@ -24,6 +25,22 @@ OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
     this->sectionCache = nullptr;
     this->loaded_ = false;
     this->notifiable = nullptr;
+
+    TRACE("adding directory watchers");
+    for(vector<string>::iterator it = opkDirs.begin(); it != opkDirs.end(); it++) {
+        string dir = (*it);
+        if (!dirExists(dir))
+            continue;
+
+        TRACE("adding monitor for : %s", dir.c_str());
+        OpkMonitor *monitor = new OpkMonitor(
+            dir, 
+            std::bind(&OpkCache::handleNewOpk, this, std::placeholders::_1), 
+            std::bind(&OpkCache::handleRemovedOpk, this, std::placeholders::_1)
+        );
+        this->directoryMonitors.push_back(monitor);
+    }
+    TRACE("we're monitoring %zu directories", this->directoryMonitors.size());
     TRACE("exit");
 }
 
@@ -32,6 +49,11 @@ OpkCache::~OpkCache() {
     if (this->sectionCache != nullptr) {
         delete sectionCache;
     }
+    list<OpkMonitor *>::iterator it;
+    for (it = this->directoryMonitors.begin(); it != this->directoryMonitors.end(); it++) {
+        delete (*it);
+    }
+    this->directoryMonitors.clear();
     TRACE("exit");
 }
 
@@ -60,6 +82,7 @@ bool OpkCache::update(std::function<void(string)> callback) {
     if (!createMissingOpkDesktopFiles()) return false;
     if (!removeUnlinkedDesktopFiles()) return false;
     this->notify("Cache updated");
+    this->notifiable = nullptr;
 
     TRACE("exit");
     return true;
@@ -315,9 +338,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
 
             TRACE("found opk : %s", dptr->d_name);
             string opkPath = dir + "/" + dptr->d_name;
-            if (!this->handleNewOpk(opkPath)) {
-                continue;
-            }
+            this->handleNewOpk(opkPath);
         }
         TRACE("closing dir");
         closedir(dirp);
@@ -366,6 +387,8 @@ string OpkCache::savePng(myOpk const & theOpk) {
 bool OpkCache::removeUnlinkedDesktopFiles() {
     TRACE("enter");
     this->notify("Removing any deleted files");
+
+    std::list<std::pair<std::string, DesktopFile>> actions;
     std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator section;
     for (section = sectionCache->begin(); section != sectionCache->end(); section++) {
         TRACE("section : %s", section->first.c_str());
@@ -384,25 +407,32 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
             if (provider.empty())
                 continue;
 
-            // let's not remove anything if th ewhole dir is missing
+            // let's not remove anything if the whole dir is missing
             // because it probably means we're external card && unmounted
             if (!dirExists(dir_name(provider)))
                 continue;
 
             if (!fileExists(provider)) {
-                TRACE("removing '%s' because provider doesn't exist", 
+                TRACE("adding '%s' to action list, because provider doesn't exist", 
                     file.title().c_str());
 
-                this->notify("removing: " + file.title());
+                actions.push_back(pair<string, DesktopFile>{ section->first, file });
 
-                // TODO :: maybe clean up images as well??
-
-                file.remove();
-                // pop from the cache
-                this->removeFromCache(section->first, file);
             }
         }
     }
+
+    TRACE("we have got %zu cache items to remove", actions.size());
+    std::list<std::pair<std::string, DesktopFile>>::iterator actionIt;
+    for (actionIt = actions.begin(); actionIt != actions.end(); actionIt++) {
+        this->notify("removing: " + actionIt->second.title());
+        this->removeFromCache(actionIt->first, actionIt->second);
+        TRACE("removed from cache : %s", actionIt->second.title().c_str());
+        TRACE("deleting desktop file");
+        actionIt->second.remove();
+        TRACE("deleted desktop file ok");
+    }
+
     this->notify("Missing files removed");
     TRACE("exit");
     return true;
@@ -410,14 +440,19 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
 
 void OpkCache::notify(std::string message) {
     if (nullptr != this->notifiable) {
-        this->notifiable(message);
+        try {
+            TRACE("notifying listener about : %s", message.c_str());
+            this->notifiable(message);
+        } catch(...) {
+            ERROR("Error trying to notify listeners : %s", message.c_str());
+        }
     }
 }
 
 /*
 entry point for any new opk, from disk scan or inotify etc
 */
-bool OpkCache::handleNewOpk(const std::string & path) {
+void OpkCache::handleNewOpk(const std::string & path) {
     TRACE("enter : %s", path.c_str());
 
     // we need to 
@@ -434,7 +469,7 @@ bool OpkCache::handleNewOpk(const std::string & path) {
     if (NULL == opks) {
         TRACE("got null back");
         WARNING("Couldn't read opk : %s", path.c_str());
-        return false;
+        return;
     }
 
     TRACE("got opks : %zu", opks->size());
@@ -456,6 +491,7 @@ bool OpkCache::handleNewOpk(const std::string & path) {
         }
         if (!exists) {
             TRACE("opk doesn't exist in cache");
+
             this->notify("adding: " + theOpk.name());
 
             // now create desktop file paths 
@@ -525,5 +561,40 @@ bool OpkCache::handleNewOpk(const std::string & path) {
             TRACE("found in cache");
         }
     }
-    return true;
+    TRACE("exit");
+    return;
+}
+
+void OpkCache::handleRemovedOpk(const std::string path) {
+    TRACE("enter : %s", path.c_str());
+    // we need to 
+    // go through each section
+    // - each desktop file
+    //   - store any matching providers
+    // go through the store doing the remove
+    // because we can't modify what we're iterating on
+    std::list<std::pair<std::string, DesktopFile>> actions;
+
+    std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>>::iterator sectionIt;
+    for (sectionIt = this->sectionCache->begin(); sectionIt != this->sectionCache->end(); sectionIt++) {
+        TRACE("checking section '%s' for references to opk : %s", sectionIt->first.c_str(), path.c_str());
+        std::list<std::pair<std::string, DesktopFile>>::iterator fileIt;
+        for (fileIt = sectionIt->second.begin(); fileIt != sectionIt->second.end(); fileIt++) {
+            if (path == fileIt->second.provider()) {
+                TRACE("found a matching provider : %s", fileIt->second.title().c_str());
+                actions.push_back(pair<string, DesktopFile>{ sectionIt->first, fileIt->second });
+            }
+        }
+    }
+    TRACE("we have got %zu cache items to remove", actions.size());
+    std::list<std::pair<std::string, DesktopFile>>::iterator actionIt;
+    for (actionIt = actions.begin(); actionIt != actions.end(); actionIt++) {
+        this->notify("removing: " + actionIt->second.title());
+        this->removeFromCache(actionIt->first, actionIt->second);
+        TRACE("removed from cache : %s", actionIt->second.title().c_str());
+        TRACE("deleting desktop file");
+        actionIt->second.remove();
+        TRACE("deleted desktop file ok");
+    }
+    TRACE("exit");
 }

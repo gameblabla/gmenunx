@@ -63,12 +63,15 @@ LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
 
 	string line;
 	TRACE("ctor - creating ifstream");
-	ifstream infile (linkfile, ios_base::in);
+	std::ifstream infile (linkfile, ios_base::in);
+	std::locale loc("");
+	infile.imbue(loc);
 	if (infile.is_open()) {
 		TRACE("ctor - iterating thru desktop file : %s", linkfile);
 		try {
-			while (getline(infile, line, '\n')) {
+			while (std::getline(infile, line, '\n')) {
 
+				TRACE("read raw line : %s", line.c_str());
 				line = trim(line);
 				if (line.empty()) continue;
 				if (line[0] == '#') continue;

@@ -14,10 +14,11 @@ SDL_LIBS    := $(shell $(SDL_CONFIG) --libs)
 DEBUG ?= 2
 CFLAGS = \
 	-ggdb \
-	-DTARGET_$(TARGET) \
     -std=gnu++11 \
+	-DTARGET_$(TARGET) \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
+	-DENABLE_INOTIFY \
     -Wno-narrowing \
     -g3 \
 	$(SDL_CFLAGS) \
