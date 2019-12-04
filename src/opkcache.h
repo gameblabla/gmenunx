@@ -10,61 +10,64 @@
 #include "desktopfile.h"
 #include "opkhelper.h"
 
-using namespace std;
-
-static const string OPK_CACHE_DIR = "cache";
-static const string OPK_CACHE_IMAGE_DIR = "images";
+static const std::string OPK_CACHE_DIR = "cache";
+static const std::string OPK_CACHE_IMAGE_DIR = "images";
 
 #ifdef TARGET_RG350
-static const string OPK_EXEC = "/usr/bin/opkrun";
+static const std::string OPK_EXEC = "/usr/bin/opkrun";
 #else
 // just for testing, make sure the target test resolves
-static const string OPK_EXEC = "/bin/false";
+static const std::string OPK_EXEC = "/bin/false";
 #endif
 
 class OpkCache {
     private:
 
         std::function<void(std::string)> notifiable;
-        vector<string> opkDirs_;
-        string sectionDir_;
-        string cacheDir_;
-        string rootDir_;
+        std::vector<std::string> opkDirs_;
+        std::string sectionDir_;
+        std::string cacheDir_;
+        std::string rootDir_;
         bool loaded_;
         bool dirty_;
 
         // key = sections
         // pair <string = hash, DesktopFile = object>
-        std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>> * sectionCache;
+        std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>> * sectionCache;
 
         bool loadCache();
-        void scanSection(const string & sectionName, string path);
+        void scanSection(const std::string & sectionName, string path);
 
-        void addToCache(const string & section, const DesktopFile & file);
-        void removeFromCache(const string & section, const DesktopFile & file);
+        void addToCache(const std::string & section, const DesktopFile & file);
+        void removeFromCache(const std::string & section, const DesktopFile & file);
 
-        string savePng(myOpk const & myOpk);
+        std::string savePng(myOpk const & myOpk);
 
         bool createMissingOpkDesktopFiles();
         bool removeUnlinkedDesktopFiles();
-        DesktopFile * findMatchingProvider(const string & section, myOpk const & myOpk);
+        bool handleNewOpk(const std::string & path);
+        DesktopFile * findMatchingProvider(const std::string & section, myOpk const & myOpk);
 
-        string hashKey(DesktopFile const & file);
-        string hashKey(myOpk const & file);
-        const string imageCachePath();
+        std::string hashKey(DesktopFile const & file);
+        std::string hashKey(myOpk const & file);
+        const std::string imageCachePath();
         bool ensureCacheDirs();
 
-        void notify(string text);
+        void notify(std::string text);
 
     public:
-        OpkCache(vector<string> opkDirs, const string & sectionsDir);
+        OpkCache(std::vector<std::string> opkDirs, const std::string & sectionsDir);
         ~OpkCache();
-        bool update(std::function<void(string)> callback = nullptr);
+        bool update(std::function<void(std::string)> callback = nullptr);
         int size();
         /*  returns the cache state, 
             AND resets the flag, 
             so you must handle the state in one read */
-        bool isDirty() { bool result = this->dirty_; this->dirty_ = false; return result; }
+        bool isDirty() { 
+            bool result = this->dirty_; 
+            this->dirty_ = false; 
+            return result; 
+        }
 };
 
 #endif
