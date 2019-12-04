@@ -86,10 +86,27 @@ string MessageBox::formatText(int box_w_padding, int buttonWidth) {
 	if (wrap_size < buttonWidth) {
 		wrap_size = buttonWidth;
 	}
+	TRACE("button width : %i", buttonWidth);
 	TRACE("final wrap size : %i", wrap_size);
 
-	string wrappedText = splitInLines(this->text, wrap_size);
-	TRACE("wrap text : %s", wrappedText.c_str());
+	std::vector<std::string> parts;
+	std::string wrappedText = "";
+	std::string localText = this->text;
+	split(parts, localText, "\n");
+	for (std::vector<std::string>::iterator it = parts.begin(); it != parts.end(); it++) {
+		std::string line = (*it);
+		TRACE("measuring : '%s'", line.c_str());
+		int lineWidth = line.length();
+		if ( lineWidth > wrap_size) {
+			TRACE("splitting it in lines because %i > %i", lineWidth, wrap_size);
+			wrappedText += splitInLines(line, wrap_size);
+		} else {
+			TRACE("taking it as it is");
+			wrappedText += line +  "\n";
+		}
+		TRACE("wrapped text currently : %s", wrappedText.c_str());
+	}
+	TRACE("wrappedText final : %s", wrappedText.c_str());
 	return wrappedText;
 }
 
@@ -130,6 +147,7 @@ int MessageBox::exec() {
 	if (textWidthPx + box_w_padding > app->config->resolutionX()) {
 		textWidthPx = app->config->resolutionX(); 
 	}
+	TRACE("text width in px : %i", textWidthPx);
 
 	SDL_Rect box;
 	box.h = app->font->getTextHeight(wrappedText) * app->font->getHeight() + app->font->getHeight();
@@ -151,7 +169,7 @@ int MessageBox::exec() {
 			box.h - 4, 
 			app->skin->colours.msgBoxBorder);
 
-	//icon+wrapped_text
+	// icon
 	if ((*app->sc)[icon] != NULL) {
 		(*app->sc)[icon]->blit(
 			app->screen, 
@@ -160,15 +178,34 @@ int MessageBox::exec() {
 			HAlignCenter | VAlignMiddle);
 	}
 
+	// text
+	vector<string> lines;
+	split(lines, wrappedText, "\n");
+	int iY = box.y + 12;
+	for (vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
+		string line = (*it);
+
+		app->screen->write(
+			app->font, 
+			line, 
+			box.x + ((*app->sc)[icon] != NULL ? 47 : 11), 
+			iY,  
+			0, 
+			app->skin->colours.fontAlt, 
+			app->skin->colours.fontAltOutline);
+
+		iY += app->font->getHeight();
+	}
+/*
 	app->screen->write(
 		app->font, 
 		wrappedText, 
-		box.x+((*app->sc)[icon] != NULL ? 47 : 11), 
-		app->config->halfY() - app->font->getHeight()/5, 
+		box.x + ((*app->sc)[icon] != NULL ? 47 : 11), 
+		app->config->halfY() - app->font->getHeight() / 5, 
 		VAlignMiddle, 
 		app->skin->colours.fontAlt, 
 		app->skin->colours.fontAltOutline);
-
+*/
 	if (this->autohide != 0) {
 		app->screen->flip();
 		if (this->autohide > 0) {

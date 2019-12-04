@@ -74,7 +74,7 @@ uint32_t FontHelper::getLineWidth(const string &text) {
 uint32_t FontHelper::getTextWidth(const string &text) {
 	if (text.find("\n",0) != string::npos) {
 		vector<string> textArr;
-		split(textArr,text,"\n");
+		split(textArr, text, "\n");
 		return getTextWidth(&textArr);
 	} else
 		return getLineWidth(text);
