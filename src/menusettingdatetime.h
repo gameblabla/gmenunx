@@ -23,7 +23,7 @@
 #include "menusetting.h"
 #include "surface.h"
 
-class GMenu2X;
+class Esoteric;
 
 class MenuSettingDateTime : public MenuSetting {
 
@@ -39,7 +39,7 @@ private:
 	void rightComponent();
 
 public:
-	MenuSettingDateTime(GMenu2X *gmenu2x, const std::string &title, const std::string &description, std::string *value);
+	MenuSettingDateTime(Esoteric *app, const std::string &title, const std::string &description, std::string *value);
 	virtual ~MenuSettingDateTime() {};
 
 	virtual void draw(int y);

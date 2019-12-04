@@ -3,7 +3,7 @@
 RG350_HOME="/media/data/local/home"
 LAUNCHER="/usr/local/sbin/frontend_start"
 RG350_IP="root@10.1.1.2"
-TARGET_DIR="gmenunx-beta"
+TARGET_DIR="esoteric-beta"
 
 # probably don't edit below here
 debug=2
@@ -44,7 +44,7 @@ function removeLaunchLink {
 
 function installLaunchLink {
 	echo "installing launch link"
-	cmd="ssh ${RG350_IP} /bin/busybox sh -c \"ln -fs ${RG350_HOME}/${TARGET_DIR}/gmenunx ${LAUNCHER}\""
+	cmd="ssh ${RG350_IP} /bin/busybox sh -c \"ln -fs ${RG350_HOME}/${TARGET_DIR}/esoteric ${LAUNCHER}\""
 	echo ${cmd}
 	${cmd}
 	if [ $? -eq 0 ]; then
@@ -56,7 +56,7 @@ function installLaunchLink {
 }
 
 function fullDeploy {
-	buildFolder="/dist/RG350/gmenunx/"
+	buildFolder="/dist/RG350/esoteric/"
 	echo "doing a full deploy from '.${buildFolder}' to rg-350 : ${RG350_IP}"
 	cmd="rsync -r ${wd}${buildFolder} ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
 	echo "running : ${cmd}"
@@ -70,7 +70,7 @@ function fullDeploy {
 
 function binaryDeploy {
 	echo "doing a quick binary only deploy"
-	cmd="scp ./objs/RG350/gmenunx ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
+	cmd="scp ./objs/RG350/esoteric ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
 	echo ${cmd}
 	${cmd}
 	return $?
@@ -156,13 +156,13 @@ echo "
 
 *\                     */"
 
-printf "runing :: \nscp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home\n"
+printf "runing :: \nscp ./objs/rg-350/esoteric root@10.1.1.2:/media/data/local/home\n"
 
 tries=0
 success=-1
 while [[ $success -ne 0 && $tries -lt 10 ]]; 
 do
-	scp ./objs/rg-350/gmenunx root@10.1.1.2:/media/data/local/home
+	scp ./objs/rg-350/esoteric root@10.1.1.2:/media/data/local/home
 	success=$?
 	tries=$[$tries+1]
 done
@@ -172,7 +172,7 @@ if [[ $success -ne 0 ]]; then
 	printf "file for a while\n"
 else
 	printf "ssh to :: root@10.1.1.2\nand run :: \n"
-	printf "kill -9 \`pidof -s ash\` && ./gmenunx\n"
+	printf "kill -9 \`pidof -s ash\` && ./esoteric\n"
 	printf "or\n"
 	printf "strace -p\`pidof frontend_start\` -s99999 -e trace= -e write\n"
 fi

@@ -27,7 +27,7 @@
 #define MB_BTN_SELECT 3
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 using std::string;
 using std::vector;
@@ -36,14 +36,14 @@ class MessageBox {
 private:
 	string text, icon;
 	int autohide, bgalpha;
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 	vector<string> buttons;
 	vector<string> buttonLabels;
 	vector<SDL_Rect> buttonPositions;
 	string formatText(int box_w_padding, int buttonWidth);
 
 public:
-	MessageBox(GMenu2X *gmenu2x, const string &text, const string &icon="");
+	MessageBox(Esoteric *app, const string &text, const string &icon="");
 	void setButton(int action, const string &btn);
 	int exec();
 	void setAutoHide(int delay);

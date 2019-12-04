@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingrgba.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 #include <sstream>
 
@@ -26,8 +26,8 @@ using std::string;
 using std::stringstream;
 using fastdelegate::MakeDelegate;
 
-MenuSettingRGBA::MenuSettingRGBA(GMenu2X *gmenu2x, const string &title, const string &description, RGBAColor *value)
-	: MenuSetting(gmenu2x, title, description) {
+MenuSettingRGBA::MenuSettingRGBA(Esoteric *app, const string &title, const string &description, RGBAColor *value)
+	: MenuSetting(app, title, description) {
 	selPart = 0;
 	_value = value;
 	originalValue = *value;
@@ -36,19 +36,19 @@ MenuSettingRGBA::MenuSettingRGBA(GMenu2X *gmenu2x, const string &title, const st
 	this->setB(this->value().b);
 	this->setA(this->value().a);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/left.png");
+	btn = new IconButton(app, "skin:imgs/buttons/left.png");
 	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::leftComponent));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/right.png", gmenu2x->tr["Component"]);
+	btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Component"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::rightComponent));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/y.png", gmenu2x->tr["Decrease"]);
+	btn = new IconButton(app, "skin:imgs/buttons/y.png", app->tr["Decrease"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::dec));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/x.png", gmenu2x->tr["Increase"]);
+	btn = new IconButton(app, "skin:imgs/buttons/x.png", app->tr["Increase"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::inc));
 	buttonBox.add(btn);
 }
@@ -56,18 +56,18 @@ MenuSettingRGBA::MenuSettingRGBA(GMenu2X *gmenu2x, const string &title, const st
 void MenuSettingRGBA::draw(int y) {
 	this->y = y;
 	MenuSetting::draw(y);
-	gmenu2x->screen->box(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, value() );
-	gmenu2x->screen->rectangle(153, y + (gmenu2x->font->getHeight()/2) - 6, 12, 12, 0, 0, 0, 255);
-	gmenu2x->screen->write( gmenu2x->font, /*"R: "+*/strR, 169, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->screen->write( gmenu2x->font, /*"G: "+*/strG, 205, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->screen->write( gmenu2x->font, /*"B: "+*/strB, 241, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
-	gmenu2x->screen->write( gmenu2x->font, /*"A: "+*/strA, 277, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	app->screen->box(153, y + (app->font->getHeight()/2) - 6, 12, 12, value() );
+	app->screen->rectangle(153, y + (app->font->getHeight()/2) - 6, 12, 12, 0, 0, 0, 255);
+	app->screen->write( app->font, /*"R: "+*/strR, 169, y+app->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, /*"G: "+*/strG, 205, y+app->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, /*"B: "+*/strB, 241, y+app->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, /*"A: "+*/strA, 277, y+app->font->getHalfHeight(), VAlignMiddle );
 }
 
 void MenuSettingRGBA::handleTS() {
-	if (gmenu2x->ts.pressed()) {
+	if (app->ts.pressed()) {
 		for (int i=0; i<4; i++) {
-			if (i!=selPart && gmenu2x->ts.inRect(166+i*36,y,36,14)) {
+			if (i!=selPart && app->ts.inRect(166+i*36,y,36,14)) {
 				selPart = i;
 				i = 4;
 			}
@@ -78,10 +78,10 @@ void MenuSettingRGBA::handleTS() {
 }
 
 uint32_t MenuSettingRGBA::manageInput() {
-	if (gmenu2x->input[INC]) inc();
-	if (gmenu2x->input[DEC]) dec();
-	if (gmenu2x->input[LEFT]) leftComponent();
-	if (gmenu2x->input[RIGHT]) rightComponent();
+	if (app->input[INC]) inc();
+	if (app->input[DEC]) dec();
+	if (app->input[LEFT]) leftComponent();
+	if (app->input[RIGHT]) rightComponent();
 	return 0; // SD_NO_ACTION
 }
 
@@ -152,8 +152,8 @@ uint16_t MenuSettingRGBA::getSelPart() {
 }
 
 void MenuSettingRGBA::adjustInput() {
-	gmenu2x->input.setInterval(30, INC );
-	gmenu2x->input.setInterval(30, DEC );
+	app->input.setInterval(30, INC );
+	app->input.setInterval(30, DEC );
 }
 
 void MenuSettingRGBA::drawSelected(int y) {
@@ -164,10 +164,10 @@ void MenuSettingRGBA::drawSelected(int y) {
 		case 0: color = (RGBAColor){255,   0,   0, 255}; break;
 		case 1: color = (RGBAColor){  0, 255,   0, 255}; break;
 		case 2: color = (RGBAColor){  0,   0, 255, 255}; break;
-		default: color = gmenu2x->skin->colours.selectionBackground; break;
+		default: color = app->skin->colours.selectionBackground; break;
 	}
-	gmenu2x->screen->box( x, y, 36, gmenu2x->font->getHeight() + 1, color );
-	gmenu2x->screen->rectangle( x, y, 36, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
+	app->screen->box( x, y, 36, app->font->getHeight() + 1, color );
+	app->screen->rectangle( x, y, 36, app->font->getHeight() + 1, 0,0,0,255 );
 	MenuSetting::drawSelected(y);
 }
 

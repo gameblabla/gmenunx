@@ -6,12 +6,12 @@
 
 using std::string;
 
-class GMenu2X;
+class Esoteric;
 class Surface;
 
 class IconButton : public Button {
 protected:
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 	string icon, label;
 	int labelPosition, labelMargin;
 	uint16_t labelHAlign, labelVAlign;
@@ -28,7 +28,7 @@ public:
 	static const int DISP_TOP = 2;
 	static const int DISP_BOTTOM = 3;
 
-	IconButton(GMenu2X *gmenu2x, const string &icon, const string &label="");
+	IconButton(Esoteric *app, const string &icon, const string &label="");
 	virtual ~IconButton() {};
 
 	virtual void paint();

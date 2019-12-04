@@ -324,7 +324,7 @@ void Surface::fillRectAlpha(SDL_Rect rect, RGBAColor c) {
 
 		// Pre-multiply the fill color. We're hardcoding alpha to 1: 15/16bpp
 		// modes are unlikely to have an alpha channel and even if they do,
-		// the written alpha isn't used by gmenu2x.
+		// the written alpha isn't used by app.
 		uint16_t f = (((color & Rmask) * alpha >> 8) & Rmask)
 				   | (((color & Gmask) * alpha >> 8) & Gmask)
 				   | (((color & Bmask) * alpha >> 8) & Bmask)

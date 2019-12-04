@@ -25,16 +25,15 @@
 #include "debug.h"
 #include "fonthelper.h"
 
-Link::Link(GMenu2X *gmenu2x_, LinkAction action)
-	: Button(gmenu2x_->ts, true)
-	, gmenu2x(gmenu2x_)
+Link::Link(Esoteric *app, LinkAction action)
+	: Button(app->ts, true)
+	, app(app)
 {
 	this->action = action;
 	this->edited = false;
-	this->iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+	this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
 	this->padding = 4;
 	this->displayTitle = "";
-
 }
 
 void Link::run() {
@@ -66,9 +65,9 @@ void Link::setTitle(const string &title) {
 			temp = strreplace(temp, "  ", " ");
 			pos = temp.find( "  ", 0 );
 		};
-		int maxWidth = (gmenu2x->linkWidth);
-		if ((int)gmenu2x->font->getTextWidth(temp) > maxWidth) {
-			while ((int)gmenu2x->font->getTextWidth(temp + "..") > maxWidth) {
+		int maxWidth = (app->linkWidth);
+		if ((int)app->font->getTextWidth(temp) > maxWidth) {
+			while ((int)app->font->getTextWidth(temp + "..") > maxWidth) {
 				temp = temp.substr(0, temp.length() - 1);
 			}
 			temp += "..";
@@ -94,7 +93,7 @@ void Link::setIcon(const string &icon) {
 	this->icon = icon;
 
 	if (icon.compare(0, 5, "skin:") == 0)
-		this->iconPath = gmenu2x->skin->getSkinFilePath(icon.substr(5, string::npos));
+		this->iconPath = app->skin->getSkinFilePath(icon.substr(5, string::npos));
 	else
 		this->iconPath = icon;
 
@@ -102,12 +101,12 @@ void Link::setIcon(const string &icon) {
 }
 
 const string &Link::searchIcon() {
-	if (!gmenu2x->skin->getSkinFilePath(iconPath).empty()) {
-		iconPath = gmenu2x->skin->getSkinFilePath(iconPath);
+	if (!app->skin->getSkinFilePath(iconPath).empty()) {
+		iconPath = app->skin->getSkinFilePath(iconPath);
 	}	else if (!fileExists(iconPath)) {
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+		iconPath = app->skin->getSkinFilePath("icons/generic.png");
 	} else
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+		iconPath = app->skin->getSkinFilePath("icons/generic.png");
 	return iconPath;
 }
 
@@ -120,5 +119,5 @@ void Link::setIconPath(const string &icon) {
 	if (fileExists(icon))
 		iconPath = icon;
 	else
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+		iconPath = app->skin->getSkinFilePath("icons/generic.png");
 }

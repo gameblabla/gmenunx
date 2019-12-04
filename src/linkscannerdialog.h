@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 #include "menu.h"
 #include "messagebox.h"
@@ -28,7 +28,7 @@ protected:
 	void render();
 
 public:
-	LinkScannerDialog(GMenu2X *gmenu2x, const std::string &title, const std::string &description, const std::string &icon);
+	LinkScannerDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon);
 	~LinkScannerDialog();
 	void exec();
 	void notify(std::string message);

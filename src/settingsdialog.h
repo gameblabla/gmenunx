@@ -22,7 +22,7 @@
 #define SETTINGSDIALOG_H_
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "menusetting.h"
 #include "dialog.h"
 
@@ -47,7 +47,7 @@ private:
 	string title, icon;
 
 public:
-	SettingsDialog(GMenu2X *gmenu2x, Touchscreen &ts, const string &title, const string &icon = "skin:sections/settings.png");
+	SettingsDialog(Esoteric *app, Touchscreen &ts, const string &title, const string &icon = "skin:sections/settings.png");
 	~SettingsDialog();
 	bool save = false, close = false, allowCancel = true;
 	bool edited();

@@ -23,7 +23,7 @@
 #include "menusetting.h"
 #include "surface.h"
 
-class GMenu2X;
+class Esoteric;
 
 class MenuSettingRGBA : public MenuSetting {
 private:
@@ -39,7 +39,7 @@ private:
 	void rightComponent();
 
 public:
-	MenuSettingRGBA(GMenu2X *gmenu2x, const std::string &title, const std::string &description, RGBAColor *value);
+	MenuSettingRGBA(Esoteric *app, const std::string &title, const std::string &description, RGBAColor *value);
 	virtual ~MenuSettingRGBA() {};
 
 	virtual void draw(int y);

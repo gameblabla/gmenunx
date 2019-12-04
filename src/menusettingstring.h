@@ -29,7 +29,7 @@ protected:
 	std::string dialogTitle, dialogIcon;
 
 public:
-	MenuSettingString(GMenu2X *gmenu2x, const std::string &title,
+	MenuSettingString(Esoteric *app, const std::string &title,
 					  const std::string &description, std::string *value,
 					  const std::string &dialogTitle = "",
 					  const std::string &dialogIcon = "");

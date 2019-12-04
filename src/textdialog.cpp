@@ -31,8 +31,8 @@
 
 using namespace std;
 
-TextDialog::TextDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &backdrop)
-	: Dialog(gmenu2x), title(title), description(description), icon(icon), backdrop(backdrop)
+TextDialog::TextDialog(Esoteric *app, const string &title, const string &description, const string &icon, const string &backdrop)
+	: Dialog(app), title(title), description(description), icon(icon), backdrop(backdrop)
 {}
 
 void TextDialog::preProcess() {
@@ -46,13 +46,13 @@ void TextDialog::preProcess() {
 		row = trim(text.at(i));
 
 		//check if this row is not too long
-		if (gmenu2x->font->getTextWidth(row) > gmenu2x->config->resolutionX() - 15) {
+		if (app->font->getTextWidth(row) > app->config->resolutionX() - 15) {
 			vector<string> words;
 			split(words, row, " ");
 
 			uint32_t numWords = words.size();
 			//find the maximum number of rows that can be printed on screen
-			while (gmenu2x->font->getTextWidth(row) > gmenu2x->config->resolutionX() - 15 && numWords > 0) {
+			while (app->font->getTextWidth(row) > app->config->resolutionX() - 15 && numWords > 0) {
 				numWords--;
 				row = "";
 				for (uint32_t x = 0; x < numWords; x++)
@@ -80,26 +80,26 @@ void TextDialog::preProcess() {
 }
 
 void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage) {
-	gmenu2x->screen->setClipRect(gmenu2x->listRect);
+	app->screen->setClipRect(app->listRect);
 
 	for (uint32_t i = firstRow; i < firstRow + rowsPerPage && i < text->size(); i++) {
 		int rowY;
 		if (text->at(i)=="----") { //draw a line
-			rowY = gmenu2x->listRect.y + (int)((i - firstRow + 0.5) * gmenu2x->font->getHeight());
-			gmenu2x->screen->box(5, rowY, gmenu2x->config->resolutionX() - 16, 1, 255, 255, 255, 130);
-			gmenu2x->screen->box(5, rowY + 1, gmenu2x->config->resolutionX() - 16, 1, 0, 0, 0, 130);
+			rowY = app->listRect.y + (int)((i - firstRow + 0.5) * app->font->getHeight());
+			app->screen->box(5, rowY, app->config->resolutionX() - 16, 1, 255, 255, 255, 130);
+			app->screen->box(5, rowY + 1, app->config->resolutionX() - 16, 1, 0, 0, 0, 130);
 		} else {
-			rowY = gmenu2x->listRect.y + (i - firstRow) * gmenu2x->font->getHeight();
-			gmenu2x->font->write(gmenu2x->screen, text->at(i), 5, rowY);
+			rowY = app->listRect.y + (i - firstRow) * app->font->getHeight();
+			app->font->write(app->screen, text->at(i), 5, rowY);
 		}
 	}
 
-	gmenu2x->screen->clearClipRect();
-	gmenu2x->ui->drawScrollBar(rowsPerPage, text->size(), firstRow, gmenu2x->listRect);
+	app->screen->clearClipRect();
+	app->ui->drawScrollBar(rowsPerPage, text->size(), firstRow, app->listRect);
 }
 
 void TextDialog::exec() {
-	if ((*gmenu2x->sc)[backdrop] != NULL) (*gmenu2x->sc)[backdrop]->blit(this->bg,0,0);
+	if ((*app->sc)[backdrop] != NULL) (*app->sc)[backdrop]->blit(this->bg,0,0);
 
 	preProcess();
 
@@ -111,49 +111,49 @@ void TextDialog::exec() {
 
 	drawBottomBar(this->bg);
 
-	gmenu2x->ui->drawButton(
+	app->ui->drawButton(
 		this->bg, 
 		"down", 
-		gmenu2x->tr["Scroll"],
-		gmenu2x->ui->drawButton(
+		app->tr["Scroll"],
+		app->ui->drawButton(
 			this->bg, 
 			"up", 
 			"",
-			gmenu2x->ui->drawButton(
+			app->ui->drawButton(
 				this->bg, 
 				"start", 
-				gmenu2x->tr["Exit"],
+				app->tr["Exit"],
 				5)
 			)
 		-10
 	);
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
-	uint32_t firstRow = 0, rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
+	uint32_t firstRow = 0, rowsPerPage = app->listRect.h/app->font->getHeight();
 	while (!close) {
-		this->bg->blit(gmenu2x->screen,0,0);
+		this->bg->blit(app->screen,0,0);
 		drawText(&text, firstRow, rowsPerPage);
-		gmenu2x->screen->flip();
+		app->screen->flip();
 
 		do {
-			inputAction = gmenu2x->input.update();
+			inputAction = app->input.update();
 			
-			if ( gmenu2x->input[UP  ] && firstRow > 0 ) firstRow--;
-			else if ( gmenu2x->input[DOWN] && firstRow + rowsPerPage < text.size() ) firstRow++;
-			else if ( gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) {
+			if ( app->input[UP  ] && firstRow > 0 ) firstRow--;
+			else if ( app->input[DOWN] && firstRow + rowsPerPage < text.size() ) firstRow++;
+			else if ( app->input[PAGEUP] || app->input[LEFT]) {
 				if (firstRow >= rowsPerPage - 1)
 					firstRow -= rowsPerPage - 1;
 				else
 					firstRow = 0;
 			}
-			else if ( gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT]) {
+			else if ( app->input[PAGEDOWN] || app->input[RIGHT]) {
 				if (firstRow + rowsPerPage * 2 - 1 < text.size())
 					firstRow += rowsPerPage - 1;
 				else
 					firstRow = max(0,text.size()-rowsPerPage);
 			}
-			else if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
+			else if ( app->input[SETTINGS] || app->input[CANCEL] ) close = true;
 		} while (!inputAction);
 	}
 }

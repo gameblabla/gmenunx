@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef GMENU2X_H
-#define GMENU2X_H
+#ifndef _ESOTERIC_H_
+#define _ESOTERIC_H_
 
 #include "surfacecollection.h"
 #include "iconbutton.h"
@@ -74,11 +74,11 @@ class UI;
 class OpkCache;
 #endif
 
-class GMenu2X {
+class Esoteric {
 private:
 
 	bool needsInstalling;
-	string exe_path; //!< Contains the working directory of GMenu2X
+	string exe_path; //!< Contains the working directory of Esoteric
 	string writeable_path; // Contains the assets path
 
 	/*!
@@ -112,8 +112,8 @@ private:
 	bool doInitialSetup();
 
 public:
-	GMenu2X();
-	~GMenu2X();
+	Esoteric();
+	~Esoteric();
 	void quit();
 	void releaseScreen();
 

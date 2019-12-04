@@ -2,7 +2,7 @@
 #define __RENDERER_H__
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "rtc.h"
 
 class Renderer {
@@ -13,7 +13,7 @@ private:
     int interval_ = 2000;
     bool finished_;
     bool locked_;
-    GMenu2X *gmenu2x;
+    Esoteric *app;
     RTC rtc;
 
 	string prevBackdrop;
@@ -39,7 +39,7 @@ private:
 
 public:
 
-    Renderer(GMenu2X * gmenu2x);
+    Renderer(Esoteric * app);
     ~Renderer();
     void render();
     void quit();

@@ -1,10 +1,10 @@
 
 #include "button.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 #include "buttonbox.h"
 
-ButtonBox::ButtonBox(GMenu2X *gmenu2x) : gmenu2x(gmenu2x)
+ButtonBox::ButtonBox(Esoteric *app) : app(app)
 {
 }
 
@@ -22,7 +22,7 @@ void ButtonBox::add(Button *button)
 void ButtonBox::paint(uint32_t posX)
 {
 	for (ButtonList::const_iterator it = buttons.begin(); it != buttons.end(); ++it)
-		posX = gmenu2x->ui->drawButton(*it, posX);
+		posX = app->ui->drawButton(*it, posX);
 }
 
 void ButtonBox::handleTS()

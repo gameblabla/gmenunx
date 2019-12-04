@@ -4,16 +4,18 @@
 #include <string>
 
 static const int APP_MIN_CONFIG_VERSION = 1;
-static const std::string APP_NAME = "GMenuNX";
+static const std::string APP_NAME = "350teric";
+static const std::string BINARY_NAME = "esoteric";
+static const std::string TEMP_FILE = "/tmp/" + BINARY_NAME + ".tmp";
 
 #ifdef TARGET_RG350
 static const std::string & EXTERNAL_CARD_PATH = "/media/sdcard";
-static const std::string USER_PREFIX = "/media/data/local/home/.gmenunx/";
+static const std::string USER_PREFIX = "/media/data/local/home/.esoteric/";
 static const std::string USER_HOME = "/media/data/local/home/";
 #else
 static const std::string & EXTERNAL_CARD_PATH = "/media";
 // $HOME/ gets prepended to this
-static const std::string USER_PREFIX = ".gmenunx/";
+static const std::string USER_PREFIX = ".esoteric/";
 static const std::string USER_HOME = "~/";
 #endif
 

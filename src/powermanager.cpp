@@ -3,11 +3,11 @@
 
 PowerManager *PowerManager::instance = NULL;
 
-PowerManager::PowerManager(GMenu2X *gmenu2x, uint32_t suspendTimeout, uint32_t powerTimeout) {
+PowerManager::PowerManager(Esoteric *app, uint32_t suspendTimeout, uint32_t powerTimeout) {
 	instance = this;
 	this->suspendTimeout = suspendTimeout;
 	this->powerTimeout = powerTimeout;
-	this->gmenu2x = gmenu2x;
+	this->app = app;
 	this->suspendActive = false;
 
 	this->powerTimer = NULL;
@@ -47,13 +47,13 @@ void PowerManager::resetPowerTimer() {
 
 uint32_t PowerManager::doSuspend(uint32_t interval, void *param) {
 	/*if (interval > 0) {
-		MessageBox mb(PowerManager::instance->gmenu2x, PowerManager::instance->gmenu2x->tr["Suspend"]);
+		MessageBox mb(PowerManager::instance->app, PowerManager::instance->app->tr["Suspend"]);
 		mb.setAutoHide(500);
 		mb.exec();
 
-		PowerManager::instance->gmenu2x->setBacklight(0);
-		PowerManager::instance->gmenu2x->setTVOut("OFF");
-		PowerManager::instance->gmenu2x->setCPU(PowerManager::instance->gmenu2x->confInt["cpuMin"]);
+		PowerManager::instance->app->setBacklight(0);
+		PowerManager::instance->app->setTVOut("OFF");
+		PowerManager::instance->app->setCPU(PowerManager::instance->app->confInt["cpuMin"]);
 		PowerManager::instance->resetPowerTimer();
 
 		PowerManager::instance->suspendActive = true;
@@ -61,9 +61,9 @@ uint32_t PowerManager::doSuspend(uint32_t interval, void *param) {
 		return interval;
 	}
 
-	PowerManager::instance->gmenu2x->setCPU(PowerManager::instance->gmenu2x->confInt["cpuMenu"]);
-	PowerManager::instance->gmenu2x->setTVOut(PowerManager::instance->gmenu2x->TVOut);
-	PowerManager::instance->gmenu2x->setBacklight(max(10, PowerManager::instance->gmenu2x->confInt["backlight"]));
+	PowerManager::instance->app->setCPU(PowerManager::instance->app->confInt["cpuMenu"]);
+	PowerManager::instance->app->setTVOut(PowerManager::instance->app->TVOut);
+	PowerManager::instance->app->setBacklight(max(10, PowerManager::instance->app->confInt["backlight"]));
 	PowerManager::instance->suspendActive = false;
 	PowerManager::instance->resetSuspendTimer();*/
 	return interval;

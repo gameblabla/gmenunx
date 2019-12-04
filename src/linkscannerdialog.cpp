@@ -6,8 +6,8 @@
 #include "debug.h"
 #include "constants.h"
 
-LinkScannerDialog::LinkScannerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
-	: Dialog(gmenu2x)
+LinkScannerDialog::LinkScannerDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+	: Dialog(app)
 {
 	this->title = title;
 	this->description = description;
@@ -29,7 +29,7 @@ void LinkScannerDialog::exec() {
 	bool cacheChanged = false;
 	this->finished_ = false;
 	this->foundFiles = 0;
-	this->maxMessagesOnScreen = floor((gmenu2x->listRect.h - gmenu2x->skin->menuInfoBarHeight) / gmenu2x->font->getHeight());
+	this->maxMessagesOnScreen = floor((app->listRect.h - app->skin->menuInfoBarHeight) / app->font->getHeight());
 
 	string str = "";
 	stringstream ss;
@@ -38,19 +38,19 @@ void LinkScannerDialog::exec() {
 	drawTopBar(this->bg, title, description, icon);
 	drawBottomBar(this->bg);
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
-	//gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
-	this->bg->blit(gmenu2x->screen, 0, 0);
+	this->bg->box(app->listRect, app->skin->colours.listBackground);
+	//app->ui->drawButton(this->bg, "start", app->tr["Exit"]);
+	this->bg->blit(app->screen, 0, 0);
 
 	this->notify("Scanning...");
 	this->notify("Updating application cache");
-	int preSize = gmenu2x->cache->size();
+	int preSize = app->cache->size();
 	ss.clear();
 	ss << preSize;
 	ss >> str;
 	this->notify("Current cache size : " + str);
-	gmenu2x->updateAppCache(std::bind( &LinkScannerDialog::notify, this, std::placeholders::_1) );
-	int postSize = gmenu2x->cache->size();
+	app->updateAppCache(std::bind( &LinkScannerDialog::notify, this, std::placeholders::_1) );
+	int postSize = app->cache->size();
 	ss.clear();
 	ss << postSize;
 	ss >> str;
@@ -86,7 +86,7 @@ void LinkScannerDialog::exec() {
 			if (pos != string::npos && pos > 0) {
 				path = files[i].substr(0, pos + 1);
 				file = files[i].substr(pos + 1, files[i].length());
-				if (gmenu2x->menu->addLink(path, file, "linkscanner")) {
+				if (app->menu->addLink(path, file, "linkscanner")) {
 					++this->foundFiles;
 				}
 			}
@@ -97,34 +97,34 @@ void LinkScannerDialog::exec() {
 		this->notify(str + " links created");
 	}
 
-	if (this->foundFiles > 0 || gmenu2x->cache->isDirty()) {
+	if (this->foundFiles > 0 || app->cache->isDirty()) {
 		sync();
 		this->notify("Updating the menu");
-		gmenu2x->initMenu();
+		app->initMenu();
 	}
 	this->finished_ = true;
 	this->notify("Completed scan");
 
 	while (!close) {
-		bool inputAction = gmenu2x->input.update(true);
-		if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) {
+		bool inputAction = app->input.update(true);
+		if ( app->input[SETTINGS] || app->input[CANCEL] ) {
 			close = true;
-		} else if (gmenu2x->input[UP]) {
+		} else if (app->input[UP]) {
 			--this->selectedItem;
 			if (this->selectedItem < maxMessagesOnScreen) {
 				this->selectedItem = this->messages_.size() -1;
 			}
 			this->render();
-		} else if (gmenu2x->input[DOWN]) {
+		} else if (app->input[DOWN]) {
 			++this->selectedItem;
 			if (this->selectedItem >= this->messages_.size()) {
 				this->selectedItem = maxMessagesOnScreen;
 			}
 			this->render();
-		} else if (gmenu2x->input[SECTION_PREV]  || gmenu2x->input[LEFT]) {
+		} else if (app->input[SECTION_PREV]  || app->input[LEFT]) {
 			this->selectedItem = maxMessagesOnScreen;
 			this->render();
-		} else if (gmenu2x->input[SECTION_NEXT] || gmenu2x->input[RIGHT]) {
+		} else if (app->input[SECTION_NEXT] || app->input[RIGHT]) {
 			this->selectedItem = this->messages_.size() -1;
 			this->render();
 		}
@@ -133,13 +133,13 @@ void LinkScannerDialog::exec() {
 
 void LinkScannerDialog::render() {
 
-	int lineY = gmenu2x->listRect.y;
+	int lineY = app->listRect.y;
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+	this->bg->box(app->listRect, app->skin->colours.listBackground);
 	if (this->finished_) {
-		gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"]);
+		app->ui->drawButton(this->bg, "start", app->tr["Exit"]);
 	}
-	this->bg->blit(gmenu2x->screen, 0, 0);
+	this->bg->blit(app->screen, 0, 0);
 
 	vector<string>::iterator it = this->messages_.begin();
 	int numMessages = (int)this->messages_.size();
@@ -149,30 +149,30 @@ void LinkScannerDialog::render() {
 			it += (this->selectedItem - maxMessagesOnScreen);
 		}
 
-		gmenu2x->ui->drawScrollBar(
+		app->ui->drawScrollBar(
 			this->maxMessagesOnScreen, 
 			numMessages, 
 			this->selectedItem - this->maxMessagesOnScreen, 
-			gmenu2x->listRect);
+			app->listRect);
 	}
 
 	for (int counter = 0; it != this->messages_.end(); it++) {
-		gmenu2x->screen->write(
-			gmenu2x->font, 
+		app->screen->write(
+			app->font, 
 			(*it), 
-			gmenu2x->listRect.x + 4, 
+			app->listRect.x + 4, 
 			lineY);
 
-		lineY += gmenu2x->font->getHeight();
+		lineY += app->font->getHeight();
 		counter++;
 		if (counter > this->maxMessagesOnScreen)
 			break;
 	}
-	gmenu2x->screen->flip();
+	app->screen->flip();
 }
 
 void LinkScannerDialog::notify(string message) {
-	this->gmenu2x->screenManager.resetScreenTimer();
+	this->app->screenManager.resetScreenTimer();
 	this->messages_.push_back(message);
 	this->selectedItem = this->messages_.size() -1;
 	this->render();

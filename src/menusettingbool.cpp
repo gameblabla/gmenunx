@@ -18,11 +18,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingbool.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 using fastdelegate::MakeDelegate;
 
-MenuSettingBool::MenuSettingBool(GMenu2X *gmenu2x, const string &title, const string &description, int *value)
-	: MenuSetting(gmenu2x, title, description)
+MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const string &description, int *value)
+	: MenuSetting(app, title, description)
 {
 	_ivalue = value;
 	_value = NULL;
@@ -31,8 +31,8 @@ MenuSettingBool::MenuSettingBool(GMenu2X *gmenu2x, const string &title, const st
 	initButton();
 }
 
-MenuSettingBool::MenuSettingBool(GMenu2X *gmenu2x, const string &title, const string &description, bool *value)
-	: MenuSetting(gmenu2x, title, description)
+MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const string &description, bool *value)
+	: MenuSetting(app, title, description)
 {
 	_value = value;
 	_ivalue = NULL;
@@ -45,15 +45,15 @@ void MenuSettingBool::initButton()
 {
 	ButtonAction actionToggle = MakeDelegate(this, &MenuSettingBool::toggle);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/left.png");
+	btn = new IconButton(app, "skin:imgs/buttons/left.png");
 	btn->setAction(actionToggle);
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/right.png");
+	btn = new IconButton(app, "skin:imgs/buttons/right.png");
 	btn->setAction(actionToggle);
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/a.png", gmenu2x->tr["Change"]);
+	btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Change"]);
 	btn->setAction(actionToggle);
 	buttonBox.add(btn);
 }
@@ -65,15 +65,15 @@ void MenuSettingBool::draw(int y)
 	RGBAColor color = (RGBAColor){255, 0, 0, 255};
 	if (value()) color = (RGBAColor) {0, 255, 0, 255};
 
-	int w = gmenu2x->font->getHeight()/2.5;
-	gmenu2x->screen->box(155, y + 1, w, gmenu2x->font->getHeight() - 2, color);
-	gmenu2x->screen->rectangle(155, y + 1, w, gmenu2x->font->getHeight() - 2, 0, 0, 0, 255);
-	gmenu2x->screen->write( gmenu2x->font, strvalue, 155 + w + 2, y + gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	int w = app->font->getHeight()/2.5;
+	app->screen->box(155, y + 1, w, app->font->getHeight() - 2, color);
+	app->screen->rectangle(155, y + 1, w, app->font->getHeight() - 2, 0, 0, 0, 255);
+	app->screen->write( app->font, strvalue, 155 + w + 2, y + app->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingBool::manageInput()
 {
-	if ( gmenu2x->input[LEFT] || gmenu2x->input[RIGHT] || gmenu2x->input[CONFIRM] ) toggle();
+	if ( app->input[LEFT] || app->input[RIGHT] || app->input[CONFIRM] ) toggle();
 	return 0; // SD_NO_ACTION
 }
 

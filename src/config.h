@@ -6,7 +6,7 @@
 #include "utilities.h"
 #include "constants.h"
 
-static const std::string CONFIG_FILE_NAME = "gmenunx.conf";
+static const std::string CONFIG_FILE_NAME = BINARY_NAME + ".conf";
 static const int CONFIG_CURRENT_VERSION = 1;
 static const std::string EXTERNAL_LAUNCHER_PATH = EXTERNAL_CARD_PATH + "/ROMS";
 static const std::string HOME_DIR = "/media/home";

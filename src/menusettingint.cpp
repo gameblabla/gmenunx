@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingint.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "utilities.h"
 
 #include <sstream>
@@ -27,8 +27,8 @@ using std::string;
 using std::stringstream;
 using fastdelegate::MakeDelegate;
 
-MenuSettingInt::MenuSettingInt(GMenu2X *gmenu2x, const string &title, const string &description, int *value, int def, int min, int max, int delta)
-	: MenuSetting(gmenu2x, title, description) {
+MenuSettingInt::MenuSettingInt(Esoteric *app, const string &title, const string &description, int *value, int def, int min, int max, int delta)
+	: MenuSetting(app, title, description) {
 
 	_value = value;
 	originalValue = *value;
@@ -42,30 +42,30 @@ MenuSettingInt::MenuSettingInt(GMenu2X *gmenu2x, const string &title, const stri
 	ButtonAction actionInc = MakeDelegate(this, &MenuSettingInt::inc);
 	ButtonAction actionDec = MakeDelegate(this, &MenuSettingInt::dec);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/select.png", gmenu2x->tr["Default"]);
+	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Default"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingInt::setDefault));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/left.png");
+	btn = new IconButton(app, "skin:imgs/buttons/left.png");
 	btn->setAction(actionDec);
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/right.png", gmenu2x->tr["Change"]);
+	btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Change"]);
 	btn->setAction(actionInc);
 	buttonBox.add(btn);
 }
 
 void MenuSettingInt::draw(int y) {
 	MenuSetting::draw(y);
-	gmenu2x->screen->write( gmenu2x->font, strvalue, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, strvalue, 155, y+app->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingInt::manageInput() {
-	if ( gmenu2x->input[LEFT ] ) dec();
-	if ( gmenu2x->input[RIGHT] ) inc();
-	if ( gmenu2x->input[DEC] ) setValue(value() - 10 * delta);
-	if ( gmenu2x->input[INC] ) setValue(value() + 10 * delta);
-	if ( gmenu2x->input[MENU] ) setDefault();
+	if ( app->input[LEFT ] ) dec();
+	if ( app->input[RIGHT] ) inc();
+	if ( app->input[DEC] ) setValue(value() - 10 * delta);
+	if ( app->input[INC] ) setValue(value() + 10 * delta);
+	if ( app->input[MENU] ) setDefault();
 	return 0; // SD_NO_ACTION
 }
 
@@ -94,10 +94,10 @@ int MenuSettingInt::value() {
 }
 
 // void MenuSettingInt::adjustInput() {
-// 	gmenu2x->input.setInterval(100, LEFT);
-// 	gmenu2x->input.setInterval(100, RIGHT);
-// 	gmenu2x->input.setInterval(100, DEC);
-// 	gmenu2x->input.setInterval(100, INC);
+// 	app->input.setInterval(100, LEFT);
+// 	app->input.setInterval(100, RIGHT);
+// 	app->input.setInterval(100, DEC);
+// 	app->input.setInterval(100, INC);
 // }
 
 bool MenuSettingInt::edited() {

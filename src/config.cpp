@@ -34,8 +34,9 @@ string Config::toString() {
 
     vector<string> vec;
 
-    vec.push_back("# gmenunx config file");
+    vec.push_back("# " + APP_NAME + " config file");
     vec.push_back("# lines starting with a # are ignored");
+    vec.push_back("");
 
     // strings
     vec.push_back(string_format("skin=\"%s\"", this->skin().c_str()));

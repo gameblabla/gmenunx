@@ -10,7 +10,7 @@
 
 using namespace std;
 
-Loader::Loader(GMenu2X *app) {
+Loader::Loader(Esoteric *app) {
     this->app = app;
     this->interval=1000;
     this->volume = 50;

@@ -22,7 +22,7 @@
 
 #include "menusetting.h"
 
-class GMenu2X;
+class Esoteric;
 
 class MenuSettingBool : public MenuSetting {
 private:
@@ -35,8 +35,8 @@ private:
 	std::string strvalue;
 
 public:
-	MenuSettingBool(GMenu2X *gmenu2x, const std::string &title, const std::string &description, bool *value);
-	MenuSettingBool(GMenu2X *gmenu2x, const std::string &title, const std::string &description, int *value);
+	MenuSettingBool(Esoteric *app, const std::string &title, const std::string &description, bool *value);
+	MenuSettingBool(Esoteric *app, const std::string &title, const std::string &description, int *value);
 	virtual ~MenuSettingBool() {};
 
 	virtual void draw(int y);

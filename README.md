@@ -1,16 +1,15 @@
-# GMenuNX
+# Esoteric
 
-[GMenuNX](https://github.com/podulator/GMenuNX/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the RG-350, released under the GNU GPL license v2.
+[Esoteric](https://github.com/podulator/esoteric/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the RG-350, released under the GNU GPL license v2.
 
 View releases [changelog](ChangeLog.md).
 
 ## Installation
 
-Copy the latest [Release](https://github.com/podulator/GMenuNX/releases/) opk to your RG-350, and you will have 3 choices ...
+Copy the latest [Release](https://github.com/podulator/esoteric/releases/) opk to your RG-350, and launch it.
 
-- run it without setting it as your permenant launcher
-- install it as your default launcher
-- uninstall it as your default launcher
+If you decide you want to install it, there is an option to do that in the Settings menu.
+You can uninstall it as the default launcher the same way.
 
 ## Controls
 
@@ -21,7 +20,7 @@ Copy the latest [Release](https://github.com/podulator/GMenuNX/releases/) opk to
 - Y: Bring up the manual/readme;
 - L1, R1: Switch between sections / PageUp/PageDown on lists;
 - L2, R2: Jump to next letter in a list
-- START: GMenuNX settings;
+- START: System settings;
 - SELECT: Bring up the contextual menu;
 
 In settings:
@@ -60,7 +59,7 @@ New data will be printed on screen every minute and will be saved in file **batt
 
 The fields logged are:
 
-- Time: Time in milliseconds since GMenuNX started;
+- Time: Time in milliseconds since Esoteric started;
 - BatteryStatus: Computed battery status, from 0 (discharged) to 4 (charged) and 5 (charging);
 - BatteryLevel: Raw battery level as given by system.
 
@@ -72,8 +71,8 @@ All at [Retro Game Handhelds](https://discord.gg/29DrhQf)
 
 GMenu2X Copyright (c) 2006-2010 [Massimiliano Torromeo](mailto:massimiliano.torromeo@gmail.com); 
 GMenuNX 2018 by [@pingflood](https://boards.dingoonity.org/profile/pingflood/);
-GMenuNX 2019 and beyond by [@podulator](podulator#5243)
+Esoteric 2019 and beyond by [@podulator](podulator#5243);
 
 Visit the [Discord channel](https://discord.gg/29DrhQf)!
 
-[GMenuNX](http://podulator.github.com/gmenu2x) homepage for more info.
+[Esoteric](http://podulator.github.com/esoteric) homepage for more info.

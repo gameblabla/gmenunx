@@ -10,21 +10,20 @@
 
 using namespace std;
 
-
-ProgressBar::ProgressBar(GMenu2X *gmenu2x, const string &title, const string &icon) {
-	this->gmenu2x = gmenu2x;
+ProgressBar::ProgressBar(Esoteric *app, const string &title, const string &icon) {
+	this->app = app;
 	this->title_ = title;
     this->detail_ = "";
 	this->icon = icon;
 	this->bgalpha = 200;
     this->finished_ = false;
     this->timerId_ = 0;
-    this->boxPadding = 24 + ((*this->gmenu2x->sc)[this->icon] != NULL ? 37 : 0);
-    this->titleWidth = this->gmenu2x->font->getTextWidth(this->title_);
-	if (this->titleWidth + this->boxPadding > this->gmenu2x->config->resolutionX()) {
-		this->titleWidth = this->gmenu2x->config->resolutionX(); 
+    this->boxPadding = 24 + ((*this->app->sc)[this->icon] != NULL ? 37 : 0);
+    this->titleWidth = this->app->font->getTextWidth(this->title_);
+	if (this->titleWidth + this->boxPadding > this->app->config->resolutionX()) {
+		this->titleWidth = this->app->config->resolutionX(); 
 	}
-    this->boxHeight = 2 * (this->gmenu2x->font->getTextHeight(this->title_) * this->gmenu2x->font->getHeight()) + this->gmenu2x->font->getHeight();
+    this->boxHeight = 2 * (this->app->font->getTextHeight(this->title_) * this->app->font->getHeight()) + this->app->font->getHeight();
 
 }
 
@@ -33,7 +32,7 @@ ProgressBar::~ProgressBar() {
     if (this->timerId_ > 0) {
         SDL_RemoveTimer(this->timerId_);
     }
-    this->gmenu2x->input.dropEvents(); 
+    this->app->input.dropEvents(); 
     TRACE("exit");
 }
 
@@ -42,7 +41,7 @@ void ProgressBar::setBgAlpha(bool bgalpha) {
 }
 
 string ProgressBar::formatText(const string & text) {
-	int wrap_size = ((gmenu2x->config->resolutionX() - (this->boxPadding / 2)) / gmenu2x->font->getSize() + 15);
+	int wrap_size = ((app->config->resolutionX() - (this->boxPadding / 2)) / app->font->getSize() + 15);
 	TRACE("final wrap size : %i", wrap_size);
 	string wrappedText = splitInLines(text, wrap_size);
 	TRACE("wrap text : %s", wrappedText.c_str());
@@ -60,48 +59,48 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
         interval = 0;
     } else {
         //TRACE("rendering");
-        me->gmenu2x->screen->box(
-            (SDL_Rect){ 0, 0, me->gmenu2x->config->resolutionX(), me->gmenu2x->config->resolutionY() }, 
+        me->app->screen->box(
+            (SDL_Rect){ 0, 0, me->app->config->resolutionX(), me->app->config->resolutionY() }, 
             (RGBAColor){0,0,0, me->bgalpha}
         );
 
         SDL_Rect box;
         box.h = me->boxHeight;
-        if ((*me->gmenu2x->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
+        if ((*me->app->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
         box.w = me->titleWidth + me->boxPadding;
-        box.x = me->gmenu2x->config->halfX() - box.w/2 - 2;
-        box.y = me->gmenu2x->config->halfY() - box.h/2 - 2;
+        box.x = me->app->config->halfX() - box.w/2 - 2;
+        box.y = me->app->config->halfY() - box.h/2 - 2;
 
         //outer box
-        me->gmenu2x->screen->box(box, me->gmenu2x->skin->colours.msgBoxBackground);
+        me->app->screen->box(box, me->app->skin->colours.msgBoxBackground);
         
         //draw inner rectangle
-        me->gmenu2x->screen->rectangle(
+        me->app->screen->rectangle(
             box.x+2, 
             box.y+2, 
             box.w-4, 
             box.h-4, 
-            me->gmenu2x->skin->colours.msgBoxBorder);
+            me->app->skin->colours.msgBoxBorder);
 
         //icon+wrapped_text
-        if ((*me->gmenu2x->sc)[me->icon] != NULL)
-            (*me->gmenu2x->sc)[me->icon]->blit(
-                me->gmenu2x->screen, 
+        if ((*me->app->sc)[me->icon] != NULL)
+            (*me->app->sc)[me->icon]->blit(
+                me->app->screen, 
                 box.x + 24, 
                 box.y + 24 , 
                 HAlignCenter | VAlignMiddle);
 
         string finalText = me->title_ + "\n" + me->detail_;
-        me->gmenu2x->screen->write(
-            me->gmenu2x->font, 
+        me->app->screen->write(
+            me->app->font, 
             finalText, 
-            box.x + ((*me->gmenu2x->sc)[me->icon] != NULL ? 47 : 11), 
-            me->gmenu2x->config->halfY() - me->gmenu2x->font->getHeight() / 5, 
+            box.x + ((*me->app->sc)[me->icon] != NULL ? 47 : 11), 
+            me->app->config->halfY() - me->app->font->getHeight() / 5, 
             VAlignMiddle, 
-            me->gmenu2x->skin->colours.fontAlt, 
-            me->gmenu2x->skin->colours.fontAltOutline);
+            me->app->skin->colours.fontAlt, 
+            me->app->skin->colours.fontAltOutline);
 
-        me->gmenu2x->screen->flip();
+        me->app->screen->flip();
     }
 
     return(interval);

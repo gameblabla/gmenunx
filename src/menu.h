@@ -28,7 +28,7 @@ using std::string;
 using std::vector;
 
 class LinkApp;
-class GMenu2X;
+class Esoteric;
 
 typedef vector<Link*> linklist;
 
@@ -39,7 +39,7 @@ Handles the menu structure
 */
 class Menu {
 private:
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 	int iSection, iLink;
 	uint32_t iFirstDispSection, iFirstDispRow;
 	vector<string> sections;
@@ -49,7 +49,7 @@ private:
 	void freeLinks();
 
 public:
-	Menu(GMenu2X *gmenu2x);
+	Menu(Esoteric *app);
 	~Menu();
 
 	linklist *sectionLinks(int i = -1);

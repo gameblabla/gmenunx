@@ -27,7 +27,7 @@
 #include <fstream>
 #include <opk.h>
 
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "linkapp.h"
 #include "menu.h"
 #include "filelister.h"
@@ -36,9 +36,9 @@
 
 using namespace std;
 
-Menu::Menu(GMenu2X *gmenu2x) {
+Menu::Menu(Esoteric *app) {
 	TRACE("enter");
-	this->gmenu2x = gmenu2x;
+	this->app = app;
 	iFirstDispSection = 0;
 
 	DIR *dirp;
@@ -47,11 +47,11 @@ Menu::Menu(GMenu2X *gmenu2x) {
 	string filepath;
 
 	vector<string> filter;
-	split(filter, this->gmenu2x->config->sectionFilter(), ",");
+	split(filter, this->app->config->sectionFilter(), ",");
 	TRACE("got %zu filter sections", filter.size());
 
 	TRACE("opening sections");
-	string resolvedPath = this->gmenu2x->getWriteablePath() + "sections/";
+	string resolvedPath = this->app->getWriteablePath() + "sections/";
 	TRACE("looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
@@ -116,9 +116,9 @@ void Menu::loadIcons() {
 	for (uint32_t i = 0; i < sections.size(); i++) {
 		string sectionIcon = "sections/" + sections[i] + ".png";
 		TRACE("section : %s", sections[i].c_str());
-		if (!gmenu2x->skin->getSkinFilePath(sectionIcon).empty()) {
+		if (!app->skin->getSkinFilePath(sectionIcon).empty()) {
 			TRACE("section icon: skin: %s", sectionIcon.c_str());
-			gmenu2x->sc->addIcon("skin:" + sectionIcon);
+			app->sc->addIcon("skin:" + sectionIcon);
 		}
 
 		//check link's icons
@@ -139,7 +139,7 @@ void Menu::loadIcons() {
 
 			TRACE("link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
-				linkIcon = gmenu2x->skin->getSkinFilePath(linkIcon.substr(5, linkIcon.length()));
+				linkIcon = app->skin->getSkinFilePath(linkIcon.substr(5, linkIcon.length()));
 				if (linkapp != NULL && !fileExists(linkIcon))
 					linkapp->searchIcon();
 				else
@@ -194,9 +194,9 @@ const string &Menu::selSection() {
 }
 
 int Menu::sectionNumItems() {
-	return gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM 
-		? (gmenu2x->config->resolutionX() - 40)/gmenu2x->skin->sectionTitleBarSize 
-		: (gmenu2x->config->resolutionY() - 40)/gmenu2x->skin->sectionTitleBarSize;
+	return app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM 
+		? (app->config->resolutionX() - 40)/app->skin->sectionTitleBarSize 
+		: (app->config->resolutionY() - 40)/app->skin->sectionTitleBarSize;
 }
 
 void Menu::setSectionIndex(int i) {
@@ -227,10 +227,10 @@ string Menu::sectionPath(int section) {
 bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::FastDelegate0<> action, const string &description, const string &icon) {
 	if (section >= sections.size()) return false;
 
-	Link *linkact = new Link(gmenu2x, action);
+	Link *linkact = new Link(app, action);
 	linkact->setTitle(title);
 	linkact->setDescription(description);
-	if (gmenu2x->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !gmenu2x->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon))
+	if (app->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !app->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon))
 	linkact->setIcon(icon);
 
 	sectionLinks(section)->push_back(linkact);
@@ -253,14 +253,14 @@ bool Menu::addLink(string path, string file, string section) {
 	// strip the extension from the filename
 	string title = fileBaseName(file);
 
-	string linkpath = gmenu2x->getWriteablePath() + "sections/" + section + "/" + title;
+	string linkpath = app->getWriteablePath() + "sections/" + section + "/" + title;
 	int x = 2;
 	while (fileExists(linkpath)) {
 		stringstream ss;
 		linkpath = "";
 		ss << x;
 		ss >> linkpath;
-		linkpath = gmenu2x->getWriteablePath()  + "sections/" + section + "/" + title + linkpath;
+		linkpath = app->getWriteablePath()  + "sections/" + section + "/" + title + linkpath;
 		x++;
 	}
 
@@ -271,8 +271,8 @@ bool Menu::addLink(string path, string file, string section) {
 	string shorttitle = title, exec = path + file;
 
 	//Reduce title length to fit the link width
-	if ((int)gmenu2x->font->getTextWidth(shorttitle) > gmenu2x->linkWidth) {
-		while ((int)gmenu2x->font->getTextWidth(shorttitle + "..") > gmenu2x->linkWidth) {
+	if ((int)app->font->getTextWidth(shorttitle) > app->linkWidth) {
+		while ((int)app->font->getTextWidth(shorttitle + "..") > app->linkWidth) {
 			shorttitle = shorttitle.substr(0, shorttitle.length() - 1);
 		}
 		shorttitle += "..";
@@ -290,7 +290,7 @@ bool Menu::addLink(string path, string file, string section) {
 		if (isection >= 0 && isection < (int)sections.size()) {
 			INFO("Section: '%s(%i)'", sections[isection].c_str(), isection);
 
-			LinkApp *link = new LinkApp(gmenu2x, linkpath.c_str(), true);
+			LinkApp *link = new LinkApp(app, linkpath.c_str(), true);
 			if (link->targetExists())
 				links[isection].push_back( link );
 			else
@@ -308,7 +308,7 @@ bool Menu::addLink(string path, string file, string section) {
 
 bool Menu::addSection(const string &sectionName) {
 	TRACE("enter %s", sectionName.c_str());
-	string sectiondir = gmenu2x->getWriteablePath() + "sections/" + sectionName;
+	string sectiondir = app->getWriteablePath() + "sections/" + sectionName;
 
 	if (mkdir(sectiondir.c_str(),0777) == 0) {
 		sections.push_back(sectionName);
@@ -340,14 +340,14 @@ void Menu::deleteSelectedLink() {
 		}
 	}
 	if (!icon_used) {
-		gmenu2x->sc->del(iconpath);
+		app->sc->del(iconpath);
 	}
 }
 
 void Menu::deleteSelectedSection() {
 	INFO("Deleting section '%s'", selSection().c_str());
 
-	gmenu2x->sc->del(gmenu2x->getWriteablePath() + "sections/" + selSection() + ".png");
+	app->sc->del(app->getWriteablePath() + "sections/" + selSection() + ".png");
 	links.erase( links.begin() + selSectionIndex() );
 	sections.erase( sections.begin() + selSectionIndex() );
 	setSectionIndex(0); //reload sections
@@ -367,56 +367,56 @@ bool Menu::linkChangeSection(uint32_t linkIndex, uint32_t oldSectionIndex, uint3
 
 void Menu::pageUp() {
 	// PAGEUP with left
-	if ((int)(iLink - gmenu2x->skin->numLinkRows - 1) < 0) {
+	if ((int)(iLink - app->skin->numLinkRows - 1) < 0) {
 		setLinkIndex(0);
 	} else {
-		setLinkIndex(iLink - gmenu2x->skin->numLinkRows + 1);
+		setLinkIndex(iLink - app->skin->numLinkRows + 1);
 	}
 }
 
 void Menu::pageDown() {
 	// PAGEDOWN with right
-	if (iLink + gmenu2x->skin->numLinkRows > sectionLinks()->size()) {
+	if (iLink + app->skin->numLinkRows > sectionLinks()->size()) {
 		setLinkIndex(sectionLinks()->size() - 1);
 	} else {
-		setLinkIndex(iLink + gmenu2x->skin->numLinkRows - 1);
+		setLinkIndex(iLink + app->skin->numLinkRows - 1);
 	}
 }
 
 void Menu::linkLeft() {
-	// if (iLink % gmenu2x->skin->numLinkCols == 0)
-		// setLinkIndex(sectionLinks()->size() > iLink + gmenu2x->skin->numLinkCols - 1 ? iLink + gmenu2x->skin->numLinkCols - 1 : sectionLinks()->size() - 1 );
+	// if (iLink % app->skin->numLinkCols == 0)
+		// setLinkIndex(sectionLinks()->size() > iLink + app->skin->numLinkCols - 1 ? iLink + app->skin->numLinkCols - 1 : sectionLinks()->size() - 1 );
 	// else
 		setLinkIndex(iLink - 1);
 }
 
 void Menu::linkRight() {
-	// if (iLink % gmenu2x->skin->numLinkCols == (gmenu2x->skin->numLinkCols - 1) || iLink == (int)sectionLinks()->size() - 1)
-		// setLinkIndex(iLink - iLink % gmenu2x->skin->numLinkCols);
+	// if (iLink % app->skin->numLinkCols == (app->skin->numLinkCols - 1) || iLink == (int)sectionLinks()->size() - 1)
+		// setLinkIndex(iLink - iLink % app->skin->numLinkCols);
 	// else
 		setLinkIndex(iLink + 1);
 }
 
 void Menu::linkUp() {
-	int l = iLink - gmenu2x->skin->numLinkCols;
+	int l = iLink - app->skin->numLinkCols;
 	if (l < 0) {
-		uint32_t rows = (uint32_t)ceil(sectionLinks()->size() / (double)gmenu2x->skin->numLinkCols);
-		l += (rows * gmenu2x->skin->numLinkCols);
+		uint32_t rows = (uint32_t)ceil(sectionLinks()->size() / (double)app->skin->numLinkCols);
+		l += (rows * app->skin->numLinkCols);
 		if (l >= (int)sectionLinks()->size())
-			l -= gmenu2x->skin->numLinkCols;
+			l -= app->skin->numLinkCols;
 	}
 	setLinkIndex(l);
 }
 
 void Menu::linkDown() {
-	uint32_t l = iLink + gmenu2x->skin->numLinkCols;
+	uint32_t l = iLink + app->skin->numLinkCols;
 	if (l >= sectionLinks()->size()) {
-		uint32_t rows = (uint32_t)ceil(sectionLinks()->size() / (double)gmenu2x->skin->numLinkCols);
-		uint32_t curCol = (uint32_t)ceil((iLink+1) / (double)gmenu2x->skin->numLinkCols);
+		uint32_t rows = (uint32_t)ceil(sectionLinks()->size() / (double)app->skin->numLinkCols);
+		uint32_t curCol = (uint32_t)ceil((iLink+1) / (double)app->skin->numLinkCols);
 		if (rows > curCol)
 			l = sectionLinks()->size() - 1;
 		else
-			l %= gmenu2x->skin->numLinkCols;
+			l %= app->skin->numLinkCols;
 	}
 	setLinkIndex(l);
 }
@@ -477,10 +477,10 @@ void Menu::setLinkIndex(int i) {
 		i = 0;
 
 
-	if (i >= (int)(iFirstDispRow * gmenu2x->skin->numLinkCols + gmenu2x->skin->numLinkCols * gmenu2x->skin->numLinkRows))
-		iFirstDispRow = i / gmenu2x->skin->numLinkCols - gmenu2x->skin->numLinkRows + 1;
-	else if (i < (int)(iFirstDispRow * gmenu2x->skin->numLinkCols))
-		iFirstDispRow = i / gmenu2x->skin->numLinkCols;
+	if (i >= (int)(iFirstDispRow * app->skin->numLinkCols + app->skin->numLinkCols * app->skin->numLinkRows))
+		iFirstDispRow = i / app->skin->numLinkCols - app->skin->numLinkRows + 1;
+	else if (i < (int)(iFirstDispRow * app->skin->numLinkCols))
+		iFirstDispRow = i / app->skin->numLinkCols;
 
 	iLink = i;
 }
@@ -496,7 +496,7 @@ void Menu::readLinks() {
 	struct stat st;
 	struct dirent *dptr;
 	string filepath;
-	string assets_path = gmenu2x->getWriteablePath();
+	string assets_path = app->getWriteablePath();
 	
 	for (uint32_t i = 0; i < links.size(); i++) {
 		links[i].clear();
@@ -526,7 +526,7 @@ void Menu::readLinks() {
 		for (uint32_t x = 0; x < linkfiles.size(); x++) {
 			TRACE("validating link : %s", linkfiles[x].c_str());
 
-			LinkApp *link = new LinkApp(gmenu2x, linkfiles[x].c_str(), true);
+			LinkApp *link = new LinkApp(app, linkfiles[x].c_str(), true);
 			TRACE("link created...");
 			if (link->targetExists()) {
 				TRACE("target exists");
@@ -555,7 +555,7 @@ int Menu::getSectionIndex(const string &name) {
 
 const string Menu::getSectionIcon(int i) {
 	string sectionIcon = "skin:sections/" + sections[i] + ".png";
-	if (!gmenu2x->sc->exists(sectionIcon)) {
+	if (!app->sc->exists(sectionIcon)) {
 		sectionIcon = "skin:icons/section.png";
 	}
 	return sectionIcon;

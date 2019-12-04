@@ -17,7 +17,7 @@ class DesktopFile {
 
         string title_; //=ReGBA
         string description_; //=Game Boy Advance Emulator
-        string icon_; //=/home/mat/.gmenunx/skins/Default/icons/regba-silver.png
+        string icon_; //=/home/mat/.esoteric/skins/Default/icons/regba-silver.png
         string exec_; //=/bin/bash
         string params_;  //=-m default.gcw0.desktop /home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk 
         string selectordir_; //=/home/mat/Downloads

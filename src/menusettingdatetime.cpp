@@ -18,7 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingdatetime.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 #include <sstream>
 #include <iomanip>
@@ -26,8 +26,8 @@
 using std::stringstream;
 using fastdelegate::MakeDelegate;
 
-MenuSettingDateTime::MenuSettingDateTime(GMenu2X *gmenu2x, const string &title, const string &description, string *value)
-	: MenuSetting(gmenu2x, title, description) {
+MenuSettingDateTime::MenuSettingDateTime(Esoteric *app, const string &title, const string &description, string *value)
+	: MenuSetting(app, title, description) {
 	_value = value;
 	originalValue = *value;
 
@@ -41,19 +41,19 @@ MenuSettingDateTime::MenuSettingDateTime(GMenu2X *gmenu2x, const string &title, 
 	this->setHour(ihour);
 	this->setMinute(iminute);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/left.png");
+	btn = new IconButton(app, "skin:imgs/buttons/left.png");
 	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::leftComponent));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/right.png", gmenu2x->tr["Component"]);
+	btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Component"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::rightComponent));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/y.png", gmenu2x->tr["Decrease"]);
+	btn = new IconButton(app, "skin:imgs/buttons/y.png", app->tr["Decrease"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::dec));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/x.png", gmenu2x->tr["Increase"]);
+	btn = new IconButton(app, "skin:imgs/buttons/x.png", app->tr["Increase"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::inc));
 	buttonBox.add(btn);
 }
@@ -61,14 +61,14 @@ MenuSettingDateTime::MenuSettingDateTime(GMenu2X *gmenu2x, const string &title, 
 void MenuSettingDateTime::draw(int y) {
 	this->y = y;
 	MenuSetting::draw(y);
-	gmenu2x->screen->write( gmenu2x->font, year + "-" + month + "-" + day + " " + hour + ":" + minute, 155, y+gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, year + "-" + month + "-" + day + " " + hour + ":" + minute, 155, y+app->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingDateTime::manageInput() {
-	if (gmenu2x->input[INC]) inc();
-	if (gmenu2x->input[DEC]) dec();
-	if (gmenu2x->input[LEFT]) leftComponent();
-	if (gmenu2x->input[RIGHT]) rightComponent();
+	if (app->input[INC]) inc();
+	if (app->input[DEC]) dec();
+	if (app->input[LEFT]) leftComponent();
+	if (app->input[RIGHT]) rightComponent();
 	return 0; // SD_NO_ACTION
 }
 
@@ -160,14 +160,14 @@ uint16_t MenuSettingDateTime::getSelPart() {
 void MenuSettingDateTime::drawSelected(int y) {
 	int x = 155, w = 40;
 	switch (selPart) {
-		case 1: x += gmenu2x->font->getTextWidth(year + "-"); w = gmenu2x->font->getTextWidth(month); break;
-		case 2: x += gmenu2x->font->getTextWidth(year + "-" + month + "-"); w = gmenu2x->font->getTextWidth(day); break;
-		case 3: x += gmenu2x->font->getTextWidth(year + "-" + month + "-" + day + " "); w = gmenu2x->font->getTextWidth(hour); break;
-		case 4: x += gmenu2x->font->getTextWidth(year + "-" + month + "-" + day + " " + hour + ":"); w = gmenu2x->font->getTextWidth(minute); break;
-		default: w = gmenu2x->font->getTextWidth(year); break;
+		case 1: x += app->font->getTextWidth(year + "-"); w = app->font->getTextWidth(month); break;
+		case 2: x += app->font->getTextWidth(year + "-" + month + "-"); w = app->font->getTextWidth(day); break;
+		case 3: x += app->font->getTextWidth(year + "-" + month + "-" + day + " "); w = app->font->getTextWidth(hour); break;
+		case 4: x += app->font->getTextWidth(year + "-" + month + "-" + day + " " + hour + ":"); w = app->font->getTextWidth(minute); break;
+		default: w = app->font->getTextWidth(year); break;
 	}
-	gmenu2x->screen->box( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, gmenu2x->skin->colours.selectionBackground);
-	gmenu2x->screen->rectangle( x - 2, y, w + 3, gmenu2x->font->getHeight() + 1, 0,0,0,255 );
+	app->screen->box( x - 2, y, w + 3, app->font->getHeight() + 1, app->skin->colours.selectionBackground);
+	app->screen->rectangle( x - 2, y, w + 3, app->font->getHeight() + 1, 0,0,0,255 );
 
 	MenuSetting::drawSelected(y);
 }

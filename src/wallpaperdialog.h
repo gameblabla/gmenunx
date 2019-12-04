@@ -22,7 +22,7 @@
 #define WALLPAPERDIALOG_H_
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 
 using std::string;
@@ -33,7 +33,7 @@ private:
 protected:
 	string title, description, icon;
 public:
-	WallpaperDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon);
+	WallpaperDialog(Esoteric *app, const string &title, const string &description, const string &icon);
 	string wallpaper;
 
 	bool exec();

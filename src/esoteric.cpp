@@ -33,7 +33,7 @@
 #include "fonthelper.h"
 #include "surface.h"
 #include "browsedialog.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "filelister.h"
 
 #include "iconbutton.h"
@@ -76,7 +76,7 @@ const string OPK_PLATFORM = "gcw0";
 	#define __BUILDTIME__ __DATE__ " - " __TIME__ 
 #endif
 
-static GMenu2X *app;
+static Esoteric *app;
 
 using std::ifstream;
 using std::ofstream;
@@ -88,7 +88,7 @@ static void quit_all(int err) {
 	exit(err);
 }
 
-GMenu2X::~GMenu2X() {
+Esoteric::~Esoteric() {
 	TRACE("enter\n\n");
 	quit();
 	delete ui;
@@ -107,12 +107,12 @@ GMenu2X::~GMenu2X() {
 	TRACE("exit\n\n");
 }
 
-void GMenu2X::releaseScreen() {
+void Esoteric::releaseScreen() {
 	TRACE("calling SDL_Quit");
 	SDL_Quit();
 }
 
-void GMenu2X::quit() {
+void Esoteric::quit() {
 	TRACE("enter");
 	if (!this->sc->empty()) {
 		TRACE("SURFACE EXISTED");
@@ -125,17 +125,17 @@ void GMenu2X::quit() {
 		this->screen->free();
 		releaseScreen();
 	}
-	INFO("GMenuNX::quit - exit");
+	INFO("quit - exit");
 }
 
 int main(int argc, char * argv[]) {
-	INFO("GMenuNX starting: Build Date - %s", __BUILDTIME__);
+	INFO("%s starting: Build Date - %s", APP_NAME.c_str(), __BUILDTIME__);
 
 	signal(SIGINT, &quit_all);
 	signal(SIGSEGV,&quit_all);
 	signal(SIGTERM,&quit_all);
 
-	app = new GMenu2X();
+	app = new Esoteric();
 	TRACE("Starting app->main()");
 	app->main();
 	return 0;
@@ -143,14 +143,14 @@ int main(int argc, char * argv[]) {
 
 bool exitMainThread = false;
 void* mainThread(void* param) {
-	GMenu2X *menu = (GMenu2X*)param;
+	Esoteric *menu = (Esoteric*)param;
 	while(!exitMainThread) {
 		sleep(1);
 	}
 	return NULL;
 }
 
-void GMenu2X::updateAppCache(std::function<void(string)> callback) {
+void Esoteric::updateAppCache(std::function<void(string)> callback) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
 
@@ -169,7 +169,7 @@ void GMenu2X::updateAppCache(std::function<void(string)> callback) {
 	TRACE("exit");
 }
 
-GMenu2X::GMenu2X() : input(screenManager) {
+Esoteric::Esoteric() : input(screenManager) {
 
 	TRACE("enter");
 
@@ -240,7 +240,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 		config->resolutionY());
 
 	if (!this->skin->loadSkin( config->skin())) {
-		ERROR("GMenu2X::ctor - couldn't load skin, using defaults");
+		ERROR("Esoteric::ctor - couldn't load skin, using defaults");
 	}
 
 	TRACE("new surface collection");
@@ -259,7 +259,7 @@ GMenu2X::GMenu2X() : input(screenManager) {
 
 }
 
-void GMenu2X::main() {
+void Esoteric::main() {
 	TRACE("enter");
 
 	// has to come before the app cache thread kicks off
@@ -285,7 +285,7 @@ void GMenu2X::main() {
 	pbLoading->updateDetail("Checking for new applications...");
 	TRACE("kicking off our app cache thread");
 	std::thread * thread_cache = new std::thread(
-		&GMenu2X::updateAppCache, 
+		&Esoteric::updateAppCache, 
 		this, 
 		std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
 
@@ -427,7 +427,7 @@ void GMenu2X::main() {
 	TRACE("exit");
 }
 
-void GMenu2X::setWallpaper(const string &wallpaper) {
+void Esoteric::setWallpaper(const string &wallpaper) {
 	TRACE("enter : %s", wallpaper.c_str());
 	if (bg != NULL) delete bg;
 
@@ -477,7 +477,7 @@ void GMenu2X::setWallpaper(const string &wallpaper) {
 	TRACE("exit");
 }
 
-void GMenu2X::initLayout() {
+void Esoteric::initLayout() {
 	TRACE("enter");
 	// LINKS rect
 	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
@@ -523,7 +523,7 @@ void GMenu2X::initLayout() {
 	TRACE("exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
 }
 
-void GMenu2X::initFont() {
+void Esoteric::initFont() {
 	TRACE("enter");
 
 	string fontPath = this->skin->getSkinFilePath("font.ttf");
@@ -550,12 +550,12 @@ void GMenu2X::initFont() {
 		TRACE("exit");
 		fontSectionTitle = new FontHelper(fontPath, skin->fontSizeSectionTitle, skin->colours.font, skin->colours.fontOutline);
 	} else {
-		ERROR("GMenu2X::initFont - font file is missing from : %s", fontPath.c_str());
+		ERROR("Esoteric::initFont - font file is missing from : %s", fontPath.c_str());
 	}
 	TRACE("exit");
 }
 
-void GMenu2X::initMenu() {
+void Esoteric::initMenu() {
 	TRACE("enter");
 	if (menu != NULL) delete menu;
 
@@ -572,12 +572,12 @@ void GMenu2X::initMenu() {
 	int i = menu->getSectionIndex("applications");
 	menu->addActionLink(i, 
 						tr["Battery Logger"], 
-						MakeDelegate(this, &GMenu2X::batteryLogger), 
+						MakeDelegate(this, &Esoteric::batteryLogger), 
 						tr["Log battery power to battery.csv"], 
 						"skin:icons/ebook.png");
 	menu->addActionLink(i, 
 						tr["Explorer"], 
-						MakeDelegate(this, &GMenu2X::explorer), 
+						MakeDelegate(this, &Esoteric::explorer), 
 						tr["Browse files and launch apps"], 
 						"skin:icons/explorer.png");
 
@@ -585,7 +585,7 @@ void GMenu2X::initMenu() {
 	menu->addActionLink(
 						i, 
 						tr["About"], 
-						MakeDelegate(this, &GMenu2X::about), 
+						MakeDelegate(this, &Esoteric::about), 
 						tr["Info about system"], 
 						"skin:icons/about.png");
 
@@ -593,7 +593,7 @@ void GMenu2X::initMenu() {
 		menu->addActionLink(
 							i, 
 							tr["Install me"], 
-							MakeDelegate(this, &GMenu2X::doInstall), 
+							MakeDelegate(this, &Esoteric::doInstall), 
 							tr["Set " + APP_NAME + " as your launcher"], 
 							"skin:icons/device.png");
 	}
@@ -602,7 +602,7 @@ void GMenu2X::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Log Viewer"], 
-						MakeDelegate(this, &GMenu2X::viewLog), 
+						MakeDelegate(this, &Esoteric::viewLog), 
 						tr["Displays last launched program's output"], 
 						"skin:icons/ebook.png");
 
@@ -610,28 +610,28 @@ void GMenu2X::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Mount"], 
-						MakeDelegate(this, &GMenu2X::mountSdDialog), 
+						MakeDelegate(this, &Esoteric::mountSdDialog), 
 						tr["Mount external SD"], 
 						"skin:icons/eject.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Power"], 
-						MakeDelegate(this, &GMenu2X::poweroffDialog), 
+						MakeDelegate(this, &Esoteric::poweroffDialog), 
 						tr["Power menu"], 
 						"skin:icons/exit.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Settings"], 
-						MakeDelegate(this, &GMenu2X::settings), 
+						MakeDelegate(this, &Esoteric::settings), 
 						tr["Configure system and choose skin"], 
 						"skin:icons/configure.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Skin - " + skin->name], 
-						MakeDelegate(this, &GMenu2X::skinMenu), 
+						MakeDelegate(this, &Esoteric::skinMenu), 
 						tr["Adjust skin settings"], 
 						"skin:icons/skin.png");
 
@@ -639,14 +639,14 @@ void GMenu2X::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Umount"], 
-						MakeDelegate(this, &GMenu2X::umountSdDialog), 
+						MakeDelegate(this, &Esoteric::umountSdDialog), 
 						tr["Umount external SD"], 
 						"skin:icons/eject.png");
 	if (isDefaultLauncher) {
 		menu->addActionLink(
 							i, 
 							tr["UnInstall me"], 
-							MakeDelegate(this, &GMenu2X::doUnInstall), 
+							MakeDelegate(this, &Esoteric::doUnInstall), 
 							tr["Remove " + APP_NAME + " as your launcher"], 
 							"skin:icons/device.png");
 	}
@@ -656,7 +656,7 @@ void GMenu2X::initMenu() {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
-							MakeDelegate(this, &GMenu2X::doUpgrade), 
+							MakeDelegate(this, &Esoteric::doUpgrade), 
 							tr["Upgrade " + APP_NAME], 
 							"skin:icons/device.png");
 	}
@@ -677,7 +677,7 @@ void GMenu2X::initMenu() {
 	TRACE("exit");
 }
 
-void GMenu2X::settings() {
+void Esoteric::settings() {
 	TRACE("enter");
 	int curGlobalVolume = config->globalVolume();
 	int curGlobalBrightness = config->backlightLevel();
@@ -726,11 +726,11 @@ void GMenu2X::settings() {
 	string prevDateTime = currentDatetime;
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
-	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by GMenuNX"], &lang, &fl_tr.getFiles()));
+	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by " + APP_NAME], &lang, &fl_tr.getFiles()));
 	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &currentDatetime));
 	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &batteryType, &batteryTypes));
 
-	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by GMenuNX"], &skin, &skinList));
+	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by " + APP_NAME], &skin, &skinList));
 
 	if (performanceModes.size() > 1)
 		sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &performanceMode, &performanceModes));
@@ -758,9 +758,9 @@ void GMenu2X::settings() {
 
 	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
-	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::cpuSettings)));
+	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::cpuSettings)));
 	#endif
-	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &GMenu2X::resetSettings)));
+	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		bool refreshNeeded = false;
@@ -837,7 +837,7 @@ void GMenu2X::settings() {
 	TRACE("exit");
 }
 
-void GMenu2X::resetSettings() {
+void Esoteric::resetSettings() {
 	bool	reset_gmenu = true,
 			reset_skin = true,
 			reset_icon = false,
@@ -852,7 +852,7 @@ void GMenu2X::resetSettings() {
 	string tmppath = "";
 
 	SettingsDialog sd(this, ts, tr["Reset settings"], "skin:icons/configure.png");
-	sd.addSetting(new MenuSettingBool(this, tr["GMenuNX"], tr["Reset GMenuNX settings"], &reset_gmenu));
+	sd.addSetting(new MenuSettingBool(this, tr[APP_NAME], tr["Reset " + APP_NAME + " settings"], &reset_gmenu));
 	sd.addSetting(new MenuSettingBool(this, tr["Default skin"], tr["Reset Default skin settings back to default"], &reset_skin));
 	sd.addSetting(new MenuSettingBool(this, tr["Icons"], tr["Reset link's icon back to default"], &reset_icon));
 	sd.addSetting(new MenuSettingBool(this, tr["Manuals"], tr["Unset link's manual"], &reset_manual));
@@ -864,7 +864,7 @@ void GMenu2X::resetSettings() {
 	sd.addSetting(new MenuSettingBool(this, tr["CPU speed"], tr["Reset link's custom CPU speed back to default"], &reset_cpu));
 
 	if (sd.exec() && sd.edited() && sd.save) {
-		MessageBox mb(this, tr["Changes will be applied to ALL\napps and GMenuNX. Are you sure?"], "skin:icons/exit.png");
+		MessageBox mb(this, tr["Changes will be applied to ALL\napps and " + APP_NAME + ". Are you sure?"], "skin:icons/exit.png");
 		mb.setButton(CONFIRM, tr["Cancel"]);
 		mb.setButton(SECTION_NEXT,  tr["Confirm"]);
 		if (mb.exec() != SECTION_NEXT) return;
@@ -898,7 +898,7 @@ void GMenu2X::resetSettings() {
 	}
 }
 
-void GMenu2X::cpuSettings() {
+void Esoteric::cpuSettings() {
 	TRACE("enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
 	int cpuMenu = config->cpuMenu();
@@ -917,11 +917,11 @@ void GMenu2X::cpuSettings() {
 	TRACE("exit");
 }
 
-void GMenu2X::readTmp() {
+void Esoteric::readTmp() {
 	TRACE("enter");
 	lastSelectorElement = -1;
-	if (!fileExists("/tmp/gmenunx.tmp")) return;
-	ifstream inf("/tmp/gmenunx.tmp", ios_base::in);
+	if (!fileExists(TEMP_FILE)) return;
+	ifstream inf(TEMP_FILE, ios_base::in);
 	if (!inf.is_open()) return;
 	string line, name, value;
 
@@ -936,14 +936,12 @@ void GMenu2X::readTmp() {
 		else if (name == "TVOut") this->hw->setTVOutMode(value);
 		//else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
 	}
-	//	udcConnectedOnBoot = 0;
 	inf.close();
-	unlink("/tmp/gmenunx.tmp");
+	unlink(TEMP_FILE.c_str());
 }
 
-void GMenu2X::writeTmp(int selelem, const string &selectordir) {
-	string conffile = "/tmp/gmenunx.tmp";
-	ofstream inf(conffile.c_str());
+void Esoteric::writeTmp(int selelem, const string &selectordir) {
+	ofstream inf(TEMP_FILE.c_str());
 	if (inf.is_open()) {
 		inf << "section=" << menu->selSectionIndex() << endl;
 		inf << "link=" << menu->selLinkIndex() << endl;
@@ -955,7 +953,7 @@ void GMenu2X::writeTmp(int selelem, const string &selectordir) {
 	}
 }
 
-void GMenu2X::writeConfig() {
+void Esoteric::writeConfig() {
 	TRACE("enter");
 	this->hw->ledOn();
 	// don't try and save to RO file system
@@ -971,7 +969,7 @@ void GMenu2X::writeConfig() {
 	TRACE("exit");
 }
 
-void GMenu2X::writeSkinConfig() {
+void Esoteric::writeSkinConfig() {
 	TRACE("enter");
 	this->hw->ledOn();
 	skin->save();
@@ -979,11 +977,11 @@ void GMenu2X::writeSkinConfig() {
 	TRACE("exit");
 }
 
-uint32_t GMenu2X::onChangeSkin() {
+uint32_t Esoteric::onChangeSkin() {
 	return 1;
 }
 
-void GMenu2X::skinMenu() {
+void Esoteric::skinMenu() {
 	TRACE("enter");
 	bool save = false;
 	int selected = 0;
@@ -1024,8 +1022,8 @@ void GMenu2X::skinMenu() {
 		sd.selected = selected;
 		sd.allowCancel = false;
 
-		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::changeWallpaper)));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &GMenu2X::onChangeSkin), MakeDelegate(this, &GMenu2X::skinColors)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::changeWallpaper)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::skinColors)));
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
 		
 		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
@@ -1100,7 +1098,7 @@ void GMenu2X::skinMenu() {
 	TRACE("exit");
 }
 
-void GMenu2X::skinColors() {
+void Esoteric::skinColors() {
 	bool save = false;
 	do {
 		SettingsDialog sd(this, ts, tr["Skin Colors"], "skin:icons/skin.png");
@@ -1123,7 +1121,7 @@ void GMenu2X::skinColors() {
 	writeSkinConfig();
 }
 
-void GMenu2X::about() {
+void Esoteric::about() {
 	TRACE("enter");
 	vector<string> text;
 	string temp;
@@ -1168,7 +1166,7 @@ void GMenu2X::about() {
 	temp += tr["External storage size: "] + externalSize + "\n";
 	temp += "----\n";
 
-	TextDialog td(this, "GMenuNX", tr["Info about system"], "skin:icons/about.png");
+	TextDialog td(this, APP_NAME, tr["Info about system"], "skin:icons/about.png");
 	td.appendText(temp);
 
 	#ifdef TARGET_RG350
@@ -1188,7 +1186,7 @@ void GMenu2X::about() {
 	TRACE("exit");
 }
 
-void GMenu2X::viewLog() {
+void Esoteric::viewLog() {
 	string logfile = getWriteablePath() + "log.txt";
 	if (!fileExists(logfile)) return;
 
@@ -1208,7 +1206,7 @@ void GMenu2X::viewLog() {
 	}
 }
 
-void GMenu2X::batteryLogger() {
+void Esoteric::batteryLogger() {
 	this->hw->ledOn();
 	BatteryLoggerDialog bl(
 		this, 
@@ -1219,7 +1217,7 @@ void GMenu2X::batteryLogger() {
 	this->hw->ledOff();
 }
 
-void GMenu2X::linkScanner() {
+void Esoteric::linkScanner() {
 	LinkScannerDialog ls(
 		this, 
 		tr["Link scanner"], 
@@ -1228,7 +1226,7 @@ void GMenu2X::linkScanner() {
 	ls.exec();
 }
 
-void GMenu2X::changeWallpaper() {
+void Esoteric::changeWallpaper() {
 	TRACE("enter");
 	WallpaperDialog wp(
 		this, 
@@ -1245,7 +1243,7 @@ void GMenu2X::changeWallpaper() {
 	TRACE("exit");
 }
 
-void GMenu2X::showManual() {
+void Esoteric::showManual() {
 	string linkTitle = menu->selLinkApp()->getTitle();
 	string linkDescription = menu->selLinkApp()->getDescription();
 	string linkIcon = menu->selLinkApp()->getIcon();
@@ -1266,7 +1264,7 @@ void GMenu2X::showManual() {
 	td.exec();
 }
 
-void GMenu2X::explorer() {
+void Esoteric::explorer() {
 	TRACE("enter");
 	BrowseDialog fd(this, tr["Explorer"], tr["Select a file or application"]);
 	fd.showDirectories = true;
@@ -1295,16 +1293,16 @@ void GMenu2X::explorer() {
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 
 			//if execution continues then something went wrong and as we already called SDL_Quit we cannot continue
-			//try relaunching gmenunx
-			WARNING("Error executing selected application, re-launching gmenunx");
+			//try relaunching ourselves
+			WARNING("Error executing selected application, re-launching : %s", APP_NAME.c_str());
 			chdir(getExePath().c_str());
-			execlp("./gmenunx", "./gmenunx", NULL);
+			execlp(("./" + BINARY_NAME).c_str(), ("./" + BINARY_NAME).c_str(), NULL);
 		}
 	}
 	TRACE("exit");
 }
 
-const string &GMenu2X::getExePath() {
+const string &Esoteric::getExePath() {
 	TRACE("enter path: %s", exe_path.c_str());
 	if (exe_path.empty()) {
 		char buf[255];
@@ -1320,7 +1318,7 @@ const string &GMenu2X::getExePath() {
 	return exe_path;
 }
 
-const string &GMenu2X::getWriteablePath() {
+const string &Esoteric::getWriteablePath() {
 	if (this->writeable_path.length())
 		return this->writeable_path;
 	string result = USER_PREFIX;
@@ -1337,12 +1335,12 @@ const string &GMenu2X::getWriteablePath() {
 	return this->writeable_path;
 }
 
-const string &GMenu2X::getReadablePath() {
+const string &Esoteric::getReadablePath() {
 	return (this->needsInstalling ? this->getExePath() : this->getWriteablePath());
 }
 
-void GMenu2X::doUpgrade() {
-	INFO("GMenu2X::doUpgrade - enter");
+void Esoteric::doUpgrade() {
+	INFO("Esoteric::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
 	string source = getExePath();
@@ -1365,13 +1363,13 @@ void GMenu2X::doUpgrade() {
 		pbInstall->finished(2000);
 	}
 	delete pbInstall;
-	INFO("GMenu2X::doUpgrade - Upgrade complete");
+	INFO("Esoteric::doUpgrade - Upgrade complete");
 	success = true;
 	sync();
 	TRACE("exit");
 }
 
-void GMenu2X::doInstall() {
+void Esoteric::doInstall() {
 	TRACE("enter");
 	bool success = false;
 
@@ -1395,7 +1393,7 @@ void GMenu2X::doInstall() {
 	TRACE("exit");
 }
 
-void GMenu2X::doUnInstall() {
+void Esoteric::doUnInstall() {
 	TRACE("enter");
 	bool success = false;
 	ProgressBar *pbInstall = new ProgressBar(
@@ -1421,7 +1419,7 @@ void GMenu2X::doUnInstall() {
 	TRACE("exit");
 }
 
-bool GMenu2X::doInitialSetup() {
+bool Esoteric::doInitialSetup() {
 	bool success = false;
 
 	// check for the writable home directory existing
@@ -1462,21 +1460,21 @@ bool GMenu2X::doInitialSetup() {
 	return success;
 }
 
-void GMenu2X::restartDialog(bool showDialog) {
+void Esoteric::restartDialog(bool showDialog) {
 	if (showDialog) {
-		MessageBox mb(this, tr["GMenuNX will restart to apply\nthe settings. Continue?"], "skin:icons/exit.png");
+		MessageBox mb(this, tr[APP_NAME + " will restart to apply\nthe settings. Continue?"], "skin:icons/exit.png");
 		mb.setButton(CONFIRM, tr["Restart"]);
 		mb.setButton(CANCEL,  tr["Cancel"]);
 		if (mb.exec() == CANCEL) return;
 	}
 
 	quit();
-	WARNING("Re-launching gmenunx");
+	WARNING("Re-launching : %s", APP_NAME.c_str());
 	chdir(getExePath().c_str());
-	execlp("./gmenunx", "./gmenunx", NULL);
+	execlp(("./" + BINARY_NAME).c_str(), ("./" + BINARY_NAME).c_str(), NULL);
 }
 
-void GMenu2X::poweroffDialog() {
+void Esoteric::poweroffDialog() {
 	MessageBox mb(this, tr["Poweroff or reboot the device?"], "skin:icons/exit.png");
 	mb.setButton(SECTION_NEXT, tr["Reboot"]);
 	mb.setButton(CONFIRM, tr["Poweroff"]);
@@ -1502,7 +1500,7 @@ void GMenu2X::poweroffDialog() {
 	}
 }
 
-void GMenu2X::mountSdDialog() {
+void Esoteric::mountSdDialog() {
 	MessageBox mb(this, tr["Mount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
@@ -1539,7 +1537,7 @@ void GMenu2X::mountSdDialog() {
 	}
 }
 
-void GMenu2X::umountSdDialog() {
+void Esoteric::umountSdDialog() {
 	MessageBox mb(this, tr["Umount SD card?"], "skin:icons/eject.png");
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
@@ -1570,7 +1568,7 @@ void GMenu2X::umountSdDialog() {
 	}
 }
 
-void GMenu2X::contextMenu() {
+void Esoteric::contextMenu() {
 	
 	TRACE("enter");
 	vector<MenuOption> voices;
@@ -1579,23 +1577,23 @@ void GMenu2X::contextMenu() {
 			voices.push_back(
 				(MenuOption){
 					tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), 
-					MakeDelegate(this, &GMenu2X::editLink)
+					MakeDelegate(this, &Esoteric::editLink)
 				});
 		}
 		if (menu->selLinkApp()->isDeletable()) {
 			voices.push_back(
 				(MenuOption){
 					tr.translate("Delete $1", menu->selLink()->getTitle().c_str(), NULL), 
-					MakeDelegate(this, &GMenu2X::deleteLink)
+					MakeDelegate(this, &Esoteric::deleteLink)
 				});
 		}
 	}
-	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &GMenu2X::addLink)});
-	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &GMenu2X::addSection)});
-	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &GMenu2X::renameSection)});
-	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &GMenu2X::hideSection)});
-	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &GMenu2X::deleteSection)});
-	voices.push_back((MenuOption){tr["App scanner"],	MakeDelegate(this, &GMenu2X::linkScanner)});
+	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &Esoteric::addLink)});
+	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &Esoteric::addSection)});
+	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &Esoteric::renameSection)});
+	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &Esoteric::hideSection)});
+	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &Esoteric::deleteSection)});
+	voices.push_back((MenuOption){tr["App scanner"],	MakeDelegate(this, &Esoteric::linkScanner)});
 
 	Surface bg(screen);
 	bool close = false, inputAction = false;
@@ -1658,7 +1656,7 @@ void GMenu2X::contextMenu() {
 	TRACE("exit");
 }
 
-void GMenu2X::addLink() {
+void Esoteric::addLink() {
 	BrowseDialog fd(this, tr["Add link"], tr["Select an application"]);
 	fd.showDirectories = true;
 	fd.showFiles = true;
@@ -1673,7 +1671,7 @@ void GMenu2X::addLink() {
 	}
 }
 
-void GMenu2X::editLink() {
+void Esoteric::editLink() {
 	if (menu->selLinkApp() == NULL) return;
 
 	vector<string> pathV;
@@ -1763,7 +1761,7 @@ void GMenu2X::editLink() {
 	initMenu();
 }
 
-void GMenu2X::deleteLink() {
+void Esoteric::deleteLink() {
 	if (menu->selLinkApp() != NULL) {
 		MessageBox mb(this, tr.translate("Delete $1", menu->selLink()->getTitle().c_str(), NULL) + "\n" + tr["Are you sure?"], menu->selLink()->getIconPath());
 		mb.setButton(CONFIRM, tr["Yes"]);
@@ -1777,7 +1775,7 @@ void GMenu2X::deleteLink() {
 	}
 }
 
-void GMenu2X::addSection() {
+void Esoteric::addSection() {
 	InputDialog id(this, ts, tr["Insert a name for the new section"], "", tr["Add section"], "skin:icons/section.png");
 	if (id.exec()) {
 		//only if a section with the same name does not exist
@@ -1793,7 +1791,7 @@ void GMenu2X::addSection() {
 	}
 }
 
-void GMenu2X::hideSection() {
+void Esoteric::hideSection() {
 	string section = menu->selSection();
 	if (this->config->sectionFilter().empty()) {
 		this->config->sectionFilter(section);
@@ -1803,7 +1801,7 @@ void GMenu2X::hideSection() {
 	initMenu();
 }
 
-void GMenu2X::renameSection() {
+void Esoteric::renameSection() {
 	InputDialog id(this, ts, tr["Insert a new name for this section"], menu->selSection(), tr["Rename section"], menu->getSectionIcon(menu->selSectionIndex()));
 	if (id.exec()) {
 		//only if a section with the same name does not exist & !samename
@@ -1833,7 +1831,7 @@ void GMenu2X::renameSection() {
 	}
 }
 
-void GMenu2X::deleteSection() {
+void Esoteric::deleteSection() {
 	MessageBox mb(this, tr["All links in this section will be removed."] + "\n" + tr["Are you sure?"]);
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
@@ -1847,7 +1845,7 @@ void GMenu2X::deleteSection() {
 	}
 }
 
-void GMenu2X::setInputSpeed() {
+void Esoteric::setInputSpeed() {
 	input.setInterval(180);
 	input.setInterval(1000, SETTINGS);
 	input.setInterval(1000, MENU);

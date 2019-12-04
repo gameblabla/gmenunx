@@ -41,16 +41,16 @@ using namespace std;
 static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 const string LinkApp::FAVOURITE_FOLDER = "favourites";
 
-LinkApp::LinkApp(GMenu2X *gmenu2x_, const char* linkfile, bool deletable_) :
-	Link(gmenu2x_, MakeDelegate(this, &LinkApp::run)),
-	inputMgr(gmenu2x->input) {
+LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
+	Link(app, MakeDelegate(this, &LinkApp::run)),
+	inputMgr(app->input) {
 
 	TRACE("ctor - handling normal desktop file :%s", linkfile);
 	this->manual = manualPath = "";
 	this->file = linkfile;
 
 	TRACE("ctor - setCPU");
-	setCPU(gmenu2x->config->cpuMenu());
+	setCPU(app->config->cpuMenu());
 
 	this->selectordir = "";
 	this->selectorfilter = "";
@@ -177,7 +177,7 @@ const string &LinkApp::searchManual() {
 }
 
 const string &LinkApp::searchBackdrop() {
-	if (!backdropPath.empty() || !gmenu2x->skin->skinBackdrops) return backdropPath;
+	if (!backdropPath.empty() || !this->app->skin->skinBackdrops) return backdropPath;
 	string execicon = exec;
 	string::size_type pos = exec.rfind(".");
 	if (pos != string::npos) execicon = exec.substr(0, pos);
@@ -188,18 +188,18 @@ const string &LinkApp::searchBackdrop() {
 	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
 
 	// auto backdrop
-	if (!gmenu2x->skin->getSkinFilePath("backdrops/" + linktitle + ".png").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + linktitle + ".png");
-	else if (!gmenu2x->skin->getSkinFilePath("backdrops/" + linktitle + ".jpg").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + linktitle + ".jpg");
-	else if (!gmenu2x->skin->getSkinFilePath("backdrops/" + exectitle + ".png").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + exectitle + ".png");
-	else if (!gmenu2x->skin->getSkinFilePath("backdrops/" + exectitle + ".jpg").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + exectitle + ".jpg");
-	else if (!gmenu2x->skin->getSkinFilePath("backdrops/" + dirtitle + ".png").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + dirtitle + ".png");
-	else if (!gmenu2x->skin->getSkinFilePath("backdrops/" + dirtitle + ".jpg").empty())
-		backdropPath = gmenu2x->skin->getSkinFilePath("backdrops/" + dirtitle + ".jpg");
+	if (!app->skin->getSkinFilePath("backdrops/" + linktitle + ".png").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + linktitle + ".png");
+	else if (!app->skin->getSkinFilePath("backdrops/" + linktitle + ".jpg").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + linktitle + ".jpg");
+	else if (!app->skin->getSkinFilePath("backdrops/" + exectitle + ".png").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + exectitle + ".png");
+	else if (!app->skin->getSkinFilePath("backdrops/" + exectitle + ".jpg").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + exectitle + ".jpg");
+	else if (!app->skin->getSkinFilePath("backdrops/" + dirtitle + ".png").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + dirtitle + ".png");
+	else if (!app->skin->getSkinFilePath("backdrops/" + dirtitle + ".jpg").empty())
+		backdropPath = app->skin->getSkinFilePath("backdrops/" + dirtitle + ".jpg");
 
 	return backdropPath;
 }
@@ -223,16 +223,16 @@ const string &LinkApp::searchIcon(string path, bool fallBack) {
 	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle += ".png";
 
-	if (!gmenu2x->skin->getSkinFilePath("icons/" + linktitle).empty())
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/" + linktitle);
-	else if (!gmenu2x->skin->getSkinFilePath("icons/" + exectitle).empty())
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/" + exectitle);
-	else if (!gmenu2x->skin->getSkinFilePath("icons/" + dirtitle).empty())
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/" + dirtitle);
+	if (!app->skin->getSkinFilePath("icons/" + linktitle).empty())
+		iconPath = app->skin->getSkinFilePath("icons/" + linktitle);
+	else if (!app->skin->getSkinFilePath("icons/" + exectitle).empty())
+		iconPath = app->skin->getSkinFilePath("icons/" + exectitle);
+	else if (!app->skin->getSkinFilePath("icons/" + dirtitle).empty())
+		iconPath = app->skin->getSkinFilePath("icons/" + dirtitle);
 	else if (fileExists(execicon))
 		iconPath = execicon;
 	else if (fallBack) {
-		iconPath = gmenu2x->skin->getSkinFilePath("icons/generic.png");
+		iconPath = app->skin->getSkinFilePath("icons/generic.png");
 	}
 
 	TRACE("exit - iconPath : %s", iconPath.c_str());
@@ -245,7 +245,7 @@ int LinkApp::clock() {
 
 void LinkApp::setCPU(int mhz) {
 	iclock = mhz;
-	if (iclock != 0) iclock = constrain(iclock, gmenu2x->config->cpuMin(), gmenu2x->config->cpuMax());
+	if (iclock != 0) iclock = constrain(iclock, app->config->cpuMin(), app->config->cpuMax());
 	edited = true;
 }
 
@@ -297,9 +297,9 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 		supportingFile.c_str());
 
 	// need to make a new favourite
-	string path = this->gmenu2x->getWriteablePath() + "sections/" + FAVOURITE_FOLDER;
-	if (!this->gmenu2x->menu->sectionExists(FAVOURITE_FOLDER)) {
-		if (!this->gmenu2x->menu->addSection(FAVOURITE_FOLDER)) {
+	string path = this->app->getWriteablePath() + "sections/" + FAVOURITE_FOLDER;
+	if (!this->app->menu->sectionExists(FAVOURITE_FOLDER)) {
+		if (!this->app->menu->addSection(FAVOURITE_FOLDER)) {
 			 ERROR("LinkApp::selector - Couldn't make favourites folder : %s", path.c_str());
 			 return;
 		}
@@ -327,7 +327,7 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	}
 	*/
 
-	LinkApp * fave = new LinkApp(this->gmenu2x, favePath.c_str(), true);
+	LinkApp * fave = new LinkApp(this->app, favePath.c_str(), true);
 	fave->setTitle(cleanTitle);
 	fave->setIcon(this->icon);
 	fave->setDescription(description);
@@ -340,15 +340,15 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	fave->setParams(launchArgs);
 
 	MessageBox mb(
-		this->gmenu2x, 
+		this->app, 
 		"Savinging favourite - " + cleanTitle,  
 		this->icon);
 	mb.setAutoHide(500);
 	mb.exec();
 	if (fave->save()) {
-		int secIndex = this->gmenu2x->menu->getSectionIndex(FAVOURITE_FOLDER);
-		this->gmenu2x->menu->setSectionIndex(secIndex);
-		this->gmenu2x->menu->sectionLinks(secIndex)->push_back(fave);
+		int secIndex = this->app->menu->getSectionIndex(FAVOURITE_FOLDER);
+		this->app->menu->setSectionIndex(secIndex);
+		this->app->menu->sectionLinks(secIndex)->push_back(fave);
 		TRACE("favourite saved");
 	} else delete fave;
 	
@@ -389,11 +389,11 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 	if (myDir.empty()) {
 		myDir = this->selectordir;
 		if (myDir.empty()) {
-			myDir = this->gmenu2x->config->launcherPath();
+			myDir = this->app->config->launcherPath();
 		}
 	}
 
-	Selector sel(gmenu2x, this, myDir);
+	Selector sel(app, this, myDir);
 	int selection = sel.exec(startSelection);
 	// we got a file
 	if (selection != -1) {
@@ -407,7 +407,7 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 			favourite(launchArgs, romFile);
 
 		} else {
-			gmenu2x->writeTmp(selection, sel.getDir());
+			app->writeTmp(selection, sel.getDir());
 			launch(launchArgs);
 		}
 	}
@@ -457,7 +457,7 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 		}
 		// save the last dir
 		TRACE("setting the launcher path : %s", dir.c_str());
-		gmenu2x->config->launcherPath(dir);
+		app->config->launcherPath(dir);
 	} else launchArgs = params;
 
 	TRACE("exit : %s", launchArgs.c_str());
@@ -475,10 +475,10 @@ void LinkApp::launch(string launchArgs) {
 		chdir(wd.c_str());
 	}
 
-	if (gmenu2x->config->saveSelection()) {
+	if (app->config->saveSelection()) {
 		TRACE("updating selections");
-		gmenu2x->config->section(gmenu2x->menu->selSectionIndex());
-		gmenu2x->config->link(gmenu2x->menu->selLinkIndex());
+		app->config->section(app->menu->selSectionIndex());
+		app->config->link(app->menu->selLinkIndex());
 	}
 
 	// Check to see if permissions are desirable
@@ -493,8 +493,8 @@ void LinkApp::launch(string launchArgs) {
 	std::string execute = this->exec + " " + launchArgs;
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
-	if (gmenu2x->config->outputLogs()) {
-		execute += " 2>&1 | tee " + cmdclean(gmenu2x->getWriteablePath()) + "log.txt";
+	if (app->config->outputLogs()) {
+		execute += " 2>&1 | tee " + cmdclean(app->getWriteablePath()) + "log.txt";
 		TRACE("adding logging");
 	}
 	TRACE("final command : %s", execute.c_str());
@@ -506,7 +506,7 @@ void LinkApp::launch(string launchArgs) {
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
 		TRACE("quit");
-		gmenu2x->quit();
+		app->quit();
 
 		TRACE("calling exec");
 		toLaunch->exec();
@@ -545,7 +545,7 @@ const string LinkApp::getRealWorkdir() {
 	string wd = workdir;
 	if (wd.empty()) {
 		if (exec[0] != '/') {
-			wd = gmenu2x->getExePath();
+			wd = app->getExePath();
 		} else {
 			string::size_type pos = exec.rfind("/");
 			if (pos != string::npos)

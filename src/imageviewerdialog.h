@@ -24,7 +24,7 @@
 #include <string>
 #include <fstream>
 
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 
 using namespace std;
@@ -38,7 +38,7 @@ protected:
 	string title, description, icon, path;
 
 public:
-	ImageViewerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon = "icons/ebook.png", const string &path = "");
+	ImageViewerDialog(Esoteric *app, const string &title, const string &description, const string &icon = "icons/ebook.png", const string &path = "");
 	void exec();
 };
 

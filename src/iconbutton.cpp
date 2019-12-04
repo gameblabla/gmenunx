@@ -1,14 +1,14 @@
 #include "iconbutton.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "surface.h"
 
 using namespace std;
 using namespace fastdelegate;
 
-IconButton::IconButton(GMenu2X *gmenu2x_, const string &icon,
+IconButton::IconButton(Esoteric *app, const string &icon,
 					   const string &label)
-	: Button(gmenu2x_->ts)
-	, gmenu2x(gmenu2x_)
+	: Button(app->ts)
+	, app(app)
 {
 	this->icon = icon;
 	labelPosition = IconButton::DISP_RIGHT;
@@ -18,7 +18,7 @@ IconButton::IconButton(GMenu2X *gmenu2x_, const string &icon,
 }
 
 void IconButton::updateSurfaces() {
-	iconSurface = (*gmenu2x->sc)[icon];
+	iconSurface = (*app->sc)[icon];
 	recalcSize();
 }
 
@@ -31,16 +31,16 @@ void IconButton::setPosition(int x, int y) {
 
 void IconButton::paint() {
 	if (iconSurface != NULL)
-		iconSurface->blit(gmenu2x->screen, iconRect);
+		iconSurface->blit(app->screen, iconRect);
 	if (!label.empty()) {
-		gmenu2x->screen->write(
-			gmenu2x->font, 
+		app->screen->write(
+			app->font, 
 			label, 
 			labelRect.x, 
 			labelRect.y, 
 			labelHAlign | labelVAlign, 
-			gmenu2x->skin->colours.fontAlt, 
-			gmenu2x->skin->colours.fontAltOutline);
+			app->skin->colours.fontAlt, 
+			app->skin->colours.fontAltOutline);
 	}
 }
 
@@ -70,8 +70,8 @@ void IconButton::recalcSize() {
 	}
 
 	if (label != "") {
-		labelRect.w = gmenu2x->font->getTextWidth(label);
-		labelRect.h = gmenu2x->font->getHeight();
+		labelRect.w = app->font->getTextWidth(label);
+		labelRect.h = app->font->getHeight();
 		if (labelPosition == IconButton::DISP_LEFT || labelPosition == IconButton::DISP_RIGHT) {
 			w += margin + labelRect.w;
 			//if (labelRect.h > h) h = labelRect.h;

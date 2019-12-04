@@ -15,7 +15,7 @@
 #define sync() sync(); system("sync");
 
 const std::string Installer::LAUNCHER_PATH="/usr/local/sbin/frontend_start";
-const std::string Installer::INSTALLER_MARKER_FILE = "/tmp/gmenunx.marker";
+const std::string Installer::INSTALLER_MARKER_FILE = "/tmp/" + BINARY_NAME + ".marker";
 
 Installer::Installer(std::string const & source, std::string const & destination, std::function<void(string)> callback) {
     this->sourceRootPath = source;
@@ -121,15 +121,16 @@ const bool Installer::deployLauncher() {
         launcher << "# launcher script for " << APP_NAME << "\n\n";
         launcher << "OPK_PATH=" << opk << "\n";
         launcher << "MARKER=" << Installer::INSTALLER_MARKER_FILE << "\n";
+        launcher << "LOG_FILE=/tmp/" << BINARY_NAME << ".run.log\n";
         launcher << "\n";
         launcher << "if [ -f ${OPK_PATH} ] && [ ! -f ${MARKER} ]; then\n";
-        launcher << "\trm -f /tmp/gmenunx.run.log\n";
-        launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> /tmp/gmenunx.run.log\n";
+        launcher << "\trm -f ${LOG_FILE}\n";
+        launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> ${LOG_FILE}\n";
         launcher << "else\n";
         launcher << "\tif [ -f ${MARKER} ];then\n";
         launcher << "\t\trm -f ${MARKER}\n";
         launcher << "fi\n";
-        launcher << "\t/usr/bin/gmenu2x\n";
+        launcher << "\t/usr/bin/app\n";
         launcher << "fi\n";
 		launcher.close();
 		sync();

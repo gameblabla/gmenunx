@@ -23,16 +23,16 @@
 
 using std::string;
 
-MenuSettingImage::MenuSettingImage(GMenu2X *gmenu2x, const string &title, const string &description, string *value, const string &filter, const string &startPath, const string &dialogTitle, const string &dialogIcon, const string &skin)
-	: MenuSettingFile(gmenu2x, title, description, value, filter, startPath, dialogTitle, dialogIcon) {
+MenuSettingImage::MenuSettingImage(Esoteric *app, const string &title, const string &description, string *value, const string &filter, const string &startPath, const string &dialogTitle, const string &dialogIcon, const string &skin)
+	: MenuSettingFile(app, title, description, value, filter, startPath, dialogTitle, dialogIcon) {
 		this->skin = skin;
 	}
 
 void MenuSettingImage::setValue(const string &value) {
-	string skinpath(gmenu2x->getExePath() + "skins/" + skin);
+	string skinpath(app->getExePath() + "skins/" + skin);
 	bool inSkinDir = value.substr(0, skinpath.length()) == skinpath;
 	if (!inSkinDir && skin != "Default") {
-		skinpath = gmenu2x->getExePath() + "skins/Default";
+		skinpath = app->getExePath() + "skins/Default";
 		inSkinDir = value.substr(0, skinpath.length()) == skinpath;
 	}
 	if (inSkinDir) {

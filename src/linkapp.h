@@ -27,7 +27,7 @@
 
 using std::string;
 
-class GMenu2X;
+class Esoteric;
 class InputManager;
 
 /**
@@ -36,6 +36,7 @@ Parses links files.
 	@author Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
 */
 class LinkApp : public Link {
+
 private:
 	InputManager &inputMgr;
 	static const string FAVOURITE_FOLDER;
@@ -55,7 +56,7 @@ private:
 
 public:
 
-	LinkApp(GMenu2X *gmenu2x, const char* linkfile, bool deletable);
+	LinkApp(Esoteric *app, const char* linkfile, bool deletable);
 
 	const std::string getFavouriteFolder() { return FAVOURITE_FOLDER; }
 	virtual const string &searchIcon();

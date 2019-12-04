@@ -29,7 +29,7 @@ private:
 	// virtual void edit();
 
 public:
-	MenuSettingImage(GMenu2X *gmenu2x, const std::string &title, const std::string &description, std::string *value, const std::string &filter, const std::string &startPath, const std::string &dialogTitle, const std::string &dialogIcon, const std::string &skin);
+	MenuSettingImage(Esoteric *app, const std::string &title, const std::string &description, std::string *value, const std::string &filter, const std::string &startPath, const std::string &dialogTitle, const std::string &dialogIcon, const std::string &skin);
 	virtual ~MenuSettingImage() {}
 
 	virtual void setValue(const std::string &value);

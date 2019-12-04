@@ -18,54 +18,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingmultistring.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "iconbutton.h"
 #include "debug.h"
 #include <algorithm>
+
 using std::find;
 
 MenuSettingMultiString::MenuSettingMultiString(
-		GMenu2X *gmenu2x, const string &title,
+		Esoteric *app, const string &title,
 		const string &description, string *value,
 		const vector<string> *choices_,
 		msms_onchange_t onChange, msms_onselect_t onSelect)
-	: MenuSettingStringBase(gmenu2x, title, description, value), choices(choices_),
+	: MenuSettingStringBase(app, title, description, value), choices(choices_),
 	onChange(onChange), onSelect(onSelect)
 {
 	TRACE("Initialised with value : %s", (*value).c_str());
 	setSel(find(choices->begin(), choices->end(), *value) - choices->begin());
 
 	if (choices->size() > 1) {
-		btn = new IconButton(gmenu2x, "skin:imgs/buttons/left.png");
+		btn = new IconButton(app, "skin:imgs/buttons/left.png");
 		btn->setAction(MakeDelegate(this, &MenuSettingMultiString::decSel));
 		buttonBox.add(btn);
 
-		btn = new IconButton(gmenu2x, "skin:imgs/buttons/right.png", gmenu2x->tr["Change"]);
+		btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Change"]);
 		btn->setAction(MakeDelegate(this, &MenuSettingMultiString::incSel));
 		buttonBox.add(btn);
 	}
 
 	if (this->onSelect) {
-		btn = new IconButton(gmenu2x, "skin:imgs/buttons/a.png", gmenu2x->tr["Open"]);
+		btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Open"]);
 		// btn->setAction(MakeDelegate(this, &MenuSettingMultiString::incSel));
 		buttonBox.add(btn);
 	}
 }
 
 uint32_t MenuSettingMultiString::manageInput() {
-	if (gmenu2x->input[LEFT]) {
+	if (this->app->input[LEFT]) {
 		decSel();
 		return this->onChange && this->onChange();
 	}
-	else if (gmenu2x->input[RIGHT]) {
+	else if (this->app->input[RIGHT]) {
 		incSel();
 		return this->onChange && this->onChange();
 	}
-	else if (gmenu2x->input[CONFIRM] && this->onSelect) {
+	else if (this->app->input[CONFIRM] && this->onSelect) {
 		this->onSelect();
 		return this->onChange && this->onChange();
 	}
-	else if (gmenu2x->input[MENU]) {
+	else if (this->app->input[MENU]) {
 		setSel(0);
 		return this->onChange && this->onChange();
 	}

@@ -25,24 +25,24 @@ using std::string;
 using fastdelegate::MakeDelegate;
 
 MenuSettingString::MenuSettingString(
-		GMenu2X *gmenu2x, const string &title,
+		Esoteric *app, const string &title,
 		const string &description, string *value,
 		const string &dialogTitle, const string &dialogIcon)
-	: MenuSettingStringBase(gmenu2x, title, description, value)
+	: MenuSettingStringBase(app, title, description, value)
 	, dialogTitle(dialogTitle)
 	, dialogIcon(dialogIcon)
 {
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/select.png", gmenu2x->tr["Clear"]);
+	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Clear"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingString::clear));
 	buttonBox.add(btn);
 
-	btn = new IconButton(gmenu2x, "skin:imgs/buttons/a.png", gmenu2x->tr["Edit"]);
+	btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Edit"]);
 	btn->setAction(MakeDelegate(this, &MenuSettingString::edit));
 	buttonBox.add(btn);
 }
 
 void MenuSettingString::edit()
 {
-	InputDialog id(gmenu2x, gmenu2x->ts, description, value(), dialogTitle, dialogIcon);
+	InputDialog id(app, app->ts, description, value(), dialogTitle, dialogIcon);
 	if (id.exec()) setValue(id.getInput());
 }

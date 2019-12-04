@@ -18,15 +18,15 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusettingstringbase.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "debug.h"
 
 using std::string;
 
 MenuSettingStringBase::MenuSettingStringBase(
-		GMenu2X *gmenu2x, const string &title,
+		Esoteric *app, const string &title,
 		const string &description, string *value)
-	: MenuSetting(gmenu2x, title, description)
+	: MenuSetting(app, title, description)
 	, originalValue(*value)
 	, _value(value)
 {
@@ -37,12 +37,12 @@ MenuSettingStringBase::~MenuSettingStringBase() {
 
 void MenuSettingStringBase::draw(int y) {
 	MenuSetting::draw(y);
-	gmenu2x->screen->write(gmenu2x->font, value(), 155, y + gmenu2x->font->getHalfHeight(), VAlignMiddle);
+	app->screen->write(app->font, value(), 155, y + app->font->getHalfHeight(), VAlignMiddle);
 }
 
 uint32_t MenuSettingStringBase::manageInput() {
-	if (gmenu2x->input[MENU]) clear();
-	if (gmenu2x->input[CONFIRM]) edit();
+	if (app->input[MENU]) clear();
+	if (app->input[CONFIRM]) edit();
 	return 0; // SD_NO_ACTION
 }
 

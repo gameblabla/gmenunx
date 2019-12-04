@@ -8,13 +8,13 @@
 using namespace fastdelegate;
 using namespace std;
 
-BrowseDialog::BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
-: Dialog(gmenu2x), title(title), description(description), icon(icon) {
+BrowseDialog::BrowseDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+: Dialog(app), title(title), description(description), icon(icon) {
 	
 	TRACE("enter");
 	string startPath = USER_HOME;
-	if (dirExists(gmenu2x->config->launcherPath())) {
-		startPath = gmenu2x->config->launcherPath();
+	if (dirExists(app->config->launcherPath())) {
+		startPath = app->config->launcherPath();
 	} else if (dirExists(EXTERNAL_CARD_PATH)) {
 		startPath = EXTERNAL_CARD_PATH;
 	}
@@ -29,11 +29,11 @@ bool BrowseDialog::exec() {
 	TRACE("enter");
 	if (!fl) return false;
 
-	this->bg = new Surface(gmenu2x->bg); // needed to redraw on child screen return
+	this->bg = new Surface(app->bg); // needed to redraw on child screen return
 
-	Surface *iconGoUp = gmenu2x->sc->skinRes("imgs/go-up.png");
-	Surface *iconFolder = gmenu2x->sc->skinRes("imgs/folder.png");
-	Surface *iconFile = gmenu2x->sc->skinRes("imgs/file.png");
+	Surface *iconGoUp = app->sc->skinRes("imgs/go-up.png");
+	Surface *iconFolder = app->sc->skinRes("imgs/folder.png");
+	Surface *iconFile = app->sc->skinRes("imgs/file.png");
 
 	string path = fl->getPath();
 	if (path.empty() || !dirExists(path))
@@ -46,26 +46,26 @@ bool BrowseDialog::exec() {
 	bool inputAction = false;
 
 	uint32_t i, iY, firstElement = 0, animation = 0, padding = 6;
-	uint32_t rowHeight = gmenu2x->font->getHeight() + 1;
-	uint32_t numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
+	uint32_t rowHeight = app->font->getHeight() + 1;
+	uint32_t numRows = (app->listRect.h - 2)/rowHeight - 1;
 
 	drawTopBar(this->bg, title, description, icon);
 	drawBottomBar(this->bg);
-	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
 	if (!showFiles && allowSelectDirectory) {
-		gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Select"]);
+		app->ui->drawButton(this->bg, "start", app->tr["Select"]);
 	} else {
-		gmenu2x->ui->drawButton(
-			this->bg, "start", gmenu2x->tr["Exit"],
-			gmenu2x->ui->drawButton(this->bg, "b", gmenu2x->tr["Up"], 
-			gmenu2x->ui->drawButton(this->bg, "a", gmenu2x->tr["Select"]))
+		app->ui->drawButton(
+			this->bg, "start", app->tr["Exit"],
+			app->ui->drawButton(this->bg, "b", app->tr["Up"], 
+			app->ui->drawButton(this->bg, "a", app->tr["Select"]))
 		);
 	}
 
 	uint32_t tickStart = SDL_GetTicks();
 	while (!close) {
-		this->bg->blit(gmenu2x->screen,0,0);
+		this->bg->blit(app->screen,0,0);
 		// buttonBox.paint(5);
 
 		//Selection
@@ -73,18 +73,18 @@ bool BrowseDialog::exec() {
 		if (selected < firstElement) firstElement = selected;
 
 		//Files & Directories
-		iY = gmenu2x->listRect.y + 1;
+		iY = app->listRect.y + 1;
 		for (i = firstElement; i < fl->size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-			if (i == selected) gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
+			if (i == selected) app->screen->box(app->listRect.x, iY, app->listRect.w, rowHeight, app->skin->colours.selectionBackground);
 			if (fl->isDirectory(i)) {
 				if ((*fl)[i] == "..")
-					iconGoUp->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+					iconGoUp->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 				else
-					iconFolder->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+					iconFolder->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 			} else {
-				iconFile->blit(gmenu2x->screen, gmenu2x->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+				iconFile->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
 			}
-			gmenu2x->screen->write(gmenu2x->font, (*fl)[i], gmenu2x->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
+			app->screen->write(app->font, (*fl)[i], app->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
 		}
 
 		// preview
@@ -92,32 +92,32 @@ bool BrowseDialog::exec() {
 		string ext = getExt();
 
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
-			gmenu2x->screen->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.titleBarBackground);
+			app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
 
-			(*gmenu2x->sc)[filename]->softStretch(gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding, true, false);
-			(*gmenu2x->sc)[filename]->blit(gmenu2x->screen, {320 - animation + padding, gmenu2x->listRect.y + padding, gmenu2x->skin->previewWidth - 2 * padding, gmenu2x->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
+			(*app->sc)[filename]->softStretch(app->skin->previewWidth - 2 * padding, app->listRect.h - 2 * padding, true, false);
+			(*app->sc)[filename]->blit(app->screen, {320 - animation + padding, app->listRect.y + padding, app->skin->previewWidth - 2 * padding, app->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
 
-			if (animation < gmenu2x->skin->previewWidth) {
-				animation = intTransition(0, gmenu2x->skin->previewWidth, tickStart, 110);
-				gmenu2x->screen->flip();
-				gmenu2x->input.setWakeUpInterval(45);
+			if (animation < app->skin->previewWidth) {
+				animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
+				app->screen->flip();
+				app->input.setWakeUpInterval(45);
 				continue;
 			}
 		} else {
 			if (animation > 0) {
-				gmenu2x->screen->box(320 - animation, gmenu2x->listRect.y, gmenu2x->skin->previewWidth, gmenu2x->listRect.h, gmenu2x->skin->colours.titleBarBackground);
-				animation = gmenu2x->skin->previewWidth - intTransition(0, gmenu2x->skin->previewWidth, tickStart, 80);
-				gmenu2x->screen->flip();
-				gmenu2x->input.setWakeUpInterval(45);
+				app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
+				animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
+				app->screen->flip();
+				app->input.setWakeUpInterval(45);
 				continue;
 			}
 		}
-		gmenu2x->input.setWakeUpInterval(1000);
-		gmenu2x->ui->drawScrollBar(numRows, fl->size(), firstElement, gmenu2x->listRect);
-		gmenu2x->screen->flip();
+		app->input.setWakeUpInterval(1000);
+		app->ui->drawScrollBar(numRows, fl->size(), firstElement, app->listRect);
+		app->screen->flip();
 
 		do {
-			inputAction = gmenu2x->input.update();
+			inputAction = app->input.update();
 			if (inputAction) tickStart = SDL_GetTicks();
 
 			uint32_t action = getAction();
@@ -172,14 +172,14 @@ uint32_t BrowseDialog::getAction() {
 	TRACE("enter");
 	uint32_t action = BD_NO_ACTION;
 
-	if (gmenu2x->input[SETTINGS]) action = BD_ACTION_CLOSE;
-	else if (gmenu2x->input[UP]) action = BD_ACTION_UP;
-	else if (gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) action = BD_ACTION_PAGEUP;
-	else if (gmenu2x->input[DOWN]) action = BD_ACTION_DOWN;
-	else if (gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT]) action = BD_ACTION_PAGEDOWN;
-	else if (gmenu2x->input[CANCEL]) action = BD_ACTION_GOUP;
-	else if (gmenu2x->input[CONFIRM]) action = BD_ACTION_SELECT;
-	else if (gmenu2x->input[CANCEL] || gmenu2x->input[MENU]) action = BD_ACTION_CANCEL;
+	if (app->input[SETTINGS]) action = BD_ACTION_CLOSE;
+	else if (app->input[UP]) action = BD_ACTION_UP;
+	else if (app->input[PAGEUP] || app->input[LEFT]) action = BD_ACTION_PAGEUP;
+	else if (app->input[DOWN]) action = BD_ACTION_DOWN;
+	else if (app->input[PAGEDOWN] || app->input[RIGHT]) action = BD_ACTION_PAGEDOWN;
+	else if (app->input[CANCEL]) action = BD_ACTION_GOUP;
+	else if (app->input[CONFIRM]) action = BD_ACTION_SELECT;
+	else if (app->input[CANCEL] || app->input[MENU]) action = BD_ACTION_CANCEL;
 	return action;
 }
 

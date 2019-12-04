@@ -24,7 +24,7 @@
 #include <string>
 #include <fstream>
 
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 #include "messagebox.h"
 
@@ -42,7 +42,7 @@ protected:
 	string title, description, icon;
 
 public:
-	BatteryLoggerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon);
+	BatteryLoggerDialog(Esoteric *app, const string &title, const string &description, const string &icon);
 	void exec();
 };
 

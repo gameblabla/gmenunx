@@ -4,24 +4,26 @@
 #include <vector>
 #include <cstdint>
 
-class GMenu2X;
+class Esoteric;
 class Button;
 
 class ButtonBox
 {
+
 public:
-	ButtonBox(GMenu2X *gmenu2x);
+	ButtonBox(Esoteric *app);
 	~ButtonBox();
 
 	void add(Button *button);
 
 	void paint(uint32_t posX);
 	void handleTS();
+
 private:
 	typedef std::vector<Button*> ButtonList;
 
 	ButtonList buttons;
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 };
 
 #endif

@@ -1,5 +1,5 @@
 #include "button.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 using namespace std;
 using namespace fastdelegate;

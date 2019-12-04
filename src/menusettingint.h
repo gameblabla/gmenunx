@@ -33,7 +33,7 @@ private:
 	void dec();
 
 public:
-	MenuSettingInt(GMenu2X *gmenu2x, const std::string &title, const std::string &description, int *value, int def, int min, int max, int delta=1);
+	MenuSettingInt(Esoteric *app, const std::string &title, const std::string &description, int *value, int def, int min, int max, int delta=1);
 	virtual ~MenuSettingInt() {};
 
 	virtual uint32_t manageInput();

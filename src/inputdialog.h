@@ -26,7 +26,7 @@
 #define KB_TOP 90
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 
 using std::string;
@@ -76,7 +76,7 @@ private:
 	void setKeyboard(int);
 
 public:
-	InputDialog(GMenu2X *gmenu2x, Touchscreen &ts, const string &text, const string &startvalue="", const string &title="", const string &icon="");
+	InputDialog(Esoteric *app, Touchscreen &ts, const string &text, const string &startvalue="", const string &title="", const string &icon="");
 
 	bool exec();
 	const string &getInput() { return input; }

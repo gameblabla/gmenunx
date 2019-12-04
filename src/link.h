@@ -32,7 +32,7 @@ typedef FastDelegate0<> LinkAction;
 
 using std::string;
 
-class GMenu2X;
+class Esoteric;
 
 /**
 Base class that represents a link on screen.
@@ -45,14 +45,14 @@ private:
 	LinkAction action;
 
 protected:
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 	bool edited;
 	string title, description, icon, iconPath;
 	string displayTitle;
 
 public:
 	// linkaction
-	Link(GMenu2X *gmenu2x, LinkAction action);
+	Link(Esoteric *app, LinkAction action);
 
 	virtual ~Link() {};
 	const string &getTitle();

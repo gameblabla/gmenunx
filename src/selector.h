@@ -22,7 +22,7 @@
 #define SELECTOR_H_
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "utilities.h"
 #include "dialog.h"
 
@@ -55,7 +55,7 @@ private:
 	void freeScreenshots(vector<string> *screens);
 	
 public:
-	Selector(GMenu2X *gmenu2x, LinkApp *link, const string &selectorDir="");
+	Selector(Esoteric *app, LinkApp *link, const string &selectorDir="");
 	
 	int exec(int startSelection=0);
 	

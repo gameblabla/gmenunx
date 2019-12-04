@@ -23,7 +23,7 @@
 
 #include <string>
 #include "filelister.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 // #include "buttonbox.h"
 #include "dialog.h"
 
@@ -62,7 +62,7 @@ private:
 	void cancel();
 
 public:
-	BrowseDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon = "icons/explorer.png");
+	BrowseDialog(Esoteric *app, const string &title, const string &description, const string &icon = "icons/explorer.png");
 	virtual ~BrowseDialog();
 
 	bool exec();

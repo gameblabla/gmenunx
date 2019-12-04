@@ -30,14 +30,15 @@ Base class for different kind of option
 */
 class MenuSetting {
 protected:
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 
 	ButtonBox buttonBox;
 
 	std::string title, description;
 
 public:
-	MenuSetting(GMenu2X *gmenu2x, const std::string &title, const std::string &description);
+
+	MenuSetting(Esoteric *app, const std::string &title, const std::string &description);
 	IconButton *btn;
 	virtual ~MenuSetting();
 

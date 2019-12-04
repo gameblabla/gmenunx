@@ -18,16 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include "menusetting.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
-MenuSetting::MenuSetting(GMenu2X *gmenu2x, const string &title, const string &description)
-	: gmenu2x(gmenu2x), buttonBox(gmenu2x), title(title), description(description) {
+MenuSetting::MenuSetting(Esoteric *app, const string &title, const string &description)
+	: app(app), buttonBox(app), title(title), description(description) {
 }
 
 MenuSetting::~MenuSetting() {}
 
 void MenuSetting::draw(int y) {
-	gmenu2x->screen->write( gmenu2x->font, title, 5, y + gmenu2x->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, title, 5, y + app->font->getHalfHeight(), VAlignMiddle );
 }
 
 void MenuSetting::handleTS() {

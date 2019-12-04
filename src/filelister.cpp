@@ -25,7 +25,7 @@
 
 #include "filelister.h"
 #include "utilities.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "debug.h"
 
 using namespace std;

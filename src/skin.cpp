@@ -12,6 +12,7 @@
 #include "debug.h"
 #include "skin.h"
 #include "utilities.h"
+#include "constants.h"
 
 #define sync() sync(); system("sync");
 
@@ -75,9 +76,11 @@ string Skin::toString() {
 
     vector<string> vec;
 
-    vec.push_back("# gmenunx skin config file");
+    vec.push_back("# " + APP_NAME + " skin config file");
     vec.push_back("# lines starting with a # are ignored");
     vec.push_back("# ################################# #");
+    vec.push_back("");
+
     vec.push_back("# the version of skin config file format");
     vec.push_back(string_format("version=%i", version));
     vec.push_back("");

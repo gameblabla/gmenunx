@@ -1,3 +1,4 @@
+#include "constants.h"
 #include "debug.h"
 #include "desktopfile.h"
 #include "utilities.h"
@@ -39,8 +40,9 @@ string DesktopFile::toString() {
 
     vector<string> vec;
 
-    vec.push_back("# gmenunx X-tended desktop file");
+    vec.push_back("# " + APP_NAME + " X-tended desktop file");
     vec.push_back("# lines starting with a # are ignored");
+    vec.push_back("");
 
     vec.push_back(string_format("title=%s", this->title().c_str()));
     vec.push_back(string_format("description=%s", this->description().c_str()));

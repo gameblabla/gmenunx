@@ -13,38 +13,38 @@ uint8_t Renderer::getVolumeMode(uint8_t vol) {
 	return VOLUME_MODE_NORMAL;
 }
 
-Renderer::Renderer(GMenu2X *gmenu2x) : 
+Renderer::Renderer(Esoteric *app) : 
     iconBrightness {
-		gmenu2x->sc->skinRes("imgs/brightness/0.png"),
-		gmenu2x->sc->skinRes("imgs/brightness/1.png"),
-		gmenu2x->sc->skinRes("imgs/brightness/2.png"),
-		gmenu2x->sc->skinRes("imgs/brightness/3.png"),
-		gmenu2x->sc->skinRes("imgs/brightness/4.png"),
-		gmenu2x->sc->skinRes("imgs/brightness.png"),
+		app->sc->skinRes("imgs/brightness/0.png"),
+		app->sc->skinRes("imgs/brightness/1.png"),
+		app->sc->skinRes("imgs/brightness/2.png"),
+		app->sc->skinRes("imgs/brightness/3.png"),
+		app->sc->skinRes("imgs/brightness/4.png"),
+		app->sc->skinRes("imgs/brightness.png"),
 	}, iconBattery {
-		gmenu2x->sc->skinRes("imgs/battery/0.png"),
-		gmenu2x->sc->skinRes("imgs/battery/1.png"),
-		gmenu2x->sc->skinRes("imgs/battery/2.png"),
-		gmenu2x->sc->skinRes("imgs/battery/3.png"),
-		gmenu2x->sc->skinRes("imgs/battery/4.png"),
-		gmenu2x->sc->skinRes("imgs/battery/5.png"),
-		gmenu2x->sc->skinRes("imgs/battery/ac.png"),
+		app->sc->skinRes("imgs/battery/0.png"),
+		app->sc->skinRes("imgs/battery/1.png"),
+		app->sc->skinRes("imgs/battery/2.png"),
+		app->sc->skinRes("imgs/battery/3.png"),
+		app->sc->skinRes("imgs/battery/4.png"),
+		app->sc->skinRes("imgs/battery/5.png"),
+		app->sc->skinRes("imgs/battery/ac.png"),
 	}, iconVolume {
-		gmenu2x->sc->skinRes("imgs/mute.png"),
-		gmenu2x->sc->skinRes("imgs/phones.png"),
-		gmenu2x->sc->skinRes("imgs/volume.png"),
+		app->sc->skinRes("imgs/mute.png"),
+		app->sc->skinRes("imgs/phones.png"),
+		app->sc->skinRes("imgs/volume.png"),
 	} {
 
 	this->finished_ = false;
-	this->gmenu2x = gmenu2x;
+	this->app = app;
     this->rtc.refresh();
 
-	this->prevBackdrop = gmenu2x->skin->wallpaper;
+	this->prevBackdrop = app->skin->wallpaper;
 	this->currBackdrop = prevBackdrop;
 
-	iconSD = gmenu2x->sc->skinRes("imgs/sd1.png");
-	iconManual = gmenu2x->sc->skinRes("imgs/manual.png");
-	iconCPU = gmenu2x->sc->skinRes("imgs/cpu.png");
+	iconSD = app->sc->skinRes("imgs/sd1.png");
+	iconManual = app->sc->skinRes("imgs/manual.png");
+	iconCPU = app->sc->skinRes("imgs/cpu.png");
 
 	brightnessIcon = 5;
 	batteryIcon = 3;
@@ -96,41 +96,41 @@ void Renderer::render() {
     int iy = 0;
 
     //TRACE("setting the clearing box");
-	gmenu2x->screen->box(
-		(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
+	app->screen->box(
+		(SDL_Rect){ 0, 0, app->config->resolutionX(), app->config->resolutionY() }, 
 		(RGBAColor){0, 0, 0, 255});
 
 	// do a background image or a background colour 
-	if ((*gmenu2x->sc)[currBackdrop]) {
-		(*gmenu2x->sc)[currBackdrop]->blit(gmenu2x->screen,0,0);
+	if ((*app->sc)[currBackdrop]) {
+		(*app->sc)[currBackdrop]->blit(app->screen,0,0);
 	} else {
-		gmenu2x->screen->box(
-			(SDL_Rect){ 0, 0, gmenu2x->config->resolutionX(), gmenu2x->config->resolutionY() }, 
-			gmenu2x->skin->colours.background);
+		app->screen->box(
+			(SDL_Rect){ 0, 0, app->config->resolutionX(), app->config->resolutionY() }, 
+			app->skin->colours.background);
 	}
 
 	// info bar
 	//TRACE("infoBar test");
-	if (gmenu2x->skin->sectionInfoBarVisible) {
-		if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
+	if (app->skin->sectionInfoBarVisible) {
+		if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
 			//TRACE("infobar needs drawing");
 
 			SDL_Rect infoBarRect;
-			switch(gmenu2x->skin->sectionBar) {
+			switch(app->skin->sectionBar) {
 				case Skin::SB_TOP:
 					infoBarRect = (SDL_Rect) { 
 						0, 
-						gmenu2x->config->resolutionY() - gmenu2x->skin->sectionInfoBarSize, 
-						gmenu2x->config->resolutionX(), 
-						gmenu2x->skin->sectionInfoBarSize 
+						app->config->resolutionY() - app->skin->sectionInfoBarSize, 
+						app->config->resolutionX(), 
+						app->skin->sectionInfoBarSize 
 					};
 					break;
 				case Skin::SB_BOTTOM:
 					infoBarRect = (SDL_Rect) { 
 						0, 
 						0, 
-						gmenu2x->config->resolutionX(), 
-						gmenu2x->skin->sectionInfoBarSize 
+						app->config->resolutionX(), 
+						app->skin->sectionInfoBarSize 
 					};
 					break;
 				default:
@@ -138,34 +138,34 @@ void Renderer::render() {
 			};
 
 			// do we have an image
-			if (!gmenu2x->skin->sectionInfoBarImage.empty()) {
-				//TRACE("infoBar has an image : %s", gmenu2x->skin->sectionInfoBarImage.c_str());
-				if ((*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+			if (!app->skin->sectionInfoBarImage.empty()) {
+				//TRACE("infoBar has an image : %s", app->skin->sectionInfoBarImage.c_str());
+				if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != app->config->resolutionX()) {
 					//TRACE("infoBar image is being scaled");
-					(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->softStretch(
-						gmenu2x->config->resolutionX(), 
+					(*app->sc)[app->skin->sectionInfoBarImage]->softStretch(
+						app->config->resolutionX(), 
 						infoBarRect.h);
 				}
-				(*gmenu2x->sc)[gmenu2x->skin->sectionInfoBarImage]->blit(
-					gmenu2x->screen, 
+				(*app->sc)[app->skin->sectionInfoBarImage]->blit(
+					app->screen, 
 					infoBarRect);
 			} else {
 				//TRACE("infoBar has no image, going for a simple box");
-				gmenu2x->screen->box(
+				app->screen->box(
 					infoBarRect, 
-					gmenu2x->skin->colours.infoBarBackground);
+					app->skin->colours.infoBarBackground);
 			}
 
 			int btnX = 6;
 			int btnY = infoBarRect.y + (infoBarRect.h / 2);
-			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "select", gmenu2x->tr["edit"], btnX, btnY);
-			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "start", gmenu2x->tr["config"], btnX, btnY);
-			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "a", gmenu2x->tr["run"], btnX, btnY);
-			btnX = gmenu2x->ui->drawButton(gmenu2x->screen, "x", gmenu2x->tr["fave"], btnX, btnY);
+			btnX = app->ui->drawButton(app->screen, "select", app->tr["edit"], btnX, btnY);
+			btnX = app->ui->drawButton(app->screen, "start", app->tr["config"], btnX, btnY);
+			btnX = app->ui->drawButton(app->screen, "a", app->tr["run"], btnX, btnY);
+			btnX = app->ui->drawButton(app->screen, "x", app->tr["fave"], btnX, btnY);
 
 			/*
-			gmenu2x->screen->write(
-				gmenu2x->font, 
+			app->screen->write(
+				app->font, 
 				"\u00AB info bar \u00BB", 
 				infoBarRect.w / 2, 
 				infoBarRect.y + (infoBarRect.h / 2),
@@ -176,77 +176,77 @@ void Renderer::render() {
 		
 	// SECTIONS
 	//TRACE("sections");
-	if (gmenu2x->skin->sectionBar) {
+	if (app->skin->sectionBar) {
 
 		// do we have an image
-		if (!gmenu2x->skin->sectionTitleBarImage.empty()) {
-			//TRACE("sectionBar has an image : %s", gmenu2x->skin->sectionTitleBarImage.c_str());
-			if ((*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->h != gmenu2x->sectionBarRect.h || (*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->raw->w != gmenu2x->config->resolutionX()) {
+		if (!app->skin->sectionTitleBarImage.empty()) {
+			//TRACE("sectionBar has an image : %s", app->skin->sectionTitleBarImage.c_str());
+			if ((*app->sc)[app->skin->sectionTitleBarImage]->raw->h != app->sectionBarRect.h || (*app->sc)[app->skin->sectionTitleBarImage]->raw->w != app->config->resolutionX()) {
 				TRACE("sectionBar image is being scaled");
-				(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->softStretch(gmenu2x->config->resolutionX(), gmenu2x->sectionBarRect.h);
+				(*app->sc)[app->skin->sectionTitleBarImage]->softStretch(app->config->resolutionX(), app->sectionBarRect.h);
 			}
-			(*gmenu2x->sc)[gmenu2x->skin->sectionTitleBarImage]->blit(
-				gmenu2x->screen, 
-				gmenu2x->sectionBarRect);
+			(*app->sc)[app->skin->sectionTitleBarImage]->blit(
+				app->screen, 
+				app->sectionBarRect);
 		} else {
 			//TRACE("sectionBar has no image, going for a simple box");
-			gmenu2x->screen->box(gmenu2x->sectionBarRect, gmenu2x->skin->colours.titleBarBackground);
+			app->screen->box(app->sectionBarRect, app->skin->colours.titleBarBackground);
 		}
 
-		x = gmenu2x->sectionBarRect.x; 
-		y = gmenu2x->sectionBarRect.y;
+		x = app->sectionBarRect.x; 
+		y = app->sectionBarRect.y;
 
         //TRACE("checking mode");
 		// we're in section text mode....
-		if (!gmenu2x->skin->showSectionIcons && (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM)) {
+		if (!app->skin->showSectionIcons && (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM)) {
             //TRACE("section text mode");
-            string sectionName = gmenu2x->menu->selSection();
+            string sectionName = app->menu->selSection();
 
             //TRACE("section text mode - writing title");
-			gmenu2x->screen->write(
-				gmenu2x->fontSectionTitle, 
-				"\u00AB " + gmenu2x->tr.translate(sectionName) + " \u00BB", 
-				gmenu2x->sectionBarRect.w / 2, 
-				gmenu2x->sectionBarRect.y + (gmenu2x->sectionBarRect.h / 2),
+			app->screen->write(
+				app->fontSectionTitle, 
+				"\u00AB " + app->tr.translate(sectionName) + " \u00BB", 
+				app->sectionBarRect.w / 2, 
+				app->sectionBarRect.y + (app->sectionBarRect.h / 2),
 				HAlignCenter | VAlignMiddle);
 
             //TRACE("section text mode - checking clock");
-			if (gmenu2x->skin->showClock) {	
+			if (app->skin->showClock) {	
 
                 //TRACE("section text mode - writing clock");
                 string clockTime = rtc.getClockTime(true);
                 //TRACE("section text mode - got clock time : %s", clockTime.c_str());
-				gmenu2x->screen->write(
-					gmenu2x->fontSectionTitle, 
+				app->screen->write(
+					app->fontSectionTitle, 
 					clockTime, 
 					4, 
-					gmenu2x->sectionBarRect.y + (gmenu2x->sectionBarRect.h / 2),
+					app->sectionBarRect.y + (app->sectionBarRect.h / 2),
 					HAlignLeft | VAlignMiddle);
 			}
 
 		} else {
             //TRACE("icon mode");
-			for (int i = gmenu2x->menu->firstDispSection(); i < gmenu2x->menu->getSections().size() && i < gmenu2x->menu->firstDispSection() + gmenu2x->menu->sectionNumItems(); i++) {
-				if (gmenu2x->skin->sectionBar == Skin::SB_LEFT || gmenu2x->skin->sectionBar == Skin::SB_RIGHT) {
-					y = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
+			for (int i = app->menu->firstDispSection(); i < app->menu->getSections().size() && i < app->menu->firstDispSection() + app->menu->sectionNumItems(); i++) {
+				if (app->skin->sectionBar == Skin::SB_LEFT || app->skin->sectionBar == Skin::SB_RIGHT) {
+					y = (i - app->menu->firstDispSection()) * app->skin->sectionTitleBarSize;
 				} else {
-					x = (i - gmenu2x->menu->firstDispSection()) * gmenu2x->skin->sectionTitleBarSize;
+					x = (i - app->menu->firstDispSection()) * app->skin->sectionTitleBarSize;
 				}
 
                 //TRACE("icon mode - got x and y");
-				if (gmenu2x->menu->selSectionIndex() == (int)i) {
+				if (app->menu->selSectionIndex() == (int)i) {
                     //TRACE("icon mode - applying highlight");
-					gmenu2x->screen->box(
+					app->screen->box(
 						x, 
 						y, 
-						gmenu2x->skin->sectionTitleBarSize, 
-						gmenu2x->skin->sectionTitleBarSize, 
-						gmenu2x->skin->colours.selectionBackground);
+						app->skin->sectionTitleBarSize, 
+						app->skin->sectionTitleBarSize, 
+						app->skin->colours.selectionBackground);
                 }
                 //TRACE("icon mode - blit");
-				(*gmenu2x->sc)[gmenu2x->menu->getSectionIcon(i)]->blit(
-					gmenu2x->screen, 
-					{x, y, gmenu2x->skin->sectionTitleBarSize, gmenu2x->skin->sectionTitleBarSize}, 
+				(*app->sc)[app->menu->getSectionIcon(i)]->blit(
+					app->screen, 
+					{x, y, app->skin->sectionTitleBarSize, app->skin->sectionTitleBarSize}, 
 					HAlignCenter | VAlignMiddle);
 			}
 		}
@@ -254,106 +254,106 @@ void Renderer::render() {
 
 	// LINKS
 	//TRACE("links");
-	gmenu2x->screen->setClipRect(gmenu2x->linksRect);
-	gmenu2x->screen->box(gmenu2x->linksRect, gmenu2x->skin->colours.listBackground);
+	app->screen->setClipRect(app->linksRect);
+	app->screen->box(app->linksRect, app->skin->colours.listBackground);
 
-	int i = (gmenu2x->menu->firstDispRow() * gmenu2x->skin->numLinkCols);
+	int i = (app->menu->firstDispRow() * app->skin->numLinkCols);
 
 	// single column mode
-	if (gmenu2x->skin->numLinkCols == 1) {
-		//TRACE("column mode : %i", gmenu2x->menu->sectionLinks()->size());
+	if (app->skin->numLinkCols == 1) {
+		//TRACE("column mode : %i", app->menu->sectionLinks()->size());
 		// LIST
-        ix = gmenu2x->linksRect.x;
-		for (y = 0; y < gmenu2x->skin->numLinkRows && i < gmenu2x->menu->sectionLinks()->size(); y++, i++) {
-			iy = gmenu2x->linksRect.y + y * gmenu2x->linkHeight;
+        ix = app->linksRect.x;
+		for (y = 0; y < app->skin->numLinkRows && i < app->menu->sectionLinks()->size(); y++, i++) {
+			iy = app->linksRect.y + y * app->linkHeight;
 
 			// highlight selected link
-			if (i == (uint32_t)gmenu2x->menu->selLinkIndex())
-				gmenu2x->screen->box(
+			if (i == (uint32_t)app->menu->selLinkIndex())
+				app->screen->box(
 					ix, 
 					iy, 
-					gmenu2x->linksRect.w, 
-					gmenu2x->linkHeight, 
-					gmenu2x->skin->colours.selectionBackground);
+					app->linksRect.w, 
+					app->linkHeight, 
+					app->skin->colours.selectionBackground);
 
 			int padding = 36;
-			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::ICON) {
+			if (app->skin->linkDisplayMode == Skin::ICON_AND_TEXT || app->skin->linkDisplayMode == Skin::ICON) {
 				//TRACE("theme uses icons");
-				(*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()]->blit(
-					gmenu2x->screen, 
-					{ix, iy, padding, gmenu2x->linkHeight}, 
+				(*app->sc)[app->menu->sectionLinks()->at(i)->getIconPath()]->blit(
+					app->screen, 
+					{ix, iy, padding, app->linkHeight}, 
 					HAlignCenter | VAlignMiddle);
 			} else {
 				padding = 4;
 			}
 				
-			if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT || gmenu2x->skin->linkDisplayMode == Skin::TEXT) {
-				//TRACE("adding : %s", gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle().c_str());
-				int localXpos = ix + gmenu2x->linkSpacing + padding;
+			if (app->skin->linkDisplayMode == Skin::ICON_AND_TEXT || app->skin->linkDisplayMode == Skin::TEXT) {
+				//TRACE("adding : %s", app->menu->sectionLinks()->at(i)->getDisplayTitle().c_str());
+				int localXpos = ix + app->linkSpacing + padding;
 				int localAlignTitle = VAlignMiddle;
-				int totalFontHeight = gmenu2x->fontTitle->getHeight() + gmenu2x->font->getHeight();
-				TRACE("total Font Height : %i, linkHeight: %i", totalFontHeight, gmenu2x->linkHeight);
+				int totalFontHeight = app->fontTitle->getHeight() + app->font->getHeight();
+				TRACE("total Font Height : %i, linkHeight: %i", totalFontHeight, app->linkHeight);
 
-				if (gmenu2x->skin->sectionBar == Skin::SB_BOTTOM || gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_OFF) {
+				if (app->skin->sectionBar == Skin::SB_BOTTOM || app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_OFF) {
 					TRACE("HITTING MIDDLE ALIGN");
-					localXpos = gmenu2x->linksRect.w / 2;
-					if (totalFontHeight >= gmenu2x->linkHeight) {
+					localXpos = app->linksRect.w / 2;
+					if (totalFontHeight >= app->linkHeight) {
 						localAlignTitle = HAlignCenter | VAlignTop;
 					} else {
 						localAlignTitle = HAlignCenter | VAlignMiddle;
 					}
 				}
-				gmenu2x->screen->write(
-					gmenu2x->fontTitle, 
-					gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle()), 
+				app->screen->write(
+					app->fontTitle, 
+					app->tr.translate(app->menu->sectionLinks()->at(i)->getDisplayTitle()), 
 					localXpos, 
-					iy + (gmenu2x->fontTitle->getHeight() / 2), 
+					iy + (app->fontTitle->getHeight() / 2), 
 					localAlignTitle);
 					
-				if (totalFontHeight < gmenu2x->linkHeight) {
-					gmenu2x->screen->write(
-						gmenu2x->font, 
-						gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDescription()), 
-						ix + gmenu2x->linkSpacing + padding, 
-						iy + gmenu2x->linkHeight - (gmenu2x->linkSpacing / 2), 
+				if (totalFontHeight < app->linkHeight) {
+					app->screen->write(
+						app->font, 
+						app->tr.translate(app->menu->sectionLinks()->at(i)->getDescription()), 
+						ix + app->linkSpacing + padding, 
+						iy + app->linkHeight - (app->linkSpacing / 2), 
 						VAlignBottom);
 				}
 			}
 		}
 	} else {
-		//TRACE("row mode : %i", gmenu2x->menu->sectionLinks()->size());
+		//TRACE("row mode : %i", app->menu->sectionLinks()->size());
         int ix, iy = 0;
 		int padding = 2;
-		for (y = 0; y < gmenu2x->skin->numLinkRows; y++) {
-			for (x = 0; x < gmenu2x->skin->numLinkCols && i < gmenu2x->menu->sectionLinks()->size(); x++, i++) {
+		for (y = 0; y < app->skin->numLinkRows; y++) {
+			for (x = 0; x < app->skin->numLinkCols && i < app->menu->sectionLinks()->size(); x++, i++) {
 
 				// TRACE("getting title");
-				string title = gmenu2x->tr.translate(gmenu2x->menu->sectionLinks()->at(i)->getDisplayTitle());
+				string title = app->tr.translate(app->menu->sectionLinks()->at(i)->getDisplayTitle());
 				// TRACE("got title : %s for index %i", title.c_str(), i);
 
 				// calc cell x && y
 				// TRACE("calculating heights");
-				ix = gmenu2x->linksRect.x + (x * gmenu2x->linkWidth)  + (x + 1) * gmenu2x->linkSpacing;
-				iy = gmenu2x->linksRect.y + (y * gmenu2x->linkHeight) + (y + 1) * gmenu2x->linkSpacing;
+				ix = app->linksRect.x + (x * app->linkWidth)  + (x + 1) * app->linkSpacing;
+				iy = app->linksRect.y + (y * app->linkHeight) + (y + 1) * app->linkSpacing;
 
 				// TRACE("setting clip rect");
-				gmenu2x->screen->setClipRect({ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight});
-				Surface * icon = (*gmenu2x->sc)[gmenu2x->menu->sectionLinks()->at(i)->getIconPath()];
+				app->screen->setClipRect({ix, iy, app->linkWidth, app->linkHeight});
+				Surface * icon = (*app->sc)[app->menu->sectionLinks()->at(i)->getIconPath()];
 
 				// selected link highlight
 				// TRACE("checking highlight");
-				if (i == (uint32_t)gmenu2x->menu->selLinkIndex()) {
+				if (i == (uint32_t)app->menu->selLinkIndex()) {
 
-					Surface *highlighter = (*gmenu2x->sc)["skin:imgs/iconbg_on.png"];
+					Surface *highlighter = (*app->sc)["skin:imgs/iconbg_on.png"];
 					if (NULL != highlighter) {
 						
 						int imageX = ix;
 						int imageY = iy;
-						int imageWidth = gmenu2x->linkWidth;
-						int imageHeight = gmenu2x->linkHeight;
+						int imageWidth = app->linkWidth;
+						int imageHeight = app->linkHeight;
 
 						if (highlighter->raw->h > imageHeight || highlighter->raw->w > imageWidth) {
-							if (gmenu2x->skin->scaleableHighlightImage) {
+							if (app->skin->scaleableHighlightImage) {
 								//TRACE("Highlight image is being scaled");
 								highlighter->softStretch(
 									imageWidth, 
@@ -376,8 +376,8 @@ void Renderer::render() {
 							}
 						}
 
-						(*gmenu2x->sc)["skin:imgs/iconbg_on.png"]->blit(
-							gmenu2x->screen, 
+						(*app->sc)["skin:imgs/iconbg_on.png"]->blit(
+							app->screen, 
 							{ 
 								imageX, 
 								imageY, 
@@ -388,53 +388,53 @@ void Renderer::render() {
 
 					} else {
 
-						gmenu2x->screen->box(
+						app->screen->box(
 							ix, 
 							iy, 
-							gmenu2x->linkWidth, 
-							gmenu2x->linkHeight, 
-							gmenu2x->skin->colours.selectionBackground);
+							app->linkWidth, 
+							app->linkHeight, 
+							app->skin->colours.selectionBackground);
 
 					}
 
 				}
-				if (gmenu2x->skin->linkDisplayMode == Skin::ICON) {
+				if (app->skin->linkDisplayMode == Skin::ICON) {
 					//TRACE("adding icon and text : %s", title.c_str());
 					icon->blit(
-						gmenu2x->screen, 
-						{ ix, iy, gmenu2x->linkWidth, gmenu2x->linkHeight}, 
+						app->screen, 
+						{ ix, iy, app->linkWidth, app->linkHeight}, 
 						HAlignCenter | VAlignMiddle);
-				} else if (gmenu2x->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
+				} else if (app->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
 					// get the combined height
-					int totalHeight = gmenu2x->font->getHeight() + icon->raw->h + padding;
+					int totalHeight = app->font->getHeight() + icon->raw->h + padding;
 					// is it bigger that we have available?
-					if (totalHeight > gmenu2x->linkHeight) {
+					if (totalHeight > app->linkHeight) {
 						// go negative padding if we need to and pull the text up
-						padding = gmenu2x->linkHeight - totalHeight;
-						totalHeight = gmenu2x->linkHeight;
+						padding = app->linkHeight - totalHeight;
+						totalHeight = app->linkHeight;
 					}
 					int totalHalfHeight = totalHeight / 2;
-					int cellHalfHeight = gmenu2x->linkHeight / 2;
+					int cellHalfHeight = app->linkHeight / 2;
 					int iconTop = iy + (cellHalfHeight - totalHalfHeight);
 					int textTop = iconTop + icon->raw->h + padding;
 
 					icon->blit(
-						gmenu2x->screen, 
-						{ ix, iconTop, gmenu2x->linkWidth, gmenu2x->linkHeight }, 
+						app->screen, 
+						{ ix, iconTop, app->linkWidth, app->linkHeight }, 
 						HAlignCenter);
 
-					gmenu2x->screen->write(gmenu2x->font, 
+					app->screen->write(app->font, 
 						title, 
-						ix + (gmenu2x->linkWidth / 2), 
+						ix + (app->linkWidth / 2), 
 						textTop, 
 						HAlignCenter);
 
 				} else {
 					//TRACE("adding text only : %s", title.c_str());
-					gmenu2x->screen->write(gmenu2x->font, 
+					app->screen->write(app->font, 
 						title, 
-						ix + (gmenu2x->linkWidth / 2), 
-						iy + (gmenu2x->linkHeight / 2), 
+						ix + (app->linkWidth / 2), 
+						iy + (app->linkHeight / 2), 
 						HAlignCenter | VAlignMiddle);
 				}
 
@@ -442,26 +442,26 @@ void Renderer::render() {
 		}
 	}
 	//TRACE("done");
-	gmenu2x->screen->clearClipRect();
+	app->screen->clearClipRect();
 
 	// add a scroll bar if we're not in single row world
-	if (this->gmenu2x->skin->numLinkRows > 1) {
-		gmenu2x->ui->drawScrollBar(gmenu2x->skin->numLinkRows, 
-			gmenu2x->menu->sectionLinks()->size() / gmenu2x->skin->numLinkCols + ((gmenu2x->menu->sectionLinks()->size() % gmenu2x->skin->numLinkCols==0) ? 0 : 1), 
-			gmenu2x->menu->firstDispRow(), 
-			gmenu2x->linksRect);
+	if (this->app->skin->numLinkRows > 1) {
+		app->ui->drawScrollBar(app->skin->numLinkRows, 
+			app->menu->sectionLinks()->size() / app->skin->numLinkCols + ((app->menu->sectionLinks()->size() % app->skin->numLinkCols==0) ? 0 : 1), 
+			app->menu->firstDispRow(), 
+			app->linksRect);
 	}
 
-	currBackdrop = gmenu2x->skin->wallpaper;
-	if (gmenu2x->menu->selLink() != NULL && gmenu2x->menu->selLinkApp() != NULL && !gmenu2x->menu->selLinkApp()->getBackdropPath().empty() && gmenu2x->sc->addImage(gmenu2x->menu->selLinkApp()->getBackdropPath()) != NULL) {
-		TRACE("setting currBackdrop to : %s", gmenu2x->menu->selLinkApp()->getBackdropPath().c_str());
-		currBackdrop = gmenu2x->menu->selLinkApp()->getBackdropPath();
+	currBackdrop = app->skin->wallpaper;
+	if (app->menu->selLink() != NULL && app->menu->selLinkApp() != NULL && !app->menu->selLinkApp()->getBackdropPath().empty() && app->sc->addImage(app->menu->selLinkApp()->getBackdropPath()) != NULL) {
+		TRACE("setting currBackdrop to : %s", app->menu->selLinkApp()->getBackdropPath().c_str());
+		currBackdrop = app->menu->selLinkApp()->getBackdropPath();
 	}
 
 	//Background has changed flip it and return out quickly
 	if (prevBackdrop != currBackdrop) {
 		INFO("New backdrop: %s", currBackdrop.c_str());
-		gmenu2x->sc->del(prevBackdrop);
+		app->sc->del(prevBackdrop);
 		prevBackdrop = currBackdrop;
 		// input.setWakeUpInterval(1);
 
@@ -474,32 +474,32 @@ void Renderer::render() {
 	 * helper icon section
 	 * 
 	 */
-	if (gmenu2x->skin->sectionBar) {
+	if (app->skin->sectionBar) {
 		// tray helper icons
 		int helperHeight = 20;
 		int maxItemsPerRow = 0;
-		if (gmenu2x->sectionBarRect.w > gmenu2x->sectionBarRect.h) {
-			maxItemsPerRow = (int)(gmenu2x->sectionBarRect.h / (float)helperHeight);
+		if (app->sectionBarRect.w > app->sectionBarRect.h) {
+			maxItemsPerRow = (int)(app->sectionBarRect.h / (float)helperHeight);
 		} else {
-			maxItemsPerRow = (int)(gmenu2x->sectionBarRect.w / (float)helperHeight);
+			maxItemsPerRow = (int)(app->sectionBarRect.w / (float)helperHeight);
 		}
-		int rootXPos = gmenu2x->sectionBarRect.x + gmenu2x->sectionBarRect.w - 18;
-		int rootYPos = gmenu2x->sectionBarRect.y + gmenu2x->sectionBarRect.h - 18;
+		int rootXPos = app->sectionBarRect.x + app->sectionBarRect.w - 18;
+		int rootYPos = app->sectionBarRect.y + app->sectionBarRect.h - 18;
 		//TRACE("hitting up the helpers");
 
 		helpers.push_back(iconVolume[currentVolumeMode]);
 		helpers.push_back(iconBattery[batteryIcon]);
-		if (gmenu2x->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
+		if (app->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
 			helpers.push_back(iconSD);
 		}
 		helpers.push_back(iconBrightness[brightnessIcon]);
-		if (gmenu2x->menu->selLink() != NULL) {
-			if (gmenu2x->menu->selLinkApp() != NULL) {
-				if (!gmenu2x->menu->selLinkApp()->getManualPath().empty()) {
+		if (app->menu->selLink() != NULL) {
+			if (app->menu->selLinkApp() != NULL) {
+				if (!app->menu->selLinkApp()->getManualPath().empty()) {
 					// Manual indicator
 					helpers.push_back(iconManual);
 				}
-				if (gmenu2x->menu->selLinkApp()->clock() != gmenu2x->config->cpuMenu()) {
+				if (app->menu->selLinkApp()->clock() != app->config->cpuMenu()) {
 					// CPU indicator
 					helpers.push_back(iconCPU);
 				}
@@ -508,36 +508,36 @@ void Renderer::render() {
 		//TRACE("layoutHelperIcons");
 		int * xPosPtr = & rootXPos;
 		int * yPosPtr = & rootYPos;
-		layoutHelperIcons(helpers, gmenu2x->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
+		layoutHelperIcons(helpers, app->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
 		//TRACE("helpers.clear()");
 		helpers.clear();
 
-		if (gmenu2x->skin->showClock) {
-			if (gmenu2x->skin->sectionBar == Skin::SB_TOP || gmenu2x->skin->sectionBar == Skin::SB_BOTTOM) {
-				if (gmenu2x->skin->showSectionIcons) {
+		if (app->skin->showClock) {
+			if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
+				if (app->skin->showSectionIcons) {
 					// grab the new x offset and write the clock
 					string time = rtc.getClockTime(true);
-					gmenu2x->screen->write(
-						gmenu2x->fontSectionTitle, 
+					app->screen->write(
+						app->fontSectionTitle, 
 						time, 
-						*(xPosPtr) - (gmenu2x->fontSectionTitle->getTextWidth(time) / 2), 
-						gmenu2x->sectionBarRect.y + (gmenu2x->sectionBarRect.h / 2),
+						*(xPosPtr) - (app->fontSectionTitle->getTextWidth(time) / 2), 
+						app->sectionBarRect.y + (app->sectionBarRect.h / 2),
 						VAlignMiddle);
 				}
 			} else {
 				// grab the new y offset and write the clock
-				gmenu2x->screen->write(
-					gmenu2x->fontSectionTitle, 
+				app->screen->write(
+					app->fontSectionTitle, 
 					rtc.getClockTime(true), 
-					gmenu2x->sectionBarRect.x + 4, 
+					app->sectionBarRect.x + 4, 
 					*(yPosPtr),
 					HAlignLeft | VAlignTop);
 			}
 		}
-	} // gmenu2x->skin->sectionBar
+	} // app->skin->sectionBar
 
     //TRACE("flip"); 
-	gmenu2x->screen->flip();
+	app->screen->flip();
 	this->locked_ = false;
     TRACE("exit");
 }
@@ -553,7 +553,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
 		TRACE("blitting");
 		(*it)->blit(
-			gmenu2x->screen, 
+			app->screen, 
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
 			rootYPos - (currentYOffset * (helperHeight - 2))
 		);
@@ -572,23 +572,23 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 void Renderer::pollHW() {
 	// if we're going to draw helpers, get their latest value
 	TRACE("section bar test");
-	if (this->gmenu2x->skin->sectionBar) {
+	if (this->app->skin->sectionBar) {
 		TRACE("section bar exists in skin settings");
 		TRACE("updating helper icon status");
-		this->batteryIcon = this->gmenu2x->hw->getBatteryLevel();
+		this->batteryIcon = this->app->hw->getBatteryLevel();
 		if (this->batteryIcon > 5) this->batteryIcon = 6;
 
-		this->brightnessIcon = this->gmenu2x->hw->getBacklightLevel();
+		this->brightnessIcon = this->app->hw->getBacklightLevel();
 		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
 			this->brightnessIcon = 5;
 
-		int currentVolume = this->gmenu2x->hw->getVolumeLevel();
+		int currentVolume = this->app->hw->getVolumeLevel();
 		this->currentVolumeMode = this->getVolumeMode(currentVolume);
         this->rtc.refresh();
 		TRACE("helper icon status updated");
     }
-	if (this->gmenu2x->cache->isDirty()) {
-		this->gmenu2x->initMenu();
+	if (this->app->cache->isDirty()) {
+		this->app->initMenu();
 	}
 }
 

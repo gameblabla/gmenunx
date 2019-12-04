@@ -22,7 +22,7 @@
 #define TEXTDIALOG_H_
 
 #include <string>
-#include "gmenu2x.h"
+#include "esoteric.h"
 #include "dialog.h"
 
 using std::string;
@@ -37,7 +37,7 @@ protected:
 	void drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage);
 
 public:
-	TextDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon, const string &backdrop = "");
+	TextDialog(Esoteric *app, const string &title, const string &description, const string &icon, const string &backdrop = "");
 
 	void appendText(const string &text);
 	void appendFile(const string &file);

@@ -2,13 +2,13 @@
 #define _UI_
 
 #include "surface.h"
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 class UI {
     private:
-        GMenu2X * gmenu2x;
+        Esoteric * app;
     public:
-        UI(GMenu2X * app) { this->gmenu2x = app; };
+        UI(Esoteric * app) { this->app = app; };
         void drawSlider(int val, int min, int max, Surface &icon, Surface &bg);
         int drawButton(Button *btn, int x=5, int y=-10);
         int drawButton(Surface *s, const string &btn, const string &text, int x=5, int y=-10);

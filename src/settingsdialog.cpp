@@ -24,13 +24,13 @@
 using namespace std;
 
 SettingsDialog::SettingsDialog(
-		GMenu2X *gmenu2x_, Touchscreen &ts_,
+		Esoteric *app, Touchscreen &ts_,
 		const string &title, const string &icon)
-	: Dialog(gmenu2x_)
+	: Dialog(app)
 	, ts(ts_)
 	, title(title)
 {
-	if (!icon.empty() && (*gmenu2x->sc)[icon] != NULL)
+	if (!icon.empty() && (*app->sc)[icon] != NULL)
 		this->icon = icon;
 	else
 		this->icon = "icons/generic.png";
@@ -47,62 +47,62 @@ bool SettingsDialog::exec() {
 	voices[selected]->adjustInput();
 
 	while (!close) {
-		gmenu2x->initLayout();
-		gmenu2x->font->
-			setSize(gmenu2x->skin->fontSize)->
-			setColor(gmenu2x->skin->colours.font)->
-			setOutlineColor(gmenu2x->skin->colours.fontOutline);
+		app->initLayout();
+		app->font->
+			setSize(app->skin->fontSize)->
+			setColor(app->skin->colours.font)->
+			setOutlineColor(app->skin->colours.fontOutline);
 
-		gmenu2x->fontTitle->
-			setSize(gmenu2x->skin->fontSizeTitle)->
-			setColor(gmenu2x->skin->colours.fontAlt)->
-			setOutlineColor(gmenu2x->skin->colours.fontAltOutline);
+		app->fontTitle->
+			setSize(app->skin->fontSizeTitle)->
+			setColor(app->skin->colours.fontAlt)->
+			setOutlineColor(app->skin->colours.fontAltOutline);
 
-		gmenu2x->fontSectionTitle->
-			setSize(gmenu2x->skin->fontSizeSectionTitle)->
-			setColor(gmenu2x->skin->colours.fontAlt)->
-			setOutlineColor(gmenu2x->skin->colours.fontAltOutline);
+		app->fontSectionTitle->
+			setSize(app->skin->fontSizeSectionTitle)->
+			setColor(app->skin->colours.fontAlt)->
+			setOutlineColor(app->skin->colours.fontAltOutline);
 
-		rowHeight = gmenu2x->font->getHeight() + 1;
-		numRows = (gmenu2x->listRect.h - 2)/rowHeight - 1;
+		rowHeight = app->font->getHeight() + 1;
+		numRows = (app->listRect.h - 2)/rowHeight - 1;
 
-		this->bg->blit(gmenu2x->screen,0,0);
+		this->bg->blit(app->screen,0,0);
 
 		// redraw to due to realtime skin
-		drawTopBar(gmenu2x->screen, title, voices[selected]->getDescription(), icon);
-		drawBottomBar(gmenu2x->screen);
-		gmenu2x->screen->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+		drawTopBar(app->screen, title, voices[selected]->getDescription(), icon);
+		drawBottomBar(app->screen);
+		app->screen->box(app->listRect, app->skin->colours.listBackground);
 
 		//Selection
 		if (selected >= firstElement + numRows) firstElement = selected - numRows;
 		if (selected < firstElement) firstElement = selected;
 
-		iY = gmenu2x->listRect.y + 1;
+		iY = app->listRect.y + 1;
 		for (i = firstElement; i < voices.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 			if (i == selected) {
-				gmenu2x->screen->box(gmenu2x->listRect.x, iY, gmenu2x->listRect.w, rowHeight, gmenu2x->skin->colours.selectionBackground);
+				app->screen->box(app->listRect.x, iY, app->listRect.w, rowHeight, app->skin->colours.selectionBackground);
 				voices[selected]->drawSelected(iY);
 			}
 			voices[i]->draw(iY);
 		}
 
-		gmenu2x->ui->drawScrollBar(
+		app->ui->drawScrollBar(
 			numRows, 
 			voices.size(), 
 			firstElement, 
-			gmenu2x->listRect);
+			app->listRect);
 
-		gmenu2x->screen->flip();
+		app->screen->flip();
 		do {
-			inputAction = gmenu2x->input.update();
+			inputAction = app->input.update();
 
 			action = SD_NO_ACTION;
-			if ( gmenu2x->input[SETTINGS] ) action = SD_ACTION_SAVE;
-			else if ( gmenu2x->input[CANCEL] && allowCancel) action = SD_ACTION_CLOSE;
-			else if ( gmenu2x->input[UP      ] ) action = SD_ACTION_UP;
-			else if ( gmenu2x->input[DOWN    ] ) action = SD_ACTION_DOWN;
-			else if ( gmenu2x->input[PAGEUP  ] ) action = SD_ACTION_PAGEUP;
-			else if ( gmenu2x->input[PAGEDOWN] ) action = SD_ACTION_PAGEDOWN;
+			if ( app->input[SETTINGS] ) action = SD_ACTION_SAVE;
+			else if ( app->input[CANCEL] && allowCancel) action = SD_ACTION_CLOSE;
+			else if ( app->input[UP      ] ) action = SD_ACTION_UP;
+			else if ( app->input[DOWN    ] ) action = SD_ACTION_DOWN;
+			else if ( app->input[PAGEUP  ] ) action = SD_ACTION_PAGEUP;
+			else if ( app->input[PAGEDOWN] ) action = SD_ACTION_PAGEDOWN;
 			else action = voices[selected]->manageInput();
 			switch (action) {
 				case SD_ACTION_SAVE:
@@ -113,22 +113,22 @@ bool SettingsDialog::exec() {
 					close = true;
 					if (allowCancel) {
 						if (edited()) {
-							MessageBox mb(gmenu2x, gmenu2x->tr["Save changes?"], this->icon);
-							mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
-							mb.setButton(CANCEL,  gmenu2x->tr["No"]);
+							MessageBox mb(app, app->tr["Save changes?"], this->icon);
+							mb.setButton(CONFIRM, app->tr["Yes"]);
+							mb.setButton(CANCEL,  app->tr["No"]);
 							save = (mb.exec() == CONFIRM);
 						}}
 					break;
 				case SD_ACTION_UP:
 					selected -= 1;
 					if (selected < 0) selected = voices.size() - 1;
-					gmenu2x->setInputSpeed();
+					app->setInputSpeed();
 					voices[selected]->adjustInput();
 					break;
 				case SD_ACTION_DOWN:
 					selected += 1;
 					if (selected >= voices.size()) selected = 0;
-					gmenu2x->setInputSpeed();
+					app->setInputSpeed();
 					voices[selected]->adjustInput();
 					break;
 				case SD_ACTION_PAGEUP:
@@ -143,7 +143,7 @@ bool SettingsDialog::exec() {
 		} while (!inputAction);
 	}
 
-	gmenu2x->setInputSpeed();
+	app->setInputSpeed();
 
 	return true;
 }

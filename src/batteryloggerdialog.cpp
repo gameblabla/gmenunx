@@ -1,7 +1,7 @@
 #include "batteryloggerdialog.h"
 
-BatteryLoggerDialog::BatteryLoggerDialog(GMenu2X *gmenu2x, const string &title, const string &description, const string &icon)
-	: Dialog(gmenu2x)
+BatteryLoggerDialog::BatteryLoggerDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+	: Dialog(app)
 {
 	this->title = title;
 	this->description = description;
@@ -27,30 +27,30 @@ void BatteryLoggerDialog::exec() {
 
 	drawTopBar(this->bg, title, description, icon);
 
-	this->bg->box(gmenu2x->listRect, gmenu2x->skin->colours.listBackground);
+	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
 	drawBottomBar(this->bg);
-	gmenu2x->ui->drawButton(this->bg, "start", gmenu2x->tr["Exit"],
-	gmenu2x->ui->drawButton(this->bg, "select", gmenu2x->tr["Del battery.csv"],
-	gmenu2x->ui->drawButton(this->bg, "down", gmenu2x->tr["Scroll"],
-	gmenu2x->ui->drawButton(this->bg, "up", "", 5)-10)));
+	app->ui->drawButton(this->bg, "start", app->tr["Exit"],
+	app->ui->drawButton(this->bg, "select", app->tr["Del battery.csv"],
+	app->ui->drawButton(this->bg, "down", app->tr["Scroll"],
+	app->ui->drawButton(this->bg, "up", "", 5)-10)));
 
-	this->bg->blit(gmenu2x->screen,0,0);
-	gmenu2x->hw->setBacklightLevel(100);
-	gmenu2x->screen->flip();
+	this->bg->blit(app->screen,0,0);
+	app->hw->setBacklightLevel(100);
+	app->screen->flip();
 
 	MessageBox mb(
-		gmenu2x, 
-		gmenu2x->tr["Welcome to the Battery Logger.\nMake sure the battery is fully charged.\nAfter pressing OK, leave the device ON until\nthe battery has been fully discharged.\nThe log will be saved in 'battery.csv'."]);
+		app, 
+		app->tr["Welcome to the Battery Logger.\nMake sure the battery is fully charged.\nAfter pressing OK, leave the device ON until\nthe battery has been fully discharged.\nThe log will be saved in 'battery.csv'."]);
 	mb.exec();
 
-	uint32_t rowsPerPage = gmenu2x->listRect.h/gmenu2x->font->getHeight();
+	uint32_t rowsPerPage = app->listRect.h/app->font->getHeight();
 
 	int32_t firstRow = 0, tickNow = 0, tickStart = SDL_GetTicks(), tickBatteryLogger = -1000000;
-	string logfile = gmenu2x->getWriteablePath() + "battery.csv";
+	string logfile = app->getWriteablePath() + "battery.csv";
 
 	char buf[100];
-	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(gmenu2x->getWriteablePath()).c_str());
+	sprintf(buf, "echo '----' >> %s/battery.csv; sync", cmdclean(app->getWriteablePath()).c_str());
 	system(buf);
 
 	if (!fileExists(logfile)) return;
@@ -73,8 +73,8 @@ void BatteryLoggerDialog::exec() {
 				buf, 
 				"echo '%s,%d' >> %s/battery.csv; sync", 
 				this->ms2hms(tickNow - tickStart, true, false), 
-				gmenu2x->hw->getBatteryLevel(), 
-				cmdclean(gmenu2x->getWriteablePath()).c_str());
+				app->hw->getBatteryLevel(), 
+				cmdclean(app->getWriteablePath()).c_str());
 
 			system(buf);
 
@@ -86,54 +86,54 @@ void BatteryLoggerDialog::exec() {
 			inf.close();
 		}
 
-		this->bg->blit(gmenu2x->screen,0,0);
+		this->bg->blit(app->screen,0,0);
 
 		for (uint32_t i = firstRow; i < firstRow + rowsPerPage && i < log.size(); i++) {
 			int rowY, j = log.size() - i - 1;
 			if (log.at(j) == "----") { // draw a line
-				rowY = 42 + (int)((i - firstRow + 0.5) * gmenu2x->font->getHeight());
-				gmenu2x->screen->box(5, rowY, gmenu2x->config->resolutionX() - 16, 1, 255, 255, 255, 130);
-				gmenu2x->screen->box(5, rowY + 1, gmenu2x->config->resolutionX() - 16, 1, 0, 0, 0, 130);
+				rowY = 42 + (int)((i - firstRow + 0.5) * app->font->getHeight());
+				app->screen->box(5, rowY, app->config->resolutionX() - 16, 1, 255, 255, 255, 130);
+				app->screen->box(5, rowY + 1, app->config->resolutionX() - 16, 1, 0, 0, 0, 130);
 			} else {
-				rowY = 42 + (i - firstRow) * gmenu2x->font->getHeight();
-				gmenu2x->font->write(gmenu2x->screen, log.at(j), 5, rowY);
+				rowY = 42 + (i - firstRow) * app->font->getHeight();
+				app->font->write(app->screen, log.at(j), 5, rowY);
 			}
 		}
 
-		gmenu2x->ui->drawScrollBar(
+		app->ui->drawScrollBar(
 			rowsPerPage, 
 			log.size(), 
 			firstRow, 
-			gmenu2x->listRect);
+			app->listRect);
 
-		gmenu2x->screen->flip();
+		app->screen->flip();
 
-		bool inputAction = gmenu2x->input.update(false);
+		bool inputAction = app->input.update(false);
 		
-		if ( gmenu2x->input[UP  ] && firstRow > 0 ) firstRow--;
-		else if ( gmenu2x->input[DOWN] && firstRow + rowsPerPage < log.size() ) firstRow++;
-		else if ( gmenu2x->input[PAGEUP] || gmenu2x->input[LEFT]) {
+		if ( app->input[UP  ] && firstRow > 0 ) firstRow--;
+		else if ( app->input[DOWN] && firstRow + rowsPerPage < log.size() ) firstRow++;
+		else if ( app->input[PAGEUP] || app->input[LEFT]) {
 			firstRow -= rowsPerPage - 1;
 			if (firstRow < 0) firstRow = 0;
 		}
-		else if ( gmenu2x->input[PAGEDOWN] || gmenu2x->input[RIGHT]) {
+		else if ( app->input[PAGEDOWN] || app->input[RIGHT]) {
 			firstRow += rowsPerPage - 1;
 			if (firstRow + rowsPerPage >= log.size()) firstRow = max(0, log.size() - rowsPerPage);
 		}
-		else if ( gmenu2x->input[SETTINGS] || gmenu2x->input[CANCEL] ) close = true;
-		else if (gmenu2x->input[MENU]) {
+		else if ( app->input[SETTINGS] || app->input[CANCEL] ) close = true;
+		else if (app->input[MENU]) {
 			MessageBox mb(
-				gmenu2x, 
-				gmenu2x->tr.translate("Deleting $1", "battery.csv", NULL) + "\n" + gmenu2x->tr["Are you sure?"]);
+				app, 
+				app->tr.translate("Deleting $1", "battery.csv", NULL) + "\n" + app->tr["Are you sure?"]);
 
-			mb.setButton(CONFIRM, gmenu2x->tr["Yes"]);
-			mb.setButton(CANCEL,  gmenu2x->tr["No"]);
+			mb.setButton(CONFIRM, app->tr["Yes"]);
+			mb.setButton(CANCEL,  app->tr["No"]);
 			if (mb.exec() == CONFIRM) {
-				string cmd = "rm " + gmenu2x->getWriteablePath() + "battery.csv";
+				string cmd = "rm " + app->getWriteablePath() + "battery.csv";
 				system(cmd.c_str());
 				log.clear();
 			}
 		}
 	}
-	gmenu2x->hw->setBacklightLevel(gmenu2x->config->backlightLevel());
+	app->hw->setBacklightLevel(app->config->backlightLevel());
 }

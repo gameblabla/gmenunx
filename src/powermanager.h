@@ -2,11 +2,11 @@
 #define POWERMANAGER_H
 
 #include <SDL.h>
-#include "gmenu2x.h"
+#include "esoteric.h"
 
 class PowerManager {
 public:
-	PowerManager(GMenu2X *gmenu2x, uint32_t suspendTimeout, uint32_t powerTimeout);
+	PowerManager(Esoteric *app, uint32_t suspendTimeout, uint32_t powerTimeout);
 	~PowerManager();
 	void setSuspendTimeout(uint32_t suspendTimeout);
 	void setPowerTimeout(uint32_t powerTimeout);
@@ -19,7 +19,7 @@ public:
 	SDL_TimerID powerTimer; // = NULL;
 
 private:
-	GMenu2X *gmenu2x;
+	Esoteric *app;
 	uint32_t suspendTimeout, powerTimeout;
 	static PowerManager *instance;
 };

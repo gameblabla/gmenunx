@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 
+#include "constants.h"
 
 class Installer {
 
@@ -22,8 +23,8 @@ class Installer {
             "about.txt", 
             "ChangeLog.md", 
             "COPYING", 
-            "gmenunx.conf", 
-            "gmenunx.png", 
+            BINARY_NAME + ".conf", 
+            "logo.png", 
             "input.conf"
         };
         std::vector<std::string> folderManifest = {
