@@ -500,6 +500,7 @@ void LinkApp::launch(string launchArgs) {
 		if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
 	} // else, well.. we are no worse off :)
 
+	std::vector<string> commandLine = { "/bin/sh", "-c" };
 	std::string execute = this->exec + " " + launchArgs;
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
@@ -508,7 +509,7 @@ void LinkApp::launch(string launchArgs) {
 		TRACE("adding logging");
 	}
 	TRACE("final command : %s", execute.c_str());
-	std::vector<string> commandLine = { "/bin/sh", "-c" };
+	
 	commandLine.push_back(execute);
 
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
@@ -524,6 +525,7 @@ void LinkApp::launch(string launchArgs) {
 		// everything, the easiest solution is to exit and let the system
 		// respawn the menu.
 		delete toLaunch;
+		delete app;
 	}
 
 	TRACE("exit");
