@@ -24,13 +24,10 @@
 #include <vector>
 #include "link.h"
 
-using std::string;
-using std::vector;
-
 class LinkApp;
 class Esoteric;
 
-typedef vector<Link*> linklist;
+typedef std::vector<Link*> linklist;
 
 /**
 Handles the menu structure
@@ -42,8 +39,8 @@ private:
 	Esoteric *app;
 	int iSection, iLink;
 	uint32_t iFirstDispSection, iFirstDispRow;
-	vector<string> sections;
-	vector<linklist> links;
+	std::vector<std::string> sections;
+	std::vector<linklist> links;
 
 	void readLinks();
 	void freeLinks();
@@ -57,15 +54,15 @@ public:
 	int selSectionIndex();
 	int sectionNumItems();
 
-	const string &selSection();
+	const std::string &selSection();
 	void decSectionIndex();
 	void incSectionIndex();
 	void setSectionIndex(int i);
 	uint32_t firstDispSection();
 	uint32_t firstDispRow();
 
-	bool addActionLink(uint32_t section, const string &title, fastdelegate::FastDelegate0<> action, const string &description="", const string &icon="");
-	bool addLink(string path, string file, string section="");
+	bool addActionLink(uint32_t section, const std::string &title, fastdelegate::FastDelegate0<> action, const std::string &description = "", const std::string &icon = "");
+	bool addLink(std::string path, std::string file, std::string section = "");
 	bool addSection(const string &sectionName);
 	void deleteSelectedLink();
 	void deleteSelectedSection();
@@ -86,13 +83,13 @@ public:
 	void letterPrevious();
 	void letterNext();
 
-	string sectionPath(int section = -1);
+	std::string sectionPath(int section = -1);
 
-	const vector<string> &getSections() { return sections; }
-	void renameSection(int index, const string &name);
-	bool sectionExists(const string &name);
-	int getSectionIndex(const string &name);
-	const string getSectionIcon(int i);
+	const std::vector<std::string> &getSections() { return sections; }
+	void renameSection(int index, const std::string &name);
+	bool sectionExists(const std::string &name);
+	int getSectionIndex(const std::string &name);
+	const std::string getSectionIcon(int i);
 
 	void orderLinks();
 };

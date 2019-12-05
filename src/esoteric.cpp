@@ -298,7 +298,7 @@ void Esoteric::main() {
 	std::thread * thread_cache = new std::thread(
 		&Esoteric::updateAppCache, 
 		this, 
-		std::bind( &ProgressBar::updateDetail, pbLoading, std::placeholders::_1 ));
+		[&](std::string message){ return pbLoading->updateDetail(message); });
 
 	if (this->skin->showLoader) {
 		Loader loader(this);
@@ -400,7 +400,9 @@ void Esoteric::main() {
 				TRACE("Run called");
 			} else if ( input[INC] ) {
 				TRACE("******************favouriting an app THIS*******************");
-				menu->selLinkApp()->makeFavourite();
+				LinkApp * myApp = menu->selLinkApp();
+				if (nullptr != myApp)
+					myApp->makeFavourite();
 			} else if ( input[SETTINGS] ) {
 				settings();
 			} else if ( input[MENU]     ) {
@@ -1305,12 +1307,8 @@ void Esoteric::explorer() {
 			quit();
 			this->hw->setCPUSpeed(config->cpuMenu());
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
-
-			//if execution continues then something went wrong and as we already called SDL_Quit we cannot continue
-			//try relaunching ourselves
-			WARNING("Error executing selected application, re-launching : %s", APP_NAME.c_str());
-			chdir(getExePath().c_str());
-			execlp(("./" + BINARY_NAME).c_str(), ("./" + BINARY_NAME).c_str(), NULL);
+			
+			quit_all(0);
 		}
 	}
 	TRACE("exit");
@@ -1370,7 +1368,7 @@ void Esoteric::doUpgrade() {
 	Installer *installer = new Installer(
 		source, 
 		destination, 
-		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
+		[&](std::string message){ return pbInstall->updateDetail(message); } );
 
 	if (installer->upgrade()) {
 		pbInstall->finished();
@@ -1456,7 +1454,7 @@ bool Esoteric::doInitialSetup() {
 	Installer *installer = new Installer(
 		source, 
 		destination, 
-		std::bind( &ProgressBar::updateDetail, pbInstall, std::placeholders::_1) );
+		[&](std::string message){ return pbInstall->updateDetail(message); });
 
 	if (installer->install()) {
 		TRACE("changing paths to : %s", destination.c_str());
@@ -1483,11 +1481,8 @@ void Esoteric::restartDialog(bool showDialog) {
 		mb.setButton(CANCEL,  tr["Cancel"]);
 		if (mb.exec() == CANCEL) return;
 	}
-
 	quit();
-	WARNING("Re-launching : %s", APP_NAME.c_str());
-	chdir(getExePath().c_str());
-	execlp(("./" + BINARY_NAME).c_str(), ("./" + BINARY_NAME).c_str(), NULL);
+	quit_all(0);
 }
 
 void Esoteric::poweroffDialog() {

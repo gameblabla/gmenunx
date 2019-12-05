@@ -49,7 +49,9 @@ void LinkScannerDialog::exec() {
 	ss << preSize;
 	ss >> str;
 	this->notify("Current cache size : " + str);
-	app->updateAppCache(std::bind( &LinkScannerDialog::notify, this, std::placeholders::_1) );
+
+	app->updateAppCache([&](std::string message){ return this->notify(message); });
+
 	int postSize = app->cache->size();
 	ss.clear();
 	ss << postSize;

@@ -46,22 +46,27 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	inputMgr(app->input) {
 
 	TRACE("ctor - handling normal desktop file :%s", linkfile);
-	this->manual = manualPath = "";
-	this->file = linkfile;
-
 	TRACE("ctor - setCPU");
 	setCPU(app->config->cpuMenu());
 
+	this->file = linkfile;
+	this->manual = "";
+	this->manualPath = "";
 	this->selectordir = "";
 	this->selectorfilter = "";
 	this->icon = iconPath = "";
 	this->selectorbrowser = true;
+	this->selectorscreens ="";
 	this->consoleapp = true;
 	this->workdir = "";
-	this->backdrop = backdropPath = "";
+	this->backdrop = "";
+	this->backdropPath = "";
 	this->editable = this->deletable = deletable;
+	this->params = "";
+	this->exec = "";
+	this->provider = "";
+	this->providerMetadata = "";
 
-	string line;
 	TRACE("ctor - creating ifstream");
 	std::ifstream infile (linkfile, ios_base::in);
 	std::locale loc("");
@@ -69,6 +74,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	if (infile.is_open()) {
 		TRACE("ctor - iterating thru desktop file : %s", linkfile);
 		try {
+			std::string line;
 			while (std::getline(infile, line, '\n')) {
 
 				TRACE("read raw line : %s", line.c_str());
@@ -77,8 +83,8 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 				if (line[0] == '#') continue;
 
 				std::size_t position = line.find("=");
-				string name = toLower(trim(line.substr(0,position)));
-				string value = trim(line.substr(position+1));
+				std::string name = toLower(trim(line.substr(0,position)));
+				std::string value = trim(line.substr(position+1));
 
 				try {
 					if (name == "clock") {
@@ -144,11 +150,11 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	// try and find an icon 
 	if (iconPath.empty()) {
 		TRACE("ctor - searching for icon");
-		searchIcon(exec, true);
+		searchIcon(this->exec, true);
 	}
 
 	TRACE("ctor exit : %s", this->toString().c_str());
-	edited = false;
+	this->edited = false;
 }
 
 const string &LinkApp::searchManual() {
@@ -356,8 +362,9 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 }
 
 void LinkApp::makeFavourite() {
-	string launchArgs = resolveArgs();
-	favourite(launchArgs);
+	TRACE("enter");
+	std::string launchArgs = this->resolveArgs();
+	this->favourite(launchArgs);
 }
 /*
  * entry point for running
@@ -414,8 +421,8 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 }
 
 string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDir) {
-
-	string launchArgs;
+	TRACE("enter file : '%s', dir : '%s'", selectedFile.c_str(), selectedDir.c_str());
+	string launchArgs = "";
 
 	// selectedFile means a rom or some kind of data file..
 	if (!selectedFile.empty()) {
@@ -441,28 +448,31 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 		} else dir = "/";
 		TRACE("dir : %s", dir.c_str());
 
-		if (this->params.empty()) {
+		if (this->getParams().empty()) {
 			launchArgs = "\"" + dir + selectedFile + "\"";
 			TRACE("no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
-			TRACE("params need handling : %s", params.c_str());
+			TRACE("params need handling : %s", this->getParams().c_str());
 			launchArgs = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
 			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
 			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
 			launchArgs = strreplace(launchArgs, "[selExt]", cmdclean(selectedFileExtension));
 			// if this is true, then we've made no subs, so we still need to add the selected file
-			if (this->params == launchArgs) 
+			if (this->getParams() == launchArgs) {
 				launchArgs += " \"" + dir + selectedFile + "\"";
+			}
 
 		}
 		// save the last dir
 		TRACE("setting the launcher path : %s", dir.c_str());
 		app->config->launcherPath(dir);
-	} else launchArgs = params;
-
+	} else {
+		TRACE("no file selected");
+		TRACE("assigning params : '%s'", this->getParams().c_str());
+		launchArgs = this->getParams();
+	}
 	TRACE("exit : %s", launchArgs.c_str());
 	return launchArgs;
-
 }
 
 void LinkApp::launch(string launchArgs) {
@@ -519,27 +529,19 @@ void LinkApp::launch(string launchArgs) {
 	TRACE("exit");
 }
 
-const string &LinkApp::getExec() {
-	return exec;
-}
-
+const string &LinkApp::getExec() { return exec; }
 void LinkApp::setExec(const string &exec) {
 	this->exec = exec;
 	edited = true;
 }
 
-const string &LinkApp::getParams() {
-	return params;
-}
-
+const string &LinkApp::getParams() { return params; }
 void LinkApp::setParams(const string &params) {
 	this->params = params;
 	edited = true;
 }
 
-const string &LinkApp::getWorkdir() {
-	return workdir;
-}
+const string &LinkApp::getWorkdir() { return workdir; }
 
 const string LinkApp::getRealWorkdir() {
 	string wd = workdir;
@@ -560,19 +562,13 @@ void LinkApp::setWorkdir(const string &workdir) {
 	edited = true;
 }
 
-const string &LinkApp::getManual() {
-	return manual;
-}
-
+const string &LinkApp::getManual() { return manual; }
 void LinkApp::setManual(const string &manual) {
 	this->manual = manualPath = manual;
 	edited = true;
 }
 
-const string &LinkApp::getSelectorDir() {
-	return selectordir;
-}
-
+const string &LinkApp::getSelectorDir() { return selectordir; }
 void LinkApp::setSelectorDir(const string &selectordir) {
 	this->selectordir = selectordir;
 	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
@@ -598,19 +594,13 @@ void LinkApp::setSelectorFilter(const string &selectorfilter) {
 	edited = true;
 }
 
-const string &LinkApp::getSelectorScreens() {
-	return selectorscreens;
-}
-
+const string &LinkApp::getSelectorScreens() { return selectorscreens; }
 void LinkApp::setSelectorScreens(const string &selectorscreens) {
 	this->selectorscreens = selectorscreens;
 	edited = true;
 }
 
-const string &LinkApp::getAliasFile() {
-	return aliasfile;
-}
-
+const string &LinkApp::getAliasFile() { return aliasfile; }
 void LinkApp::setAliasFile(const string &aliasfile) {
 	if (fileExists(aliasfile)) {
 		this->aliasfile = aliasfile;
@@ -622,15 +612,12 @@ void LinkApp::setProvider(const string &provider) {
 	this->provider = provider;
 	this->edited = true;
 }
-
 void LinkApp::setProviderMetadata(const string &metadata) {
 	this->providerMetadata = metadata;
 	this->edited = true;
 }
 
-void LinkApp::renameFile(const string &name) {
-	file = name;
-}
+void LinkApp::renameFile(const string &name) { file = name; }
 
 std::string LinkApp::toString() {
 	

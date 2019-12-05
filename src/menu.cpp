@@ -34,8 +34,6 @@
 #include "utilities.h"
 #include "debug.h"
 
-using namespace std;
-
 Menu::Menu(Esoteric *app) {
 	TRACE("enter");
 	this->app = app;
@@ -44,14 +42,14 @@ Menu::Menu(Esoteric *app) {
 	DIR *dirp;
 	struct stat st;
 	struct dirent *dptr;
-	string filepath;
+	std::string filepath;
 
-	vector<string> filter;
+	std::vector<std::string> filter;
 	split(filter, this->app->config->sectionFilter(), ",");
 	TRACE("got %zu filter sections", filter.size());
 
 	TRACE("opening sections");
-	string resolvedPath = this->app->getWriteablePath() + "sections/";
+	std::string resolvedPath = this->app->getWriteablePath() + "sections/";
 	TRACE("looking for section in : %s", resolvedPath.c_str());
 	if ((dirp = opendir(resolvedPath.c_str())) == NULL) return;
 
@@ -68,8 +66,8 @@ Menu::Menu(Esoteric *app) {
 		if (statRet != -1) {
 			// check the filters
 			bool filtered = false;
-			for (vector<string>::iterator it = filter.begin(); it != filter.end(); ++it) {
-				string filterName = (*it);
+			for (std::vector<std::string>::iterator it = filter.begin(); it != filter.end(); ++it) {
+				std::string filterName = (*it);
 				if (dirName.compare(filterName) == 0) {
 					filtered = true;
 					break;
@@ -77,7 +75,7 @@ Menu::Menu(Esoteric *app) {
 			}
 			if (!filtered) {
 				TRACE("adding section : %s", dptr->d_name);
-				sections.push_back((string)dptr->d_name);
+				sections.push_back((std::string)dptr->d_name);
 				linklist ll;
 				links.push_back(ll);
 			}
@@ -87,17 +85,17 @@ Menu::Menu(Esoteric *app) {
 	closedir(dirp);
 
 	TRACE("add compulsary sections: settings, applications");
-	addSection("settings");
-	addSection("applications");
+	this->addSection("settings");
+	this->addSection("applications");
 
 	TRACE("sort sections");
-	sort(sections.begin(), sections.end(), case_less());
+	std::sort(sections.begin(), sections.end(), case_less());
 	TRACE("set index 0");
-	setSectionIndex(0);
+	this->setSectionIndex(0);
 	TRACE("read links");
-	readLinks();
+	this->readLinks();
 	TRACE("ordering links");
-	orderLinks();
+	this->orderLinks();
 
 	TRACE("exit");
 }
@@ -114,7 +112,7 @@ void Menu::loadIcons() {
 	TRACE("enter");
 
 	for (uint32_t i = 0; i < sections.size(); i++) {
-		string sectionIcon = "sections/" + sections[i] + ".png";
+		std::string sectionIcon = "sections/" + sections[i] + ".png";
 		TRACE("section : %s", sections[i].c_str());
 		if (!app->skin->getSkinFilePath(sectionIcon).empty()) {
 			TRACE("section icon: skin: %s", sectionIcon.c_str());
@@ -122,7 +120,7 @@ void Menu::loadIcons() {
 		}
 
 		//check link's icons
-		string linkIcon;
+		std::string linkIcon;
 		for (uint32_t x = 0; x < sectionLinks(i)->size(); x++) {
 			linkIcon = sectionLinks(i)->at(x)->getIcon();
 			TRACE("link : %s", sectionLinks(i)->at(x)->getTitle().c_str());
@@ -224,20 +222,21 @@ string Menu::sectionPath(int section) {
 /*====================================
    LINKS MANAGEMENT
   ====================================*/
-bool Menu::addActionLink(uint32_t section, const string &title, fastdelegate::FastDelegate0<> action, const string &description, const string &icon) {
+bool Menu::addActionLink(uint32_t section, const std::string &title, fastdelegate::FastDelegate0<> action, const std::string &description, const string &icon) {
 	if (section >= sections.size()) return false;
 
 	Link *linkact = new Link(app, action);
 	linkact->setTitle(title);
 	linkact->setDescription(description);
-	if (app->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !app->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon))
-	linkact->setIcon(icon);
+	if (app->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !app->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon)) {
+		linkact->setIcon(icon);
+	}
 
 	sectionLinks(section)->push_back(linkact);
 	return true;
 }
 
-bool Menu::addLink(string path, string file, string section) {
+bool Menu::addLink(std::string path, std::string file, std::string section) {
 	TRACE("enter");
 	if (section.empty())
 		section = selSection();
@@ -251,12 +250,12 @@ bool Menu::addLink(string path, string file, string section) {
 	// bool wrapper = true;
 
 	// strip the extension from the filename
-	string title = fileBaseName(file);
+	std::string title = fileBaseName(file);
 
-	string linkpath = app->getWriteablePath() + "sections/" + section + "/" + title;
+	std::string linkpath = app->getWriteablePath() + "sections/" + section + "/" + title;
 	int x = 2;
 	while (fileExists(linkpath)) {
-		stringstream ss;
+		std::stringstream ss;
 		linkpath = "";
 		ss << x;
 		ss >> linkpath;
@@ -268,7 +267,8 @@ bool Menu::addLink(string path, string file, string section) {
 
 	if (path[path.length() - 1] != '/') path += "/";
 
-	string shorttitle = title, exec = path + file;
+	std::string shorttitle = title;
+	std::string exec = path + file;
 
 	//Reduce title length to fit the link width
 	if ((int)app->font->getTextWidth(shorttitle) > app->linkWidth) {
@@ -279,7 +279,7 @@ bool Menu::addLink(string path, string file, string section) {
 	}
 	
 	int isection;
-	ofstream f(linkpath.c_str());
+	std::ofstream f(linkpath.c_str());
 	if (f.is_open()) {
 		f << "title=" << shorttitle << endl;
 		f << "exec=" << exec << endl;
@@ -306,9 +306,9 @@ bool Menu::addLink(string path, string file, string section) {
 	return true;
 }
 
-bool Menu::addSection(const string &sectionName) {
+bool Menu::addSection(const std::string &sectionName) {
 	TRACE("enter %s", sectionName.c_str());
-	string sectiondir = app->getWriteablePath() + "sections/" + sectionName;
+	std::string sectiondir = app->getWriteablePath() + "sections/" + sectionName;
 
 	if (mkdir(sectiondir.c_str(),0777) == 0) {
 		sections.push_back(sectionName);
@@ -323,7 +323,7 @@ bool Menu::addSection(const string &sectionName) {
 }
 
 void Menu::deleteSelectedLink() {
-	string iconpath = selLink()->getIconPath();
+	std::string iconpath = selLink()->getIconPath();
 
 	INFO("Deleting link '%s'", selLink()->getTitle().c_str());
 
@@ -487,7 +487,7 @@ void Menu::setLinkIndex(int i) {
 
 void Menu::readLinks() {
 	TRACE("enter");
-	vector<string> linkfiles;
+	std::vector<std::string> linkfiles;
 
 	iLink = 0;
 	iFirstDispRow = 0;
@@ -495,13 +495,13 @@ void Menu::readLinks() {
 	DIR *dirp;
 	struct stat st;
 	struct dirent *dptr;
-	string filepath;
-	string assets_path = app->getWriteablePath();
+	std::string filepath;
+	std::string assets_path = app->getWriteablePath();
 	
 	for (uint32_t i = 0; i < links.size(); i++) {
 		links[i].clear();
 		linkfiles.clear();
-		string full_path = assets_path + sectionPath(i);
+		std::string full_path = assets_path + sectionPath(i);
 		
 		TRACE("scanning path : %s", full_path.c_str());
 		if ((dirp = opendir(full_path.c_str())) == NULL) continue;
@@ -519,7 +519,7 @@ void Menu::readLinks() {
 		}
 
 		TRACE("sorting links");
-		sort(linkfiles.begin(), linkfiles.end(), case_less());
+		std::sort(linkfiles.begin(), linkfiles.end(), case_less());
 		TRACE("links sorted");
 
 		TRACE("validating %zu links exist", linkfiles.size());
@@ -541,20 +541,20 @@ void Menu::readLinks() {
 	TRACE("exit");
 }
 
-void Menu::renameSection(int index, const string &name) {
+void Menu::renameSection(int index, const std::string &name) {
 	sections[index] = name;
 }
 
-bool Menu::sectionExists(const string &name) {
+bool Menu::sectionExists(const std::string &name) {
 	return std::find(sections.begin(), sections.end(), name)!=sections.end();
 }
 
-int Menu::getSectionIndex(const string &name) {
-	return distance(sections.begin(), find(sections.begin(), sections.end(), name));
+int Menu::getSectionIndex(const std::string &name) {
+	return distance(sections.begin(), std::find(sections.begin(), sections.end(), name));
 }
 
 const string Menu::getSectionIcon(int i) {
-	string sectionIcon = "skin:sections/" + sections[i] + ".png";
+	std::string sectionIcon = "skin:sections/" + sections[i] + ".png";
 	if (!app->sc->exists(sectionIcon)) {
 		sectionIcon = "skin:icons/section.png";
 	}

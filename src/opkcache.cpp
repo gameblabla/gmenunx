@@ -33,11 +33,13 @@ OpkCache::OpkCache(vector<string> opkDirs, const string & rootDir) {
             continue;
 
         TRACE("adding monitor for : %s", dir.c_str());
+
         OpkMonitor *monitor = new OpkMonitor(
             dir, 
-            std::bind(&OpkCache::handleNewOpk, this, std::placeholders::_1), 
-            std::bind(&OpkCache::handleRemovedOpk, this, std::placeholders::_1)
+            [&](std::string path){ return this->handleNewOpk(path); }, 
+            [&](std::string path){ return this->handleRemovedOpk(path); }
         );
+        
         this->directoryMonitors.push_back(monitor);
     }
     TRACE("we're monitoring %zu directories", this->directoryMonitors.size());
