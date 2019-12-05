@@ -1,6 +1,3 @@
-#include "launcher.h"
-#include "debug.h"
-
 #include <cerrno>
 #include <cstring>
 #include <unistd.h>
@@ -16,6 +13,10 @@
 
 // Bind and activate the framebuffer console on selected platforms.
 #include <linux/vt.h>
+
+#include "constants.h"
+#include "launcher.h"
+#include "debug.h"
 
 using namespace std;
 
@@ -48,18 +49,18 @@ void Launcher::exec() {
 			close(fd);
 		}
 		TRACE("opening tty handle");
-		fd = open("/dev/tty1", O_RDWR);
+		fd = open(APP_TTY.c_str(), O_RDWR);
 		if (fd < 0) {
-			WARNING("Unable to open tty1 handle");
+			WARNING("Unable to open %s handle", APP_TTY.c_str());
 		} else {
 			if (ioctl(fd, VT_ACTIVATE, 1) < 0)
-				WARNING("Unable to activate tty1");
+				WARNING("Unable to activate %s", APP_TTY.c_str());
 			close(fd);
 		}
-		TRACE("end of console specific work");
+		TRACE("opened %s successfully", APP_TTY.c_str());
 	}
 
-	TRACE("sorting args out for size : %zu", commandLine.size() + 1);
+	TRACE("sorting args out for size : %zu", commandLine.size());
 	vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
 	TRACE("sorting args reserved");
@@ -74,8 +75,7 @@ void Launcher::exec() {
 	TRACE("exec-ing : %s", s.c_str());
 
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
-	WARNING("Failed to exec '%s': %s",
-			commandLine[0].c_str(), strerror(errno));
+	WARNING("Failed to exec '%s': %s", s.c_str(), strerror(errno));
 	
 	TRACE("exit");
 }
