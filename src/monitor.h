@@ -25,8 +25,9 @@ private:
 	pthread_t thd;
 
 protected:
+
 	unsigned int mask;
-	virtual bool event_accepted(const std::string &path);
+	virtual bool event_accepted(const struct inotify_event &event);
 	virtual void inject_event(bool is_add, const std::string &path);
 };
 

@@ -16,7 +16,7 @@ class OpkMonitor: public Monitor {
 		);
 
 	protected:
-		bool event_accepted(const std::string &path);
+		bool event_accepted(const struct inotify_event &event);
 		void inject_event(bool is_add, const std::string &path);
 
 	private:

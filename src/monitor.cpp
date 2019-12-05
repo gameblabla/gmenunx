@@ -12,8 +12,8 @@
 #include "monitor.h"
 #include "utilities.h"
 
-bool Monitor::event_accepted(const std::string &path) {
-	TRACE("accepting event : %s", path.c_str());
+bool Monitor::event_accepted(const struct inotify_event &event) {
+	TRACE("accepting event : %s", event.name);
 	return true;
 }
 
@@ -21,6 +21,8 @@ void Monitor::inject_event(bool is_add, const std::string &path) {
 	TRACE("injecting event : %i for path : %s", is_add, path.c_str());
 	return;
 }
+
+#include <sys/ioctl.h>
 
 int Monitor::run() {
 
@@ -42,37 +44,48 @@ int Monitor::run() {
 	DEBUG("Starting watching directory %s\n", this->path.c_str());
 
 	for (;;) {
-		std::size_t len = sizeof(struct inotify_event) + NAME_MAX + 1;
-		struct inotify_event event;
-		char buf[256];
 
-		read(this->fd, &event, len);
-		string eventName = string(event.name);
-		TRACE("handling inotify event : %s for wd : %i", eventName.c_str(), event.wd);
+		unsigned int avail;
+		ioctl(this->fd, FIONREAD, &avail);
+		TRACE("inotify has %i bytes to read", avail);
+		char buf[avail];
+		read(fd, buf, avail);
+		int offset = 0;
 
-		if (event.wd != this->wd) {
-			TRACE("skipping event for non matching wd : %i vs. %i", this->wd, event.wd);
-			continue;
+		while (offset < avail) {
+
+			struct inotify_event *event = (inotify_event*)(buf + offset);
+
+			offset = offset + sizeof(inotify_event) + event->len;
+
+			TRACE("received event : %s", event->name);
+			std::string eventName = std::string(strdup(event->name));
+			TRACE("handling inotify event : '%s' for wd : %i", eventName.c_str(), event->wd);
+
+			if (event->wd != this->wd) {
+				TRACE("skipping event for non matching wd : %i vs. %i", this->wd, event->wd);
+				continue;
+			}
+
+			TRACE("wd belongs to me, checking masks");
+			if (event->mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
+				ERROR("We have deleted or removed ourselves, not cool!");
+				inject_event(false, this->path);
+				break;
+			}
+
+			TRACE("masks pass ok for event : '%s'", event->name);
+			std::string fullPath = this->path + "/" + eventName;
+			TRACE("seeing if we will accept event name : '%s'", fullPath.c_str());
+
+			if (!this->event_accepted((*event))) {
+				TRACE("event not accepted");
+			} else {
+				TRACE("yes we did, notifying listeners");
+				inject_event(event->mask & (IN_MOVED_TO | IN_CLOSE_WRITE | IN_CREATE), fullPath);
+			}
 		}
-
-		TRACE("wd belongs to me, checking masks");
-		if (event.mask & (IN_DELETE_SELF | IN_MOVE_SELF)) {
-			ERROR("We have deleted or removed ourselves, not cool!");
-			inject_event(false, this->path);
-			break;
-		}
-
-		TRACE("masks pass ok for : %s", eventName.c_str());
-		std::string fullPath = this->path + "/" + eventName;
-		TRACE("seeing if we will accept event name : %s", fullPath.c_str());
-		if (!this->event_accepted(fullPath)) {
-			TRACE("no we didn't");
-			continue;
-		}
-		TRACE("yes we did, notifying listeners");
-		inject_event(event.mask & (IN_MOVED_TO | IN_CLOSE_WRITE | IN_CREATE), fullPath);
 	}
-
 	INFO("deleted self or moved self");
 	return 0;
 }

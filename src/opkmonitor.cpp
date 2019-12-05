@@ -19,20 +19,16 @@ OpkMonitor::OpkMonitor(
 
 }
 
-bool OpkMonitor::event_accepted(const std::string &path) {
+bool OpkMonitor::event_accepted(const struct inotify_event &event) {
 	// Don't bother about files other than OPKs
-	TRACE("opk event_accepted received event : %s", path.c_str());
-	std::size_t len = path.length();
+	std::size_t len = strlen(event.name);
 	if (len > this->extension.length()) {
-		string eventExtension = path.substr(len - this->extension.length());
+		std::string eventExtension = ((std::string)event.name).substr(len - this->extension.length());
 		TRACE("comparing '%s' to our requested extension filter : '%s'", 
 			eventExtension.c_str(), 
 			this->extension.c_str());
 
-		return !strncmp(
-				eventExtension.c_str(), 
-				this->extension.c_str(), 
-				this->extension.length());
+		return 0 == eventExtension.compare(this->extension);
 	}
 	return false;
 }
