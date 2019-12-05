@@ -572,8 +572,17 @@ void Esoteric::initFont() {
 
 void Esoteric::initMenu() {
 	TRACE("enter");
-	if (nullptr != this->menu) 
+
+	int mySection = 0;
+	int myLink = 0;
+	if (nullptr != this->menu) {
+		myLink = menu->selLinkIndex();
+		mySection = menu->selSectionIndex();
 		delete menu;
+	} else {
+		mySection = config->section();
+		myLink = config->link();
+	}
 
 	TRACE("initLayout");
 	initLayout();
@@ -677,6 +686,13 @@ void Esoteric::initMenu() {
 							"skin:icons/device.png");
 	}
 
+	TRACE("re-order now we've added these guys");
+	menu->orderLinks();
+	TRACE("menu->loadIcons");
+	menu->loadIcons();
+	TRACE("restore the view");
+
+/*
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
@@ -686,10 +702,12 @@ void Esoteric::initMenu() {
 		menu->setSectionIndex(0);
 		menu->setLinkIndex(0);
 	}
-	TRACE("re-order now we've added these guys");
-	menu->orderLinks();
-	TRACE("menu->loadIcons");
-	menu->loadIcons();
+*/
+
+	if (mySection < menu->sectionLinks()->size()) {
+		menu->setSectionIndex(mySection);
+		menu->setLinkIndex(myLink);
+	}
 	TRACE("exit");
 }
 
