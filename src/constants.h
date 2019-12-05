@@ -10,14 +10,13 @@ static const std::string TEMP_FILE = "/tmp/" + BINARY_NAME + ".tmp";
 
 #ifdef TARGET_RG350
 static const std::string & EXTERNAL_CARD_PATH = "/media/sdcard";
-static const std::string USER_PREFIX = "/media/data/local/home/.esoteric/";
 static const std::string USER_HOME = "/media/data/local/home/";
 #else
 static const std::string & EXTERNAL_CARD_PATH = "/media";
-// $HOME/ gets prepended to this
-static const std::string USER_PREFIX = ".esoteric/";
 static const std::string USER_HOME = "~/";
 #endif
+
+static const std::string USER_PREFIX = USER_HOME + ".esoteric/";
 
 enum vol_mode_t {
 	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL

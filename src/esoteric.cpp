@@ -1322,15 +1322,17 @@ const string &Esoteric::getExePath() {
 const string &Esoteric::getWriteablePath() {
 	if (this->writeable_path.length())
 		return this->writeable_path;
+
 	string result = USER_PREFIX;
-	#ifdef TARGET_LINUX
-	const char *homedir;
-	if ((homedir = getenv("HOME")) == NULL) {
-		homedir = getpwuid(getuid())->pw_dir;
+	if (result.find("~") != std::string::npos) {
+		TRACE("need to work out home dir");
+		const char * homedir;
+		if ((homedir = getenv("HOME")) == NULL) {
+			homedir = getpwuid(getuid())->pw_dir;
+		}
+		TRACE("home dir is : %s", homedir);
+		result = strreplace(result, "~", homedir);
 	}
-	TRACE("homedir : %s", homedir);
-	result = (string)homedir + "/" + USER_PREFIX;
-	#endif
 	this->writeable_path = result;
 	TRACE("exit : %s", this->writeable_path.c_str());
 	return this->writeable_path;
