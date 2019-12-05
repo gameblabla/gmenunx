@@ -171,10 +171,21 @@ void Esoteric::updateAppCache(std::function<void(string)> callback) {
 
 Esoteric::Esoteric() : input(screenManager) {
 
-	TRACE("enter");
-
 	TRACE("leaving the boot marker");
 	Installer::leaveBootMarker();
+
+	this->cache = nullptr;
+	this->bg = nullptr;
+	this->menu = nullptr;
+	this->font = nullptr;
+	this->fontTitle = nullptr;
+	this->fontSectionTitle = nullptr;
+	this->sc = nullptr;
+	this->screen = nullptr;
+	this->ui = nullptr;
+	this->skin = nullptr;
+	this->config = nullptr;
+	this->hw = nullptr;
 
 	TRACE("creating hardware layer");
 	this->hw = HwFactory::GetHardware();
@@ -430,7 +441,8 @@ void Esoteric::main() {
 
 void Esoteric::setWallpaper(const string &wallpaper) {
 	TRACE("enter : %s", wallpaper.c_str());
-	if (bg != NULL) delete bg;
+	if (this->bg != nullptr) 
+		delete bg;
 
 	TRACE("new surface");
 	bg = new Surface(screen);
@@ -558,7 +570,8 @@ void Esoteric::initFont() {
 
 void Esoteric::initMenu() {
 	TRACE("enter");
-	if (menu != NULL) delete menu;
+	if (nullptr != this->menu) 
+		delete menu;
 
 	TRACE("initLayout");
 	initLayout();

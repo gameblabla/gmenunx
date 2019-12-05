@@ -56,7 +56,7 @@ typedef struct {
 	int interval;
 	long last;
 	MappingList maplist;
-	SDL_TimerID timer;
+	SDL_TimerID timer = 0;
 } InputManagerAction;
 
 enum InputManagerActionState {

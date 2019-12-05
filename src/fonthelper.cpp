@@ -11,8 +11,10 @@ FontHelper::FontHelper(const string &fontName, int fontSize, RGBAColor textColor
 }
 
 FontHelper::~FontHelper() {
-	TTF_CloseFont(font);
-	TTF_CloseFont(fontOutline);
+	TTF_CloseFont(this->font);
+	TTF_CloseFont(this->fontOutline);
+	this->font = nullptr;
+	this->fontOutline = nullptr;
 }
 
 void FontHelper::loadFont(const string &fontName, int fontSize) {
@@ -24,12 +26,12 @@ void FontHelper::loadFont(const string &fontName, int fontSize) {
 		}
 	}
 	this->font = TTF_OpenFont(fontName.c_str(), fontSize);
-	if (!this->font) {
+	if (NULL == this->font) {
 		ERROR("TTF_OpenFont %s: %s", fontName.c_str(), TTF_GetError());
 		exit(2);
 	}
 	this->fontOutline = TTF_OpenFont(fontName.c_str(), fontSize);
-	if (!this->fontOutline) {
+	if (NULL == this->fontOutline) {
 		ERROR("TTF_OpenFont %s: %s", fontName.c_str(), TTF_GetError());
 		exit(2);
 	}
@@ -107,11 +109,10 @@ void FontHelper::write(Surface *surface, vector<string> *text, int x, int y, con
 	for (uint32_t i = 0; i < text->size(); i++) {
 		int ix = x;
 		if (align & HAlignCenter) {
-			ix -= getTextWidth(text->at(i))/2;
+			ix -= getTextWidth(text->at(i)) / 2;
 		} else if (align & HAlignRight) {
 			ix -= getTextWidth(text->at(i));
 		}
-
 		write(surface, text->at(i), ix, y + i * getHeight(), fgColor, bgColor);
 	}
 }

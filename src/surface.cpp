@@ -45,28 +45,29 @@ SDL_Color rgbatosdl(RGBAColor color) {
 }
 
 Surface::Surface() {
-	raw = NULL;
-	dblbuffer = NULL;
+	this->raw = NULL;
+	this->dblbuffer = NULL;
 }
 
 Surface::Surface(const string &img, bool alpha, const string &skin) {
-	raw = NULL;
-	dblbuffer = NULL;
+	this->raw = NULL;
+	this->dblbuffer = NULL;
 	load(img, alpha, skin);
 	halfW = raw->w/2;
 	halfH = raw->h/2;
 }
 
 Surface::Surface(const string &img, const string &skin, bool alpha) {
-	raw = NULL;
-	dblbuffer = NULL;
+	this->raw = NULL;
+	this->dblbuffer = NULL;
 	load(img, alpha, skin);
 	halfW = raw->w/2;
 	halfH = raw->h/2;
 }
 
 Surface::Surface(SDL_Surface *s, SDL_PixelFormat *fmt, uint32_t flags) {
-	dblbuffer = NULL;
+	this->dblbuffer = NULL;
+	this->raw = NULL;
 	this->operator =(s);
 	if (fmt != NULL || flags != 0) {
 		if (fmt == NULL) fmt = s->format;
@@ -76,12 +77,12 @@ Surface::Surface(SDL_Surface *s, SDL_PixelFormat *fmt, uint32_t flags) {
 }
 
 Surface::Surface(Surface *s) {
-	dblbuffer = NULL;
+	this->dblbuffer = NULL;
 	this->operator =(s->raw);
 }
 
 Surface::Surface(int w, int h, uint32_t flags) {
-	dblbuffer = NULL;
+	this->dblbuffer = NULL;
 	uint32_t rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 	rmask = 0xff000000;
@@ -94,10 +95,10 @@ Surface::Surface(int w, int h, uint32_t flags) {
 	bmask = 0x00ff0000;
 	amask = 0xff000000;
 #endif
-	raw = SDL_DisplayFormat( SDL_CreateRGBSurface( flags, w, h, 16, rmask, gmask, bmask, amask ) );
+	this->raw = SDL_DisplayFormat( SDL_CreateRGBSurface( flags, w, h, 16, rmask, gmask, bmask, amask ) );
 	//SDL_SetAlpha(raw, SDL_SRCALPHA|SDL_RLEACCEL, SDL_ALPHA_OPAQUE);
-	halfW = w/2;
-	halfH = h/2;
+	halfW = w / 2;
+	halfH = h / 2;
 }
 
 Surface::~Surface() {
@@ -105,25 +106,27 @@ Surface::~Surface() {
 }
 
 void Surface::enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha) {
-	dblbuffer = surface;
+	this->dblbuffer = surface;
 	if (alpha)
-		raw = SDL_DisplayFormatAlpha(dblbuffer);
+		this->raw = SDL_DisplayFormatAlpha(dblbuffer);
 	else
-		raw = SDL_DisplayFormat(dblbuffer);
+		this->raw = SDL_DisplayFormat(dblbuffer);
 }
 
 void Surface::free() {
-	SDL_FreeSurface( raw );
-	SDL_FreeSurface( dblbuffer );
-	raw = NULL;
-	dblbuffer = NULL;
+	if (NULL != this->raw)
+		SDL_FreeSurface( this->raw );
+	if (NULL != this->dblbuffer)
+		SDL_FreeSurface( this->dblbuffer );
+	this->raw = NULL;
+	this->dblbuffer = NULL;
 }
 
 SDL_PixelFormat *Surface::format() {
-	if (raw == NULL)
+	if (this->raw == NULL)
 		return NULL;
 	else
-		return raw->format;
+		return this->raw->format;
 }
 
 void Surface::load(const string &img, bool alpha, const string &skin) {
@@ -138,16 +141,20 @@ void Surface::load(const string &img, bool alpha, const string &skin) {
 		skinpath = img;
 	}
 
-	SDL_Surface* loadedImage = NULL;
-	loadedImage = IMG_Load(skinpath.c_str());
+	SDL_Surface* loadedImage = IMG_Load(skinpath.c_str());
 	if (loadedImage != NULL) {
-		raw = SDL_DisplayFormatAlpha( loadedImage );
-		if (raw != NULL) {
-			//Free the old image
-			SDL_FreeSurface( loadedImage );
-		} else {
-		ERROR("Couldn't optimise surface '%s'", img.c_str());
-	}
+		if (alpha)
+			this->raw = SDL_DisplayFormatAlpha( loadedImage );
+		else
+			this->raw = SDL_DisplayFormat( loadedImage );
+
+		//this->raw = SDL_DisplayFormatAlpha( loadedImage );
+		if (this->raw == NULL) {
+			ERROR("Couldn't optimise surface '%s'", img.c_str());
+		}
+		//Free the old image
+		SDL_FreeSurface( loadedImage );
+		loadedImage = NULL;
 	} else {
 		ERROR("Couldn't load surface '%s'", img.c_str());
 	}
@@ -252,9 +259,10 @@ void Surface::write(FontHelper *font, const string &text, int x, int y, const ui
 }
 
 void Surface::operator = (SDL_Surface *s) {
-	raw = SDL_DisplayFormat(s);
-	halfW = raw->w/2;
-	halfH = raw->h/2;
+	if (NULL == s) return;
+	this->raw = SDL_DisplayFormat(s);
+	this->halfW = raw->w / 2;
+	this->halfH = raw->h / 2;
 }
 
 void Surface::operator = (Surface *s) {

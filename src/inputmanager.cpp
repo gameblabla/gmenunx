@@ -463,6 +463,10 @@ bool &InputManager::operator[](int action) {
 }
 
 bool InputManager::isActive(int action) {
+	
+	if (action >= actions.size())
+		return false;
+
 	// is it too soon since last press??
 	if (actions[action].last + actions[action].interval > SDL_GetTicks()) {
 		return false;

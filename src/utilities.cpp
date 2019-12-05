@@ -413,6 +413,8 @@ std::string getOpkPath() {
 	std::string pid = "";
 	stm >> pid;
 	TRACE("got pid : %s", pid.c_str());
+	if (pid.length() == 0)
+		return "";
 	cmd = "/proc/" + pid + "/cmdline";
 	if (!fileExists(cmd)) {
 		TRACE("no proc file for pid : %s", pid.c_str());

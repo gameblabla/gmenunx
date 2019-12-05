@@ -19,8 +19,7 @@ CFLAGS = -ggdb \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
 	-DENABLE_INOTIFY \
-    -Wno-narrowing \
-    -g3
+    -Wno-narrowing
 
 CXXFLAGS := $(CFLAGS)
 LDFLAGS := $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lpng -L/usr/local/lib -lopk 
