@@ -39,7 +39,7 @@ class OpkCache {
         std::list<OpkMonitor *> directoryMonitors;
 
         bool loadCache();
-        void scanSection(const std::string & sectionName, string path);
+        void scanSection(const std::string & sectionName, std::string path);
 
         void addToCache(const std::string & section, const DesktopFile & file);
         void removeFromCache(const std::string & section, const DesktopFile & file);
