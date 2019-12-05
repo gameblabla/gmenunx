@@ -213,8 +213,8 @@ Esoteric::Esoteric() : input(screenManager) {
 		this->tr.setLang(this->config->lang());
 	}
 
-	TRACE("backlight");
-	this->hw->setBacklightLevel(config->backlightLevel());
+	//TRACE("backlight");
+	//this->hw->setBacklightLevel(config->backlightLevel());
 
 	//Screen
 	TRACE("setEnv");
@@ -307,7 +307,7 @@ void Esoteric::main() {
 	pbLoading->exec();
 
 	pbLoading->updateDetail("Initialising hardware");
-	this->hw->setVolumeLevel(this->config->globalVolume());
+	//this->hw->setVolumeLevel(this->config->globalVolume());
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
 
@@ -692,7 +692,7 @@ void Esoteric::initMenu() {
 	menu->loadIcons();
 	TRACE("restore the view");
 
-/*
+	/*
 	if (config->saveSelection()) {
 		TRACE("menu->setSectionIndex : %i", config->section());
 		menu->setSectionIndex(config->section());
@@ -702,7 +702,7 @@ void Esoteric::initMenu() {
 		menu->setSectionIndex(0);
 		menu->setLinkIndex(0);
 	}
-*/
+	*/
 
 	if (mySection < menu->sectionLinks()->size()) {
 		menu->setSectionIndex(mySection);
@@ -713,8 +713,12 @@ void Esoteric::initMenu() {
 
 void Esoteric::settings() {
 	TRACE("enter");
-	int curGlobalVolume = config->globalVolume();
-	int curGlobalBrightness = config->backlightLevel();
+
+	int curGlobalVolume = this->hw->getVolumeLevel();
+	int curGlobalBrightness = this->hw->getBacklightLevel();
+	int backlightLevel = curGlobalBrightness;
+	int globalVolume = curGlobalVolume;
+
 	bool unhideSections = false;
 	string prevSkin = config->skin();
 	vector<string> skinList = Skin::getSkins(getReadablePath());
@@ -734,8 +738,6 @@ void Esoteric::settings() {
 	int outputLogs = config->outputLogs();
 	int backlightTimeout = config->backlightTimeout();
 	int powerTimeout = config->powerTimeout();
-	int backlightLevel = config->backlightLevel();
-	int globalVolume = config->globalVolume();
 
 	TRACE("found %i translations", fl_tr.fileCount());
 	if (lang.empty()) {
@@ -760,18 +762,55 @@ void Esoteric::settings() {
 	string prevDateTime = currentDatetime;
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
-	sd.addSetting(new MenuSettingMultiString(this, tr["Language"], tr["Set the language used by " + APP_NAME], &lang, &fl_tr.getFiles()));
-	sd.addSetting(new MenuSettingDateTime(this, tr["Date & Time"], tr["Set system's date & time"], &currentDatetime));
-	sd.addSetting(new MenuSettingMultiString(this, tr["Battery profile"], tr["Set the battery discharge profile"], &batteryType, &batteryTypes));
 
-	sd.addSetting(new MenuSettingMultiString(this, tr["Skin"], tr["Set the skin used by " + APP_NAME], &skin, &skinList));
+	sd.addSetting(new MenuSettingMultiString(
+		this, 
+		tr["Language"], 
+		tr["Set the language used by " + APP_NAME], 
+		&lang, 
+		&fl_tr.getFiles()));
+	
+	sd.addSetting(new MenuSettingDateTime(
+		this, 
+		tr["Date & Time"], 
+		tr["Set system's date & time"], 
+		&currentDatetime));
+	
+	sd.addSetting(new MenuSettingMultiString(
+		this, 
+		tr["Battery profile"], 
+		tr["Set the battery discharge profile"], 
+		&batteryType, 
+		&batteryTypes));
 
-	if (performanceModes.size() > 1)
-		sd.addSetting(new MenuSettingMultiString(this, tr["Performance mode"], tr["Set the performance mode"], &performanceMode, &performanceModes));
+	sd.addSetting(new MenuSettingMultiString(
+		this, 
+		tr["Skin"], 
+		tr["Set the skin used by " + APP_NAME], 
+		&skin, 
+		&skinList));
 
-	sd.addSetting(new MenuSettingBool(this, tr["Save last selection"], tr["Save the last selected link and section on exit"], &saveSelection));
+	if (performanceModes.size() > 1) {
+		sd.addSetting(new MenuSettingMultiString(
+			this, 
+			tr["Performance mode"], 
+			tr["Set the performance mode"], 
+			&performanceMode, 
+			&performanceModes));
+	}
+
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Save last selection"], 
+		tr["Save the last selected link and section on exit"], 
+		&saveSelection));
+	
 	if (!config->sectionFilter().empty()) {
-		sd.addSetting(new MenuSettingBool(this, tr["Unhide all sections"], tr["Remove the hide sections filter"], &unhideSections));
+		sd.addSetting(new MenuSettingBool(
+			this, 
+			tr["Unhide all sections"], 
+			tr["Remove the hide sections filter"], 
+			&unhideSections));
 	}
 
 	sd.addSetting(new MenuSettingDir(
@@ -785,15 +824,25 @@ void Esoteric::settings() {
 
 	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &outputLogs));
 	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &backlightTimeout, 60, 0, 120));
-	
 	sd.addSetting(new MenuSettingInt(this,tr["Power timeout"], tr["Minutes to poweroff system if inactive"], &powerTimeout, 10, 1, 300));
-	sd.addSetting(new MenuSettingInt(this,tr["Backlight"], tr["Set LCD backlight"], &backlightLevel, 70, 1, 100));
-	sd.addSetting(new MenuSettingInt(this, tr["Audio volume"], tr["Set the default audio volume"], &globalVolume, 60, 0, 100));
+	
+	sd.addSetting(new MenuSettingInt(
+		this, 
+		tr["Backlight"], 
+		tr["Set current LCD backlight"], 
+		&backlightLevel, 70, 1, 100));
+	
+	sd.addSetting(new MenuSettingInt(
+		this, 
+		tr["Audio volume"], 
+		tr["Set the current audio volume"], 
+		&globalVolume, 60, 0, 100));
 
 	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
 	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::cpuSettings)));
 	#endif
+
 	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
@@ -820,6 +869,7 @@ void Esoteric::settings() {
 		config->outputLogs(outputLogs);
 		config->backlightTimeout(backlightTimeout);
 		config->powerTimeout(powerTimeout);
+
 		config->backlightLevel(backlightLevel);
 		config->globalVolume(globalVolume);
 
