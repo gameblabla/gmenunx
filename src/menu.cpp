@@ -281,8 +281,8 @@ bool Menu::addLink(std::string path, std::string file, std::string section) {
 	int isection;
 	std::ofstream f(linkpath.c_str());
 	if (f.is_open()) {
-		f << "title=" << shorttitle << endl;
-		f << "exec=" << exec << endl;
+		f << "title=" << shorttitle << std::endl;
+		f << "exec=" << exec << std::endl;
 		f.close();
 
 		isection = find(sections.begin(), sections.end(), section) - sections.begin();
