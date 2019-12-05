@@ -4,8 +4,6 @@
 #include <string>
 #include <istream>
 
-using namespace std;
-
 class DesktopFile {
     private:
 
@@ -13,100 +11,116 @@ class DesktopFile {
         void parse(std::istream & instream);
 
         bool isDirty_;
-        string path_; 
+        std::string path_; 
 
-        string title_; //=ReGBA
-        string description_; //=Game Boy Advance Emulator
-        string icon_; //=/home/mat/.esoteric/skins/Default/icons/regba-silver.png
-        string exec_; //=/bin/bash
-        string params_;  //=-m default.gcw0.desktop /home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk 
-        string selectordir_; //=/home/mat/Downloads
-        string selectorfilter_; //=.opk
-        string provider_; //=/home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk
-        string providerMetadata_; //=default.gcw0.desktop
+        std::string title_; //=ReGBA
+        std::string description_; //=Game Boy Advance Emulator
+        std::string icon_; //=/home/mat/.esoteric/skins/Default/icons/regba-silver.png
+        std::string exec_; //=/bin/bash
+        std::string params_;  //=-m default.gcw0.desktop /home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk 
+        std::string selectordir_; //=/home/mat/Downloads
+        std::string selectorfilter_; //=.opk
+        std::string provider_; //=/home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk
+        std::string providerMetadata_; //=default.gcw0.desktop
+        std::string manual_;
+        std::string workdir_;
         bool consoleapp_; //=false
 
     public:
         DesktopFile();
-        DesktopFile(const string & file);
+        DesktopFile(const std::string & file);
         ~DesktopFile();
 
-        bool fromFile(const string & file);
-        bool save(const string & path = "");
+        bool fromFile(const std::string & file);
+        bool save(const std::string & path = "");
         DesktopFile * clone();
         void remove();
 
-        string toString();
+        std::string toString();
 
         bool isDirty() { return this->isDirty_; }
 
-        string path() const { return this->path_; }
-        void path(string val) { 
+        std::string path() const { return this->path_; }
+        void path(std::string val) { 
             if (val != this->path_) {
                 this->path_ = val;
                 this->isDirty_ = true;
             }
         }
-        string title() const { return this->title_; }
-        void title(string val) { 
+        std::string title() const { return this->title_; }
+        void title(std::string val) { 
             if (val != this->title_) {
                 this->title_ = val;
                 this->isDirty_ = true;
             }
         }
-        string description() const { return this->description_; }
-        void description(string val) { 
+        std::string description() const { return this->description_; }
+        void description(std::string val) { 
             if (val != this->description_) {
                 this->description_ = val;
                 this->isDirty_ = true;
             }
         }
-        string icon() const { return this->icon_; }
-        void icon(string val) { 
+        std::string icon() const { return this->icon_; }
+        void icon(std::string val) { 
             if (val != this->icon_) {
                 this->icon_ = val;
                 this->isDirty_ = true;
             }
         }
-        string exec() const { return this->exec_; }
-        void exec(string val) { 
+        std::string exec() const { return this->exec_; }
+        void exec(std::string val) { 
             if (val != this->exec_) {
                 this->exec_ = val;
                 this->isDirty_ = true;
             }
         }
-        string params() const { return this->params_; }
-        void params(string val) { 
+        std::string params() const { return this->params_; }
+        void params(std::string val) { 
             if (val != this->params_) {
                 this->params_ = val;
                 this->isDirty_ = true;
             }
         }
-        string selectordir() const { return this->selectordir_; }
-        void selectordir(string val) { 
+        std::string selectordir() const { return this->selectordir_; }
+        void selectordir(std::string val) { 
             if (val != this->selectordir_) {
                 this->selectordir_ = val;
                 this->isDirty_ = true;
             }
         }
-        string selectorfilter() const { return this->selectorfilter_; }
-        void selectorfilter(string val) { 
+        std::string selectorfilter() const { return this->selectorfilter_; }
+        void selectorfilter(std::string val) { 
             if (val != this->selectorfilter_) {
                 this->selectorfilter_ = val;
                 this->isDirty_ = true;
             }
         }
-        string provider() const { return this->provider_; }
-        void provider(string val) { 
+        std::string provider() const { return this->provider_; }
+        void provider(std::string val) { 
             if (val != this->provider_) {
                 this->provider_ = val;
                 this->isDirty_ = true;
             }
         }
-        string providerMetadata() const { return this->providerMetadata_; }
-        void providerMetadata(string val) { 
+        std::string providerMetadata() const { return this->providerMetadata_; }
+        void providerMetadata(std::string val) { 
             if (val != this->providerMetadata_ && !val.empty()) {
                 this->providerMetadata_ = val;
+                this->isDirty_ = true;
+            }
+        }
+        std::string manual() const { return this->manual_; }
+        void manual(std::string val) { 
+            if (val != this->manual_ && !val.empty()) {
+                this->manual_ = val;
+                this->isDirty_ = true;
+            }
+        }
+        std::string workdir() const { return this->workdir_; }
+        void workdir(std::string val) { 
+            if (val != this->workdir_ && !val.empty()) {
+                this->workdir_ = val;
                 this->isDirty_ = true;
             }
         }

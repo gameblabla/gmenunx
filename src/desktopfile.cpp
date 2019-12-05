@@ -51,6 +51,8 @@ string DesktopFile::toString() {
     vec.push_back(string_format("params=%s", this->params().c_str()));
     vec.push_back(string_format("selectorDir=%s", this->selectordir().c_str()));
     vec.push_back(string_format("selectorFilter=%s", this->selectorfilter().c_str()));
+    vec.push_back(string_format("manual=%s", this->manual().c_str()));
+    vec.push_back(string_format("workdir=%s", this->workdir().c_str()));
     vec.push_back(string_format("X-Provider=%s", this->provider().c_str()));
     vec.push_back(string_format("X-ProviderMetadata=%s", this->providerMetadata().c_str()));
     vec.push_back(string_format("consoleapp=%s", this->consoleapp() ? "true" : "false"));
@@ -100,6 +102,10 @@ void DesktopFile::parse(std::istream & instream) {
             this->consoleapp(console);
         } else if (name == "selectorbrowser") {
             // eat it
+        } else if (name == "manual") {
+            this->manual(stripQuotes(value));
+        } else if (name == "workdir") {
+            this->workdir(stripQuotes(value));
         } else {
             WARNING("unknown .desktop key : %s", name.c_str());
         }
@@ -170,6 +176,8 @@ void DesktopFile::reset() {
     this->selectorfilter_ = "";
     this->provider_ = "";
     this->providerMetadata_ = "default.gcw0.desktop";
+    this->manual_ = "";
+    this->workdir_ = "";
     this->consoleapp_ = false;
     this->isDirty_ = false;
 }
