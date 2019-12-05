@@ -1328,12 +1328,14 @@ void Esoteric::changeWallpaper() {
 }
 
 void Esoteric::showManual() {
+	TRACE("enter");
 	string linkTitle = menu->selLinkApp()->getTitle();
 	string linkDescription = menu->selLinkApp()->getDescription();
 	string linkIcon = menu->selLinkApp()->getIcon();
 	string linkManual = menu->selLinkApp()->getManualPath();
 	string linkBackdrop = menu->selLinkApp()->getBackdropPath();
 
+	TRACE("looking for a manual at : %s", linkManual.c_str());
 	if (linkManual.empty() || !fileExists(linkManual)) return;
 
 	string ext = linkManual.substr(linkManual.size() - 4, 4);

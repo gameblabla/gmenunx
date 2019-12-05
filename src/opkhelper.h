@@ -115,6 +115,9 @@ class OpkHelper {
         OpkHelper(const std::string & path);
         ~OpkHelper();
         static std::list<myOpk> * ToOpkList(const std::string & path);
+
+        static int extractFile(const std::string &path, void **buffer, std::size_t &length);
+
 };
 
 #endif

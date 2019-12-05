@@ -51,7 +51,7 @@ void myOpk::constrain() {
 bool myOpk::load(OPK * opk) {
                 
     const char *key, *val;
-    size_t lkey, lval;
+    std::size_t lkey, lval;
     int ret;
                 
     while ((ret = opk_read_pair(opk, &key, &lkey, &val, &lval))) {
@@ -242,5 +242,35 @@ std::list<myOpk> * OpkHelper::ToOpkList(const std::string & path) {
     opk_close(opk);
     TRACE("closed opk");
     return results;
+
+}
+
+int OpkHelper::extractFile(const std::string &path, void **buffer, std::size_t &length) {
+    TRACE("enter : %s", path.c_str());
+    struct OPK *opk = NULL;
+    int ret = 0;
+
+	std::string::size_type pos = path.find('#');
+	if (pos != std::string::npos) {
+		TRACE("we have found a hash, time for opk action");
+	
+		TRACE("opening opk");
+		opk = opk_open(path.substr(0, pos).c_str());
+		if (!opk) {
+			ERROR("Unable to open opk : %s", path.c_str());
+		} else {
+            TRACE("loadPNG - extracting file");
+            ret = opk_extract_file(opk, path.substr(pos + 1).c_str(), buffer, &length);
+            if (ret != 0) {
+                ERROR("loadPNG - Unable to extract file from opk : %s", path.c_str());
+            } else {
+                TRACE("extracted file of size : %zi", length);
+            }
+            if (opk)
+                opk_close(opk);
+        }
+    }
+    TRACE("exit : %i", ret);
+    return ret;
 
 }

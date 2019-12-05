@@ -365,17 +365,14 @@ bool OpkCache::createMissingOpkDesktopFiles() {
 
 std::string OpkCache::savePng(myOpk const & theOpk) {
     
-    std::string imagePath = this->imagesCachePath() + "/" +  fileBaseName(theOpk.fileName());
-    if (fileExists(imagePath)) {
-        TRACE("image already exists : %s", imagePath.c_str());
-        return imagePath;
-    }
-    TRACE("extracting image to : %s", imagePath.c_str());
-    if (!dirExists(imagePath)) {
-        if (mkdir(imagePath.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", imagePath.c_str());
+    std::string imageDir = this->imagesCachePath() + "/" +  fileBaseName(theOpk.fileName());
+
+    TRACE("extracting image to : %s", imageDir.c_str());
+    if (!dirExists(imageDir)) {
+        if (mkdir(imageDir.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", imageDir.c_str());
         } else {
-            ERROR("failed to create cache dir : %s", imagePath.c_str());
+            ERROR("failed to create cache dir : %s", imageDir.c_str());
             return "";
         }
     }
@@ -383,7 +380,7 @@ std::string OpkCache::savePng(myOpk const & theOpk) {
     // extract the image and save it
     std::string shortIconName = theOpk.icon() + ".png";
     std::string opkIconName = theOpk.fullPath() + "#" + shortIconName;
-    std::string outFile = imagePath + "/" + base_name(shortIconName);
+    std::string outFile = imageDir + "/" + base_name(shortIconName);
     std::string result = "";
 
     SDL_Surface *tmpIcon = loadPNG(opkIconName, true);
@@ -522,6 +519,29 @@ void OpkCache::handleNewOpk(const std::string & path) {
                 continue;
             }
 
+            // manual?
+            std::string manualPath = "";
+            if (!theOpk.manual().empty()) {
+
+                std::string manualDir = this->manualsCachePath() + "/" +  fileBaseName(theOpk.fileName());
+                TRACE("extracting manual to : %s", manualDir.c_str());
+                if (!dirExists(manualDir)) {
+                    if (mkdir(manualDir.c_str(), 0777) == 0) {
+                        TRACE("created dir : %s", manualDir.c_str());
+                    } else {
+                        ERROR("failed to create cache dir : %s", manualDir.c_str());
+                        continue;
+                    }
+                }
+                manualPath = manualDir + "/" + base_name(theOpk.manual());
+                void *buffer = NULL;
+                std::size_t size = 0;
+                std::string path = theOpk.fullPath() + "#" + theOpk.manual();
+                OpkHelper::extractFile(path, &buffer, size);
+                std::ofstream fout(manualPath);
+                fout << (char *)buffer;
+            }
+
             TRACE("checking for upgrade");
             DesktopFile * previous = findMatchingProvider(sectionName, theOpk);
             if (nullptr != previous) {
@@ -535,6 +555,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
                     finalFile = previous->clone();
                     finalFile->path(desktopFilePath);
                     finalFile->provider(theOpk.fullPath());
+                    finalFile->manual(manualPath);
                     finalFile->params(theOpk.params());
                     finalFile->icon(imgFile);
                     finalFile->save();
@@ -558,7 +579,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
             finalFile->title(theOpk.name());
             finalFile->exec(OPK_EXEC);
             finalFile->params(theOpk.params());
-            finalFile->manual(theOpk.manual());
+            finalFile->manual(manualPath);
             finalFile->selectordir(theOpk.selectorDir());
             finalFile->selectorfilter(theOpk.selectorFilter());
             finalFile->consoleapp(theOpk.terminal());
