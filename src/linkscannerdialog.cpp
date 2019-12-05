@@ -6,7 +6,7 @@
 #include "debug.h"
 #include "constants.h"
 
-LinkScannerDialog::LinkScannerDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+LinkScannerDialog::LinkScannerDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon)
 	: Dialog(app)
 {
 	this->title = title;
@@ -31,9 +31,9 @@ void LinkScannerDialog::exec() {
 	this->foundFiles = 0;
 	this->maxMessagesOnScreen = floor((app->listRect.h - app->skin->menuInfoBarHeight) / app->font->getHeight());
 
-	string str = "";
-	stringstream ss;
-	vector<string> files;
+	std::string str = "";
+	std::stringstream ss;
+	std::vector<std::string> files;
 
 	drawTopBar(this->bg, title, description, icon);
 	drawBottomBar(this->bg);
@@ -78,14 +78,14 @@ void LinkScannerDialog::exec() {
 
 		this->notify("Creating links...");
 
-		string path, file;
-		string::size_type pos;
+		std::string path, file;
+		std::string::size_type pos;
 
 		this->foundFiles = 0;
-		for (size_t i = 0; i < files.size(); ++i) {
+		for (std::size_t i = 0; i < files.size(); ++i) {
 			pos = files[i].rfind("/");
 
-			if (pos != string::npos && pos > 0) {
+			if (pos != std::string::npos && pos > 0) {
 				path = files[i].substr(0, pos + 1);
 				file = files[i].substr(pos + 1, files[i].length());
 				if (app->menu->addLink(path, file, "linkscanner")) {
@@ -143,7 +143,7 @@ void LinkScannerDialog::render() {
 	}
 	this->bg->blit(app->screen, 0, 0);
 
-	vector<string>::iterator it = this->messages_.begin();
+	std::vector<std::string>::iterator it = this->messages_.begin();
 	int numMessages = (int)this->messages_.size();
 	
 	if (numMessages > this->maxMessagesOnScreen) {
@@ -173,14 +173,14 @@ void LinkScannerDialog::render() {
 	app->screen->flip();
 }
 
-void LinkScannerDialog::notify(string message) {
+void LinkScannerDialog::notify(std::string message) {
 	this->app->screenManager.resetScreenTimer();
 	this->messages_.push_back(message);
 	this->selectedItem = this->messages_.size() -1;
 	this->render();
 }
 
-void LinkScannerDialog::scanPath(string path, vector<string> *files) {
+void LinkScannerDialog::scanPath(std::string path, std::vector<std::string> *files) {
 	DIR *dirp;
 	struct stat st;
 	struct dirent *dptr;
