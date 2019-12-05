@@ -1911,7 +1911,7 @@ void Esoteric::renameSection() {
 }
 
 void Esoteric::deleteSection() {
-	MessageBox mb(this, tr["All links in this section will be removed."] + "\n" + tr["Are you sure?"]);
+	MessageBox mb(this, tr["All links in this section will be removed. Are you sure?"]);
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
