@@ -12,7 +12,8 @@
 #include "opkmonitor.h"
 
 static const std::string OPK_CACHE_DIR = "cache";
-static const std::string OPK_CACHE_IMAGE_DIR = "images";
+static const std::string OPK_CACHE_IMAGES_DIR = "images";
+static const std::string OPK_CACHE_MANUALS_DIR = "manuals";
 
 #ifdef TARGET_RG350
 static const std::string OPK_EXEC = "/usr/bin/opkrun";
@@ -55,7 +56,8 @@ class OpkCache {
 
         std::string hashKey(DesktopFile const & file);
         std::string hashKey(myOpk const & file);
-        const std::string imageCachePath();
+        const std::string imagesCachePath();
+        const std::string manualsCachePath();
         bool ensureCacheDirs();
 
         void notify(std::string text);

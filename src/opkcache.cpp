@@ -91,8 +91,11 @@ bool OpkCache::update(std::function<void(std::string)> callback) {
 
 }
 
-const std::string OpkCache::imageCachePath() {
-    return this->cacheDir_ + "/" + OPK_CACHE_IMAGE_DIR;
+const std::string OpkCache::imagesCachePath() {
+    return this->cacheDir_ + "/" + OPK_CACHE_IMAGES_DIR;
+}
+const std::string OpkCache::manualsCachePath() {
+    return this->cacheDir_ + "/" + OPK_CACHE_MANUALS_DIR;
 }
 
 bool OpkCache::ensureCacheDirs() {
@@ -126,7 +129,7 @@ bool OpkCache::ensureCacheDirs() {
         }
     }
     this->notify("Checking image cache directory exists");
-    string imageDir = this->imageCachePath();
+    string imageDir = this->imagesCachePath();
     if (!dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", imageDir.c_str());
@@ -136,6 +139,16 @@ bool OpkCache::ensureCacheDirs() {
         }
     }
 
+    this->notify("Checking manuals cache directory exists");
+    string manualsDir = this->manualsCachePath();
+    if (!dirExists(manualsDir)) {
+        if (mkdir(manualsDir.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", manualsDir.c_str());
+        } else {
+            ERROR("OpkCache::ensureCacheDirs - failed to create manuals cache dir : %s", manualsDir.c_str());
+            return false;
+        }
+    }
     TRACE("exit");
     return true;
 }
@@ -352,7 +365,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
 
 std::string OpkCache::savePng(myOpk const & theOpk) {
     
-    std::string imagePath = this->imageCachePath() + "/" +  fileBaseName(theOpk.fileName());
+    std::string imagePath = this->imagesCachePath() + "/" +  fileBaseName(theOpk.fileName());
     if (fileExists(imagePath)) {
         TRACE("image already exists : %s", imagePath.c_str());
         return imagePath;
@@ -545,6 +558,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
             finalFile->title(theOpk.name());
             finalFile->exec(OPK_EXEC);
             finalFile->params(theOpk.params());
+            finalFile->manual(theOpk.manual());
             finalFile->selectordir(theOpk.selectorDir());
             finalFile->selectorfilter(theOpk.selectorFilter());
             finalFile->consoleapp(theOpk.terminal());
