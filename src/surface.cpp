@@ -66,22 +66,24 @@ Surface::Surface(const string &img, const string &skin, bool alpha) {
 }
 
 Surface::Surface(SDL_Surface *s, SDL_PixelFormat *fmt, uint32_t flags) {
-	this->dblbuffer = NULL;
 	this->raw = NULL;
+	this->dblbuffer = NULL;
 	this->operator =(s);
 	if (fmt != NULL || flags != 0) {
 		if (fmt == NULL) fmt = s->format;
 		if (flags == 0) flags = s->flags;
-		raw = SDL_ConvertSurface(s, fmt, flags);
+		this->raw = SDL_ConvertSurface(s, fmt, flags);
 	}
 }
 
 Surface::Surface(Surface *s) {
+	this->raw = NULL;
 	this->dblbuffer = NULL;
 	this->operator =(s->raw);
 }
 
 Surface::Surface(int w, int h, uint32_t flags) {
+	this->raw = NULL;
 	this->dblbuffer = NULL;
 	uint32_t rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -114,12 +116,14 @@ void Surface::enableVirtualDoubleBuffer(SDL_Surface *surface, bool alpha) {
 }
 
 void Surface::free() {
-	if (NULL != this->raw)
+	if (NULL != this->raw) {
 		SDL_FreeSurface( this->raw );
-	if (NULL != this->dblbuffer)
-		SDL_FreeSurface( this->dblbuffer );
-	this->raw = NULL;
-	this->dblbuffer = NULL;
+		this->raw = NULL;
+	}
+	if (NULL != this->dblbuffer) {
+		SDL_FreeSurface( this->dblbuffer );		
+		this->dblbuffer = NULL;
+	}
 }
 
 SDL_PixelFormat *Surface::format() {
@@ -131,7 +135,6 @@ SDL_PixelFormat *Surface::format() {
 
 void Surface::load(const string &img, bool alpha, const string &skin) {
 	free();
-
 	string skinpath;
 	if (!skin.empty() && !img.empty() && img[0]!='/') {
 		skinpath = "skins/"+skin+"/"+img;
@@ -148,7 +151,6 @@ void Surface::load(const string &img, bool alpha, const string &skin) {
 		else
 			this->raw = SDL_DisplayFormat( loadedImage );
 
-		//this->raw = SDL_DisplayFormatAlpha( loadedImage );
 		if (this->raw == NULL) {
 			ERROR("Couldn't optimise surface '%s'", img.c_str());
 		}

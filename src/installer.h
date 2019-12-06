@@ -20,10 +20,11 @@ class Installer {
         std::string destinationRootPath;
 
         std::vector<std::string> fileManifest = {
+            BINARY_NAME, 
+            BINARY_NAME + ".conf", 
             "about.txt", 
             "ChangeLog.md", 
             "COPYING", 
-            BINARY_NAME + ".conf", 
             "logo.png", 
             "input.conf"
         };
@@ -37,6 +38,7 @@ class Installer {
         void notify(std::string text);
         bool copyDirs(bool force = false);
         bool copyFiles();
+        bool setBinaryPermissions();
 
     public:
 
@@ -45,14 +47,12 @@ class Installer {
 
         static const bool isDefaultLauncher(const std::string &opkPath);
         static const bool removeLauncher();
-        static const bool deployLauncher();
+        const bool deployLauncher();
         static const bool leaveBootMarker();
         static const bool removeBootMarker();
-
+        std::string binaryPath() { return this-> destinationRootPath + BINARY_NAME; }
         bool install();
         bool upgrade();
-
-
 
 };
 

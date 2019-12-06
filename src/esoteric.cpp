@@ -101,18 +101,6 @@ int main(int argc, char * argv[]) {
 	return 0;
 }
 
-/*
-bool exitMainThread = false;
-void* mainThread(void* param) {
-	Esoteric *menu = (Esoteric*)param;
-	while(!exitMainThread) {
-		sleep(1);
-	}
-	return NULL;
-}
-*/
-
-
 Esoteric::Esoteric() : input(screenManager) {
 
 	TRACE("leaving the boot marker");
@@ -292,19 +280,13 @@ void Esoteric::main() {
 		loader.run();
 	}
 	pbLoading->exec();
-
 	Loader::setMarker();
-
 	pbLoading->updateDetail("Initialising hardware");
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
 
 	setWallpaper(this->skin->wallpaper);
-	initMenu();
 	readTmp();
-
-	TRACE("new renderer");
-	Renderer *renderer = new Renderer(this);
 
 	if (thread_cache != nullptr) {
 		// we need to re-join before building the menu
@@ -313,20 +295,19 @@ void Esoteric::main() {
 		TRACE("app cache thread has finished");
 	}
 
+	// initMenu needs to come after cache thread has joined
+	initMenu();
+
 	TRACE("screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
-	/*
-	TRACE("pthread");
-	pthread_t thread_id;
-	if (pthread_create(&thread_id, NULL, mainThread, this)) {
-		ERROR("%s, failed to create main thread\n", __func__);
-	}
-	*/
-	pbLoading->finished(1000);
-	//delete pbLoading;
-
 	input.setWakeUpInterval(1000);
 	this->hw->ledOff();
+
+	pbLoading->finished();
+	delete pbLoading;
+
+	TRACE("new renderer");
+	Renderer *renderer = new Renderer(this);
 
 	TRACE("removing the boot marker");
 	Installer::removeBootMarker();
@@ -420,12 +401,9 @@ void Esoteric::main() {
 		}
 	}
 
-	delete renderer;
-	delete pbLoading;
-	/*
-	exitMainThread = true;
-	pthread_join(thread_id, NULL);
-	*/
+	if (renderer)
+		delete renderer;
+
 	TRACE("exit");
 }
 
@@ -598,7 +576,7 @@ void Esoteric::initMenu() {
 	TRACE("new menu");
 	menu = new Menu(this);
 
-	bool isDefaultLauncher = Installer::isDefaultLauncher(getOpkPath());
+	bool isDefaultLauncher = Installer::isDefaultLauncher(this->getWriteablePath());
 
 	TRACE("add built in action links");
 	int i = menu->getSectionIndex("applications");
@@ -696,12 +674,12 @@ void Esoteric::initMenu() {
 	}
 
 
-	if (this->config->version() < APP_MIN_CONFIG_VERSION || !this->needsInstalling) {
+	if (this->config->version() < APP_MIN_CONFIG_VERSION || !getOpkPath().empty()) {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
 							MakeDelegate(this, &Esoteric::doUpgrade), 
-							tr["Upgrade " + APP_NAME], 
+							tr["Upgrade " + APP_NAME + ", restore missing files"], 
 							"skin:icons/upgrade.png");
 	}
 
@@ -1533,21 +1511,34 @@ void Esoteric::doInstall() {
 	bool success = false;
 
 	ProgressBar *pbInstall = new ProgressBar(this, "Installing launcher script...", "skin:icons/device.png");
+	if (!pbInstall) {
+		ERROR("Couldn't make progress bar");
+		return;
+	}
+
 	pbInstall->exec();
 
-	if (Installer::deployLauncher()) {
-		pbInstall->updateDetail("Install successful");
-		pbInstall->finished(2000);
-		success = true;
-	} else {
-		pbInstall->updateDetail("Install failed");
-		pbInstall->finished(2000);
+	Installer *installer = new Installer(
+		this->getReadablePath(), 
+		this->getWriteablePath(), 
+		[&](std::string message){ return pbInstall->updateDetail(message); } 
+	);
+
+	if (installer) {
+		if (installer->deployLauncher()) {
+			pbInstall->updateDetail("Install successful");
+			pbInstall->finished(2000);
+			success = true;
+		} else {
+			pbInstall->updateDetail("Install failed");
+			pbInstall->finished(2000);
+		}
+		delete installer;
 	}
 	delete pbInstall;
 
 	if (success) {
 		this->initMenu();
-		//this->restartDialog(true);
 	}
 	TRACE("exit");
 }

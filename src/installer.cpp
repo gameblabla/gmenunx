@@ -38,17 +38,42 @@ bool Installer::install() {
         TRACE("created install dir : %s", this->destinationRootPath.c_str());
     }
     if (this->copyFiles()) {
-        result = this->copyDirs(true);
+        if (this->copyDirs(true)) {
+            result = this->setBinaryPermissions();
+        }
+    }
+    TRACE("exit : %i", result);
+    return result;
+}
+
+bool Installer::setBinaryPermissions() {
+    TRACE("enter");
+    bool result = false;
+    struct stat fstat;
+    if ( stat( this->binaryPath().c_str(), &fstat ) == 0 ) {
+        struct stat newstat = fstat;
+        if ( S_IRUSR != ( fstat.st_mode & S_IRUSR ) ) newstat.st_mode |= S_IRUSR;
+        if ( S_IXUSR != ( fstat.st_mode & S_IXUSR ) ) newstat.st_mode |= S_IXUSR;
+        if ( fstat.st_mode != newstat.st_mode ) {
+            result = (0 == chmod( this->binaryPath().c_str(), newstat.st_mode ));
+        } else result = true;
+    } else {
+        ERROR("Couldn't stat : %s", this->binaryPath().c_str());
     }
     TRACE("exit : %i", result);
     return result;
 }
 
 bool Installer::upgrade() {
+    TRACE("enter");
+    bool result = false;
     if (this->copyFiles()) {
-        return this->copyDirs(false);
+        if (this->copyDirs(true)) {
+            result = this->setBinaryPermissions();
+        }
     }
-    return false;
+    TRACE("exit : %i", result);
+    return result;
 }
 
 bool Installer::copyFiles() {
@@ -59,8 +84,8 @@ bool Installer::copyFiles() {
         std::string destination = this->destinationRootPath + fileName;
         TRACE("copying file from : %s to %s", source.c_str(), destination.c_str());
         this->notify("file: " + fileName);
-        if (!copyFile(source, destination)) return false;
-        sync();
+        if (!copyFile(source, destination)) 
+            return false;
     }
     return true;
     TRACE("exit");
@@ -104,9 +129,7 @@ const bool Installer::removeLauncher() {
 
 const bool Installer::deployLauncher() {
 
-    if (fileExists(Installer::LAUNCHER_PATH))
-        unlink(Installer::LAUNCHER_PATH.c_str());
-
+    /*
     // write the file
     string opk = getOpkPath();
     if (opk.empty()) {
@@ -114,18 +137,35 @@ const bool Installer::deployLauncher() {
         return false;
     }
     TRACE("opk path : %s", opk.c_str());
+    */
+   std::string binary = this->destinationRootPath + BINARY_NAME;
+
+   if (!fileExists(binary)) {
+        TRACE("can't risk an install of launcher");
+        TRACE("binary not found at : %s", binary.c_str());
+        return false;
+   }
+
+    if (fileExists(Installer::LAUNCHER_PATH)) {
+        TRACE("removing pre-existing launcher");
+        unlink(Installer::LAUNCHER_PATH.c_str());
+    }
 
 	std::ofstream launcher(Installer::LAUNCHER_PATH.c_str());
 	if (launcher.is_open()) {
 		launcher << "#!/bin/sh\n\n";
         launcher << "# launcher script for " << APP_NAME << "\n\n";
-        launcher << "OPK_PATH=" << opk << "\n";
+    //        launcher << "OPK_PATH=" << opk << "\n";
+        launcher << "BINARY=" << binary << "\n";
         launcher << "MARKER=" << Installer::INSTALLER_MARKER_FILE << "\n";
         launcher << "LOG_FILE=/tmp/" << BINARY_NAME << ".run.log\n";
         launcher << "\n";
-        launcher << "if [ -f ${OPK_PATH} ] && [ ! -f ${MARKER} ]; then\n";
+    //        launcher << "if [ -f ${OPK_PATH} ] && [ ! -f ${MARKER} ]; then\n";
+        launcher << "if [ -f ${BINARY} ] && [ ! -f ${MARKER} ]; then\n";
         launcher << "\trm -f ${LOG_FILE}\n";
-        launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> ${LOG_FILE}\n";
+    //        launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> ${LOG_FILE}\n";
+    //    launcher << "\t${BINARY} 2>&1 >> ${LOG_FILE}\n";
+        launcher << "\t${BINARY}\n";
         launcher << "else\n";
         launcher << "\tif [ -f ${MARKER} ];then\n";
         launcher << "\t\trm -f ${MARKER}\n";
@@ -147,10 +187,14 @@ const bool Installer::deployLauncher() {
     return true;
 }
 
-const bool Installer::isDefaultLauncher(const string &opkPath) {
-    TRACE("checking if we're the launcher for opk : %s", opkPath.c_str());
-    if (opkPath.empty())
+const bool Installer::isDefaultLauncher(const string &path) {
+
+    if (path.empty())
         return false;
+
+    std::string binary = path + BINARY_NAME;
+    TRACE("checking if we're the launcher for : %s", binary.c_str());
+
     std::fstream file( Installer::LAUNCHER_PATH );
     if (!file) {
         TRACE("couldn't read launcher file : %s", Installer::LAUNCHER_PATH.c_str());
@@ -159,16 +203,16 @@ const bool Installer::isDefaultLauncher(const string &opkPath) {
     std::string line;
     bool result = false;
     bool appMatches = false;
-    bool opkMatches = false;
+    bool binaryMatches = false;
     while(getline(file, line)) {
         if (line.find(APP_NAME, 0) != std::string::npos) {
             TRACE("found out app in line : %s", line.c_str());
             appMatches = true;
-        } else if (line.find(opkPath, 0) != std::string::npos) {
-            TRACE("found out opk in line : %s", line.c_str());
-            opkMatches = true;
+        } else if (line.find(binary, 0) != std::string::npos) {
+            TRACE("found our binary in line : %s", line.c_str());
+            binaryMatches = true;
         }
-        if (opkMatches && appMatches) {
+        if (binaryMatches && appMatches) {
             result = true;
             break;
         }

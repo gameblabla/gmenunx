@@ -13,8 +13,8 @@ FontHelper::FontHelper(const string &fontName, int fontSize, RGBAColor textColor
 FontHelper::~FontHelper() {
 	TTF_CloseFont(this->font);
 	TTF_CloseFont(this->fontOutline);
-	this->font = nullptr;
-	this->fontOutline = nullptr;
+	this->font = NULL;
+	this->fontOutline = NULL;
 }
 
 void FontHelper::loadFont(const string &fontName, int fontSize) {

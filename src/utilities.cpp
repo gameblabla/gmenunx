@@ -260,6 +260,7 @@ bool copyFile(string from, string to) {
 	std::ifstream  src(from, std::ios::binary);
     std::ofstream  dst(to,   std::ios::binary);
     dst << src.rdbuf();
+	sync();
 	return fileExists(to);
 }
 
