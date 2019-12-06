@@ -312,10 +312,10 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	}
 
 	string cleanTitle = this->title;
-	string description = this->description;
+	string desc = this->description;
 	if (!supportingFile.empty()) {
 		cleanTitle = fileBaseName(base_name(supportingFile));
-		description = this->description + " - " + cleanTitle;
+		desc = this->description + " - " + cleanTitle;
 	}
 	string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
 
@@ -336,8 +336,9 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 	LinkApp * fave = new LinkApp(this->app, favePath.c_str(), true);
 	fave->setTitle(cleanTitle);
 	fave->setIcon(this->icon);
-	fave->setDescription(description);
-	fave->consoleapp = this->consoleapp;
+	fave->setDescription(desc);
+	fave->setManual(this->manual);
+	fave->setConsoleApp(this->consoleapp);
 
 	TRACE("saving a normal favourite to : %s", favePath.c_str());
 	TRACE("normal exec path : %s", this->exec.c_str());
