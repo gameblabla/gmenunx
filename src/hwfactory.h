@@ -22,6 +22,7 @@
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
+#include <math.h>
 
 #include "utilities.h"
 #include "constants.h"
@@ -69,9 +70,15 @@ class IHardware {
         */
         virtual int getBatteryLevel() = 0;
 
+        /*!
+        Gets or sets the devices volume level, scale 0 - 100
+        */
         virtual int getVolumeLevel() = 0;
         virtual int setVolumeLevel(int val) = 0;
 
+        /*!
+        Gets or sets the devices backlight level, scale 0 - 100
+        */
         virtual int getBacklightLevel() = 0;
         virtual int setBacklightLevel(int val) = 0;
 
@@ -416,7 +423,7 @@ class HwRg350 : IHardware {
                 vol = atoi(trim(result).c_str());
             }
             // scale 0 - 31, turn to percent
-            vol = vol * 100 / 31;
+            vol = ceil(vol * 100 / 31);
             this->volumeLevel_ = vol;
             TRACE("exit : %i", this->volumeLevel_);
             return this->volumeLevel_;
@@ -443,10 +450,10 @@ class HwRg350 : IHardware {
         int getBacklightLevel() { 
             TRACE("enter");
             int level = 0;
-            //force  scale 0 - 5
+            //force  scale 0 - 100
             string result = fileReader(BACKLIGHT_PATH);
             if (result.length() > 0) {
-                level = atoi(trim(result).c_str()) / 51;
+                level = ceil(atoi(trim(result).c_str()) / 2.55);
             }
             this->backlightLevel_ = level;
             TRACE("exit : %i", this->backlightLevel_);

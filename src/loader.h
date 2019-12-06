@@ -32,6 +32,8 @@ class Loader {
         Loader(Esoteric *app);
         ~Loader();
         void run();
+        static bool isFirstRun();
+        static void setMarker();
 };
 
 #endif

@@ -88,46 +88,6 @@ static void quit_all(int err) {
 	exit(err);
 }
 
-Esoteric::~Esoteric() {
-	TRACE("enter\n\n");
-	quit();
-	delete ui;
-	delete menu;
-	delete screen;
-	delete font;
-	delete fontTitle;
-	delete fontSectionTitle;
-	delete hw;
-	delete skin;
-	delete sc;
-	delete config;
-	#ifdef HAVE_LIBOPK
-	delete cache;
-	#endif
-	TRACE("exit\n\n");
-}
-
-void Esoteric::releaseScreen() {
-	TRACE("calling SDL_Quit");
-	SDL_Quit();
-}
-
-void Esoteric::quit() {
-	TRACE("enter");
-	if (!this->sc->empty()) {
-		TRACE("SURFACE EXISTED");
-		writeConfig();
-		this->hw->ledOff();
-		fflush(NULL);
-		TRACE("clearing the surface collection");
-		this->sc->clear();
-		TRACE("freeing the screen");
-		this->screen->free();
-		releaseScreen();
-	}
-	INFO("quit - exit");
-}
-
 int main(int argc, char * argv[]) {
 	INFO("%s starting: Build Date - %s", APP_NAME.c_str(), __BUILDTIME__);
 
@@ -141,6 +101,7 @@ int main(int argc, char * argv[]) {
 	return 0;
 }
 
+/*
 bool exitMainThread = false;
 void* mainThread(void* param) {
 	Esoteric *menu = (Esoteric*)param;
@@ -149,25 +110,8 @@ void* mainThread(void* param) {
 	}
 	return NULL;
 }
+*/
 
-void Esoteric::updateAppCache(std::function<void(string)> callback) {
-	TRACE("enter");
-	#ifdef HAVE_LIBOPK
-
-	string externalPath = this->config->externalAppPath();
-	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
-	string rootDir = this->getWriteablePath();
-	TRACE("rootDir : %s", rootDir.c_str());
-	if (nullptr == this->cache) {
-		this->cache = new OpkCache(opkDirs, rootDir);
-	}
-	assert(this->cache);
-	this->cache->update(callback);
-	sync();
-
-	#endif
-	TRACE("exit");
-}
 
 Esoteric::Esoteric() : input(screenManager) {
 
@@ -213,8 +157,11 @@ Esoteric::Esoteric() : input(screenManager) {
 		this->tr.setLang(this->config->lang());
 	}
 
-	//TRACE("backlight");
-	//this->hw->setBacklightLevel(config->backlightLevel());
+	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
+		TRACE("backlight and volume");
+		this->hw->setBacklightLevel(config->backlightLevel());
+		this->hw->setVolumeLevel(this->config->globalVolume());
+	}
 
 	//Screen
 	TRACE("setEnv");
@@ -270,6 +217,46 @@ Esoteric::Esoteric() : input(screenManager) {
 
 }
 
+Esoteric::~Esoteric() {
+	TRACE("enter\n\n");
+	quit();
+	delete ui;
+	delete menu;
+	delete screen;
+	delete font;
+	delete fontTitle;
+	delete fontSectionTitle;
+	delete hw;
+	delete skin;
+	delete sc;
+	delete config;
+	#ifdef HAVE_LIBOPK
+	delete cache;
+	#endif
+	TRACE("exit\n\n");
+}
+
+void Esoteric::releaseScreen() {
+	TRACE("calling SDL_Quit");
+	SDL_Quit();
+}
+
+void Esoteric::quit() {
+	TRACE("enter");
+	if (!this->sc->empty()) {
+		TRACE("SURFACE EXISTED");
+		writeConfig();
+		this->hw->ledOff();
+		fflush(NULL);
+		TRACE("clearing the surface collection");
+		this->sc->clear();
+		TRACE("freeing the screen");
+		this->screen->free();
+		releaseScreen();
+	}
+	INFO("quit - exit");
+}
+
 void Esoteric::main() {
 	TRACE("enter");
 
@@ -300,18 +287,24 @@ void Esoteric::main() {
 		this, 
 		[&](std::string message){ return pbLoading->updateDetail(message); });
 
-	if (this->skin->showLoader) {
+	if (this->skin->showLoader && Loader::isFirstRun()) {
 		Loader loader(this);
 		loader.run();
 	}
 	pbLoading->exec();
 
+	Loader::setMarker();
+
 	pbLoading->updateDetail("Initialising hardware");
-	//this->hw->setVolumeLevel(this->config->globalVolume());
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
 
 	setWallpaper(this->skin->wallpaper);
+	initMenu();
+	readTmp();
+
+	TRACE("new renderer");
+	Renderer *renderer = new Renderer(this);
 
 	if (thread_cache != nullptr) {
 		// we need to re-join before building the menu
@@ -322,21 +315,15 @@ void Esoteric::main() {
 
 	TRACE("screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
-
-	initMenu();
-	readTmp();
-
+	/*
 	TRACE("pthread");
 	pthread_t thread_id;
 	if (pthread_create(&thread_id, NULL, mainThread, this)) {
 		ERROR("%s, failed to create main thread\n", __func__);
 	}
-
-	TRACE("new renderer");
-	Renderer *renderer = new Renderer(this);
-
-	pbLoading->finished();
-	delete pbLoading;
+	*/
+	pbLoading->finished(1000);
+	//delete pbLoading;
 
 	input.setWakeUpInterval(1000);
 	this->hw->ledOff();
@@ -434,10 +421,30 @@ void Esoteric::main() {
 	}
 
 	delete renderer;
-
+	delete pbLoading;
+	/*
 	exitMainThread = true;
 	pthread_join(thread_id, NULL);
+	*/
+	TRACE("exit");
+}
 
+void Esoteric::updateAppCache(std::function<void(string)> callback) {
+	TRACE("enter");
+	#ifdef HAVE_LIBOPK
+
+	string externalPath = this->config->externalAppPath();
+	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
+	string rootDir = this->getWriteablePath();
+	TRACE("rootDir : %s", rootDir.c_str());
+	if (nullptr == this->cache) {
+		this->cache = new OpkCache(opkDirs, rootDir);
+	}
+	assert(this->cache);
+	this->cache->update(callback);
+	sync();
+
+	#endif
 	TRACE("exit");
 }
 
@@ -595,11 +602,15 @@ void Esoteric::initMenu() {
 
 	TRACE("add built in action links");
 	int i = menu->getSectionIndex("applications");
+
+	/*
 	menu->addActionLink(i, 
 						tr["Battery Logger"], 
 						MakeDelegate(this, &Esoteric::batteryLogger), 
 						tr["Log battery power to battery.csv"], 
 						"skin:icons/ebook.png");
+	*/
+
 	menu->addActionLink(i, 
 						tr["Explorer"], 
 						MakeDelegate(this, &Esoteric::explorer), 
@@ -614,13 +625,20 @@ void Esoteric::initMenu() {
 						tr["Info about system"], 
 						"skin:icons/about.png");
 
+	menu->addActionLink(
+						i, 
+						tr["Device"], 
+						MakeDelegate(this, &Esoteric::deviceMenu), 
+						tr["Tweak things on this device"], 
+						"skin:icons/device.png");
+
 	if (!isDefaultLauncher) {
 		menu->addActionLink(
 							i, 
 							tr["Install me"], 
 							MakeDelegate(this, &Esoteric::doInstall), 
 							tr["Set " + APP_NAME + " as your launcher"], 
-							"skin:icons/device.png");
+							"skin:icons/install.png");
 	}
 
 	if (fileExists(getWriteablePath() + "log.txt"))
@@ -667,13 +685,14 @@ void Esoteric::initMenu() {
 						MakeDelegate(this, &Esoteric::umountSdDialog), 
 						tr["Umount external SD"], 
 						"skin:icons/eject.png");
+
 	if (isDefaultLauncher) {
 		menu->addActionLink(
 							i, 
 							tr["UnInstall me"], 
 							MakeDelegate(this, &Esoteric::doUnInstall), 
 							tr["Remove " + APP_NAME + " as your launcher"], 
-							"skin:icons/device.png");
+							"skin:icons/install.png");
 	}
 
 
@@ -683,7 +702,7 @@ void Esoteric::initMenu() {
 							tr["Upgrade me"], 
 							MakeDelegate(this, &Esoteric::doUpgrade), 
 							tr["Upgrade " + APP_NAME], 
-							"skin:icons/device.png");
+							"skin:icons/upgrade.png");
 	}
 
 	TRACE("re-order now we've added these guys");
@@ -711,14 +730,203 @@ void Esoteric::initMenu() {
 	TRACE("exit");
 }
 
+void Esoteric::deviceMenu() {
+	TRACE("enter");
+	bool save = false;
+	bool changed = false;
+	int selected = 0;
+
+	int backlightLevel = this->hw->getBacklightLevel();
+	int volumeLevel = this->hw->getVolumeLevel();
+	int backlightTimeout = config->backlightTimeout();
+	std::string performanceMode = this->hw->getPerformanceMode();
+	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
+
+	do {
+
+		SettingsDialog sd(this, ts, tr["Device"], "skin:icons/skin.png");
+		sd.selected = selected;
+		sd.allowCancel = false;
+
+		sd.addSetting(new MenuSettingInt(
+			this, 
+			tr["Backlight level"], 
+			tr["Adjust the brightness of the screen"], 
+			&backlightLevel, 70, 1, 100));
+
+		sd.addSetting(new MenuSettingInt(
+			this, 
+			tr["Screen timeout"], 
+			tr["Set screen's backlight timeout in seconds"], 
+			&backlightTimeout, 
+			60, 0, 120));
+
+		sd.addSetting(new MenuSettingInt(
+			this, 
+			tr["Volume level"], 
+			tr["Adjust your volume level"], 
+			&volumeLevel, 70, 1, 100));
+
+		if (performanceModes.size() > 1) {
+			sd.addSetting(new MenuSettingMultiString(
+				this, 
+				tr["Performance mode"], 
+				tr["Set the performance mode"], 
+				&performanceMode, 
+				&performanceModes));
+		}
+
+		sd.exec();
+		if (backlightTimeout != this->config->backlightTimeout()) {
+			this->config->backlightTimeout(backlightTimeout);
+			this->screenManager.setScreenTimeout(backlightTimeout);
+			changed = true;
+		}
+		if (performanceMode != this->hw->getPerformanceMode()) {
+			this->config->performance(performanceMode);
+			this->hw->setPerformanceMode(performanceMode);
+			changed = true;
+		}
+		if (volumeLevel != this->hw->getVolumeLevel()) {
+			this->config->globalVolume(volumeLevel);
+			this->hw->setVolumeLevel(volumeLevel);
+			changed = true;
+		}
+		if (backlightLevel != this->hw->getBacklightLevel()) {
+			this->config->backlightLevel(backlightLevel);
+			this->hw->setBacklightLevel(backlightLevel);
+			changed = true;
+		}
+		selected = sd.selected;
+		save = sd.save;
+
+	} while (!save);
+	
+	if (changed) {
+		this->writeConfig();
+	}
+	TRACE("exit");
+}
+
+void Esoteric::skinMenu() {
+	TRACE("enter");
+	bool save = false;
+	int selected = 0;
+	int prevSkinBackdrops = skin->skinBackdrops;
+
+	vector<string> wpLabel;
+	wpLabel.push_back(">>");
+	string tmp = ">>";
+
+	vector<string> sbStr;
+	sbStr.push_back("OFF");
+	sbStr.push_back("Left");
+	sbStr.push_back("Bottom");
+	sbStr.push_back("Right");
+	sbStr.push_back("Top");
+	string sectionBar = sbStr[skin->sectionBar];
+	
+	vector<string> linkDisplayModesList;
+	linkDisplayModesList.push_back("Icon & text");
+	linkDisplayModesList.push_back("Icon");
+	linkDisplayModesList.push_back("Text");
+    string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
+
+	vector<string> wallpapers = skin->getWallpapers();
+	std::vector<string>::iterator it;
+	it = wallpapers.begin();
+	wallpapers.insert(it, "None");
+
+	bool restartRequired = false;
+	bool currentIconGray = skin->iconsToGrayscale;
+	bool currentImageGray = skin->imagesToGrayscale;
+
+	do {
+		string wpPrev = base_name(skin->wallpaper);
+		string wpCurrent = wpPrev;
+
+		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
+		sd.selected = selected;
+		sd.allowCancel = false;
+
+		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::changeWallpaper)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::skinColors)));
+		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
+		
+		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
+		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
+
+		sd.addSetting(new MenuSettingInt(this, tr["Section title bar size"], tr["Size of section title bar"], &skin->sectionTitleBarSize, 40, 18, config->resolutionX()));
+		sd.addSetting(new MenuSettingInt(this, tr["Section info bar size"], tr["Size of section info bar"], &skin->sectionInfoBarSize, 16, 1, config->resolutionX()));
+		sd.addSetting(new MenuSettingBool(this, tr["Section info bar visible"], tr["Show the section info bar in the launcher view"], &skin->sectionInfoBarVisible));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
+		
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->menuTitleBarHeight, 40, 18, config->resolutionY()));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->menuInfoBarHeight, 16, 1, config->resolutionY()));
+
+		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
+		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
+		sd.addSetting(new MenuSettingBool(this, tr["Show loader"], tr["Show loader animation, if exists"], &skin->showLoader));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
+
+		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
+		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 16));
+		
+		sd.addSetting(new MenuSettingBool(this, tr["Monochrome icons"], tr["Force all icons to monochrome"], &skin->iconsToGrayscale));
+		sd.addSetting(new MenuSettingBool(this, tr["Monochrome images"], tr["Force all images to monochrome"], &skin->imagesToGrayscale));
+		
+		sd.exec();
+
+		// if wallpaper has changed, get full path and add it to the sc
+		// unless we have chosen 'None'
+		if (wpCurrent != wpPrev) {
+			if (wpCurrent != "None") {
+				if (this->sc->addImage(getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
+					skin->wallpaper = getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
+			} else skin->wallpaper = "";
+			setWallpaper(skin->wallpaper);
+		}
+
+		selected = sd.selected;
+		save = sd.save;
+
+	} while (!save);
+
+	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
+	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
+	else if (sectionBar == "Top") skin->sectionBar = Skin::SB_TOP;
+	else if (sectionBar == "Bottom") skin->sectionBar = Skin::SB_BOTTOM;
+	else skin->sectionBar = Skin::SB_LEFT;
+
+	if (linkDisplayModeCurrent == "Icon & text") {
+		skin->linkDisplayMode = Skin::ICON_AND_TEXT;
+	} else if (linkDisplayModeCurrent == "Icon") {
+		skin->linkDisplayMode = Skin::ICON;
+	} else skin->linkDisplayMode = Skin::TEXT;
+
+	TRACE("writing config out");
+	writeSkinConfig();
+
+	TRACE("checking exit mode");
+	if (currentIconGray != skin->iconsToGrayscale) {
+		restartRequired = true;
+	} else if (currentImageGray != skin->imagesToGrayscale) {
+		restartRequired = true;
+	} else if (prevSkinBackdrops != skin->skinBackdrops) {
+		restartRequired = true;
+	}
+	if (restartRequired) {
+		TRACE("restarting because backdrops or gray scale changed");
+		restartDialog(true);
+	} else {
+		initMenu();
+	}
+	TRACE("exit");
+}
+
 void Esoteric::settings() {
 	TRACE("enter");
-
-	int curGlobalVolume = this->hw->getVolumeLevel();
-	int curGlobalBrightness = this->hw->getBacklightLevel();
-	int backlightLevel = curGlobalBrightness;
-	int globalVolume = curGlobalVolume;
-
 	bool unhideSections = false;
 	string prevSkin = config->skin();
 	vector<string> skinList = Skin::getSkins(getReadablePath());
@@ -730,14 +938,13 @@ void Esoteric::settings() {
 	// local vals
 	string lang = tr.lang();
 	string skin = config->skin();
-	string batteryType = config->batteryType();
-	string performanceMode = this->hw->getPerformanceMode();
+	//string batteryType = config->batteryType();
 	string appsPath = config->externalAppPath();
 
 	int saveSelection = config->saveSelection();
+	int setHwOnBoot = config->setHwLevelsOnBoot();
 	int outputLogs = config->outputLogs();
-	int backlightTimeout = config->backlightTimeout();
-	int powerTimeout = config->powerTimeout();
+	//int powerTimeout = config->powerTimeout();
 
 	TRACE("found %i translations", fl_tr.fileCount());
 	if (lang.empty()) {
@@ -749,15 +956,16 @@ void Esoteric::settings() {
 	encodings.push_back("NTSC");
 	encodings.push_back("PAL");
 
+	/*
 	vector<string> batteryTypes;
 	batteryTypes.push_back("BL-5B");
 	batteryTypes.push_back("Linear");
+	*/
 
 	vector<string> opFactory;
 	opFactory.push_back(">>");
 	string tmp = ">>";
 
-	vector<string> performanceModes = this->hw->getPerformanceModes();
 	string currentDatetime = this->hw->getSystemdateTime();
 	string prevDateTime = currentDatetime;
 
@@ -776,12 +984,14 @@ void Esoteric::settings() {
 		tr["Set system's date & time"], 
 		&currentDatetime));
 	
+	/*
 	sd.addSetting(new MenuSettingMultiString(
 		this, 
 		tr["Battery profile"], 
 		tr["Set the battery discharge profile"], 
 		&batteryType, 
 		&batteryTypes));
+	*/
 
 	sd.addSetting(new MenuSettingMultiString(
 		this, 
@@ -789,15 +999,6 @@ void Esoteric::settings() {
 		tr["Set the skin used by " + APP_NAME], 
 		&skin, 
 		&skinList));
-
-	if (performanceModes.size() > 1) {
-		sd.addSetting(new MenuSettingMultiString(
-			this, 
-			tr["Performance mode"], 
-			tr["Set the performance mode"], 
-			&performanceMode, 
-			&performanceModes));
-	}
 
 	sd.addSetting(new MenuSettingBool(
 		this, 
@@ -822,21 +1023,26 @@ void Esoteric::settings() {
 		"Apps path", 
 		"skin:icons/explorer.png"));
 
-	sd.addSetting(new MenuSettingBool(this, tr["Output logs"], tr["Logs the link's output to read with Log Viewer"], &outputLogs));
-	sd.addSetting(new MenuSettingInt(this,tr["Screen timeout"], tr["Set screen's backlight timeout in seconds"], &backlightTimeout, 60, 0, 120));
-	sd.addSetting(new MenuSettingInt(this,tr["Power timeout"], tr["Minutes to poweroff system if inactive"], &powerTimeout, 10, 1, 300));
-	
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Output logs"], 
+		tr["Logs the link's output to read with Log Viewer"], 
+		&outputLogs));
+
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Set HW levels on boot"], 
+		tr["Set hardware levels on first boot"], 
+		&setHwOnBoot));
+
+	/*
 	sd.addSetting(new MenuSettingInt(
 		this, 
-		tr["Backlight"], 
-		tr["Set current LCD backlight"], 
-		&backlightLevel, 70, 1, 100));
-	
-	sd.addSetting(new MenuSettingInt(
-		this, 
-		tr["Audio volume"], 
-		tr["Set the current audio volume"], 
-		&globalVolume, 60, 0, 100));
+		tr["Power timeout"], 
+		tr["Minutes to poweroff system if inactive"], 
+		&powerTimeout, 
+		10, 1, 300));
+	*/
 
 	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
@@ -859,27 +1065,13 @@ void Esoteric::settings() {
 			config->externalAppPath(appsPath);
 			refreshNeeded = true;
 		}
-		if (performanceMode != this->hw->getPerformanceMode()) {
-			config->performance(performanceMode);
-			this->hw->setPerformanceMode(performanceMode);
-		}
+
 		config->skin(skin);
-		config->batteryType(batteryType);
+		//config->batteryType(batteryType);
 		config->saveSelection(saveSelection);
 		config->outputLogs(outputLogs);
-		config->backlightTimeout(backlightTimeout);
-		config->powerTimeout(powerTimeout);
-
-		config->backlightLevel(backlightLevel);
-		config->globalVolume(globalVolume);
-
-		TRACE("updating the settings");
-		if (curGlobalVolume != config->globalVolume()) {
-			curGlobalVolume = this->hw->setVolumeLevel(config->globalVolume());
-		}
-		if (curGlobalBrightness != config->backlightLevel()) {
-			curGlobalBrightness = this->hw->setBacklightLevel(config->backlightLevel());
-		}
+		//config->powerTimeout(powerTimeout);
+		config->setHwLevelsOnBoot(setHwOnBoot);
 
 		bool restartNeeded = prevSkin != config->skin();
 
@@ -1063,123 +1255,6 @@ void Esoteric::writeSkinConfig() {
 
 uint32_t Esoteric::onChangeSkin() {
 	return 1;
-}
-
-void Esoteric::skinMenu() {
-	TRACE("enter");
-	bool save = false;
-	int selected = 0;
-	int prevSkinBackdrops = skin->skinBackdrops;
-
-	vector<string> wpLabel;
-	wpLabel.push_back(">>");
-	string tmp = ">>";
-
-	vector<string> sbStr;
-	sbStr.push_back("OFF");
-	sbStr.push_back("Left");
-	sbStr.push_back("Bottom");
-	sbStr.push_back("Right");
-	sbStr.push_back("Top");
-	string sectionBar = sbStr[skin->sectionBar];
-	
-	vector<string> linkDisplayModesList;
-	linkDisplayModesList.push_back("Icon & text");
-	linkDisplayModesList.push_back("Icon");
-	linkDisplayModesList.push_back("Text");
-    string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
-
-	vector<string> wallpapers = skin->getWallpapers();
-	std::vector<string>::iterator it;
-	it = wallpapers.begin();
-	wallpapers.insert(it, "None");
-
-	bool restartRequired = false;
-	bool currentIconGray = skin->iconsToGrayscale;
-	bool currentImageGray = skin->imagesToGrayscale;
-
-	do {
-		string wpPrev = base_name(skin->wallpaper);
-		string wpCurrent = wpPrev;
-
-		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
-		sd.selected = selected;
-		sd.allowCancel = false;
-
-		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::changeWallpaper)));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::skinColors)));
-		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
-		
-		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
-		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
-		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
-
-		sd.addSetting(new MenuSettingInt(this, tr["Section title bar size"], tr["Size of section title bar"], &skin->sectionTitleBarSize, 40, 18, config->resolutionX()));
-		sd.addSetting(new MenuSettingInt(this, tr["Section info bar size"], tr["Size of section info bar"], &skin->sectionInfoBarSize, 16, 1, config->resolutionX()));
-		sd.addSetting(new MenuSettingBool(this, tr["Section info bar visible"], tr["Show the section info bar in the launcher view"], &skin->sectionInfoBarVisible));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
-		
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->menuTitleBarHeight, 40, 18, config->resolutionY()));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->menuInfoBarHeight, 16, 1, config->resolutionY()));
-
-		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
-		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
-		sd.addSetting(new MenuSettingBool(this, tr["Show loader"], tr["Show loader animation, if exists"], &skin->showLoader));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
-
-		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
-		sd.addSetting(new MenuSettingInt(this, tr["Menu rows"], tr["Number of rows of links in main menu"], &skin->numLinkRows, 6, 1, 16));
-		
-		sd.addSetting(new MenuSettingBool(this, tr["Monochrome icons"], tr["Force all icons to monochrome"], &skin->iconsToGrayscale));
-		sd.addSetting(new MenuSettingBool(this, tr["Monochrome images"], tr["Force all images to monochrome"], &skin->imagesToGrayscale));
-		
-		sd.exec();
-
-		// if wallpaper has changed, get full path and add it to the sc
-		// unless we have chosen 'None'
-		if (wpCurrent != wpPrev) {
-			if (wpCurrent != "None") {
-				if (this->sc->addImage(getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent) != NULL)
-					skin->wallpaper = getReadablePath() + "skins/" + skin->name + "/wallpapers/" + wpCurrent;
-			} else skin->wallpaper = "";
-			setWallpaper(skin->wallpaper);
-		}
-
-		selected = sd.selected;
-		save = sd.save;
-
-	} while (!save);
-
-	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
-	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
-	else if (sectionBar == "Top") skin->sectionBar = Skin::SB_TOP;
-	else if (sectionBar == "Bottom") skin->sectionBar = Skin::SB_BOTTOM;
-	else skin->sectionBar = Skin::SB_LEFT;
-
-	if (linkDisplayModeCurrent == "Icon & text") {
-		skin->linkDisplayMode = Skin::ICON_AND_TEXT;
-	} else if (linkDisplayModeCurrent == "Icon") {
-		skin->linkDisplayMode = Skin::ICON;
-	} else skin->linkDisplayMode = Skin::TEXT;
-
-	TRACE("writing config out");
-	writeSkinConfig();
-
-	TRACE("checking exit mode");
-	if (currentIconGray != skin->iconsToGrayscale) {
-		restartRequired = true;
-	} else if (currentImageGray != skin->imagesToGrayscale) {
-		restartRequired = true;
-	} else if (prevSkinBackdrops != skin->skinBackdrops) {
-		restartRequired = true;
-	}
-	if (restartRequired) {
-		TRACE("restarting because backdrops or gray scale changed");
-		restartDialog(true);
-	} else {
-		initMenu();
-	}
-	TRACE("exit");
 }
 
 void Esoteric::skinColors() {

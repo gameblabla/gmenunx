@@ -111,6 +111,10 @@ private:
 	void doUpgrade();
 	bool doInitialSetup();
 
+	void deviceMenu();
+	void skinMenu();
+	uint32_t onChangeSkin();
+
 public:
 	Esoteric();
 	~Esoteric();
@@ -142,9 +146,8 @@ public:
 	void resetSettings();
 	void cpuSettings();
 
-	void skinMenu();
+
 	void skinColors();
-	uint32_t onChangeSkin();
 	void initLayout();
 	void initMenu();
 

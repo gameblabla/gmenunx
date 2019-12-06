@@ -199,6 +199,13 @@ public:
             this->isDirty = true;
         }
     }
+    int setHwLevelsOnBoot() const { return this->setHwLevelsOnBoot_; }
+    void setHwLevelsOnBoot(int val) {
+        if (val != this->setHwLevelsOnBoot_) {
+            this->setHwLevelsOnBoot_ = val;
+            this->isDirty = true;
+        }
+    }
     int version() const { return this->version_; }
     void version(int val) {
         if (val != this->version_) {
@@ -251,6 +258,7 @@ private:
     int saveSelection_; //=1
     int powerTimeout_; //=10
     int outputLogs_; //=1
+    int setHwLevelsOnBoot_; // = 0
     int version_; //=1
 
     void reset();

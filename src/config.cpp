@@ -72,6 +72,8 @@ string Config::toString() {
     vec.push_back(string_format("section=%i", this->section()));
     vec.push_back(string_format("link=%i", this->link()));
 
+    vec.push_back(string_format("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
+
     vec.push_back(string_format("version=%i", this->version()));
     
     std::string s;
@@ -149,6 +151,7 @@ void Config::reset() {
     this->section_ = 1;
     this->link_ = 1;
 
+    this->setHwLevelsOnBoot_ = 0;
     this->version_ = CONFIG_CURRENT_VERSION;
 
     TRACE("exit");
@@ -168,6 +171,7 @@ void Config::constrain() {
 	evalIntConf( &this->backlightLevel_, 70, 1, 100);
 	evalIntConf( &this->minBattery_, 0, 0, 5);
 	evalIntConf( &this->maxBattery_, 5, 0, 5);
+    evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
 	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
 
     if (!this->saveSelection()) {
@@ -280,6 +284,8 @@ bool Config::fromFile() {
                             this->section(atoi(value.c_str()));
                         } else if (name == "link") {
                             this->link(atoi(value.c_str()));
+                        } else if (name == "sethwlevelsonboot") {
+                            this->setHwLevelsOnBoot(atoi(value.c_str()));
                         } else if (name == "version") {
                             this->version(atoi(value.c_str()));
                         } else {

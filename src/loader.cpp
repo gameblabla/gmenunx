@@ -23,6 +23,18 @@ Loader::~Loader() {
     TRACE("~Loader");
 }
 
+bool Loader::isFirstRun() {
+    return !fileExists(LOADER_MARKER_FILE);
+}
+
+void Loader::setMarker() {
+    TRACE("no marker, so setting file : %s", LOADER_MARKER_FILE.c_str());
+    fstream fs;
+    fs.open(LOADER_MARKER_FILE, ios::out);
+    fs.close();
+    sync();
+}
+
 bool Loader::fromFile() {
     string loaderPath = this->app->skin->currentSkinPath() + "/" + LOADER_FOLDER;
     string confFile = loaderPath + "/" + LOADER_CONFIG_FILE;
@@ -102,15 +114,10 @@ bool Loader::fromFile() {
 
 void Loader::run() {
     TRACE("enter, looking for marker : %s", LOADER_MARKER_FILE.c_str());
-    if (!fileExists(LOADER_MARKER_FILE)) {
-        TRACE("no marker file : %s", LOADER_MARKER_FILE.c_str());
+    if (Loader::isFirstRun()) {
         if (this->fromFile()) {
             this->showLoader();
         }
-        TRACE("setting marker : %s", LOADER_MARKER_FILE.c_str());
-        fstream fs;
-        fs.open(LOADER_MARKER_FILE, ios::out);
-        fs.close();
     } else {
         TRACE("not first boot, loader marker exists : %s", LOADER_MARKER_FILE.c_str());
     }
