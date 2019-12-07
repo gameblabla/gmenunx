@@ -124,5 +124,16 @@ void ProgressBar::finished(int millis) {
 }
 
 void ProgressBar::updateDetail(std::string text) {
+    TRACE("enter : %s", text.c_str());
+    int textWidth = this->app->font->getTextWidth(text);
+    if (textWidth > this->titleWidth && this->titleWidth > 3) {
+        while (textWidth > this->titleWidth) {
+            TRACE("%s : %i > %i", text.c_str(), textWidth, this->titleWidth);
+            text = text.substr(0, text.length() -2);
+            textWidth = this->app->font->getTextWidth(text + "...");
+        }
+        text += "...";
+    }
     this->detail_ = text;
+    TRACE("exit : %s", text.c_str());
 }

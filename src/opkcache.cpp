@@ -235,7 +235,7 @@ void OpkCache::scanSection(const std::string & sectionName, std::string path) {
             DesktopFile file(filepath);
             if (OPK_EXEC == file.exec() && !file.provider().empty()) {
                 TRACE("it's an opk desktop file");
-                this->notify("loading: " + file.title());
+                this->notify("Loading: " + file.title());
 
                 this->addToCache(sectionName, file);
 
@@ -318,6 +318,8 @@ bool OpkCache::createMissingOpkDesktopFiles() {
             TRACE("skipping non-existing directory : %s", dir.c_str());
             continue;
         }
+
+        this->notify("Adding missing files: " + dir);
         // find the opk files
 
         DIR *dirp;
@@ -440,7 +442,7 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
     TRACE("we have got %zu cache items to remove", actions.size());
     std::list<std::pair<std::string, DesktopFile>>::iterator actionIt;
     for (actionIt = actions.begin(); actionIt != actions.end(); actionIt++) {
-        this->notify("removing: " + actionIt->second.title());
+        this->notify("Removing: " + actionIt->second.title());
         this->removeFromCache(actionIt->first, actionIt->second);
         TRACE("removed from cache : %s", actionIt->second.title().c_str());
         TRACE("deleting desktop file");
@@ -507,7 +509,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
         if (!exists) {
             TRACE("opk doesn't exist in cache");
 
-            this->notify("adding: " + theOpk.name());
+            this->notify("Adding: " + theOpk.name());
 
             // now create desktop file paths 
             std::string sectionPath = this->sectionDir_ + "/" + sectionName;
@@ -629,7 +631,7 @@ void OpkCache::handleRemovedOpk(const std::string path) {
     TRACE("we have got %zu cache items to remove", actions.size());
     std::list<std::pair<std::string, DesktopFile>>::iterator actionIt;
     for (actionIt = actions.begin(); actionIt != actions.end(); actionIt++) {
-        this->notify("removing: " + actionIt->second.title());
+        this->notify("Removing: " + actionIt->second.title());
         this->removeFromCache(actionIt->first, actionIt->second);
         TRACE("removed from cache : %s", actionIt->second.title().c_str());
         TRACE("deleting desktop file");
