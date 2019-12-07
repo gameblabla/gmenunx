@@ -47,9 +47,6 @@ int Monitor::run() {
 
 		unsigned int avail;
 		ioctl(this->fd, FIONREAD, &avail);
-		if (0 == avail)
-			continue;
-
 		TRACE("inotify has %i bytes to read", avail);
 		char buf[avail];
 		read(fd, buf, avail);
