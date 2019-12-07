@@ -1273,13 +1273,13 @@ void Esoteric::about() {
 	int n = sprintf (buffer, "%i %%", battPercent);
 	string batt(buffer);
 
-	string opkPath = getOpkPath();
-	if (opkPath.length() == 0) {
-		opkPath = "Not found";
+	string appPath = getOpkPath();
+	if (appPath.length() == 0) {
+		appPath = this->getExePath() + BINARY_NAME;
 	}
 	temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
-	temp += "Opk: " + opkPath + "\n";
+	temp += "App: " + appPath + "\n";
 	temp += "Config: " + this->config->configFile() + "\n";
 	temp += "Skin: " + this->skin->name + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
@@ -1343,6 +1343,7 @@ void Esoteric::viewLog() {
 	}
 }
 
+/*
 void Esoteric::batteryLogger() {
 	this->hw->ledOn();
 	BatteryLoggerDialog bl(
@@ -1353,6 +1354,7 @@ void Esoteric::batteryLogger() {
 	bl.exec();
 	this->hw->ledOff();
 }
+*/
 
 void Esoteric::linkScanner() {
 	LinkScannerDialog ls(
