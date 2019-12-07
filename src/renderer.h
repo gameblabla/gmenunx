@@ -10,7 +10,7 @@ class Renderer {
 private:
 
     SDL_TimerID timerId_;
-    int interval_ = 2000;
+    int interval_;
     bool finished_;
     bool locked_;
     Esoteric *app;

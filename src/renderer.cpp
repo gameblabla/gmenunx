@@ -6,13 +6,6 @@
 #include "debug.h"
 #include "utilities.h"
 
-uint8_t Renderer::getVolumeMode(uint8_t vol) {
-	TRACE("getVolumeMode - enter : %i", vol);
-	if (!vol) return VOLUME_MODE_MUTE;
-	else if (vol > 0 && vol < 20) return VOLUME_MODE_PHONES;
-	return VOLUME_MODE_NORMAL;
-}
-
 Renderer::Renderer(Esoteric *app) : 
     iconBrightness {
 		app->sc->skinRes("imgs/brightness/0.png"),
@@ -52,6 +45,7 @@ Renderer::Renderer(Esoteric *app) :
 
 	helpers.clear();
 
+	this->interval_ = 2000;
 	this->timerId_ = SDL_AddTimer(this->interval_, callback, this);
 	this->locked_ = false;
 
@@ -72,16 +66,6 @@ void Renderer::quit() {
 		this->interval_ = 0;
 		this->timerId_ = 0;
     }
-}
-
-uint32_t Renderer::callback(uint32_t interval, void * data) {
-	TRACE("enter");
-	Renderer * me = static_cast<Renderer*>(data);
-	if (me->finished_) {
-		return (0);
-	}
-	me->pollHW();
-	return interval;
 }
 
 void Renderer::render() {
@@ -513,10 +497,11 @@ void Renderer::render() {
 		helpers.clear();
 
 		if (app->skin->showClock) {
+			string time = rtc.getClockTime(true);
 			if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
 				if (app->skin->showSectionIcons) {
 					// grab the new x offset and write the clock
-					string time = rtc.getClockTime(true);
+					
 					app->screen->write(
 						app->fontSectionTitle, 
 						time, 
@@ -528,7 +513,7 @@ void Renderer::render() {
 				// grab the new y offset and write the clock
 				app->screen->write(
 					app->fontSectionTitle, 
-					rtc.getClockTime(true), 
+					time, 
 					app->sectionBarRect.x + 4, 
 					*(yPosPtr),
 					HAlignLeft | VAlignTop);
@@ -571,6 +556,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 
 void Renderer::pollHW() {
 	// if we're going to draw helpers, get their latest value
+	TRACE("enter");
 	TRACE("section bar test");
 	if (this->app->skin->sectionBar) {
 		TRACE("section bar exists in skin settings");
@@ -584,11 +570,30 @@ void Renderer::pollHW() {
 
 		int currentVolume = this->app->hw->getVolumeLevel();
 		this->currentVolumeMode = this->getVolumeMode(currentVolume);
-        this->rtc.refresh();
+
+		if (this->app->skin->showClock) {
+			this->rtc.refresh();
+		}
+        
 		TRACE("helper icon status updated");
     }
-	if (this->app->cache->isDirty()) {
-		this->app->initMenu();
-	}
+	TRACE("enter");
 }
 
+uint32_t Renderer::callback(uint32_t interval, void * data) {
+	TRACE("enter");
+	Renderer * me = static_cast<Renderer*>(data);
+	if (me->finished_) {
+		return (0);
+	}
+	me->pollHW();
+	TRACE("exit");
+	return interval;
+}
+
+uint8_t Renderer::getVolumeMode(uint8_t vol) {
+	TRACE("getVolumeMode - enter : %i", vol);
+	if (!vol) return VOLUME_MODE_MUTE;
+	else if (vol > 0 && vol < 20) return VOLUME_MODE_PHONES;
+	return VOLUME_MODE_NORMAL;
+}
