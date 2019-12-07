@@ -571,7 +571,9 @@ void Renderer::pollHW() {
 		int currentVolume = this->app->hw->getVolumeLevel();
 		this->currentVolumeMode = this->getVolumeMode(currentVolume);
 
+		TRACE("checking clock skin flag");
 		if (this->app->skin->showClock) {
+			TRACE("refreshing the clock");
 			this->rtc.refresh();
 		}
         

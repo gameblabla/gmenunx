@@ -170,7 +170,7 @@ const bool Installer::deployLauncher() {
         launcher << "\tif [ -f ${MARKER} ];then\n";
         launcher << "\t\trm -f ${MARKER}\n";
         launcher << "fi\n";
-        launcher << "\t/usr/bin/app\n";
+        launcher << "\t/usr/bin/gmenu2x\n";
         launcher << "fi\n";
 		launcher.close();
 		sync();
