@@ -36,10 +36,8 @@
 #include "debug.h"
 #include "constants.h"
 
-using namespace std;
-
-static array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
-const string LinkApp::FAVOURITE_FOLDER = "favourites";
+static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
+const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	Link(app, MakeDelegate(this, &LinkApp::run)),
@@ -68,7 +66,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	this->providerMetadata = "";
 
 	TRACE("ctor - creating ifstream");
-	std::ifstream infile (linkfile, ios_base::in);
+	std::ifstream infile (linkfile, std::ios_base::in);
 	std::locale loc("");
 	infile.imbue(loc);
 	if (infile.is_open()) {
@@ -157,19 +155,19 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	this->edited = false;
 }
 
-const string &LinkApp::searchManual() {
+const std::string &LinkApp::searchManual() {
 	if (!manualPath.empty()) return manualPath;
-	string filename = exec;
-	string::size_type pos = exec.rfind(".");
-	if (pos != string::npos) filename = exec.substr(0, pos);
+	std::string filename = exec;
+	std::string::size_type pos = exec.rfind(".");
+	if (pos != std::string::npos) filename = exec.substr(0, pos);
 	filename += ".man.txt";
 
 	string dname = dir_name(exec) + "/";
 
-	string dirtitle = dname + base_name(dir_name(exec)) + ".man.txt";
-	string linktitle = base_name(file);
+	std::string dirtitle = dname + base_name(dir_name(exec)) + ".man.txt";
+	std::string linktitle = base_name(file);
 	pos = linktitle.rfind(".");
-	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
+	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle = dname + linktitle + ".man.txt";
 
 	if (fileExists(linktitle))
@@ -182,16 +180,16 @@ const string &LinkApp::searchManual() {
 	return manualPath;
 }
 
-const string &LinkApp::searchBackdrop() {
+const std::string &LinkApp::searchBackdrop() {
 	if (!backdropPath.empty() || !this->app->skin->skinBackdrops) return backdropPath;
-	string execicon = exec;
-	string::size_type pos = exec.rfind(".");
-	if (pos != string::npos) execicon = exec.substr(0, pos);
-	string exectitle = base_name(execicon);
-	string dirtitle = base_name(dir_name(exec));
-	string linktitle = base_name(file);
+	std::string execicon = exec;
+	std::string::size_type pos = exec.rfind(".");
+	if (pos != std::string::npos) execicon = exec.substr(0, pos);
+	std::string exectitle = base_name(execicon);
+	std::string dirtitle = base_name(dir_name(exec));
+	std::string linktitle = base_name(file);
 	pos = linktitle.rfind(".");
-	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
+	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 
 	// auto backdrop
 	if (!app->skin->getSkinFilePath("backdrops/" + linktitle + ".png").empty())
@@ -214,19 +212,19 @@ const string &LinkApp::searchIcon() {
 	return searchIcon(exec, true);
 }
 
-const string &LinkApp::searchIcon(string path, bool fallBack) {
+const string &LinkApp::searchIcon(std::string path, bool fallBack) {
 	TRACE("enter - fallback : %i", fallBack);
 
 	// get every permutation possible from the metadata opts
-	string execicon = path;
-	string::size_type pos = path.rfind(".");
+	std::string execicon = path;
+	std::string::size_type pos = path.rfind(".");
 	if (pos != string::npos) execicon = path.substr(0, pos);
 	execicon += ".png";
-	string exectitle = base_name(execicon);
-	string dirtitle = base_name(dir_name(path)) + ".png";
-	string linktitle = base_name(file);
+	std::string exectitle = base_name(execicon);
+	std::string dirtitle = base_name(dir_name(path)) + ".png";
+	std::string linktitle = base_name(file);
 	pos = linktitle.rfind(".");
-	if (pos != string::npos) linktitle = linktitle.substr(0, pos);
+	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle += ".png";
 
 	if (!app->skin->getSkinFilePath("icons/" + linktitle).empty())
@@ -255,13 +253,13 @@ void LinkApp::setCPU(int mhz) {
 	edited = true;
 }
 
-void LinkApp::setBackdrop(const string selectedFile) {
+void LinkApp::setBackdrop(const std::string selectedFile) {
 	backdrop = backdropPath = selectedFile;
 	edited = true;
 }
 
 bool LinkApp::targetExists() {
-	string target = exec;
+	std::string target = exec;
 	if (!exec.empty() && exec[0] != '/' && !workdir.empty())
 		target = workdir + "/" + exec;
 
@@ -280,7 +278,7 @@ bool LinkApp::save() {
 
 	if (out.tellp() > 0) {
 		TRACE("saving data : %s", out.str().c_str());
-		ofstream f(file.c_str());
+		std::ofstream f(file.c_str());
 		if (f.is_open()) {
 			f << out.str();
 			f.close();
@@ -297,13 +295,13 @@ bool LinkApp::save() {
 	}
 }
 
-void LinkApp::favourite(string launchArgs, string supportingFile) {
+void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
 	TRACE("enter - launchArgs : %s, supportingFile : %s", 
 		launchArgs.c_str(), 
 		supportingFile.c_str());
 
 	// need to make a new favourite
-	string path = this->app->getWriteablePath() + "sections/" + FAVOURITE_FOLDER;
+	std::string path = this->app->getWriteablePath() + "sections/" + FAVOURITE_FOLDER;
 	if (!this->app->menu->sectionExists(FAVOURITE_FOLDER)) {
 		if (!this->app->menu->addSection(FAVOURITE_FOLDER)) {
 			 ERROR("LinkApp::selector - Couldn't make favourites folder : %s", path.c_str());
@@ -311,18 +309,18 @@ void LinkApp::favourite(string launchArgs, string supportingFile) {
 		}
 	}
 
-	string cleanTitle = this->title;
-	string desc = this->description;
+	std::string cleanTitle = this->title;
+	std::string desc = this->description;
 	if (!supportingFile.empty()) {
 		cleanTitle = fileBaseName(base_name(supportingFile));
 		desc = this->description + " - " + cleanTitle;
 	}
-	string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
+	std::string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
 
 	uint32_t x = 1;
 	while (fileExists(favePath)) {
-		string id = "";
-		stringstream ss; ss << x; ss >> id;
+		std::string id = "";
+		std::stringstream ss; ss << x; ss >> id;
 		favePath = path + "/" + this->title + "-" + cleanTitle + "." + id + ".desktop";
 		x++;
 	}
@@ -389,16 +387,21 @@ void LinkApp::run() {
 /*
  * lauches a supporting file selector if needed
  */
-void LinkApp::selector(int startSelection, const string &selectorDir) {
+void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	TRACE("enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
 
-	//Run selector interface - this is the order of specificity
-	string myDir = selectorDir;
+	// Run selector interface - this is the order of dir specificity
+	// - directly requested in the call args
+	// - selector dir is set, and isn't the default that all initially get
+	// - system wide last launch path
+	// - default :: EXTERNAL_CARD_PATH
+	std::string myDir = selectorDir;
 	if (myDir.empty()) {
-		myDir = this->selectordir;
-		if (myDir.empty()) {
+		if (0 != this->selectordir.compare(EXTERNAL_CARD_PATH) && !this->selectordir.empty()) {
+			myDir = this->selectordir;
+		} else if (!this->app->config->launcherPath().empty()) {
 			myDir = this->app->config->launcherPath();
-		}
+		} else myDir = EXTERNAL_CARD_PATH;
 	}
 
 	Selector sel(app, this, myDir);
@@ -406,32 +409,32 @@ void LinkApp::selector(int startSelection, const string &selectorDir) {
 	// we got a file
 	if (selection != -1) {
 
-		string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
+		std::string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
+		this->app->config->launcherPath(sel.getDir());
 
 		if (sel.isFavourited()) {
 			TRACE("we're saving a favourite");
-			string romFile = sel.getDir() + sel.getFile();
+			std::string romFile = sel.getDir() + sel.getFile();
 			TRACE("launchArgs : %s, romFile : %s", launchArgs.c_str(), romFile.c_str());
 			favourite(launchArgs, romFile);
-
 		} else {
-			app->writeTmp(selection, sel.getDir());
+			this->app->writeTmp(selection, sel.getDir());
 			launch(launchArgs);
 		}
 	}
 }
 
-string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDir) {
+string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &selectedDir) {
 	TRACE("enter file : '%s', dir : '%s'", selectedFile.c_str(), selectedDir.c_str());
-	string launchArgs = "";
+	std::string launchArgs = "";
 
 	// selectedFile means a rom or some kind of data file..
 	if (!selectedFile.empty()) {
 		TRACE("we have a selected file to work with : %s", selectedFile.c_str());
 		// break out the dir, filename and extension
-		string selectedFileExtension;
-		string selectedFileName;
-		string dir;
+		std::string selectedFileExtension;
+		std::string selectedFileName;
+		std::string dir;
 
 		selectedFileExtension = fileExtension(selectedFile);
 		selectedFileName = fileBaseName(selectedFile);
@@ -476,11 +479,11 @@ string LinkApp::resolveArgs(const string &selectedFile, const string &selectedDi
 	return launchArgs;
 }
 
-void LinkApp::launch(string launchArgs) {
+void LinkApp::launch(std::string launchArgs) {
 	TRACE("enter - args: %si", launchArgs.c_str());
 
 	//Set correct working directory
-	string wd = getRealWorkdir();
+	std::string wd = getRealWorkdir();
 	TRACE("real work dir = %s", wd.c_str());
 	if (!wd.empty()) {
 		chdir(wd.c_str());
@@ -501,7 +504,7 @@ void LinkApp::launch(string launchArgs) {
 		if ( fstat.st_mode != newstat.st_mode ) chmod( exec.c_str(), newstat.st_mode );
 	} // else, well.. we are no worse off :)
 
-	std::vector<string> commandLine = { "/bin/sh", "-c" };
+	std::vector<std::string> commandLine = { "/bin/sh", "-c" };
 	std::string execute = this->exec + " " + launchArgs;
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
@@ -526,20 +529,20 @@ void LinkApp::launch(string launchArgs) {
 		// everything, the easiest solution is to exit and let the system
 		// respawn the menu.
 		delete toLaunch;
-		delete app;
+		Esoteric::quit_all(0);
 	}
 
 	TRACE("exit");
 }
 
 const string &LinkApp::getExec() { return exec; }
-void LinkApp::setExec(const string &exec) {
+void LinkApp::setExec(const std::string &exec) {
 	this->exec = exec;
 	edited = true;
 }
 
 const string &LinkApp::getParams() { return params; }
-void LinkApp::setParams(const string &params) {
+void LinkApp::setParams(const std::string &params) {
 	this->params = params;
 	edited = true;
 }
@@ -547,32 +550,32 @@ void LinkApp::setParams(const string &params) {
 const string &LinkApp::getWorkdir() { return workdir; }
 
 const string LinkApp::getRealWorkdir() {
-	string wd = workdir;
+	std::string wd = workdir;
 	if (wd.empty()) {
 		if (exec[0] != '/') {
 			wd = app->getExePath();
 		} else {
-			string::size_type pos = exec.rfind("/");
-			if (pos != string::npos)
+			std::string::size_type pos = exec.rfind("/");
+			if (pos != std::string::npos)
 				wd = exec.substr(0,pos);
 		}
 	}
 	return wd;
 }
 
-void LinkApp::setWorkdir(const string &workdir) {
+void LinkApp::setWorkdir(const std::string &workdir) {
 	this->workdir = workdir;
 	edited = true;
 }
 
 const string &LinkApp::getManual() { return manual; }
-void LinkApp::setManual(const string &manual) {
+void LinkApp::setManual(const std::string &manual) {
 	this->manual = manualPath = manual;
 	edited = true;
 }
 
 const string &LinkApp::getSelectorDir() { return selectordir; }
-void LinkApp::setSelectorDir(const string &selectordir) {
+void LinkApp::setSelectorDir(const std::string &selectordir) {
 	this->selectordir = selectordir;
 	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
 	if (!this->selectordir.empty()) this->selectordir = real_path(this->selectordir);
@@ -592,59 +595,60 @@ void LinkApp::setConsoleApp(bool value) {
 }
 
 const string &LinkApp::getSelectorFilter() { return this->selectorfilter; }
-void LinkApp::setSelectorFilter(const string &selectorfilter) {
+void LinkApp::setSelectorFilter(const std::string &selectorfilter) {
 	this->selectorfilter = selectorfilter;
 	edited = true;
 }
 
 const string &LinkApp::getSelectorScreens() { return selectorscreens; }
-void LinkApp::setSelectorScreens(const string &selectorscreens) {
+void LinkApp::setSelectorScreens(const std::string &selectorscreens) {
 	this->selectorscreens = selectorscreens;
 	edited = true;
 }
 
 const string &LinkApp::getAliasFile() { return aliasfile; }
-void LinkApp::setAliasFile(const string &aliasfile) {
+void LinkApp::setAliasFile(const std::string &aliasfile) {
 	if (fileExists(aliasfile)) {
 		this->aliasfile = aliasfile;
 		edited = true;
 	}
 }
 
-void LinkApp::setProvider(const string &provider) {
+void LinkApp::setProvider(const std::string &provider) {
 	this->provider = provider;
 	this->edited = true;
 }
-void LinkApp::setProviderMetadata(const string &metadata) {
+void LinkApp::setProviderMetadata(const std::string &metadata) {
 	this->providerMetadata = metadata;
 	this->edited = true;
 }
 
-void LinkApp::renameFile(const string &name) { file = name; }
+void LinkApp::renameFile(const std::string &name) { file = name; }
 
 std::string LinkApp::toString() {
 	
 	std::ostringstream out;
 	{
-		if (title != ""          ) out << "title="           << title           << endl;
-		if (description != ""    ) out << "description="     << description     << endl;
-		if (icon != ""           ) out << "icon="            << icon            << endl;
-		if (exec != ""           ) out << "exec="            << exec            << endl;
-		if (params != ""         ) out << "params="          << params          << endl;
-		if (workdir != ""        ) out << "workdir="         << workdir         << endl;
-		if (consoleapp           ) out << "consoleapp=true"                     << endl;
-		if (!consoleapp          ) out << "consoleapp=false"                    << endl;
-		if (manual != ""         ) out << "manual="          << manual          << endl;
-		if (!selectorbrowser     ) out << "selectorBrowser=false"               << endl;
-		if (selectorfilter != "" ) out << "selectorFilter="  << selectorfilter  << endl;
-		if (selectorscreens != "") out << "selectorscreens=" << selectorscreens << endl;
-		if (!provider.empty())     out << "X-Provider="      << provider        << endl;
-		if (!providerMetadata.empty())     out << "X-ProviderMetadata=" << providerMetadata        << endl;
-		if (aliasfile != ""      ) out << "selectoraliases=" << aliasfile       << endl;
-		if (backdrop != ""       ) out << "backdrop="        << backdrop        << endl;
-		if (iclock != 0              ) out << "clock="           << iclock          << endl;
-		if (!selectordir.empty()     ) out << "selectordir="     << selectordir     << endl;
-		if (!selectorbrowser         ) out << "selectorbrowser=false"               << endl;
+		if (!title.empty()            ) out << "title="              << title            << std::endl;
+		if (!description.empty()      ) out << "description="        << description      << std::endl;
+		if (!icon.empty()             ) out << "icon="               << icon             << std::endl;
+		if (!exec.empty()             ) out << "exec="               << exec             << std::endl;
+		if (!params.empty()           ) out << "params="             << params           << std::endl;
+		if (!workdir.empty()          ) out << "workdir="            << workdir          << std::endl;
+		if (consoleapp                ) out << "consoleapp=true"                         << std::endl;
+		if (!consoleapp               ) out << "consoleapp=false"                        << std::endl;
+		if (!manual.empty()           ) out << "manual="             << manual           << std::endl;
+		if (selectorbrowser           ) out << "selectorBrowser=true"                    << std::endl;
+		if (!selectorbrowser          ) out << "selectorbrowser=false"                   << std::endl;
+		if (!selectorfilter.empty()   ) out << "selectorFilter="     << selectorfilter   << std::endl;
+		if (!selectorscreens.empty()  ) out << "selectorscreens="    << selectorscreens  << std::endl;
+		if (!provider.empty()         ) out << "X-Provider="         << provider         << std::endl;
+		if (!providerMetadata.empty() ) out << "X-ProviderMetadata=" << providerMetadata << std::endl;
+		if (!aliasfile.empty()        ) out << "selectoraliases="    << aliasfile        << std::endl;
+		if (!backdrop.empty()         ) out << "backdrop="           << backdrop         << std::endl;
+		if (iclock != 0               ) out << "clock="              << iclock           << std::endl;
+		if (!selectordir.empty()      ) out << "selectordir="        << selectordir      << std::endl;
+		if (!selectorbrowser          ) out << "selectorbrowser=false"                   << std::endl;
 	}
 	return out.str();
 

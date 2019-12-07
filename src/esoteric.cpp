@@ -83,17 +83,12 @@ using std::ofstream;
 using std::stringstream;
 using namespace fastdelegate;
 
-static void quit_all(int err) {
-	delete app;
-	exit(err);
-}
-
 int main(int argc, char * argv[]) {
 	INFO("%s starting: Build Date - %s", APP_NAME.c_str(), __BUILDTIME__);
 
-	signal(SIGINT, &quit_all);
-	signal(SIGSEGV,&quit_all);
-	signal(SIGTERM,&quit_all);
+	signal(SIGINT, &Esoteric::quit_all);
+	signal(SIGSEGV,&Esoteric::quit_all);
+	signal(SIGTERM,&Esoteric::quit_all);
 
 	app = new Esoteric();
 	TRACE("Starting app->main()");
@@ -224,9 +219,9 @@ Esoteric::~Esoteric() {
 	TRACE("exit\n\n");
 }
 
-void Esoteric::releaseScreen() {
-	TRACE("calling SDL_Quit");
-	SDL_Quit();
+void Esoteric::quit_all(int err) {
+	delete app;
+	exit(err);
 }
 
 void Esoteric::quit() {
@@ -243,6 +238,11 @@ void Esoteric::quit() {
 		releaseScreen();
 	}
 	INFO("quit - exit");
+}
+
+void Esoteric::releaseScreen() {
+	TRACE("calling SDL_Quit");
+	SDL_Quit();
 }
 
 void Esoteric::main() {
@@ -1431,7 +1431,7 @@ void Esoteric::explorer() {
 			this->hw->setCPUSpeed(config->cpuMenu());
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 			
-			quit_all(0);
+			Esoteric::quit_all(0);
 		}
 	}
 	TRACE("exit");
@@ -1617,8 +1617,7 @@ void Esoteric::restartDialog(bool showDialog) {
 		mb.setButton(CANCEL,  tr["Cancel"]);
 		if (mb.exec() == CANCEL) return;
 	}
-	quit();
-	quit_all(0);
+	Esoteric::quit_all(0);
 }
 
 void Esoteric::poweroffDialog() {

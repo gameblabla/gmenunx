@@ -43,11 +43,11 @@ private:
 		SD_ACTION_PAGEDOWN,
 	};
 	Touchscreen &ts;
-	vector<MenuSetting *> voices;
-	string title, icon;
+	std::vector<MenuSetting *> voices;
+	std::string title, icon;
 
 public:
-	SettingsDialog(Esoteric *app, Touchscreen &ts, const string &title, const string &icon = "skin:sections/settings.png");
+	SettingsDialog(Esoteric *app, Touchscreen &ts, const std::string &title, const std::string &icon = "skin:sections/settings.png");
 	~SettingsDialog();
 	bool save = false, close = false, allowCancel = true;
 	bool edited();
