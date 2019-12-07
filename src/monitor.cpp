@@ -47,6 +47,9 @@ int Monitor::run() {
 
 		unsigned int avail;
 		ioctl(this->fd, FIONREAD, &avail);
+		if (0 == avail)
+			continue;
+
 		TRACE("inotify has %i bytes to read", avail);
 		char buf[avail];
 		read(fd, buf, avail);
@@ -96,6 +99,23 @@ static void * inotify_thd(void *p) {
 	return NULL;
 }
 
+void Monitor::stop() {
+	TRACE("enter");
+	if (this->fd > 0 && this->wd > 0) {
+		TRACE("removing inotify watch : %i", this->wd);
+		if (0 == inotify_rm_watch(this->fd, this->wd)) {
+			TRACE("watch removed successfully");
+			this->wd = 0;
+		}
+	}
+	if (this->wd == 0 && this->fd > 0) {
+		TRACE("closing fd : %i", this->fd);
+		close(this->fd);
+		this->fd = 0;
+	}
+	TRACE("exit");
+}
+
 Monitor::Monitor(std::string path, unsigned int flags) {
 	this->mask = flags;
 	this->path = std::string(path);
@@ -104,14 +124,11 @@ Monitor::Monitor(std::string path, unsigned int flags) {
 }
 
 Monitor::~Monitor() {
-	if (this->fd > 0 && this->wd > 0) {
-		inotify_rm_watch(this->fd, this->wd);
+	this->stop();
+	if (this->thd) {
+		pthread_cancel(this->thd);
+		pthread_join(this->thd, NULL);
 	}
-	if (this->fd > 0) {
-		close(this->fd);
-	}
-	pthread_cancel(thd);
-	pthread_join(thd, NULL);
-	DEBUG("Monitor thread stopped (was watching %s)\n", path.c_str());
+	DEBUG("Monitor thread stopped (was watching %s)", path.c_str());
 }
 #endif

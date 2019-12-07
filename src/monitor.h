@@ -16,6 +16,7 @@ public:
 	virtual ~Monitor();
 
 	int run();
+	void stop();
 	const std::string getPath() { return path; }
 
 private:

@@ -53,6 +53,7 @@ OpkCache::~OpkCache() {
     }
     std::list<OpkMonitor *>::iterator it;
     for (it = this->directoryMonitors.begin(); it != this->directoryMonitors.end(); it++) {
+        (*it)->stop();
         delete (*it);
     }
     this->directoryMonitors.clear();
