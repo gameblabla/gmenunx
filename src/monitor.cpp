@@ -28,6 +28,11 @@ int Monitor::run() {
 
 	DEBUG("Starting inotify thread for path %s...\n", this->path.c_str());
 
+	if (this->running_) {
+		TRACE("monitor is already running");
+		return -1;
+	}
+
 	this->fd = inotify_init1(IN_CLOEXEC);
 	if (this->fd < 0) {
 		ERROR("Unable to start inotify\n");
@@ -41,6 +46,7 @@ int Monitor::run() {
 		return this->wd;
 	}
 
+	this->running_ = true;
 	DEBUG("Starting watching directory %s\n", this->path.c_str());
 
 	for (;;) {
@@ -98,6 +104,8 @@ static void * inotify_thd(void *p) {
 
 void Monitor::stop() {
 	TRACE("enter");
+	if (!this->running_)
+		return;
 	if (this->fd > 0 && this->wd > 0) {
 		TRACE("removing inotify watch : %i", this->wd);
 		if (0 == inotify_rm_watch(this->fd, this->wd)) {
@@ -110,10 +118,12 @@ void Monitor::stop() {
 		close(this->fd);
 		this->fd = 0;
 	}
-	TRACE("exit");
+	this->running_ = !(this->fd == 0 && this->wd == 0);
+	TRACE("exit : %i", this->running_ );
 }
 
 Monitor::Monitor(std::string path, unsigned int flags) {
+	this->running_ = false;
 	this->mask = flags;
 	this->path = std::string(path);
 	this->wd = this->fd = 0;

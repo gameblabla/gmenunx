@@ -25,10 +25,22 @@ OpkCache::OpkCache(std::vector<std::string> opkDirs, const std::string & rootDir
     this->sectionCache = nullptr;
     this->loaded_ = false;
     this->notifiable = nullptr;
+    TRACE("exit");
+}
 
+OpkCache::~OpkCache() {
+    TRACE("enter");
+    if (this->sectionCache != nullptr) {
+        delete sectionCache;
+    }
+    this->stopMonitors();
+    TRACE("exit");
+}
+
+void OpkCache::startMonitors() {
     TRACE("adding directory watchers");
-    for(std::vector<std::string>::iterator it = opkDirs.begin(); it != opkDirs.end(); it++) {
-        string dir = (*it);
+    for(std::vector<std::string>::iterator it = this->opkDirs_.begin(); it != this->opkDirs_.end(); it++) {
+        std::string dir = (*it);
         if (!dirExists(dir))
             continue;
 
@@ -39,24 +51,27 @@ OpkCache::OpkCache(std::vector<std::string> opkDirs, const std::string & rootDir
             [&](std::string path){ return this->handleNewOpk(path); }, 
             [&](std::string path){ return this->handleRemovedOpk(path); }
         );
-        
         this->directoryMonitors.push_back(monitor);
     }
     TRACE("we're monitoring %zu directories", this->directoryMonitors.size());
-    TRACE("exit");
 }
 
-OpkCache::~OpkCache() {
+void OpkCache::stopMonitors() {
     TRACE("enter");
-    if (this->sectionCache != nullptr) {
-        delete sectionCache;
-    }
     std::list<OpkMonitor *>::iterator it;
     for (it = this->directoryMonitors.begin(); it != this->directoryMonitors.end(); it++) {
         (*it)->stop();
         delete (*it);
     }
     this->directoryMonitors.clear();
+    TRACE("exit");
+}
+
+void OpkCache::setMonitorDirs(std::vector<std::string> dirs) {
+    TRACE("enter");
+    this->stopMonitors();
+    this->opkDirs_ = dirs;
+    this->startMonitors();
     TRACE("exit");
 }
 
@@ -74,6 +89,7 @@ bool OpkCache::update(std::function<void(std::string)> callback) {
     this->notifiable = callback;
     this->dirty_ = false;
 
+    this->stopMonitors();
     if (!this->ensureCacheDirs())
         return false;
 
@@ -85,6 +101,7 @@ bool OpkCache::update(std::function<void(std::string)> callback) {
     if (!createMissingOpkDesktopFiles()) return false;
     if (!removeUnlinkedDesktopFiles()) return false;
     sync();
+    this->startMonitors();
     this->notify("Cache updated");
     TRACE("exit");
     this->notifiable = nullptr;

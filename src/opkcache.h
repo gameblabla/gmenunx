@@ -60,6 +60,9 @@ class OpkCache {
         const std::string manualsCachePath();
         bool ensureCacheDirs();
 
+        void stopMonitors();
+        void startMonitors();
+
         void notify(std::string text);
 
     public:
@@ -76,6 +79,8 @@ class OpkCache {
             this->dirty_ = false; 
             return result; 
         }
+        void setMonitorDirs(std::vector<std::string> dirs);
+
 };
 
 #endif

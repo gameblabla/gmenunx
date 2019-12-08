@@ -220,6 +220,7 @@ Esoteric::~Esoteric() {
 }
 
 void Esoteric::quit_all(int err) {
+	TRACE("enter");
 	delete app;
 	exit(err);
 }
@@ -237,7 +238,7 @@ void Esoteric::quit() {
 		this->screen->free();
 		releaseScreen();
 	}
-	INFO("quit - exit");
+	TRACE("quit - exit");
 }
 
 void Esoteric::releaseScreen() {
@@ -285,11 +286,9 @@ void Esoteric::main() {
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
 
-	setWallpaper(this->skin->wallpaper);
-	readTmp();
-
 	if (thread_cache != nullptr) {
 		// we need to re-join before building the menu
+		TRACE("waiting to re-join thread");
 		thread_cache->join();
 		delete thread_cache;
 		TRACE("app cache thread has finished");
@@ -297,6 +296,9 @@ void Esoteric::main() {
 
 	// initMenu needs to come after cache thread has joined
 	initMenu();
+	setWallpaper(this->skin->wallpaper);
+	// readTmp has to come after initMenu
+	readTmp();
 
 	TRACE("screen manager");
 	screenManager.setScreenTimeout( config->backlightTimeout());
@@ -429,12 +431,12 @@ void Esoteric::updateAppCache(std::function<void(string)> callback) {
 void Esoteric::setWallpaper(const string &wallpaper) {
 	TRACE("enter : %s", wallpaper.c_str());
 	if (this->bg != nullptr) 
-		delete bg;
+		delete this->bg;
 
 	TRACE("new surface");
-	bg = new Surface(screen);
+	this->bg = new Surface(screen);
 	TRACE("bg box");
-	bg->box((SDL_Rect){ 0, 0, config->resolutionX(), config->resolutionY() }, (RGBAColor){0, 0, 0, 0});
+	this->bg->box((SDL_Rect){ 0, 0, config->resolutionX(), config->resolutionY() }, (RGBAColor){0, 0, 0, 0});
 
 	skin->wallpaper = wallpaper;
 	TRACE("null test");

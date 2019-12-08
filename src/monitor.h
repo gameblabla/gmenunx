@@ -21,6 +21,7 @@ public:
 
 private:
 
+	bool running_;
 	int wd, fd;
 	std::string path;
 	pthread_t thd;
