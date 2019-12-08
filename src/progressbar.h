@@ -5,11 +5,13 @@
 #include "esoteric.h"
 
 class ProgressBar {
+
 private:
 	std::string title_, detail_, icon;
 	int bgalpha, boxPadding, boxHeight, titleWidth;
 	Esoteric *app;
-	string formatText(const std::string & text);
+	std::string formatText(const std::string & text);
+	void free();
     bool finished_;
     SDL_TimerID timerId_;
     int interval_ = 100;

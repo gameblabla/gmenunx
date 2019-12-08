@@ -10,7 +10,7 @@
 
 using namespace std;
 
-ProgressBar::ProgressBar(Esoteric *app, const string &title, const string &icon) {
+ProgressBar::ProgressBar(Esoteric *app, const std::string &title, const std::string &icon) {
 	this->app = app;
 	this->title_ = title;
     this->detail_ = "";
@@ -30,9 +30,19 @@ ProgressBar::ProgressBar(Esoteric *app, const string &title, const string &icon)
 ProgressBar::~ProgressBar() {
     TRACE("enter");
     if (this->timerId_ > 0) {
+        SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(this->timerId_);
     }
     this->app->input.dropEvents(); 
+    TRACE("exit");
+}
+
+void ProgressBar::free() {
+    TRACE("enter");
+    if (this->timerId_ > 0) {
+        SDL_SetTimer(0, NULL);
+        SDL_RemoveTimer(this->timerId_);
+    }
     TRACE("exit");
 }
 
@@ -40,10 +50,10 @@ void ProgressBar::setBgAlpha(bool bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
-string ProgressBar::formatText(const string & text) {
+string ProgressBar::formatText(const std::string & text) {
 	int wrap_size = ((app->config->resolutionX() - (this->boxPadding / 2)) / app->font->getSize() + 15);
 	TRACE("final wrap size : %i", wrap_size);
-	string wrappedText = splitInLines(text, wrap_size);
+	std::string wrappedText = splitInLines(text, wrap_size);
 	TRACE("wrap text : %s", wrappedText.c_str());
 	return wrappedText;
 }
@@ -54,54 +64,52 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
 
     if (me->finished_) {
         TRACE("finished");
-        SDL_SetTimer(0, NULL);
-        SDL_RemoveTimer(me->timerId_);
-        interval = 0;
-    } else {
-        //TRACE("rendering");
-        me->app->screen->box(
-            (SDL_Rect){ 0, 0, me->app->config->resolutionX(), me->app->config->resolutionY() }, 
-            (RGBAColor){0,0,0, me->bgalpha}
-        );
-
-        SDL_Rect box;
-        box.h = me->boxHeight;
-        if ((*me->app->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
-        box.w = me->titleWidth + me->boxPadding;
-        box.x = me->app->config->halfX() - box.w/2 - 2;
-        box.y = me->app->config->halfY() - box.h/2 - 2;
-
-        //outer box
-        me->app->screen->box(box, me->app->skin->colours.msgBoxBackground);
-        
-        //draw inner rectangle
-        me->app->screen->rectangle(
-            box.x+2, 
-            box.y+2, 
-            box.w-4, 
-            box.h-4, 
-            me->app->skin->colours.msgBoxBorder);
-
-        //icon+wrapped_text
-        if ((*me->app->sc)[me->icon] != NULL)
-            (*me->app->sc)[me->icon]->blit(
-                me->app->screen, 
-                box.x + 24, 
-                box.y + 24 , 
-                HAlignCenter | VAlignMiddle);
-
-        string finalText = me->title_ + "\n" + me->detail_;
-        me->app->screen->write(
-            me->app->font, 
-            finalText, 
-            box.x + ((*me->app->sc)[me->icon] != NULL ? 47 : 11), 
-            me->app->config->halfY() - me->app->font->getHeight() / 5, 
-            VAlignMiddle, 
-            me->app->skin->colours.fontAlt, 
-            me->app->skin->colours.fontAltOutline);
-
-        me->app->screen->flip();
+        me->free();
+        return 0;
     }
+    //TRACE("rendering");
+    me->app->screen->box(
+        (SDL_Rect){ 0, 0, me->app->config->resolutionX(), me->app->config->resolutionY() }, 
+        (RGBAColor){0,0,0, me->bgalpha}
+    );
+
+    SDL_Rect box;
+    box.h = me->boxHeight;
+    if ((*me->app->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
+    box.w = me->titleWidth + me->boxPadding;
+    box.x = me->app->config->halfX() - box.w/2 - 2;
+    box.y = me->app->config->halfY() - box.h/2 - 2;
+
+    //outer box
+    me->app->screen->box(box, me->app->skin->colours.msgBoxBackground);
+        
+    //draw inner rectangle
+    me->app->screen->rectangle(
+        box.x+2, 
+        box.y+2, 
+        box.w-4, 
+        box.h-4, 
+        me->app->skin->colours.msgBoxBorder);
+
+    //icon+wrapped_text
+    if ((*me->app->sc)[me->icon] != NULL)
+        (*me->app->sc)[me->icon]->blit(
+            me->app->screen, 
+            box.x + 24, 
+            box.y + 24 , 
+            HAlignCenter | VAlignMiddle);
+
+    std::string finalText = me->title_ + "\n" + me->detail_;
+    me->app->screen->write(
+        me->app->font, 
+        finalText, 
+        box.x + ((*me->app->sc)[me->icon] != NULL ? 47 : 11), 
+        me->app->config->halfY() - me->app->font->getHeight() / 5, 
+        VAlignMiddle, 
+        me->app->skin->colours.fontAlt, 
+        me->app->skin->colours.fontAltOutline);
+
+    me->app->screen->flip();
 
     return(interval);
 }
@@ -117,15 +125,16 @@ void ProgressBar::finished(int millis) {
     if (millis > 0) {
         ProgressBar::render(this->interval_, this);
     }
-    SDL_RemoveTimer(this->timerId_);
-    this->timerId_ = 0;
     this->finished_ = true; 
+    this->free();
     std::this_thread::sleep_for(std::chrono::milliseconds(millis));
 }
 
 void ProgressBar::updateDetail(std::string text) {
     TRACE("enter : %s", text.c_str());
     if(!(this->app || this->app->font))
+        return;
+    if (this->finished_)
         return;
     try {
         int textWidth = this->app->font->getTextWidth(text);
