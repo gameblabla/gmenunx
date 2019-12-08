@@ -33,7 +33,7 @@ class Loader {
         ~Loader();
         void run();
         static bool isFirstRun();
-        static void setMarker();
+        static void setFirstRunMarker();
 };
 
 #endif

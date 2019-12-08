@@ -27,7 +27,7 @@ bool Loader::isFirstRun() {
     return !fileExists(LOADER_MARKER_FILE);
 }
 
-void Loader::setMarker() {
+void Loader::setFirstRunMarker() {
     TRACE("no marker, so setting file : %s", LOADER_MARKER_FILE.c_str());
     fstream fs;
     fs.open(LOADER_MARKER_FILE, ios::out);
