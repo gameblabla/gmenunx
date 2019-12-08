@@ -419,6 +419,8 @@ void Esoteric::updateAppCache(std::function<void(string)> callback) {
 	TRACE("rootDir : %s", rootDir.c_str());
 	if (nullptr == this->cache) {
 		this->cache = new OpkCache(opkDirs, rootDir);
+	} else {
+		this->cache->setMonitorDirs(opkDirs);
 	}
 	assert(this->cache);
 	this->cache->update(callback);
@@ -908,18 +910,18 @@ void Esoteric::skinMenu() {
 void Esoteric::settings() {
 	TRACE("enter");
 	bool unhideSections = false;
-	string prevSkin = config->skin();
-	vector<string> skinList = Skin::getSkins(getReadablePath());
+	std::string prevSkin = config->skin();
+	std::vector<std::string> skinList = Skin::getSkins(getReadablePath());
 
 	TRACE("getting translations");
 	FileLister fl_tr(getReadablePath() + "translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
 	// local vals
-	string lang = tr.lang();
-	string skin = config->skin();
+	std::string lang = tr.lang();
+	std::string skin = config->skin();
 	//string batteryType = config->batteryType();
-	string appsPath = config->externalAppPath();
+	std::string appsPath = config->externalAppPath();
 
 	int saveSelection = config->saveSelection();
 	int setHwOnBoot = config->setHwLevelsOnBoot();
@@ -932,7 +934,7 @@ void Esoteric::settings() {
 	}
 	TRACE("current language : %s", lang.c_str());
 
-	vector<string> encodings;
+	std::vector<std::string> encodings;
 	encodings.push_back("NTSC");
 	encodings.push_back("PAL");
 
@@ -942,12 +944,12 @@ void Esoteric::settings() {
 	batteryTypes.push_back("Linear");
 	*/
 
-	vector<string> opFactory;
+	std::vector<std::string> opFactory;
 	opFactory.push_back(">>");
-	string tmp = ">>";
+	std::string tmp = ">>";
 
-	string currentDatetime = this->hw->getSystemdateTime();
-	string prevDateTime = currentDatetime;
+	std::string currentDatetime = this->hw->getSystemdateTime();
+	std::string prevDateTime = currentDatetime;
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 
@@ -1029,7 +1031,14 @@ void Esoteric::settings() {
 	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::cpuSettings)));
 	#endif
 
-	sd.addSetting(new MenuSettingMultiString(this, tr["Reset settings"], tr["Choose settings to reset back to defaults"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::resetSettings)));
+	sd.addSetting(new MenuSettingMultiString(
+		this, 
+		tr["Reset settings"], 
+		tr["Choose settings to reset back to defaults"], 
+		&tmp, 
+		&opFactory, 
+		0, 
+		MakeDelegate(this, &Esoteric::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		bool refreshNeeded = false;
@@ -1037,28 +1046,32 @@ void Esoteric::settings() {
 		if (lang == "English") lang = "";
 		if (lang != config->lang()) {
 			TRACE("updating language : %s", lang.c_str());
-			config->lang(lang);
-			tr.setLang(lang);
+			this->config->lang(lang);
+			this->tr.setLang(lang);
 			refreshNeeded = true;
 		}
 		if (appsPath != config->externalAppPath()) {
-			config->externalAppPath(appsPath);
+			this->config->externalAppPath(appsPath);
+			#ifdef HAVE_LIBOPK
+			std::vector<std::string> opkDirs { OPK_INTERNAL_PATH, appsPath };
+			this->cache->setMonitorDirs(opkDirs);
+			#endif
 			refreshNeeded = true;
 		}
 
-		config->skin(skin);
+		this->config->skin(skin);
 		//config->batteryType(batteryType);
-		config->saveSelection(saveSelection);
-		config->outputLogs(outputLogs);
+		this->config->saveSelection(saveSelection);
+		this->config->outputLogs(outputLogs);
 		//config->powerTimeout(powerTimeout);
-		config->setHwLevelsOnBoot(setHwOnBoot);
+		this->config->setHwLevelsOnBoot(setHwOnBoot);
 
 		bool restartNeeded = prevSkin != config->skin();
 
 		if (unhideSections) {
-			config->sectionFilter("");
-			config->section(0);
-			config->link(0);
+			this->config->sectionFilter("");
+			this->config->section(0);
+			this->config->link(0);
 			this->menu->setSectionIndex(0);
 			this->menu->setLinkIndex(0);
 			refreshNeeded = true;
@@ -1068,9 +1081,9 @@ void Esoteric::settings() {
 			initMenu();
 		}
 
-		TRACE("setScreenTimeout - %i", config->backlightTimeout());
-		screenManager.resetScreenTimer();
-		screenManager.setScreenTimeout(config->backlightTimeout());
+		TRACE("setScreenTimeout - %i", this->config->backlightTimeout());
+		this->screenManager.resetScreenTimer();
+		this->screenManager.setScreenTimeout(this->config->backlightTimeout());
 
 		if (!this->needsInstalling) {
 			this->writeConfig();
