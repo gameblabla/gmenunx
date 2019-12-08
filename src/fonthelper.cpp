@@ -2,11 +2,12 @@
 #include "utilities.h"
 #include "debug.h"
 
-FontHelper::FontHelper(const string &fontName, int fontSize, RGBAColor textColor, RGBAColor outlineColor)
+FontHelper::FontHelper(const std::string &fontName, int fontSize, RGBAColor textColor, RGBAColor outlineColor)
 	: fontName(fontName),
 	  fontSize(fontSize),
 	  textColor(textColor),
 	  outlineColor(outlineColor) {
+
 	loadFont(fontName, fontSize);
 }
 
@@ -17,7 +18,8 @@ FontHelper::~FontHelper() {
 	this->fontOutline = NULL;
 }
 
-void FontHelper::loadFont(const string &fontName, int fontSize) {
+void FontHelper::loadFont(const std::string &fontName, int fontSize) {
+	TRACE("enter");
 	if (!TTF_WasInit()) {
 		TRACE("Initializing font");
 		if (TTF_Init() == -1) {
@@ -38,10 +40,11 @@ void FontHelper::loadFont(const string &fontName, int fontSize) {
 	TTF_SetFontHinting(this->font, TTF_HINTING_LIGHT);
 	TTF_SetFontHinting(this->fontOutline, TTF_HINTING_LIGHT);
 	TTF_SetFontOutline(this->fontOutline, 1);
-	height = 0;
+	this->height = 0;
 	// Get maximum line height with a sample text
-	TTF_SizeUTF8(this->font, "AZ0987654321", NULL, &height);
-	halfHeight = height/2;
+	TTF_SizeUTF8(this->font, "AZ0987654321", NULL, &this->height);
+	this->halfHeight = this->height / 2;
+	TRACE("exit");
 }
 
 bool FontHelper::utf8Code(uint8_t c) {
@@ -52,29 +55,29 @@ FontHelper *FontHelper::setSize(const int size) {
 	if (this->fontSize == size) return this;
 	TTF_CloseFont(font);
 	TTF_CloseFont(fontOutline);
-	fontSize = size;
+	this->fontSize = size;
 	loadFont(this->fontName, this->fontSize);
 	return this;
 }
 
 FontHelper *FontHelper::setColor(RGBAColor color) {
-	textColor = color;
+	this->textColor = color;
 	return this;
 }
 
 FontHelper *FontHelper::setOutlineColor(RGBAColor color) {
-	outlineColor = color;
+	this->outlineColor = color;
 	return this;
 }
 
-uint32_t FontHelper::getLineWidth(const string &text) {
+uint32_t FontHelper::getLineWidth(const std::string &text) {
 	int width = 0;
-	TTF_SizeUTF8(fontOutline, text.c_str(), &width, NULL);
+	TTF_SizeUTF8(this->fontOutline, text.c_str(), &width, NULL);
 	return width;
 }
 
-uint32_t FontHelper::getTextWidth(const string &text) {
-	if (text.find("\n",0) != string::npos) {
+uint32_t FontHelper::getTextWidth(const std::string &text) {
+	if (text.find("\n",0) != std::string::npos) {
 		vector<string> textArr;
 		split(textArr, text, "\n");
 		return getTextWidth(&textArr);
@@ -82,24 +85,24 @@ uint32_t FontHelper::getTextWidth(const string &text) {
 		return getLineWidth(text);
 }
 
-uint32_t FontHelper::getTextWidth(vector<string> *text) {
+uint32_t FontHelper::getTextWidth(std::vector<std::string> *text) {
 	int w = 0;
 	for (uint32_t i = 0; i < text->size(); i++)
 		w = max( getLineWidth(text->at(i)), w );
 	return w;
 }
 
-int FontHelper::getTextHeight(const string &text) {
-	vector<string> textArr;
+int FontHelper::getTextHeight(const std::string &text) {
+	std::vector<std::string> textArr;
 	split(textArr,text,"\n");
 	return textArr.size();
 }
 
-void FontHelper::write(Surface *surface, vector<string> *text, int x, int y, const uint8_t align) {
+void FontHelper::write(Surface *surface, std::vector<std::string> *text, int x, int y, const uint8_t align) {
 	write(surface, text, x, y, align, textColor, outlineColor);
 }
 
-void FontHelper::write(Surface *surface, vector<string> *text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
+void FontHelper::write(Surface *surface, std::vector<std::string> *text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
 	if (align & VAlignMiddle) {
 		y -= getHalfHeight() * text->size();
 	} else if (align & VAlignBottom) {
@@ -117,9 +120,9 @@ void FontHelper::write(Surface *surface, vector<string> *text, int x, int y, con
 	}
 }
 
-void FontHelper::write(Surface* surface, const string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
-	if (text.find("\n", 0) != string::npos) {
-		vector<string> textArr;
+void FontHelper::write(Surface* surface, const std::string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
+	if (text.find("\n", 0) != std::string::npos) {
+		std::vector<std::string> textArr;
 		split(textArr,text, "\n");
 		write(surface, &textArr, x, y, align, fgColor, bgColor);
 		return;
@@ -140,11 +143,11 @@ void FontHelper::write(Surface* surface, const string &text, int x, int y, const
 	write(surface, text, x, y, fgColor, bgColor);
 }
 
-void FontHelper::write(Surface *surface, const string &text, int x, int y, const uint8_t align) {
+void FontHelper::write(Surface *surface, const std::string &text, int x, int y, const uint8_t align) {
 	write(surface, text, x, y, align, textColor, outlineColor);
 }
 
-void FontHelper::write(Surface *surface, const string &text, int x, int y, RGBAColor fgColor, RGBAColor bgColor) {
+void FontHelper::write(Surface *surface, const std::string &text, int x, int y, RGBAColor fgColor, RGBAColor bgColor) {
 	if (text.empty()) return;
 
 	if (bgColor.a > 0){
