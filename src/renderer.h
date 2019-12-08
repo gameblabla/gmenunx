@@ -41,6 +41,8 @@ public:
 
     Renderer(Esoteric * app);
     ~Renderer();
+    void startPolling();
+    void stopPolling();
     void render();
     void quit();
 

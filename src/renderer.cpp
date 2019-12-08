@@ -35,20 +35,19 @@ Renderer::Renderer(Esoteric *app) :
 	this->prevBackdrop = app->skin->wallpaper;
 	this->currBackdrop = prevBackdrop;
 
-	iconSD = app->sc->skinRes("imgs/sd1.png");
-	iconManual = app->sc->skinRes("imgs/manual.png");
-	iconCPU = app->sc->skinRes("imgs/cpu.png");
+	this->iconSD = app->sc->skinRes("imgs/sd1.png");
+	this->iconManual = app->sc->skinRes("imgs/manual.png");
+	this->iconCPU = app->sc->skinRes("imgs/cpu.png");
 
-	brightnessIcon = 5;
-	batteryIcon = 3;
-    currentVolumeMode = VOLUME_MODE_MUTE;
-
-	helpers.clear();
+	this->brightnessIcon = 5;
+	this->batteryIcon = 3;
+    this->currentVolumeMode = VOLUME_MODE_MUTE;
 
 	this->interval_ = 2000;
-	this->timerId_ = SDL_AddTimer(this->interval_, callback, this);
+	this->timerId_ = 0;
 	this->locked_ = false;
 
+	this->helpers.clear();
 	this->pollHW();
 
 }
@@ -58,19 +57,28 @@ Renderer::~Renderer() {
 	this->quit();
 }
 
-void Renderer::quit() {
-	this->finished_ = true;
+void Renderer::startPolling() {
+	if (this->timerId_ != 0) 
+	 return;
+	this->timerId_ = SDL_AddTimer(this->interval_, callback, this);
+}
+
+void Renderer::stopPolling() {
     if (this->timerId_ > 0) {
 		SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(this->timerId_);
-		this->interval_ = 0;
 		this->timerId_ = 0;
     }
 }
 
+void Renderer::quit() {
+	this->finished_ = true;
+	this->stopPolling();
+}
+
 void Renderer::render() {
 
-	if (this->locked_) 
+	if (this->locked_ || this->finished_) 
 		return;
 	this->locked_ = true;
 
@@ -571,26 +579,27 @@ void Renderer::pollHW() {
 		int currentVolume = this->app->hw->getVolumeLevel();
 		this->currentVolumeMode = this->getVolumeMode(currentVolume);
 
-		TRACE("checking clock skin flag");
-		if (this->app->skin->showClock) {
-			TRACE("refreshing the clock");
-			this->rtc.refresh();
-		}
-        
 		TRACE("helper icon status updated");
     }
-	TRACE("enter");
+
+	TRACE("checking clock skin flag");
+	if (this->app->skin->showClock) {
+		TRACE("refreshing the clock");
+		this->rtc.refresh();
+	}
+
+	TRACE("exit");
 }
 
 uint32_t Renderer::callback(uint32_t interval, void * data) {
 	TRACE("enter");
 	Renderer * me = static_cast<Renderer*>(data);
 	if (me->finished_) {
-		return (0);
+		return 0;
 	}
 	me->pollHW();
 	TRACE("exit");
-	return interval;
+	return me->interval_;
 }
 
 uint8_t Renderer::getVolumeMode(uint8_t vol) {
