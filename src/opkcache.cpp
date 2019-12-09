@@ -30,10 +30,30 @@ OpkCache::OpkCache(std::vector<std::string> opkDirs, const std::string & rootDir
 
 OpkCache::~OpkCache() {
     TRACE("enter");
-    if (this->sectionCache != nullptr) {
-        delete sectionCache;
-    }
     this->stopMonitors();
+    TRACE("clearing cache");
+    if (this->sectionCache != nullptr) {
+        std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>>::iterator cacheIt;
+        cacheIt = this->sectionCache->begin();
+
+        while (cacheIt != this->sectionCache->end()) { 
+            std::string sectionName = cacheIt->first;
+            TRACE("clearing section : %s", sectionName.c_str());
+            std::list<std::pair<std::string, DesktopFile>> list = cacheIt->second;
+            TRACE("clearing list");
+
+            std::list<std::pair<std::string, DesktopFile>>::iterator fileIt;
+            fileIt = cacheIt->second.begin();
+            while (fileIt != cacheIt->second.end()) {
+                std::string fileName = fileIt->first;
+                TRACE("clearing file : %s", fileName.c_str());
+                fileIt = cacheIt->second.erase(fileIt);
+            }          
+            cacheIt = this->sectionCache->erase(cacheIt);
+            TRACE("remaining cache size : %zu", this->sectionCache->size());
+        }
+        this->sectionCache = nullptr;
+    }
     TRACE("exit");
 }
 
@@ -249,13 +269,18 @@ void OpkCache::scanSection(const std::string & sectionName, std::string path) {
 
 		if (statRet != -1) {
 			TRACE("found desktop file : '%s'", dptr->d_name);
-            DesktopFile file(filepath);
+            DesktopFile file;
+            if (!file.fromFile(filepath)) {
+                ERROR("Couldn't read desktop file : %s", filepath.c_str());
+                continue;
+            }
+            TRACE("hydrated successfully");
             if (OPK_EXEC == file.exec() && !file.provider().empty()) {
-                TRACE("it's an opk desktop file");
+                TRACE("it's a valid opk desktop file, let's handle it");
                 this->notify("Loading: " + file.title());
-
+                TRACE("adding to cache");
                 this->addToCache(sectionName, file);
-
+                TRACE("added to cache");
             }
 		}
 	}
