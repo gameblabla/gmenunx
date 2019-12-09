@@ -11,15 +11,11 @@
 
 #define sync() sync(); system("sync");
 
-using std::ifstream;
-using std::ofstream;
-using std::string;
-
 DesktopFile::DesktopFile() {
     this->reset();
 }
 
-DesktopFile::DesktopFile(const string & file) {
+DesktopFile::DesktopFile(const std::string & file) {
     this->reset();
     this->fromFile(file);
 }
@@ -36,9 +32,9 @@ DesktopFile * DesktopFile::clone() {
     return result;
 }
 
-string DesktopFile::toString() {
+std::string DesktopFile::toString() {
 
-    vector<string> vec;
+    std::vector<std::string> vec;
 
     vec.push_back("# " + APP_NAME + " X-tended desktop file");
     vec.push_back("# lines starting with a # are ignored");
@@ -64,55 +60,68 @@ string DesktopFile::toString() {
 }
 
 void DesktopFile::parse(std::istream & instream) {
-	string line;
+    TRACE("enter");
+	std::string line;
 	while (std::getline(instream, line, '\n')) {
 		line = trim(line);
         if (0 == line.length()) continue;
         if ('#' == line[0]) continue;
-		string::size_type pos = line.find("=");
-        if (string::npos == pos) continue;
+		std::string::size_type pos = line.find("=");
+        if (std::string::npos == pos) continue;
                 
-		string name = trim(line.substr(0,pos));
-		string value = trim(line.substr(pos+1,line.length()));
+		std::string name = trim(line.substr(0,pos));
+		std::string value = trim(line.substr(pos+1,line.length()));
 
         if (0 == value.length()) continue;
         name = toLower(name);
-        //TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
+        TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
-        if (name == "title") {
-            this->title(stripQuotes(value));
-        } else if (name == "description") {
-            this->description(stripQuotes(value));
-        } else if (name == "icon") {
-            this->icon(stripQuotes(value));
-        } else if (name == "exec") {
-            this->exec(stripQuotes(value));
-        } else if (name == "params") {
-            this->params(stripQuotes(value));
-        } else if (name == "selectordir") {
-            this->selectordir(stripQuotes(value));
-        } else if (name == "selectorfilter") {
-            this->selectorfilter(stripQuotes(value));
-        } else if (name == "x-provider") {
-            this->provider(stripQuotes(value));
-        } else if (name == "x-providermetadata") {
-            this->providerMetadata(stripQuotes(value));
-        } else if (name == "consoleapp") {
-            bool console = "false" == stripQuotes(value) ? false : true;
-            this->consoleapp(console);
-        } else if (name == "selectorbrowser") {
-            // eat it
-        } else if (name == "manual") {
-            this->manual(stripQuotes(value));
-        } else if (name == "workdir") {
-            this->workdir(stripQuotes(value));
-        } else {
-            WARNING("unknown .desktop key : %s", name.c_str());
+            try {
+            if (name == "title") {
+                this->title(stripQuotes(value));
+            } else if (name == "description") {
+                this->description(stripQuotes(value));
+            } else if (name == "icon") {
+                this->icon(stripQuotes(value));
+            } else if (name == "exec") {
+                this->exec(stripQuotes(value));
+            } else if (name == "params") {
+                this->params(stripQuotes(value));
+            } else if (name == "selectordir") {
+                this->selectordir(stripQuotes(value));
+            } else if (name == "selectorfilter") {
+                this->selectorfilter(stripQuotes(value));
+            } else if (name == "x-provider") {
+                this->provider(stripQuotes(value));
+            } else if (name == "x-providermetadata") {
+                this->providerMetadata(stripQuotes(value));
+            } else if (name == "consoleapp") {
+                bool console = "false" == stripQuotes(value) ? false : true;
+                this->consoleapp(console);
+            } else if (name == "selectorbrowser") {
+                // eat it
+            } else if (name == "manual") {
+                this->manual(stripQuotes(value));
+            } else if (name == "workdir") {
+                this->workdir(stripQuotes(value));
+            } else {
+                WARNING("unknown .desktop key : %s", name.c_str());
+            }
+        } 
+        catch (int param) { 
+            ERROR("int exception : %i from <%s, %s>", 
+                param, name.c_str(), value.c_str()); }
+        catch (char *param) { 
+            ERROR("char exception : %s from <%s, %s>", 
+                param, name.c_str(), value.c_str()); }
+        catch (...) { 
+            ERROR("unknown error reading value from <%s, %s>", 
+                name.c_str(), value.c_str());
         }
     };
 }
 
-bool DesktopFile::fromFile(const string & file) {
+bool DesktopFile::fromFile(const std::string & file) {
     TRACE("enter : %s", file.c_str());
     bool success = false;
     if (fileExists(file)) {
@@ -120,7 +129,10 @@ bool DesktopFile::fromFile(const string & file) {
         this->path_ = file;
 
 		std::ifstream confstream(this->path_.c_str(), std::ios_base::in);
+        std::locale loc("");
+        confstream.imbue(loc);
 		if (confstream.is_open()) {
+            TRACE("parsing the stream");
 			this->parse(confstream);
             confstream.close();
             success = true;
@@ -143,7 +155,7 @@ void DesktopFile::remove() {
     TRACE("exit");
 }
 
-bool DesktopFile::save(const string & path) {
+bool DesktopFile::save(const std::string & path) {
     TRACE("enter : %s", path.c_str());
     if (this->isDirty_) {
         if (!path.empty()) {
