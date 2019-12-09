@@ -64,14 +64,16 @@ Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) 
 		TRACE("matched on skin:");
 		filePath = this->skin->getSkinFilePath(filePath.substr(5,filePath.length()));
 		TRACE("filepath - %s", filePath.c_str());
-		if (filePath.empty())
+		if (filePath.empty()) {
+			TRACE("couldn't resolve file from skin : %s", path.c_str());
 			return NULL;
+		}
 	} else if (!fileExists(filePath)) {
 		TRACE("file doesn't exist");
 		return NULL;
 	}
 
-	TRACE("Adding surface: '%s'", path.c_str());
+	TRACE("adding surface: '%s'", path.c_str());
 	Surface *s = new Surface(filePath, alpha);
 	if (s != NULL) {
 		if (grayScale)
