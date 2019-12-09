@@ -162,10 +162,10 @@ const bool Installer::deployLauncher() {
         launcher << "\n";
     //        launcher << "if [ -f ${OPK_PATH} ] && [ ! -f ${MARKER} ]; then\n";
         launcher << "if [ -f ${BINARY} ] && [ ! -f ${MARKER} ]; then\n";
-        launcher << "\trm -f ${LOG_FILE}\n";
+    //    launcher << "\trm -f ${LOG_FILE}\n";
     //        launcher << "\t/usr/bin/opkrun -m default.gcw0.desktop ${OPK_PATH} 2>&1 >> ${LOG_FILE}\n";
     //    launcher << "\t${BINARY} 2>&1 >> ${LOG_FILE}\n";
-        launcher << "\t${BINARY}\n";
+        launcher << "\t${BINARY} 2>&1 >> ${LOG_FILE}\n";
         launcher << "else\n";
         launcher << "\tif [ -f ${MARKER} ];then\n";
         launcher << "\t\trm -f ${MARKER}\n";
