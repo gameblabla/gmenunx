@@ -66,8 +66,8 @@ void Link::setTitle(const string &title) {
 			pos = temp.find( "  ", 0 );
 		};
 		int maxWidth = (app->linkWidth);
-		if ((int)app->font->getTextWidth(temp) > maxWidth) {
-			while ((int)app->font->getTextWidth(temp + "..") > maxWidth) {
+		if ((int)app->font->getLineWidthSafe(temp) > maxWidth) {
+			while ((int)app->font->getLineWidthSafe(temp + "..") > maxWidth) {
 				temp = temp.substr(0, temp.length() - 1);
 			}
 			temp += "..";

@@ -130,25 +130,27 @@ void ProgressBar::finished(int millis) {
     std::this_thread::sleep_for(std::chrono::milliseconds(millis));
 }
 
-void ProgressBar::updateDetail(std::string text) {
+void ProgressBar::updateDetail(const std::string &text) {
     TRACE("enter : %s", text.c_str());
-    if(!(this->app || this->app->font))
-        return;
-    if (this->finished_)
-        return;
+    if(!(this->app || this->app->font)) return;
+    if (this->finished_) return;
+    std::string localText = std::string(text);
     try {
-        int textWidth = this->app->font->getTextWidth(text);
+        TRACE("getting text width for : '%s'",  localText.c_str());
+        int textWidth = this->app->font->getLineWidthSafe(localText);
+        //TRACE("text width : %i, titleWidth : %i", textWidth, this->titleWidth);
         if (textWidth > this->titleWidth && this->titleWidth > 3) {
             while (textWidth > this->titleWidth) {
-                TRACE("%s : %i > %i", text.c_str(), textWidth, this->titleWidth);
-                text = text.substr(0, text.length() -2);
-                textWidth = this->app->font->getTextWidth(text + "...");
+                TRACE("%s : %i > %i", localText.c_str(), textWidth, this->titleWidth);
+                localText = localText.substr(0, localText.length() -1);
+                textWidth = this->app->font->getLineWidthSafe(localText + "...");
             }
-            text += "...";
+            localText += "...";
         }
-    } catch(...) {
-        ERROR("Couldn't get text size for :%s", text.c_str());
+    } catch(std::exception& e) {
+        ERROR("Couldn't get text size for :%s", localText.c_str());
+        ERROR("Exception : %s", e.what());
     }
-    this->detail_ = text;
-    TRACE("exit : %s", text.c_str());
+    this->detail_ = localText;
+    TRACE("exit : %s", localText.c_str());
 }

@@ -23,7 +23,7 @@ public:
     static uint32_t render(uint32_t interval, void * data);
 	void setBgAlpha(bool bgalpha);
     void finished(int millis = 0);
-	void updateDetail(std::string text);
+	void updateDetail(const std::string &text);
 };
 
 #endif /*PROGRESSBAR_H_*/

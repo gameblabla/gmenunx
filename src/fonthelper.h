@@ -33,6 +33,7 @@ public:
 	void write(Surface *surface, std::vector<std::string> *text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor);
 	void write(Surface *surface, std::vector<std::string> *text, int x, int y, const uint8_t align = HAlignLeft | VAlignTop);
 
+	uint32_t getLineWidthSafe(const std::string &text);
 	uint32_t getLineWidth(const std::string &text);
 	uint32_t getTextWidth(const std::string &text);
 	int getTextHeight(const std::string &text);

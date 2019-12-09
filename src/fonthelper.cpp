@@ -1,3 +1,5 @@
+#include <string>
+
 #include "fonthelper.h"
 #include "utilities.h"
 #include "debug.h"
@@ -12,10 +14,14 @@ FontHelper::FontHelper(const std::string &fontName, int fontSize, RGBAColor text
 }
 
 FontHelper::~FontHelper() {
-	TTF_CloseFont(this->font);
-	TTF_CloseFont(this->fontOutline);
+	TRACE("enter");
+	if (this->font)
+		TTF_CloseFont(this->font);
+	if (this->fontOutline)
+		TTF_CloseFont(this->fontOutline);
 	this->font = NULL;
 	this->fontOutline = NULL;
+	TRACE("exit");
 }
 
 void FontHelper::loadFont(const std::string &fontName, int fontSize) {
@@ -70,14 +76,42 @@ FontHelper *FontHelper::setOutlineColor(RGBAColor color) {
 	return this;
 }
 
+uint32_t FontHelper::getLineWidthSafe(const std::string &text) {
+	std::string localText;
+	// use the most common letter
+	localText.append(text.length(), 'e');
+	return this->getLineWidth(localText);
+}
+
 uint32_t FontHelper::getLineWidth(const std::string &text) {
-	int width = 0;
-	TTF_SizeUTF8(this->fontOutline, text.c_str(), &width, NULL);
+	TRACE("enter : %s", text.c_str());
+	int width = -1;
+	try {
+		if (text.empty())
+			return 0;
+		if (!this->fontOutline) {
+			ERROR("Calling getLineWidth without a valid fontOutline");
+			return -1;
+		} else if (0 != TTF_SizeUTF8(this->fontOutline, text.c_str(), &width, NULL)) {
+			ERROR("TTF_SizeUTF8 error : %s", TTF_GetError());
+			return -2;
+		}
+	} 
+	catch(std::exception& e) { 
+		ERROR("Exception : %s", e.what());
+		return -3;
+	}
+	catch (...) {
+		WARNING("error getting line width for : %s", text.c_str());
+		WARNING("sdl ttf error : %s", TTF_GetError());
+		return -4;
+	}
+	TRACE("exit : %s = %i px", text.c_str(), width);
 	return width;
 }
 
 uint32_t FontHelper::getTextWidth(const std::string &text) {
-	if (text.find("\n",0) != std::string::npos) {
+	if (text.find("\n", 0) != std::string::npos) {
 		vector<string> textArr;
 		split(textArr, text, "\n");
 		return getTextWidth(&textArr);
