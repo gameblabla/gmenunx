@@ -130,7 +130,7 @@ void Renderer::render() {
 			};
 
 			// do we have an image
-			if (!app->skin->sectionInfoBarImage.empty()) {
+			if (!app->skin->sectionInfoBarImage.empty() && NULL != (*app->sc)[app->skin->sectionInfoBarImage]) {
 				//TRACE("infoBar has an image : %s", app->skin->sectionInfoBarImage.c_str());
 				if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != app->config->resolutionX()) {
 					//TRACE("infoBar image is being scaled");
@@ -171,7 +171,7 @@ void Renderer::render() {
 	if (app->skin->sectionBar) {
 
 		// do we have an image
-		if (!app->skin->sectionTitleBarImage.empty()) {
+		if (!app->skin->sectionTitleBarImage.empty() && NULL != (*app->sc)[app->skin->sectionTitleBarImage]) {
 			//TRACE("sectionBar has an image : %s", app->skin->sectionTitleBarImage.c_str());
 			if ((*app->sc)[app->skin->sectionTitleBarImage]->raw->h != app->sectionBarRect.h || (*app->sc)[app->skin->sectionTitleBarImage]->raw->w != app->config->resolutionX()) {
 				TRACE("sectionBar image is being scaled");
