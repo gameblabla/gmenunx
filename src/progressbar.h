@@ -8,16 +8,15 @@ class ProgressBar {
 
 private:
 	std::string title_, detail_, icon;
-	int bgalpha, boxPadding, boxHeight, titleWidth;
+	int bgalpha, boxPadding, boxHeight, maxWidth, lineHeight;
 	Esoteric *app;
-	std::string formatText(const std::string & text);
 	void free();
     bool finished_;
     SDL_TimerID timerId_;
     int interval_ = 100;
 
 public:
-	ProgressBar(Esoteric *app, const std::string &title, const std::string &icon="");
+	ProgressBar(Esoteric *app, const std::string &title, const std::string &icon = "", const int width = 0);
     ~ProgressBar();
 	void exec();
     static uint32_t render(uint32_t interval, void * data);
