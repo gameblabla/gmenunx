@@ -116,7 +116,6 @@ while getopts ":hfqiuld" opt; do
 		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 		myMake "Makefile.rg-350 clean opk"
 		fullDeploy
-		installLaunchLink
       ;;
     q )
 		export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-

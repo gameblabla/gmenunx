@@ -20,7 +20,6 @@ CFLAGS = \
     -DHAVE_LIBOPK \
 	-DENABLE_INOTIFY \
     -Wno-narrowing \
-    -g3 \
 	$(SDL_CFLAGS) \
     -O2 \
     -finline-functions \
