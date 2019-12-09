@@ -51,6 +51,8 @@ int Monitor::run() {
 
 	for (;;) {
 
+		if (!this->running_) break;
+
 		unsigned int avail;
 		ioctl(this->fd, FIONREAD, &avail);
 		TRACE("inotify has %i bytes to read", avail);
@@ -92,7 +94,8 @@ int Monitor::run() {
 			}
 		}
 	}
-	INFO("deleted self or moved self");
+	if (this->running_)
+		INFO("deleted self or moved self");
 	return 0;
 }
 
@@ -104,21 +107,27 @@ static void * inotify_thd(void *p) {
 
 void Monitor::stop() {
 	TRACE("enter");
-	if (!this->running_)
-		return;
+	this->running_ = false;
 	if (this->fd > 0 && this->wd > 0) {
 		TRACE("removing inotify watch : %i", this->wd);
-		if (0 == inotify_rm_watch(this->fd, this->wd)) {
-			TRACE("watch removed successfully");
+		int result = 0;
+		if (0 == (result = inotify_rm_watch(this->fd, this->wd))) {
+			TRACE("watch '%i' removed successfully", this->wd);
 			this->wd = 0;
+		} else {
+			ERROR("removing inotify watch returned : %i", result);
 		}
 	}
 	if (this->wd == 0 && this->fd > 0) {
 		TRACE("closing fd : %i", this->fd);
-		close(this->fd);
-		this->fd = 0;
+		int result = 0;
+		if (0 == (result = close(this->fd))) {
+			TRACE("closed file handle : %i", this->fd);
+			this->fd = 0;
+		} else {
+			ERROR("removing file handle '%i' : %i", this->fd, result);
+		}
 	}
-	this->running_ = !(this->fd == 0 && this->wd == 0);
 	TRACE("exit : %i", this->running_ );
 }
 
