@@ -84,16 +84,26 @@ using std::stringstream;
 using namespace fastdelegate;
 
 int main(int argc, char * argv[]) {
+
 	INFO("%s starting: Build Date - %s", APP_NAME.c_str(), __BUILDTIME__);
 
 	signal(SIGINT, &Esoteric::quit_all);
 	signal(SIGSEGV,&Esoteric::quit_all);
 	signal(SIGTERM,&Esoteric::quit_all);
 
-	app = new Esoteric();
-	TRACE("Starting app->main()");
-	app->main();
-	return 0;
+	try {
+		app = new Esoteric();
+		TRACE("Starting app->main()");
+		app->main();
+		return 0;
+	}
+	catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
+         throw;
+    }
+    catch(...) {
+        throw;
+    }
 }
 
 Esoteric::Esoteric() : input(screenManager) {
@@ -146,17 +156,25 @@ Esoteric::Esoteric() : input(screenManager) {
 		this->hw->setVolumeLevel(this->config->globalVolume());
 	}
 
+	TRACE("loading skin : %s", this->config->skin().c_str());
+	this->skin = new Skin(localAssetsPath, 
+		config->resolutionX(),  
+		config->resolutionY());
+
+	if (!this->skin->loadSkin( config->skin())) {
+		WARNING("couldn't load skin, using defaults");
+	}
+
 	//Screen
 	TRACE("setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 
 	TRACE("sdl_init");
-	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK) < 0 ) {
+	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO) < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit();
 	}
-	TRACE("disabling the cursor");
 	SDL_ShowCursor(SDL_DISABLE);
 
 	TRACE("new surface");
@@ -172,26 +190,18 @@ Esoteric::Esoteric() : input(screenManager) {
 		config->videoBpp(), 
 		SDL_HWSURFACE|SDL_DOUBLEBUF);
 
+	TRACE("initFont");
+	initFont();
+
 	TRACE("new ui");
 	this->ui = new UI(this);
-
-	TRACE("new skin");
-	this->skin = new Skin(localAssetsPath, 
-		config->resolutionX(),  
-		config->resolutionY());
-
-	if (!this->skin->loadSkin( config->skin())) {
-		ERROR("Esoteric::ctor - couldn't load skin, using defaults");
-	}
 
 	TRACE("new surface collection");
 	this->sc = new SurfaceCollection(this->skin, true);
 
-	TRACE("initFont");
-	initFont();
-
-	TRACE("screen mgr");
+	TRACE("screen mgr long timeout for loading");
 	this->screenManager.setScreenTimeout(600);
+
 	TRACE("input");
 	this->input.init(this->getReadablePath() + "input.conf");
 	setInputSpeed();
@@ -203,47 +213,98 @@ Esoteric::Esoteric() : input(screenManager) {
 Esoteric::~Esoteric() {
 	TRACE("enter\n\n");
 	quit();
-	delete ui;
-	delete menu;
-	delete screen;
-	delete font;
-	delete fontTitle;
-	delete fontSectionTitle;
-	delete hw;
-	delete skin;
-	delete sc;
-	delete config;
 	#ifdef HAVE_LIBOPK
-	delete cache;
+	if (cache) {
+		TRACE("delete - cache");
+		delete cache;
+		cache = nullptr;
+	}
 	#endif
+	if (ui) {
+		TRACE("delete - ui");
+		delete ui;
+		ui = nullptr;
+	}
+	if (menu) {
+		TRACE("delete - menu");
+		delete menu;
+		menu = nullptr;
+	}
+	if (screen) {
+		TRACE("delete - screen");
+		delete screen;
+		screen = nullptr;
+	}
+	if (font) {
+		TRACE("delete - font");
+		delete font;
+		font = nullptr;
+	}
+	if (fontTitle) {
+		TRACE("delete - font Title");
+		delete fontTitle;
+		fontTitle = nullptr;
+	}
+	if (fontSectionTitle) {
+		TRACE("delete - font section title");
+		delete fontSectionTitle;
+		fontSectionTitle = nullptr;
+	}
+	if (hw) {
+		TRACE("delete - hw");
+		delete hw;
+		hw = nullptr;
+	}
+	if (skin) {
+		TRACE("delete - skin");
+		delete skin;
+		skin = nullptr;
+	}
+	if (sc) {
+		TRACE("delete - surface collection");
+		delete sc;
+		sc=  nullptr;
+	}
+	if (config) {
+		TRACE("delete - config");
+		delete config;
+		config = nullptr;
+	}
 	TRACE("exit\n\n");
 }
 
 void Esoteric::quit_all(int err) {
-	TRACE("enter");
-	delete app;
-	exit(err);
+	TRACE("enter : %i", err);
+	if (app) {
+		delete app;
+		app = nullptr;
+	}
+	TRACE("exit");
+	std::exit(err);
 }
 
 void Esoteric::quit() {
 	TRACE("enter");
 	if (!this->sc->empty()) {
-		TRACE("SURFACE EXISTED");
+		TRACE("surfaces exist, full quit to do");
 		writeConfig();
 		this->hw->ledOff();
-		fflush(NULL);
 		TRACE("clearing the surface collection");
 		this->sc->clear();
 		TRACE("freeing the screen");
 		this->screen->free();
-		releaseScreen();
+		this->releaseScreen();
 	}
 	TRACE("quit - exit");
 }
 
 void Esoteric::releaseScreen() {
 	TRACE("calling SDL_Quit");
+	if (TTF_WasInit()) {
+		TTF_Quit();
+	}
 	SDL_Quit();
+	TRACE("exit");
 }
 
 void Esoteric::main() {
@@ -253,9 +314,10 @@ void Esoteric::main() {
 	TRACE("checking sd card");
 	this->hw->checkUDC();
 	bool showGreeting = false;
-	std::string title = "Please wait, loading the everything...";
+	std::string title = "Please wait, loading...";
 	if (this->needsInstalling) {
 		if(dirExists(this->getWriteablePath())) {
+			title = "Please wait, upgrading your installation";
 			this->doUpgrade();
 		} else {
 			title = "Please wait, building application cache";
@@ -267,9 +329,30 @@ void Esoteric::main() {
 	ProgressBar * pbLoading = new ProgressBar(
 		this, 
 		title, 
-		"skin:icons/device.png");
+		"skin:icons/device.png", 
+		-30);
+
+if (false) {
+	
+	// non threaded version
+
+	if (this->skin->showLoader && Loader::isFirstRun()) {
+		Loader loader(this);
+		loader.run();
+	}
+	Loader::setFirstRunMarker();
 
 	pbLoading->updateDetail("Checking for new applications...");
+	pbLoading->exec();
+	this->updateAppCache([&](std::string message){ return pbLoading->updateDetail(message); });
+
+	pbLoading->updateDetail("Initialising hardware");
+	this->hw->setPerformanceMode(this->config->performance());
+	this->hw->setCPUSpeed(this->config->cpuMenu());
+
+} else {
+
+	pbLoading->updateDetail("Checking for new apps...");
 	TRACE("kicking off our app cache thread");
 	std::thread * thread_cache = new std::thread(
 		&Esoteric::updateAppCache, 
@@ -280,8 +363,9 @@ void Esoteric::main() {
 		Loader loader(this);
 		loader.run();
 	}
+
 	pbLoading->exec();
-	Loader::setMarker();
+	Loader::setFirstRunMarker();
 	pbLoading->updateDetail("Initialising hardware");
 	this->hw->setPerformanceMode(this->config->performance());
 	this->hw->setCPUSpeed(this->config->cpuMenu());
@@ -294,14 +378,15 @@ void Esoteric::main() {
 		TRACE("app cache thread has finished");
 	}
 
+}
+
 	// initMenu needs to come after cache thread has joined
 	initMenu();
 	setWallpaper(this->skin->wallpaper);
-	// readTmp has to come after initMenu
-	readTmp();
 
-	TRACE("screen manager");
-	screenManager.setScreenTimeout( config->backlightTimeout());
+
+	TRACE("set hardware to real settings");
+	screenManager.setScreenTimeout(config->backlightTimeout());
 	input.setWakeUpInterval(1000);
 	this->hw->ledOff();
 
@@ -314,6 +399,8 @@ void Esoteric::main() {
 	TRACE("removing the boot marker");
 	Installer::removeBootMarker();
 
+	// readTmp has to come after initMenu
+	this->readTmp();
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
 		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
@@ -326,6 +413,8 @@ void Esoteric::main() {
 	}
 
 	bool quit = false;
+	renderer->startPolling();
+
 	while (!quit) {
 		try {
 			// TRACE("loop");
@@ -354,7 +443,6 @@ void Esoteric::main() {
 		}
 
 		bool inputAction = input.update();
-
 		if (inputAction) {
 			if ( input[QUIT] ) {
 				quit = true;
@@ -403,8 +491,10 @@ void Esoteric::main() {
 		}
 	}
 
-	if (renderer)
+	if (renderer) {
+		renderer->stopPolling();
 		delete renderer;
+	}
 
 	TRACE("exit");
 }
@@ -531,7 +621,7 @@ void Esoteric::initFont() {
 	TRACE("enter");
 
 	string fontPath = this->skin->getSkinFilePath("font.ttf");
-	TRACE("getSkinFilePath: %s", fontPath.c_str());
+	TRACE("font path: %s", fontPath.c_str());
 
 	if (fileExists(fontPath)) {
 		TRACE("font file exists");
@@ -1501,7 +1591,12 @@ void Esoteric::doUpgrade() {
 	string destination = getWriteablePath();
 
 	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
-	ProgressBar *pbInstall = new ProgressBar(this, "Copying new data for upgrade...", "skin:icons/device.png");
+	ProgressBar *pbInstall = new ProgressBar(
+		this, 
+		"Copying new data for upgrade...", 
+		"skin:icons/device.png", 
+		-30);
+
 	pbInstall->exec();
 	INFO("doing a full copy");
 
@@ -1527,7 +1622,12 @@ void Esoteric::doInstall() {
 	TRACE("enter");
 	bool success = false;
 
-	ProgressBar *pbInstall = new ProgressBar(this, "Installing launcher script...", "skin:icons/device.png");
+	ProgressBar *pbInstall = new ProgressBar(
+		this, 
+		"Installing launcher script...", 
+		"skin:icons/device.png", 
+		200);
+
 	if (!pbInstall) {
 		ERROR("Couldn't make progress bar");
 		return;
@@ -1566,7 +1666,8 @@ void Esoteric::doUnInstall() {
 	ProgressBar *pbInstall = new ProgressBar(
 		this, 
 		"UnInstalling launcher script...", 
-		"skin:icons/device.png");
+		"skin:icons/device.png", 
+		200);
 
 	pbInstall->exec();
 
@@ -1599,7 +1700,8 @@ bool Esoteric::doInitialSetup() {
 	ProgressBar *pbInstall = new ProgressBar(
 		this, 
 		"Copying data to home directory...", 
-		"skin:icons/device.png");
+		"skin:icons/device.png", 
+		-30);
 
 	pbInstall->exec();
 	INFO("doing a full copy");
@@ -1644,7 +1746,7 @@ void Esoteric::poweroffDialog() {
 	mb.setButton(CANCEL,  tr["Cancel"]);
 	int response = mb.exec();
 	if (response == CONFIRM) {
-		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png");
+		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png", 100);
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
 		pbShutdown.finished(500);
@@ -1653,8 +1755,8 @@ void Esoteric::poweroffDialog() {
 		std::system("poweroff");
 	}
 	else if (response == SECTION_NEXT) {
-		ProgressBar pbReboot(this, " Rebooting", "skin:icons/device.png");
-		pbReboot.updateDetail     ("  ~ now ~ ");
+		ProgressBar pbReboot(this, " Rebooting ", "skin:icons/device.png", 80);
+		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
 		pbReboot.finished(500);
 		this->hw->setBacklightLevel(0);
