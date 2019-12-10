@@ -275,11 +275,12 @@ string exec(const char* cmd) {
 	string result = "";
 	while (!feof(pipe)) {
 		if(fgets(buffer, sizeof buffer, pipe) != NULL) {
-			TRACE("exec - buffer : %s", buffer);
+			//TRACE("exec - buffer : %s", buffer);
 			result += buffer;
 		}
 	}
 	pclose(pipe);
+	result = full_trim(result);
 	TRACE("exec - exit : %s", result.c_str());
 	return result;
 }
