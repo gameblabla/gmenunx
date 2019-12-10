@@ -10,15 +10,23 @@ FontHelper::FontHelper(const std::string &fontName, int fontSize, RGBAColor text
 	  textColor(textColor),
 	  outlineColor(outlineColor) {
 
+	this->font = NULL;
+	this->fontOutline = NULL;
 	loadFont(fontName, fontSize);
 }
 
 FontHelper::~FontHelper() {
 	TRACE("enter");
-	if (this->font)
-		TTF_CloseFont(this->font);
-	if (this->fontOutline)
-		TTF_CloseFont(this->fontOutline);
+	if (TTF_WasInit()) {
+		if (NULL != this->font) {
+			TRACE("closing font");
+			TTF_CloseFont(this->font);
+		}
+		if (NULL != this->fontOutline) {
+			TRACE("closing fontOutline");
+			TTF_CloseFont(this->fontOutline);
+		}
+	}
 	this->font = NULL;
 	this->fontOutline = NULL;
 	TRACE("exit");
