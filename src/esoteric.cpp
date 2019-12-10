@@ -1750,7 +1750,6 @@ void Esoteric::poweroffDialog() {
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
 		pbShutdown.finished(500);
-		this->hw->setBacklightLevel(0);
 		sync();
 		std::system("poweroff");
 	}
@@ -1759,7 +1758,6 @@ void Esoteric::poweroffDialog() {
 		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
 		pbReboot.finished(500);
-		this->hw->setBacklightLevel(0);
 		sync();
 		std::system("reboot");
 	}
