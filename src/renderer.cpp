@@ -64,16 +64,21 @@ void Renderer::startPolling() {
 }
 
 void Renderer::stopPolling() {
+	TRACE("enter - timer id : %lu", (long)this->timerId_);
     if (this->timerId_ > 0) {
 		SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(this->timerId_);
 		this->timerId_ = 0;
     }
+	TRACE("exit - timer id : %lu", (long)this->timerId_);
 }
 
 void Renderer::quit() {
+	TRACE("enter");
 	this->finished_ = true;
 	this->stopPolling();
+	this->helpers.clear();
+	TRACE("exit");
 }
 
 void Renderer::render() {
@@ -545,7 +550,10 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
 		TRACE("blitting");
-		(*it)->blit(
+		Surface *surface = (*it);
+		if (NULL == surface)
+			continue;
+		surface->blit(
 			app->screen, 
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
 			rootYPos - (currentYOffset * (helperHeight - 2))
