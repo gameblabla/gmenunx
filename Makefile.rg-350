@@ -26,6 +26,7 @@ CFLAGS = \
     -mips32r2 \
     -fPIC \
 	-flto \
+	-fexceptions \
     -mplt \
     -msym32 \
 	-funroll-loops \

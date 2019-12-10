@@ -19,6 +19,7 @@ CFLAGS = -ggdb \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \
 	-DENABLE_INOTIFY \
+	-fexceptions \
     -Wno-narrowing
 
 CXXFLAGS := $(CFLAGS)
