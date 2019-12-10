@@ -100,7 +100,7 @@ bool myOpk::load(OPK * opk) {
             this->selectorFilter(value);
         } else if (loweredKey == "x-od-filter") {
             this->selectorFilter(value);
-        } else if (loweredKey == "x-od-aliases") {
+        } else if (loweredKey == "x-od-alias") {
             this->aliases(value);
         } else if (loweredKey == "type") {
             this->type(value);
