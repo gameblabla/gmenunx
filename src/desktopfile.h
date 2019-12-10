@@ -18,8 +18,9 @@ class DesktopFile {
         std::string icon_; //=/home/mat/.esoteric/skins/Default/icons/regba-silver.png
         std::string exec_; //=/bin/bash
         std::string params_;  //=-m default.gcw0.desktop /home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk 
-        std::string selectordir_; //=/home/mat/Downloads
-        std::string selectorfilter_; //=.opk
+        std::string selectorDir_; //=/home/mat/Downloads
+        std::string selectorFilter_; //=.opk
+        std::string selectorAliases_;
         std::string provider_; //=/home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk
         std::string providerMetadata_; //=default.gcw0.desktop
         std::string manual_;
@@ -82,17 +83,24 @@ class DesktopFile {
                 this->isDirty_ = true;
             }
         }
-        std::string selectordir() const { return this->selectordir_; }
-        void selectordir(std::string val) { 
-            if (val != this->selectordir_) {
-                this->selectordir_ = val;
+        std::string selectorDir() const { return this->selectorDir_; }
+        void selectorDir(std::string val) { 
+            if (val != this->selectorDir_) {
+                this->selectorDir_ = val;
                 this->isDirty_ = true;
             }
         }
-        std::string selectorfilter() const { return this->selectorfilter_; }
-        void selectorfilter(std::string val) { 
-            if (val != this->selectorfilter_) {
-                this->selectorfilter_ = val;
+        std::string selectorFilter() const { return this->selectorFilter_; }
+        void selectorFilter(std::string val) { 
+            if (val != this->selectorFilter_) {
+                this->selectorFilter_ = val;
+                this->isDirty_ = true;
+            }
+        }
+        std::string selectorAliases() const { return this->selectorAliases_; }
+        void selectorAliases(std::string val) { 
+            if (val != this->selectorAliases_) {
+                this->selectorAliases_ = val;
                 this->isDirty_ = true;
             }
         }

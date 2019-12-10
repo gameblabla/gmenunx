@@ -625,8 +625,9 @@ void OpkCache::handleNewOpk(const std::string & path) {
             finalFile->exec(OPK_EXEC);
             finalFile->params(theOpk.params());
             finalFile->manual(manualPath);
-            finalFile->selectordir(theOpk.selectorDir());
-            finalFile->selectorfilter(theOpk.selectorFilter());
+            finalFile->selectorDir(theOpk.selectorDir());
+            finalFile->selectorFilter(theOpk.selectorFilter());
+            finalFile->selectorAliases(theOpk.aliases());
             finalFile->consoleapp(theOpk.terminal());
             finalFile->description(theOpk.comment());
             finalFile->provider(path);

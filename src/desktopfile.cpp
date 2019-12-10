@@ -45,8 +45,9 @@ std::string DesktopFile::toString() {
     vec.push_back(string_format("icon=%s", this->icon().c_str()));
     vec.push_back(string_format("exec=%s", this->exec().c_str()));
     vec.push_back(string_format("params=%s", this->params().c_str()));
-    vec.push_back(string_format("selectorDir=%s", this->selectordir().c_str()));
-    vec.push_back(string_format("selectorFilter=%s", this->selectorfilter().c_str()));
+    vec.push_back(string_format("selectorDir=%s", this->selectorDir().c_str()));
+    vec.push_back(string_format("selectorFilter=%s", this->selectorFilter().c_str()));
+    vec.push_back(string_format("selectorAliases=%s", this->selectorAliases().c_str()));
     vec.push_back(string_format("manual=%s", this->manual().c_str()));
     vec.push_back(string_format("workdir=%s", this->workdir().c_str()));
     vec.push_back(string_format("X-Provider=%s", this->provider().c_str()));
@@ -68,7 +69,7 @@ void DesktopFile::parse(std::istream & instream) {
         if ('#' == line[0]) continue;
 		std::string::size_type pos = line.find("=");
         if (std::string::npos == pos) continue;
-                
+
 		std::string name = trim(line.substr(0,pos));
 		std::string value = trim(line.substr(pos+1,line.length()));
 
@@ -88,9 +89,11 @@ void DesktopFile::parse(std::istream & instream) {
             } else if (name == "params") {
                 this->params(stripQuotes(value));
             } else if (name == "selectordir") {
-                this->selectordir(stripQuotes(value));
+                this->selectorDir(stripQuotes(value));
             } else if (name == "selectorfilter") {
-                this->selectorfilter(stripQuotes(value));
+                this->selectorFilter(stripQuotes(value));
+            } else if (name == "selectoraliases") {
+                this->selectorAliases(stripQuotes(value));
             } else if (name == "x-provider") {
                 this->provider(stripQuotes(value));
             } else if (name == "x-providermetadata") {
@@ -184,8 +187,9 @@ void DesktopFile::reset() {
     this->icon_ = "";
     this->exec_ = "";
     this->params_ = "";
-    this->selectordir_ = "";
-    this->selectorfilter_ = "";
+    this->selectorDir_ = "";
+    this->selectorFilter_ = "";
+    this->selectorAliases_ = "";
     this->provider_ = "";
     this->providerMetadata_ = "default.gcw0.desktop";
     this->manual_ = "";
