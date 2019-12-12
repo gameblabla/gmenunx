@@ -1779,6 +1779,7 @@ void Esoteric::poweroffDialog() {
 		pbShutdown.exec();
 		sync();
 		std::system("poweroff");
+		pbShutdown.finished(1000);
 	}
 	else if (response == SECTION_NEXT) {
 		ProgressBar pbReboot(this, " Rebooting ", "skin:icons/device.png", 80);
@@ -1786,6 +1787,7 @@ void Esoteric::poweroffDialog() {
 		pbReboot.exec();
 		sync();
 		std::system("reboot");
+		pbReboot.finished(1000);
 	}
 }
 
