@@ -151,9 +151,23 @@ bool DesktopFile::fromFile(const std::string & file) {
 
 void DesktopFile::remove() {
     TRACE("enter");
-    if (!this->path_.empty()) {
-        TRACE("deleting file : %s", this->path_.c_str());
-        unlink(this->path_.c_str());
+    if (!this->manual().empty()) {
+        if (fileExists(this->manual())) {
+            TRACE("deleting file : %s", this->manual().c_str());
+            unlink(this->manual().c_str());
+        }
+    }
+    if (!this->selectorAlias().empty()) {
+        if (fileExists(this->selectorAlias())) {
+            TRACE("deleting file : %s", this->selectorAlias().c_str());
+            unlink(this->selectorAlias().c_str());
+        }
+    }
+    if (!this->path().empty()) {
+        if (fileExists(this->path())) {
+            TRACE("deleting file : %s", this->path().c_str());
+            unlink(this->path().c_str());
+        }
     }
     TRACE("exit");
 }
