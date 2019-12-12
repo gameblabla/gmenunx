@@ -151,10 +151,11 @@ Esoteric::Esoteric() : input(screenManager) {
 	}
 
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
-		TRACE("backlight, volume and aspect ratio");
+		TRACE("backlight, volume, aspect ratio and performance mode");
 		this->hw->setBacklightLevel(config->backlightLevel());
 		this->hw->setVolumeLevel(this->config->globalVolume());
 		this->hw->setKeepAspectRatio(this->config->aspectRatio());
+		this->hw->setPerformanceMode(this->config->performance());
 	}
 
 	TRACE("loading skin : %s", this->config->skin().c_str());
