@@ -549,7 +549,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 	int rootYPos = *rootYPosPtr;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
-		TRACE("blitting");
+		//TRACE("blitting");
 		Surface *surface = (*it);
 		if (NULL == surface)
 			continue;
@@ -573,6 +573,11 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 void Renderer::pollHW() {
 	// if we're going to draw helpers, get their latest value
 	TRACE("enter");
+
+	// save battery life
+	if (this->app->screenManager.isAsleep())
+		return;
+
 	TRACE("section bar test");
 	if (this->app->skin->sectionBar) {
 		TRACE("section bar exists in skin settings");
@@ -596,6 +601,7 @@ void Renderer::pollHW() {
 		this->rtc.refresh();
 	}
 
+	this->app->input.noop();
 	TRACE("exit");
 }
 
