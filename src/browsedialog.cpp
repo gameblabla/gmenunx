@@ -36,8 +36,9 @@ bool BrowseDialog::exec() {
 	Surface *iconFile = app->sc->skinRes("imgs/file.png");
 
 	string path = fl->getPath();
-	if (path.empty() || !dirExists(path))
+	if (path.empty() || !dirExists(path)) {
 		setPath(EXTERNAL_CARD_PATH);
+	}
 
 	fl->browse();
 

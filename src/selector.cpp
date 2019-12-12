@@ -418,9 +418,11 @@ void Selector::freeScreenshots(vector<string> *screens) {
 void Selector::loadAliases() {
 	TRACE("enter");
 	aliases.clear();
-	if (fileExists(link->getAliasFile())) {
+	std::string aliasFile = link->getAliasFile();
+	if (!aliasFile.empty() && fileExists(aliasFile)) {
+		TRACE("alias file found at : %s", aliasFile.c_str());
 		string line;
-		ifstream infile (link->getAliasFile().c_str(), ios_base::in);
+		ifstream infile (aliasFile.c_str(), ios_base::in);
 		while (getline(infile, line, '\n')) {
 			string::size_type position = line.find("=");
 			string name = trim(line.substr(0,position));
