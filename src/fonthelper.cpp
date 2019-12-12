@@ -92,7 +92,7 @@ uint32_t FontHelper::getLineWidthSafe(const std::string &text) {
 }
 
 uint32_t FontHelper::getLineWidth(const std::string &text) {
-	TRACE("enter : %s", text.c_str());
+	//TRACE("enter : %s", text.c_str());
 	int width = -1;
 	try {
 		if (text.empty())
@@ -114,7 +114,7 @@ uint32_t FontHelper::getLineWidth(const std::string &text) {
 		WARNING("sdl ttf error : %s", TTF_GetError());
 		return -4;
 	}
-	TRACE("exit : %s = %i px", text.c_str(), width);
+	//TRACE("exit : %s = %i px", text.c_str(), width);
 	return width;
 }
 
