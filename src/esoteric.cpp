@@ -418,6 +418,7 @@ if (false) {
 	while (!quit) {
 		try {
 			// TRACE("loop");
+
 			renderer->render();
 
 			if (showGreeting) {
@@ -442,11 +443,11 @@ if (false) {
 			ERROR("render - error : %i", e);
 		}
 
-		bool inputAction = input.update();
+		bool inputAction = this->input.update(true);
 		if (inputAction) {
-			if ( input[QUIT] ) {
+			if (this->input[QUIT] ) {
 				quit = true;
-			} else if ( input[CONFIRM] && menu->selLink() != NULL ) {
+			} else if (this->input[CONFIRM] && this->menu->selLink() != NULL) {
 				TRACE("******************RUNNING THIS*******************");
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
@@ -456,36 +457,36 @@ if (false) {
 				TRACE("******************RUNNING THIS -- RUN*******************");
 				menu->selLink()->run();
 				TRACE("Run called");
-			} else if ( input[INC] ) {
+			} else if (this->input[INC]) {
 				TRACE("******************favouriting an app THIS*******************");
 				LinkApp * myApp = menu->selLinkApp();
 				if (nullptr != myApp)
 					myApp->makeFavourite();
-			} else if ( input[SETTINGS] ) {
+			} else if (this->input[SETTINGS]) {
 				settings();
-			} else if ( input[MENU]     ) {
+			} else if (this->input[MENU]) {
 				contextMenu();
-			} else if ( input[LEFT ] && skin->numLinkCols == 1) {
+			} else if (this->input[LEFT] && this->skin->numLinkCols == 1) {
 				menu->pageUp();
-			} else if ( input[RIGHT] && skin->numLinkCols == 1) {
+			} else if (this->input[RIGHT] && this->skin->numLinkCols == 1) {
 				menu->pageDown();
-			} else if ( input[LEFT ] ) {
+			} else if (this->input[LEFT]) {
 				menu->linkLeft();
-			} else if ( input[RIGHT] ) {
+			} else if (this->input[RIGHT]) {
 				menu->linkRight();
-			} else if ( input[UP   ] ) {
+			} else if (this->input[UP]) {
 				menu->linkUp();
-			} else if ( input[DOWN ] ) {
+			} else if (this->input[DOWN]) {
 				menu->linkDown();
-			} else if ( input[SECTION_PREV] ) {
+			} else if (this->input[SECTION_PREV]) {
 				menu->decSectionIndex();
-			} else if ( input[SECTION_NEXT] ) {
+			} else if (this->input[SECTION_NEXT]) {
 				menu->incSectionIndex();
 			} else if (this->input[PAGEUP]) {
 				menu->letterPrevious();
 			} else if (this->input[PAGEDOWN]) {
 				menu->letterNext();
-			} else if (input[MANUAL] && menu->selLinkApp() != NULL) {
+			} else if (this->input[MANUAL] && this->menu->selLinkApp() != NULL) {
 				showManual();
 			}
 		}
@@ -499,16 +500,27 @@ if (false) {
 	TRACE("exit");
 }
 
-void Esoteric::updateAppCache(std::function<void(string)> callback) {
+void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
+	TRACE("enter");
+	this->initMenu();
+	this->input.noop();
+	TRACE("exit");
+}
+
+void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
 	TRACE("enter");
 	#ifdef HAVE_LIBOPK
 
-	string externalPath = this->config->externalAppPath();
-	vector<string> opkDirs { OPK_INTERNAL_PATH, externalPath };
-	string rootDir = this->getWriteablePath();
+	std::string externalPath = this->config->externalAppPath();
+	std::vector<std::string> opkDirs { OPK_INTERNAL_PATH, externalPath };
+	std::string rootDir = this->getWriteablePath();
 	TRACE("rootDir : %s", rootDir.c_str());
 	if (nullptr == this->cache) {
-		this->cache = new OpkCache(opkDirs, rootDir);
+		this->cache = new OpkCache(
+			opkDirs, 
+			rootDir, 
+			[&](DesktopFile file, bool added){ return this->cacheChanged(file, added); }
+		);
 	} else {
 		this->cache->setMonitorDirs(opkDirs);
 	}
@@ -1937,28 +1949,28 @@ void Esoteric::addLink() {
 void Esoteric::editLink() {
 	if (menu->selLinkApp() == NULL) return;
 
-	vector<string> pathV;
+	std::vector<std::string> pathV;
 	// ERROR("FILE: %s", menu->selLinkApp()->getFile().c_str());
 	split(pathV, menu->selLinkApp()->getFile(), "/");
-	string oldSection = "";
+	std::string oldSection = "";
 	if (pathV.size() > 1) oldSection = pathV[pathV.size()-2];
-	string newSection = oldSection;
+	std::string newSection = oldSection;
 
-	string linkExec = menu->selLinkApp()->getExec();
-	string linkTitle = menu->selLinkApp()->getTitle();
-	string linkDescription = menu->selLinkApp()->getDescription();
-	string linkIcon = menu->selLinkApp()->getIcon();
-	string linkManual = menu->selLinkApp()->getManual();
-	string linkParams = menu->selLinkApp()->getParams();
-	string linkSelFilter = menu->selLinkApp()->getSelectorFilter();
-	string linkSelDir = menu->selLinkApp()->getSelectorDir();
+	std::string linkExec = menu->selLinkApp()->getExec();
+	std::string linkTitle = menu->selLinkApp()->getTitle();
+	std::string linkDescription = menu->selLinkApp()->getDescription();
+	std::string linkIcon = menu->selLinkApp()->getIcon();
+	std::string linkManual = menu->selLinkApp()->getManual();
+	std::string linkParams = menu->selLinkApp()->getParams();
+	std::string linkSelFilter = menu->selLinkApp()->getSelectorFilter();
+	std::string linkSelDir = menu->selLinkApp()->getSelectorDir();
 	//bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
-	//string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
-	string linkSelAliases = menu->selLinkApp()->getAliasFile();
+	//std::string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
+	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
 	//int linkClock = menu->selLinkApp()->clock();
-	string linkBackdrop = menu->selLinkApp()->getBackdrop();
-	string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
-	string dialogIcon = menu->selLinkApp()->getIconPath();
+	std::string linkBackdrop = menu->selLinkApp()->getBackdrop();
+	std::string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
+	std::string dialogIcon = menu->selLinkApp()->getIconPath();
 
 	SettingsDialog sd(this, ts, dialogTitle, dialogIcon);
 	sd.addSetting(new MenuSettingFile(			this, tr["Executable"],		tr["Application this link points to"], &linkExec, ".dge,.gpu,.gpe,.sh,.bin,.elf,", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
@@ -1975,7 +1987,7 @@ void Esoteric::editLink() {
 	//sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
 	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAliases, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAlias, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon, skin->name));
 	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
 
@@ -1992,19 +2004,19 @@ void Esoteric::editLink() {
 		menu->selLinkApp()->setSelectorDir(linkSelDir);
 		//menu->selLinkApp()->setSelectorBrowser(linkSelBrowser);
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
-		menu->selLinkApp()->setAliasFile(linkSelAliases);
+		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
 		//menu->selLinkApp()->setCPU(linkClock);
 
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
-			vector<string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);
+			std::vector<std::string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);
 			if (newSectionIndex == menu->getSections().end()) return;
-			string newFileName = "sections/" + newSection + "/" + linkTitle;
+			std::string newFileName = "sections/" + newSection + "/" + linkTitle;
 			uint32_t x = 2;
 			while (fileExists(newFileName)) {
-				string id = "";
-				stringstream ss; ss << x; ss >> id;
+				std::string id = "";
+				std::stringstream ss; ss << x; ss >> id;
 				newFileName = "sections/" + newSection + "/" + linkTitle + id;
 				x++;
 			}

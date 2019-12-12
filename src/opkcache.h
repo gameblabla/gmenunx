@@ -25,13 +25,16 @@ static const std::string OPK_EXEC = "/bin/false";
 class OpkCache {
     private:
 
-        std::function<void(std::string)> notifiable;
+        std::function<void(std::string)> progressCallback;
+        std::function<void(DesktopFile, bool)> changeCallback;
+
         std::vector<std::string> opkDirs_;
         std::string sectionDir_;
         std::string cacheDir_;
         std::string rootDir_;
         bool loaded_;
         bool dirty_;
+        bool isMonitoring_;
 
         // key = sections
         // pair <string = hash, DesktopFile = object>
@@ -63,13 +66,14 @@ class OpkCache {
         void stopMonitors();
         void startMonitors();
 
-        void notify(std::string text);
-
+        void notifyProgress(std::string text);
+        void notifyChange(const DesktopFile & file, const bool & added);
+    
     public:
 
-        OpkCache(std::vector<std::string> opkDirs, const std::string & sectionsDir);
+        OpkCache(std::vector<std::string> opkDirs, const std::string & sectionsDir, std::function<void(DesktopFile, bool)> changeCallback = nullptr);
         ~OpkCache();
-        bool update(std::function<void(std::string)> callback = nullptr);
+        bool update(std::function<void(std::string)> progressCallback = nullptr);
         int size();
         /*  returns the cache state, 
             AND resets the flag, 

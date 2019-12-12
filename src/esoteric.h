@@ -71,8 +71,8 @@ class Esoteric {
 private:
 
 	bool needsInstalling;
-	string exe_path; //!< Contains the working directory of Esoteric
-	string writeable_path; // Contains the assets path
+	std::string exe_path; //!< Contains the working directory of Esoteric
+	std::string writeable_path; // Contains the assets path
 
 	/*!
 	Starts the scanning of the nand and sd filesystems, searching for gpe and gpu files and creating the links in 2 dedicated sections.
@@ -89,7 +89,7 @@ private:
 	*/
 	void explorer();
 
-	string lastSelectorDir;
+	std::string lastSelectorDir;
 	int lastSelectorElement;
 	void readTmp();
 
@@ -119,9 +119,9 @@ public:
 	uint32_t linkWidth, linkHeight, linkSpacing = 4;
 	SDL_Rect listRect, linksRect, sectionBarRect;
 
-	const string &getExePath();
-	const string &getWriteablePath();
-	const string &getReadablePath();
+	const std::string &getExePath();
+	const std::string &getWriteablePath();
+	const std::string &getReadablePath();
 
 	ScreenManager screenManager;
 	InputManager input;
@@ -156,7 +156,7 @@ public:
 
 	void writeConfig();
 	void writeSkinConfig();
-	void writeTmp(int selelem=-1, const string &selectordir = "");
+	void writeTmp(int selelem=-1, const std::string &selectordir = "");
 
 	void addLink();
 	void editLink();
@@ -166,8 +166,9 @@ public:
 	void renameSection();
 	void deleteSection();
 
-	void setWallpaper(const string &wallpaper = "");
-	void updateAppCache(std::function<void(string)> callback = nullptr);
+	void setWallpaper(const std::string &wallpaper = "");
+	void updateAppCache(std::function<void(std::string)> callback = nullptr);
+	void cacheChanged(const DesktopFile & file, const bool & added);
 
 	Menu* menu;
 	Skin* skin;
