@@ -51,8 +51,8 @@ class myOpk {
         std::string selectorFilter() const;
         void selectorFilter(std::string val);
 
-        std::string aliases() const;
-        void aliases(std::string val);
+        std::string selectorAlias() const;
+        void selectorAlias(std::string val);
 
         std::string type() const;
         void type(std::string val);
@@ -98,7 +98,7 @@ class myOpk {
         std::string icon_;
         std::string selectorDir_;
         std::string selectorFilter_;
-        std::string aliases_;
+        std::string selectorAlias_;
         std::string type_;
         std::string mimeType_;
         std::string version_;

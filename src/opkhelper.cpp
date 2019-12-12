@@ -23,7 +23,7 @@ myOpk::myOpk() {
     this->icon_ = "";
     this->selectorDir_ = "";
     this->selectorFilter_ = "";
-    this->aliases_ = "";
+    this->selectorAlias_ = "";
     this->type_ = "";
     this->mimeType_ = "";
     this->needsDownscaling_ = false;
@@ -101,7 +101,7 @@ bool myOpk::load(OPK * opk) {
         } else if (loweredKey == "x-od-filter") {
             this->selectorFilter(value);
         } else if (loweredKey == "x-od-alias") {
-            this->aliases(value);
+            this->selectorAlias(value);
         } else if (loweredKey == "type") {
             this->type(value);
         } else if (loweredKey == "startupnotify") {
@@ -158,8 +158,8 @@ void myOpk::selectorDir(std::string val) { this->selectorDir_ = val; }
 std::string myOpk::selectorFilter() const { return this->selectorFilter_; }
 void myOpk::selectorFilter(std::string val) { this->selectorFilter_ = val; }
 
-std::string myOpk::aliases() const { return this->aliases_; }
-void myOpk::aliases(std::string val) { this->aliases_ = val; }
+std::string myOpk::selectorAlias() const { return this->selectorAlias_; }
+void myOpk::selectorAlias(std::string val) { this->selectorAlias_ = val; }
 
 std::string myOpk::type() const { return this->type_; }
 void myOpk::type(std::string val) { this->type_ = val; }
