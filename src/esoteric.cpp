@@ -823,6 +823,8 @@ void Esoteric::deviceMenu() {
 	int backlightLevel = this->hw->getBacklightLevel();
 	int volumeLevel = this->hw->getVolumeLevel();
 	int backlightTimeout = config->backlightTimeout();
+	bool keepAspectRatio = this->hw->getKeepAspectRatio();
+
 	std::string performanceMode = this->hw->getPerformanceMode();
 	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
 
@@ -860,6 +862,12 @@ void Esoteric::deviceMenu() {
 				&performanceModes));
 		}
 
+		sd.addSetting(new MenuSettingBool(
+			this, 
+			tr["Keep aspect ratio"], 
+			tr["Force hw scaling"], 
+			&keepAspectRatio));
+
 		sd.exec();
 		if (backlightTimeout != this->config->backlightTimeout()) {
 			this->config->backlightTimeout(backlightTimeout);
@@ -879,6 +887,10 @@ void Esoteric::deviceMenu() {
 		if (backlightLevel != this->hw->getBacklightLevel()) {
 			this->config->backlightLevel(backlightLevel);
 			this->hw->setBacklightLevel(backlightLevel);
+			changed = true;
+		}
+		if (keepAspectRatio != this->hw->getKeepAspectRatio()) {
+			this->hw->setKeepAspectRatio(keepAspectRatio);
 			changed = true;
 		}
 		selected = sd.selected;

@@ -82,6 +82,12 @@ class IHardware {
         virtual int getBacklightLevel() = 0;
         virtual int setBacklightLevel(int val) = 0;
 
+        /*!
+        Gets or sets if we force scaling
+        */
+        virtual bool getKeepAspectRatio() = 0;
+        virtual bool setKeepAspectRatio(bool val) = 0;
+
         string mountSd() {
             TRACE("enter");
             string command = "mount -t " + EXTERNAL_MOUNT_FORMAT + " " + EXTERNAL_MOUNT_DEVICE + " " + EXTERNAL_MOUNT_POINT + " 2>&1";
@@ -162,7 +168,7 @@ class IHardware {
             // TODO :: implement me
         }
 
-        string getDiskFree(const char *path) {
+        std::string getDiskFree(const char *path) {
             TRACE("enter - %s", path);
             string df = "N/A";
             struct statvfs b;
@@ -185,7 +191,7 @@ class IHardware {
             return df;
         }
 
-        string getDiskSize(const std::string &mountDevice) {
+        std::string getDiskSize(const std::string &mountDevice) {
             TRACE("reading disk size for : %s", mountDevice.c_str());
             string result = "0 GiB";
             if (mountDevice.empty())
@@ -252,18 +258,20 @@ class HwRg350 : IHardware {
         const std::string defaultPerformanceMode = "ondemand";
         int volumeLevel_ = 0;
         int backlightLevel_ = 0;
-		const string LED_PREFIX = "/sys/class/leds/power/";
-		const string LED_MAX_BRIGHTNESS_PATH = LED_PREFIX + "max_brightness";
-		const string LED_BRIGHTNESS_PATH = LED_PREFIX + "brightness";
-		const string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
-		const string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
-		const string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
-        const string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
-        const string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
-        const string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
+        bool keepAspectRatio_ = false;
+		const std::string LED_PREFIX = "/sys/class/leds/power/";
+		const std::string LED_MAX_BRIGHTNESS_PATH = LED_PREFIX + "max_brightness";
+		const std::string LED_BRIGHTNESS_PATH = LED_PREFIX + "brightness";
+		const std::string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
+		const std::string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
+		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
+        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
+        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
+        const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
+        const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
 
         std::string performanceModeMap(std::string fromInternal) {
-            std::unordered_map<string, string>::iterator it;
+            std::unordered_map<std::string, std::string>::iterator it;
             for (it = this->performanceModes_.begin();it != this->performanceModes_.end(); it++) {
                 if (fromInternal == it->first) {
                     return it->second;;
@@ -272,7 +280,7 @@ class HwRg350 : IHardware {
             return "On demand";
         }
 
-		string triggerToString(LedAllowedTriggers t) {
+		std::string triggerToString(LedAllowedTriggers t) {
             TRACE("mode : %i", t);
             switch(t) {
                 case TIMER:
@@ -298,10 +306,13 @@ class HwRg350 : IHardware {
             this->rtc = new RTC();
 
             this->ledMaxBrightness_ = fileReader(LED_MAX_BRIGHTNESS_PATH);
-            this->getBacklightLevel();
-            this->getVolumeLevel();
             this->performanceModes_.insert({"ondemand", "On demand"});
             this->performanceModes_.insert({"performance", "Performance"});
+
+            this->getBacklightLevel();
+            this->getVolumeLevel();
+            this->getKeepAspectRatio();
+
             TRACE(
                 "brightness - max : %s, current : %i, volume : %i", 
                 ledMaxBrightness_.c_str(), 
@@ -324,7 +335,7 @@ class HwRg350 : IHardware {
         bool getTVOutStatus() { return 0; };
         std::string getTVOutMode() { return "OFF"; }
         void setTVOutMode(std::string mode) {
-            string val = mode;
+            std::string val = mode;
             if (val != "NTSC" && val != "PAL") val = "OFF";
         }
 
@@ -340,9 +351,9 @@ class HwRg350 : IHardware {
         }
         void setPerformanceMode(std::string alias = "") {
             TRACE("raw desired : %s", alias.c_str());
-            string mode = this->defaultPerformanceMode;
+            std::string mode = this->defaultPerformanceMode;
             if (!alias.empty()) {
-                std::unordered_map<string, string>::iterator it;
+                std::unordered_map<std::string, std::string>::iterator it;
                 for (it = this->performanceModes_.begin();it != this->performanceModes_.end(); it++) {
                     TRACE("checking '%s' aginst <%s, %s>", alias.c_str(), it->first.c_str(), it->second.c_str());
                     if (alias == it->second) {
@@ -378,7 +389,7 @@ class HwRg350 : IHardware {
         void ledOn(int flashSpeed = 250) {
             TRACE("enter");
             int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
-            string trigger = triggerToString(LedAllowedTriggers::TIMER);
+            std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
             TRACE("mode : %s - for %i", trigger.c_str(), limited);
             procWriter(LED_TRIGGER_PATH, trigger);
             procWriter(LED_DELAY_ON_PATH, limited);
@@ -387,7 +398,7 @@ class HwRg350 : IHardware {
         };
         void ledOff() { 
             TRACE("enter");
-            string trigger = triggerToString(LedAllowedTriggers::NONE);
+            std::string trigger = triggerToString(LedAllowedTriggers::NONE);
             TRACE("mode : %s", trigger.c_str());
             procWriter(LED_TRIGGER_PATH, trigger);
             procWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
@@ -451,7 +462,7 @@ class HwRg350 : IHardware {
             TRACE("enter");
             int level = 0;
             //force  scale 0 - 100
-            string result = fileReader(BACKLIGHT_PATH);
+            std::string result = fileReader(BACKLIGHT_PATH);
             if (result.length() > 0) {
                 level = ceil(atoi(trim(result).c_str()) / 2.55);
             }
@@ -478,11 +489,35 @@ class HwRg350 : IHardware {
             this->backlightLevel_ = val;
             return this->backlightLevel_;	
         };
+
+        bool getKeepAspectRatio() {
+            TRACE("enter");
+            std::string result = fileReader(ASPECT_RATIO_PATH);
+            TRACE("raw result : '%s'", result.c_str());
+            if (result.length() > 0) {
+                result = result[0];
+                result = toLower(result);
+            }
+            this->keepAspectRatio_ = ("y" == result);
+            TRACE("exit : %i", this->keepAspectRatio_);
+            return this->keepAspectRatio_;
+        }
+        bool setKeepAspectRatio(bool val) {
+            TRACE("enter - %i", val);
+            std::string payload = val ? "Y" : "N";
+            if (procWriter(ASPECT_RATIO_PATH, payload)) {
+                TRACE("success");
+            } else {
+                ERROR("Couldn't update aspect ratio value to : '%s'", payload.c_str());
+            }
+            this->keepAspectRatio_ = val;
+            return this->keepAspectRatio_;	
+
+        }
 };
 
 class HwGeneric : IHardware {
     private:
-
 
         std::string performanceModeMap(std::string fromInternal) {
             std::unordered_map<string, string>::iterator it;
@@ -516,7 +551,7 @@ class HwGeneric : IHardware {
         bool getTVOutStatus() { return 0; };
         std::string getTVOutMode() { return "OFF"; }
         void setTVOutMode(std::string mode) {
-            string val = mode;
+            std::string val = mode;
             if (val != "NTSC" && val != "PAL") val = "OFF";
         }
 
@@ -526,9 +561,9 @@ class HwGeneric : IHardware {
         }
         void setPerformanceMode(std::string alias = "") {
             TRACE("raw desired : %s", alias.c_str());
-            string mode = this->defaultPerformanceMode;
+            std::string mode = this->defaultPerformanceMode;
             if (!alias.empty()) {
-                std::unordered_map<string, string>::iterator it;
+                std::unordered_map<std::string, std::string>::iterator it;
                 for (it = this->performanceModes_.begin();it != this->performanceModes_.end(); it++) {
                     TRACE("checking '%s' aginst <%s, %s>", alias.c_str(), it->first.c_str(), it->second.c_str());
                     if (alias == it->second) {
@@ -567,6 +602,9 @@ class HwGeneric : IHardware {
 
         int getBacklightLevel() { return 100; };
         int setBacklightLevel(int val) { return val; };
+
+        bool getKeepAspectRatio() { return true; };
+        bool setKeepAspectRatio(bool val) { return val; };
 };
 
 class HwFactory {
