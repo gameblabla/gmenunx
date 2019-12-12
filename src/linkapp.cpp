@@ -111,7 +111,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 						this->setSelectorFilter( value );
 					} else if (name == "selectorscreens") {
 						this->setSelectorScreens( value );
-					} else if (name == "selectoraliases") {
+					} else if (name == "selectoralias") {
 						this->setAliasFile( value );
 					} else if (name == "backdrop") {
 						this->setBackdrop(value);
@@ -644,7 +644,7 @@ std::string LinkApp::toString() {
 		if (!selectorscreens.empty()  ) out << "selectorscreens="    << selectorscreens  << std::endl;
 		if (!provider.empty()         ) out << "X-Provider="         << provider         << std::endl;
 		if (!providerMetadata.empty() ) out << "X-ProviderMetadata=" << providerMetadata << std::endl;
-		if (!aliasfile.empty()        ) out << "selectoraliases="    << aliasfile        << std::endl;
+		if (!aliasfile.empty()        ) out << "selectoralias="      << aliasfile        << std::endl;
 		if (!backdrop.empty()         ) out << "backdrop="           << backdrop         << std::endl;
 		if (iclock != 0               ) out << "clock="              << iclock           << std::endl;
 		if (!selectordir.empty()      ) out << "selectordir="        << selectordir      << std::endl;
