@@ -32,7 +32,7 @@ private:
     vector<Surface*> helpers;
     uint8_t currentVolumeMode;
 
-	void layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow);
+	void layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootYPos);
     uint8_t getVolumeMode(uint8_t vol);
 
     void pollHW();

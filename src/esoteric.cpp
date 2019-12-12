@@ -991,6 +991,8 @@ void Esoteric::skinMenu() {
 
 	} while (!save);
 
+	this->input.dropEvents();
+
 	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
 	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
 	else if (sectionBar == "Top") skin->sectionBar = Skin::SB_TOP;

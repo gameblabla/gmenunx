@@ -472,18 +472,42 @@ void Renderer::render() {
 	 * 
 	 */
 	if (app->skin->sectionBar) {
-		// tray helper icons
-		int helperHeight = 20;
-		int maxItemsPerRow = 0;
-		if (app->sectionBarRect.w > app->sectionBarRect.h) {
-			maxItemsPerRow = (int)(app->sectionBarRect.h / (float)helperHeight);
-		} else {
-			maxItemsPerRow = (int)(app->sectionBarRect.w / (float)helperHeight);
-		}
 		int rootXPos = app->sectionBarRect.x + app->sectionBarRect.w - 18;
 		int rootYPos = app->sectionBarRect.y + app->sectionBarRect.h - 18;
-		//TRACE("hitting up the helpers");
 
+		// clock
+		if (app->skin->showClock) {
+			string time = rtc.getClockTime(true);
+			if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
+				if (app->skin->showSectionIcons) {
+					// grab the new x offset and write the clock
+					
+					app->screen->write(
+						app->fontSectionTitle, 
+						time, 
+						rootXPos - (app->fontSectionTitle->getTextWidth(time) / 2), 
+						app->sectionBarRect.y + (app->sectionBarRect.h / 2),
+						VAlignMiddle);
+					
+					// recalc the x pos on root
+					rootXPos -= (app->fontSectionTitle->getTextWidth("00:00") + 4);
+				}
+			} else {
+				// grab the new y offset and write the clock
+				app->screen->write(
+					app->fontSectionTitle, 
+					time, 
+					app->sectionBarRect.x + 4, 
+					rootYPos,
+					HAlignLeft | VAlignTop);
+
+				// recalc the y root pos
+				rootYPos -= (app->fontSectionTitle->getHeight() + 4);
+			}
+		}
+
+		// tray helper icons
+		//TRACE("hitting up the helpers");
 		helpers.push_back(iconVolume[currentVolumeMode]);
 		helpers.push_back(iconBattery[batteryIcon]);
 		if (app->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
@@ -503,35 +527,10 @@ void Renderer::render() {
 			}
 		}
 		//TRACE("layoutHelperIcons");
-		int * xPosPtr = & rootXPos;
-		int * yPosPtr = & rootYPos;
-		layoutHelperIcons(helpers, app->screen, helperHeight, xPosPtr, yPosPtr, maxItemsPerRow);
+		layoutHelperIcons(helpers, rootXPos, rootYPos);
 		//TRACE("helpers.clear()");
 		helpers.clear();
 
-		if (app->skin->showClock) {
-			string time = rtc.getClockTime(true);
-			if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
-				if (app->skin->showSectionIcons) {
-					// grab the new x offset and write the clock
-					
-					app->screen->write(
-						app->fontSectionTitle, 
-						time, 
-						*(xPosPtr) - (app->fontSectionTitle->getTextWidth(time) / 2), 
-						app->sectionBarRect.y + (app->sectionBarRect.h / 2),
-						VAlignMiddle);
-				}
-			} else {
-				// grab the new y offset and write the clock
-				app->screen->write(
-					app->fontSectionTitle, 
-					time, 
-					app->sectionBarRect.x + 4, 
-					*(yPosPtr),
-					HAlignLeft | VAlignTop);
-			}
-		}
 	} // app->skin->sectionBar
 
     //TRACE("flip"); 
@@ -540,13 +539,22 @@ void Renderer::render() {
     TRACE("exit");
 }
 
-void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int helperHeight, int * rootXPosPtr, int * rootYPosPtr, int iconsPerRow) {
-	TRACE("enter - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
-	int iconCounter = 0;
+void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootYPos) {
+	//TRACE("enter");
+
+	int helperHeight = 20;
+	int iconsPerRow = 0;
+	if (app->sectionBarRect.w > app->sectionBarRect.h) {
+		iconsPerRow = (int)(app->sectionBarRect.h / (float)helperHeight);
+		//TRACE("horizontal mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.h);
+	} else {
+		iconsPerRow = (int)(app->sectionBarRect.w / (float)helperHeight);
+		//TRACE("vertical mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.w);
+	}
+
+	int iconCounter = 1;
 	int currentXOffset = 0;
 	int currentYOffset = 0;
-	int rootXPos = *rootXPosPtr;
-	int rootYPos = *rootYPosPtr;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
 		//TRACE("blitting");
@@ -558,16 +566,23 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, Surface *target, int he
 			rootXPos - (currentXOffset * (helperHeight - 2)), 
 			rootYPos - (currentYOffset * (helperHeight - 2))
 		);
-		if (++iconCounter % iconsPerRow == 0) {
-			++currentXOffset;
-			currentYOffset = 0;
+		if (app->sectionBarRect.w > app->sectionBarRect.h) {
+			if (iconCounter % iconsPerRow == 0) {
+				++currentXOffset;
+				currentYOffset = 0;
+			} else {
+				++currentYOffset;
+			}
 		} else {
-			++currentYOffset;
+			if (iconCounter % iconsPerRow == 0) {
+				++currentYOffset;
+				currentXOffset = 0;
+			} else {
+				++currentXOffset;
+			}
 		}
+		iconCounter++;
 	};
-	*rootXPosPtr = rootXPos - (currentXOffset * (helperHeight - 2));
-	*rootYPosPtr = rootYPos - (currentXOffset * (helperHeight - 2));
-	TRACE("exit - rootXPos = %i, rootYPos = %i", *rootXPosPtr, *rootYPosPtr);
 }
 
 void Renderer::pollHW() {
