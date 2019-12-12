@@ -151,9 +151,10 @@ Esoteric::Esoteric() : input(screenManager) {
 	}
 
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
-		TRACE("backlight and volume");
+		TRACE("backlight, volume and aspect ratio");
 		this->hw->setBacklightLevel(config->backlightLevel());
 		this->hw->setVolumeLevel(this->config->globalVolume());
+		this->hw->setKeepAspectRatio(this->config->aspectRatio());
 	}
 
 	TRACE("loading skin : %s", this->config->skin().c_str());
@@ -384,10 +385,9 @@ if (false) {
 	initMenu();
 	setWallpaper(this->skin->wallpaper);
 
-
 	TRACE("set hardware to real settings");
-	screenManager.setScreenTimeout(config->backlightTimeout());
-	input.setWakeUpInterval(1000);
+	this->screenManager.setScreenTimeout(config->backlightTimeout());
+	this->input.setWakeUpInterval(1000);
 	this->hw->ledOff();
 
 	pbLoading->finished();
@@ -414,6 +414,7 @@ if (false) {
 
 	bool quit = false;
 	renderer->startPolling();
+	this->screenManager.resetScreenTimer();
 
 	while (!quit) {
 		try {
@@ -890,6 +891,7 @@ void Esoteric::deviceMenu() {
 			changed = true;
 		}
 		if (keepAspectRatio != this->hw->getKeepAspectRatio()) {
+			this->config->aspectRatio(keepAspectRatio);
 			this->hw->setKeepAspectRatio(keepAspectRatio);
 			changed = true;
 		}
@@ -1773,7 +1775,6 @@ void Esoteric::poweroffDialog() {
 		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png", 100);
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
-		pbShutdown.finished(500);
 		sync();
 		std::system("poweroff");
 	}
@@ -1781,7 +1782,6 @@ void Esoteric::poweroffDialog() {
 		ProgressBar pbReboot(this, " Rebooting ", "skin:icons/device.png", 80);
 		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
-		pbReboot.finished(500);
 		sync();
 		std::system("reboot");
 	}

@@ -164,6 +164,13 @@ public:
             this->isDirty = true;
         }
     }
+    int aspectRatio() const { return this->aspectRatio_; }
+    void aspectRatio(int val) {
+        if (val != this->aspectRatio_) {
+            this->aspectRatio_ = val;
+            this->isDirty = true;
+        }
+    }
     int link() const { return this->link_; }
     void link(int val) {
         if (val != this->link_) {
@@ -253,6 +260,7 @@ private:
     int cpuMax_; //=996
     int cpuMenu_; //=600
     int globalVolume_; //=60
+    int aspectRatio_;
     int link_; //=1
     int section_; //=1
     int saveSelection_; //=1

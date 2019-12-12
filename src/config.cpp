@@ -66,6 +66,7 @@ string Config::toString() {
     vec.push_back(string_format("cpuMenu=%i", this->cpuMenu()));
 
     vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
+    vec.push_back(string_format("aspectRatio=%i", this->aspectRatio()));
     vec.push_back(string_format("outputLogs=%i", this->outputLogs()));
 
     vec.push_back(string_format("saveSelection=%i", this->saveSelection()));
@@ -145,6 +146,7 @@ void Config::reset() {
     this->cpuMenu_ = 600;
 
     this->globalVolume_ = 60;
+    this->aspectRatio_ = 1;
     this->outputLogs_ = 0;
 
     this->saveSelection_ = 1;
@@ -167,6 +169,7 @@ void Config::constrain() {
 	evalIntConf( &this->cpuMin_, 342, 200, 1200 );
 	evalIntConf( &this->cpuMenu_, 600, 200, 1200 );
 	evalIntConf( &this->globalVolume_, 60, 1, 100 );
+    evalIntConf (&this->aspectRatio_, 1, 0, 1);
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );
 	evalIntConf( &this->backlightLevel_, 70, 1, 100);
 	evalIntConf( &this->minBattery_, 0, 0, 5);
@@ -276,6 +279,8 @@ bool Config::fromFile() {
                             this->cpuMenu(atoi(value.c_str()));
                         } else if (name == "globalvolume") {
                             this->globalVolume(atoi(value.c_str()));
+                        } else if (name == "aspectratio") {
+                            this->aspectRatio(atoi(value.c_str()));
                         } else if (name == "outputlogs") {
                             this->outputLogs(atoi(value.c_str()));
                         } else if (name == "saveselection") {
