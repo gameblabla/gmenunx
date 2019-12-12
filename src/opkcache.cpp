@@ -618,8 +618,11 @@ void OpkCache::handleNewOpk(const std::string & path) {
                 std::size_t size = 0;
                 std::string path = theOpk.fullPath() + "#" + theOpk.manual();
                 OpkHelper::extractFile(path, &buffer, size);
+
+                std::string strManual((char *) buffer, size);
+                free(buffer);
                 std::ofstream fout(manualPath);
-                fout << (char *)buffer;
+                fout << strManual;
             }
 
             std::string aliasPath = "";
@@ -640,8 +643,11 @@ void OpkCache::handleNewOpk(const std::string & path) {
                 std::size_t size = 0;
                 std::string path = theOpk.fullPath() + "#" + theOpk.selectorAlias();
                 OpkHelper::extractFile(path, &buffer, size);
+
+                std::string strAlias((char *) buffer, size);
+                free(buffer);
                 std::ofstream fout(aliasPath);
-                fout << (char *)buffer;
+                fout << strAlias;
             }
 
             TRACE("checking for upgrade");

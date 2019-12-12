@@ -267,18 +267,16 @@ int OpkHelper::extractFile(const std::string &path, void **buffer, std::size_t &
 		if (!opk) {
 			ERROR("Unable to open opk : %s", path.c_str());
 		} else {
-            TRACE("loadPNG - extracting file");
+            TRACE("extracting file");
             ret = opk_extract_file(opk, path.substr(pos + 1).c_str(), buffer, &length);
             if (ret != 0) {
-                ERROR("loadPNG - Unable to extract file from opk : %s", path.c_str());
+                ERROR("Unable to extract file from opk : %s", path.c_str());
             } else {
                 TRACE("extracted file of size : %zi", length);
             }
-            if (opk)
-                opk_close(opk);
+            opk_close(opk);
         }
     }
     TRACE("exit : %i", ret);
     return ret;
-
 }
