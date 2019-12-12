@@ -1202,7 +1202,7 @@ void Esoteric::settings() {
 		}
 		if (restartNeeded) {
 			TRACE("restarting because skins changed");
-			restartDialog();
+			restartDialog(this->needsInstalling);
 		}
 	}
 	TRACE("exit");
