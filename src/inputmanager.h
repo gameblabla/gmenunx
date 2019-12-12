@@ -38,9 +38,6 @@ enum actions {
 #include <vector>
 #include <string>
 
-using std::vector;
-using std::string;
-
 typedef struct {
 	int type;
 	uint32_t num;
@@ -48,8 +45,8 @@ typedef struct {
 	int treshold;
 } InputMap;
 
-typedef vector<InputMap> MappingList;
-typedef vector<SDL_Event> SDLEventList;
+typedef std::vector<InputMap> MappingList;
+typedef std::vector<SDL_Event> SDLEventList;
 
 typedef struct {
 	bool active;
@@ -75,8 +72,8 @@ private:
 	InputMap getInputMapping(int action);
 	SDL_TimerID wakeUpTimer;
 
-	vector <SDL_Joystick*> joysticks;
-	vector <InputManagerAction> actions;
+	std::vector <SDL_Joystick*> joysticks;
+	std::vector <InputManagerAction> actions;
 
 	ScreenManager& screenManager;
 
@@ -90,13 +87,14 @@ public:
 	static const int MAPPING_TYPE_AXIS = 1;
 	static const int MAPPING_TYPE_KEYPRESS = 2;
 
-	static const int SDL_WAKEUPEVENT = SDL_USEREVENT+1;
+	static const int SDL_WAKEUPEVENT = SDL_USEREVENT + 1;
+	static const int SDL_NOOPEVENT = SDL_WAKEUPEVENT + 1;
 
 	InputManager(ScreenManager& screenManager);
 	~InputManager();
-	void init(const string &conffile);
+	void init(const std::string &conffile);
 	void initJoysticks();
-	bool readConfFile(const string &conffile = "input.conf");
+	bool readConfFile(const std::string &conffile = "input.conf");
 
 	bool update(bool wait = true);
 	bool combo();
@@ -105,6 +103,7 @@ public:
 	void setActionsCount(int count);
 	void setInterval(int ms, int action = -1);
 	void setWakeUpInterval(int ms);
+	void noop();
 	bool &operator[](int action);
 	bool isActive(int action);
 };

@@ -80,12 +80,11 @@ using namespace std;
 
 InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenManager) {
 	wakeUpTimer = NULL;
-	//waiting_ = false;
 }
 
 InputManager::~InputManager() {
 	for (uint32_t x = 0; x < joysticks.size(); x++)
-		if(SDL_JoystickOpened(x))
+		if (SDL_JoystickOpened(x))
 			SDL_JoystickClose(joysticks[x]);
 }
 
@@ -219,17 +218,18 @@ void InputManager::setActionsCount(int count) {
 }
 
 bool InputManager::update(bool wait) {
-	//TRACE("update started : wait = %i", wait);
+	TRACE("update started : wait = %i", wait);
+
 	bool anyactions = false;
 	SDL_JoystickUpdate();
 	SDL_Event event;
 
 	if (wait) {
 		SDL_WaitEvent(&event);
-		
-		if (screenManager.isAsleep() && SDL_WAKEUPEVENT != event.type && SDL_JOYAXISMOTION != event.type) {
-			TRACE("We're asleep, so we're just going to wake up and eat the timer event");
-			
+		TRACE("waiting is over, we got an event");
+		if (screenManager.isAsleep() && SDL_NOOPEVENT != event.type && SDL_WAKEUPEVENT != event.type && SDL_JOYAXISMOTION != event.type) {
+			TRACE("We're asleep, so we're just going to wake up and eat the button press event");
+			/*
 				// let's dump out what we can and isolate the wake up event type
 				switch(event.type) {
                     case SDL_ACTIVEEVENT:
@@ -255,7 +255,7 @@ bool InputManager::update(bool wait) {
                                 }
                         }
                         break;
-                    case SDL_KEYDOWN:  /* Handle a KEYDOWN event */
+                    case SDL_KEYDOWN:
                         TRACE("event.type test - Key pressed:\n");
                         TRACE("event.type test -        SDL sim: %i\n",event.key.keysym.sym);
                         TRACE("event.type test -        modifiers: %i\n",event.key.keysym.mod);
@@ -325,23 +325,28 @@ bool InputManager::update(bool wait) {
                     case SDL_SYSWMEVENT:
                         TRACE("event.type test - Window manager event\n");
                         break;
-                    default: /* Report an unhandled event */
+                    default:
                         TRACE("event.type test - I don't know what this event is!\n");
                   };
-			
 			TRACE("event.type == %i", event.type);
+			*/
 			screenManager.resetScreenTimer();
 			return false;
 		}
 
 		if (event.type == SDL_QUIT) {
+			TRACE("WAIT QUIT");
 			anyactions = true;
 			actions[QUIT].active = true;
 			return true;
 		} else if (event.type == SDL_KEYUP) {
+			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
 			anyactions = true;
 			SDL_Event evcopy = event;
-			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
+		} else if (event.type == SDL_NOOPEVENT) {
+			TRACE("WAIT NOOP");
+			anyactions = true;
+			return true;
 		}
 	} 
 
@@ -451,11 +456,17 @@ void InputManager::setWakeUpInterval(int ms) {
 }
 
 uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
-	//TRACE("enter");
-	SDL_Event *event = new SDL_Event();
-	event->type = SDL_WAKEUPEVENT;
-	SDL_PushEvent( event );
+	TRACE("enter");
+	SDL_Event event;
+	event.type = SDL_WAKEUPEVENT;
+	SDL_PushEvent( &event );
 	return interval;
+}
+
+void InputManager::noop() {
+	SDL_Event event;
+	event.type = SDL_NOOPEVENT;
+	SDL_PushEvent( &event );
 }
 
 bool &InputManager::operator[](int action) {
