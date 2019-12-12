@@ -139,6 +139,9 @@ const std::string OpkCache::imagesCachePath() {
 const std::string OpkCache::manualsCachePath() {
     return this->cacheDir_ + "/" + OPK_CACHE_MANUALS_DIR;
 }
+const std::string OpkCache::aliasCachePath() {
+    return this->cacheDir_ + "/" + OPK_CACHE_ALIAS_DIR;
+}
 
 bool OpkCache::ensureCacheDirs() {
     TRACE("enter");
@@ -171,7 +174,7 @@ bool OpkCache::ensureCacheDirs() {
         }
     }
     this->notifyProgress("Checking image cache directory exists");
-    string imageDir = this->imagesCachePath();
+    std::string imageDir = this->imagesCachePath();
     if (!dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", imageDir.c_str());
@@ -182,12 +185,23 @@ bool OpkCache::ensureCacheDirs() {
     }
 
     this->notifyProgress("Checking manuals cache directory exists");
-    string manualsDir = this->manualsCachePath();
+    std::string manualsDir = this->manualsCachePath();
     if (!dirExists(manualsDir)) {
         if (mkdir(manualsDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", manualsDir.c_str());
         } else {
             ERROR("OpkCache::ensureCacheDirs - failed to create manuals cache dir : %s", manualsDir.c_str());
+            return false;
+        }
+    }
+
+    this->notifyProgress("Checking alias cache directory exists");
+    std::string aliasDir = this->aliasCachePath();
+    if (!dirExists(aliasDir)) {
+        if (mkdir(aliasDir.c_str(), 0777) == 0) {
+            TRACE("created dir : %s", aliasDir.c_str());
+        } else {
+            ERROR("OpkCache::ensureCacheDirs - failed to create alias cache dir : %s", aliasDir.c_str());
             return false;
         }
     }
@@ -608,6 +622,28 @@ void OpkCache::handleNewOpk(const std::string & path) {
                 fout << (char *)buffer;
             }
 
+            std::string aliasPath = "";
+            if (!theOpk.selectorAlias().empty()) {
+
+                std::string aliasDir = this->aliasCachePath() + "/" +  fileBaseName(theOpk.fileName());
+                TRACE("extracting alias file to : %s", aliasDir.c_str());
+                if (!dirExists(aliasDir)) {
+                    if (mkdir(aliasDir.c_str(), 0777) == 0) {
+                        TRACE("created dir : %s", aliasDir.c_str());
+                    } else {
+                        ERROR("failed to create alias dir : %s", aliasDir.c_str());
+                        continue;
+                    }
+                }
+                aliasPath = aliasDir + "/" + base_name(theOpk.selectorAlias());
+                void *buffer = NULL;
+                std::size_t size = 0;
+                std::string path = theOpk.fullPath() + "#" + theOpk.selectorAlias();
+                OpkHelper::extractFile(path, &buffer, size);
+                std::ofstream fout(aliasPath);
+                fout << (char *)buffer;
+            }
+
             TRACE("checking for upgrade");
             DesktopFile * previous = findMatchingProvider(sectionName, theOpk);
             if (nullptr != previous) {
@@ -622,6 +658,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
                     finalFile->path(desktopFilePath);
                     finalFile->provider(theOpk.fullPath());
                     finalFile->manual(manualPath);
+                    finalFile->selectorAlias(aliasPath);
                     finalFile->params(theOpk.params());
                     finalFile->icon(imgFile);
                     finalFile->save();
@@ -648,7 +685,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
             finalFile->manual(manualPath);
             finalFile->selectorDir(theOpk.selectorDir());
             finalFile->selectorFilter(theOpk.selectorFilter());
-            finalFile->selectorAlias(theOpk.selectorAlias());
+            finalFile->selectorAlias(aliasPath);
             finalFile->consoleapp(theOpk.terminal());
             finalFile->description(theOpk.comment());
             finalFile->provider(path);
