@@ -47,7 +47,7 @@ std::string DesktopFile::toString() {
     vec.push_back(string_format("params=%s", this->params().c_str()));
     vec.push_back(string_format("selectorDir=%s", this->selectorDir().c_str()));
     vec.push_back(string_format("selectorFilter=%s", this->selectorFilter().c_str()));
-    vec.push_back(string_format("selectorAliases=%s", this->selectorAliases().c_str()));
+    vec.push_back(string_format("selectorAlias=%s", this->selectorAlias().c_str()));
     vec.push_back(string_format("manual=%s", this->manual().c_str()));
     vec.push_back(string_format("workdir=%s", this->workdir().c_str()));
     vec.push_back(string_format("X-Provider=%s", this->provider().c_str()));
@@ -92,8 +92,8 @@ void DesktopFile::parse(std::istream & instream) {
                 this->selectorDir(stripQuotes(value));
             } else if (name == "selectorfilter") {
                 this->selectorFilter(stripQuotes(value));
-            } else if (name == "selectoraliases") {
-                this->selectorAliases(stripQuotes(value));
+            } else if (name == "selectoralias") {
+                this->selectorAlias(stripQuotes(value));
             } else if (name == "x-provider") {
                 this->provider(stripQuotes(value));
             } else if (name == "x-providermetadata") {
@@ -189,7 +189,7 @@ void DesktopFile::reset() {
     this->params_ = "";
     this->selectorDir_ = "";
     this->selectorFilter_ = "";
-    this->selectorAliases_ = "";
+    this->selectorAlias_ = "";
     this->provider_ = "";
     this->providerMetadata_ = "default.gcw0.desktop";
     this->manual_ = "";

@@ -20,7 +20,7 @@ class DesktopFile {
         std::string params_;  //=-m default.gcw0.desktop /home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk 
         std::string selectorDir_; //=/home/mat/Downloads
         std::string selectorFilter_; //=.opk
-        std::string selectorAliases_;
+        std::string selectorAlias_;
         std::string provider_; //=/home/mat/Downloads/games/rg\-350/regba_fast\ \(1\).opk
         std::string providerMetadata_; //=default.gcw0.desktop
         std::string manual_;
@@ -97,10 +97,10 @@ class DesktopFile {
                 this->isDirty_ = true;
             }
         }
-        std::string selectorAliases() const { return this->selectorAliases_; }
-        void selectorAliases(std::string val) { 
-            if (val != this->selectorAliases_) {
-                this->selectorAliases_ = val;
+        std::string selectorAlias() const { return this->selectorAlias_; }
+        void selectorAlias(std::string val) { 
+            if (val != this->selectorAlias_) {
+                this->selectorAlias_ = val;
                 this->isDirty_ = true;
             }
         }
