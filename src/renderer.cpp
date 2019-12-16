@@ -170,7 +170,7 @@ void Renderer::render() {
 			*/
 		}
 	}
-		
+
 	// SECTIONS
 	//TRACE("sections");
 	if (app->skin->sectionBar) {
@@ -294,11 +294,7 @@ void Renderer::render() {
 				if (app->skin->sectionBar == Skin::SB_BOTTOM || app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_OFF) {
 					TRACE("HITTING MIDDLE ALIGN");
 					localXpos = app->linksRect.w / 2;
-					if (totalFontHeight >= app->linkHeight) {
-						localAlignTitle = HAlignCenter | VAlignTop;
-					} else {
-						localAlignTitle = HAlignCenter | VAlignMiddle;
-					}
+					localAlignTitle = HAlignCenter | VAlignMiddle;
 				}
 				app->screen->write(
 					app->fontTitle, 
