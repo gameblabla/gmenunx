@@ -1,6 +1,7 @@
 /objs/
 /dist/
 *.opk
+*.zip
 **/.vscode/
 log.txt
 
