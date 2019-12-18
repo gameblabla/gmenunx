@@ -334,25 +334,6 @@ void Esoteric::main() {
 		"skin:icons/device.png", 
 		-30);
 
-if (false) {
-	
-	// non threaded version
-
-	if (this->skin->showLoader && Loader::isFirstRun()) {
-		Loader loader(this);
-		loader.run();
-	}
-	Loader::setFirstRunMarker();
-
-	pbLoading->updateDetail("Checking for new applications...");
-	pbLoading->exec();
-	this->updateAppCache([&](std::string message){ return pbLoading->updateDetail(message); });
-
-	pbLoading->updateDetail("Initialising hardware");
-	this->hw->setPerformanceMode(this->config->performance());
-	this->hw->setCPUSpeed(this->config->cpuMenu());
-
-} else {
 
 	pbLoading->updateDetail("Checking for new apps...");
 	TRACE("kicking off our app cache thread");
@@ -379,8 +360,6 @@ if (false) {
 		delete thread_cache;
 		TRACE("app cache thread has finished");
 	}
-
-}
 
 	// initMenu needs to come after cache thread has joined
 	initMenu();
@@ -1413,9 +1392,10 @@ void Esoteric::about() {
 	}
 	temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
-	temp += "App: " + appPath + "\n";
-	temp += "Config: " + this->config->configFile() + "\n";
-	temp += "Skin: " + this->skin->name + "\n";
+	temp += tr["App: "] + appPath + "\n";
+	temp += tr["Config: "] + this->config->configFile() + "\n";
+	temp += tr["Skin: "] + this->skin->name + "\n";
+	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";

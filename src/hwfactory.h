@@ -240,6 +240,8 @@ class IHardware {
             }
             return result;
         }
+
+        virtual std::string getDeviceType() = 0;
 };
 
 class HwRg350 : IHardware {
@@ -514,6 +516,7 @@ class HwRg350 : IHardware {
             return this->keepAspectRatio_;	
 
         }
+        std::string getDeviceType() { return "RG-350"; }
 };
 
 class HwGeneric : IHardware {
@@ -605,16 +608,47 @@ class HwGeneric : IHardware {
 
         bool getKeepAspectRatio() { return true; };
         bool setKeepAspectRatio(bool val) { return val; };
+
+        std::string getDeviceType() { return "Generic"; }
 };
 
 class HwFactory {
     public:
         static IHardware * GetHardware() {
-            #ifdef TARGET_RG350
-            return (IHardware*)new HwRg350();
-            #else
-            return (IHardware*)new HwGeneric();
-            #endif
+            std::string device = HwFactory::readDeviceType();
+            if (0 == device.compare("generic")) {
+                return (IHardware*)new HwGeneric();
+            } else if (0 == device.compare("rg350")) {
+                return (IHardware*)new HwRg350();
+            } else if (0 == device.compare("v11_ddr2_256mb")) {
+                // GCW Zero
+                return (IHardware*)new HwGeneric();
+            } else if (0 == device.compare("v20_mddr_512mb")) {
+                // pocket go 2, miyoo max
+                return (IHardware*)new HwGeneric();
+            }
+        }
+    protected:
+
+    private:
+        static std::string readDeviceType() {
+            std::string cmdLine = fileReader("/proc/cmdline");
+            std::vector<std::string> cmdParts;
+            split(cmdParts, cmdLine, " ");
+            for (std::vector<std::string>::iterator it = cmdParts.begin(); it != cmdParts.end(); it++) {
+                std::string cmdPart = (*it);
+
+                std::string::size_type pos = cmdPart.find("=");
+                if (std::string::npos == pos) continue;
+                std::string name = trim(cmdPart.substr(0, pos));
+                std::string value = trim(cmdPart.substr(pos+1,cmdPart.length()));
+                if (0 == value.length()) continue;
+
+                if (name == "hwvariant") {
+                    return value;
+                }
+            }
+            return "generic";
         }
 };
 
