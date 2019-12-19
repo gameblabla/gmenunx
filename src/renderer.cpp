@@ -38,6 +38,7 @@ Renderer::Renderer(Esoteric *app) :
 	this->iconSD = app->sc->skinRes("imgs/sd1.png");
 	this->iconManual = app->sc->skinRes("imgs/manual.png");
 	this->iconCPU = app->sc->skinRes("imgs/cpu.png");
+	this->highlighter = (*app->sc)["skin:imgs/iconbg_on.png"];
 
 	this->brightnessIcon = 5;
 	this->batteryIcon = 3;
@@ -337,8 +338,7 @@ void Renderer::render() {
 				// TRACE("checking highlight");
 				if (i == (uint32_t)app->menu->selLinkIndex()) {
 
-					Surface *highlighter = (*app->sc)["skin:imgs/iconbg_on.png"];
-					if (NULL != highlighter) {
+					if (NULL != this->highlighter) {
 						
 						int imageX = ix;
 						int imageY = iy;
@@ -369,7 +369,7 @@ void Renderer::render() {
 							}
 						}
 
-						(*app->sc)["skin:imgs/iconbg_on.png"]->blit(
+						this->highlighter->blit(
 							app->screen, 
 							{ 
 								imageX, 

@@ -475,9 +475,7 @@ void InputManager::noop() {
 
 bool &InputManager::operator[](int action) {
 	if (action >= actions.size()) {
-		WARNING("recieved an actions operator request of %i, and we only have %zu elements", action, actions.size());
-		bool retval = false;
-		return retval;
+		throw;
 	}
 	return actions[action].active;
 }

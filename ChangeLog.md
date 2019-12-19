@@ -1,5 +1,25 @@
 ## Changelog
 
+**1.0.1** (*Codename: I wanna die before i g-g-g-g-get old*)
+* Fixed
+	* button stutter repeats
+	* polling for selected overlay image every render
+
+**1.0.0** (*Codename: Boys don't cry (AKA: I must be new here).*)
+* Renamed fork to 350teric
+* Added 
+	* opk code
+	* opk cache
+	* favourites
+	* previews
+	* many new layout options
+	* loader option
+	* device menu
+	* section (un)hiding
+	* battery friendly rendering
+	* internal stuff
+
+-----------------------------------------------------------------------
 **2018.09.16** (*Codename: No more tears (AKA: My work is done here).*)
 * Renamed fork to GMenuNX;
 * New gridded menu layout:

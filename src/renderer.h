@@ -28,6 +28,7 @@ private:
 	Surface *iconSD;
 	Surface *iconManual;
 	Surface *iconCPU;
+    Surface *highlighter;
 
     vector<Surface*> helpers;
     uint8_t currentVolumeMode;

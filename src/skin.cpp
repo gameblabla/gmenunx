@@ -82,35 +82,44 @@ string Skin::toString() {
     vec.push_back("");
 
     vec.push_back("# the version of skin config file format");
+    vec.push_back("");
     vec.push_back(string_format("version=%i", version));
     vec.push_back("");
 
     vec.push_back("# font sizes");
+    vec.push_back("");
     vec.push_back(string_format("fontSize=%i", fontSize));
     vec.push_back(string_format("fontSizeTitle=%i", fontSizeTitle));
     vec.push_back(string_format("fontSizeSectionTitle=%i", fontSizeSectionTitle));
     vec.push_back("");
 
     vec.push_back("# number of rows and columns to show in launcher view");
+    vec.push_back("");
     vec.push_back(string_format("linkRows=%i", numLinkRows));
     vec.push_back(string_format("linkCols=%i", numLinkCols));
     vec.push_back("");
 
     vec.push_back("# section title bar holds the section icons or name, etc");
     vec.push_back("# image is optional, and takes priority over simple coloured box");
+    vec.push_back("");
     vec.push_back(string_format("sectionTitleBarSize=%i", sectionTitleBarSize));
     vec.push_back(string_format("sectionTitleBarImage=\"%s\"", sectionTitleBarImage.c_str()));
+    vec.push_back("");
     vec.push_back("# controls where to position the section bar....");
     vec.push_back("# off, left, bottom, right, top as integer values from zero");
+    vec.push_back("");
     vec.push_back(string_format("sectionBar=%i", sectionBar));
+    vec.push_back("");
     vec.push_back("# toggles the section title bar between icon and text mode");
     vec.push_back("# text mode is only valid if section titlebar is on the top or bottom of the screen");
+    vec.push_back("");
     vec.push_back(string_format("showSectionIcons=%i", showSectionIcons));
     vec.push_back("");
 
     vec.push_back("# section info bar holds the key commands in launcher view");
     vec.push_back("# it is only ever visible if section title bar is on the top or bottom of the screen");
     vec.push_back("# and if sectionInfoBarVisible=1");
+    vec.push_back("");
     vec.push_back(string_format("sectionInfoBarSize=%i", sectionInfoBarSize));
     vec.push_back(string_format("sectionInfoBarImage=\"%s\"", sectionInfoBarImage.c_str()));
     vec.push_back(string_format("sectionInfoBarVisible=%i", sectionInfoBarVisible));
@@ -118,6 +127,7 @@ string Skin::toString() {
 
     vec.push_back("# menu title and info bar work in the same way as section bars, ");
     vec.push_back("# but are fixed in position, always top and bottom of the screen");
+    vec.push_back("");
     vec.push_back(string_format("menuTitleBarHeight=%i", menuTitleBarHeight));
     //vec.push_back(string_format("menuTitleBarImage=\"%s\"", menuTitleBarImage.c_str()));
     vec.push_back(string_format("menuInfoBarHeight=%i", menuInfoBarHeight));
@@ -129,6 +139,7 @@ string Skin::toString() {
     vec.push_back("# -1 means fullscreen as a background");
     vec.push_back("# 0 means disable, and don't search fodlers");
     vec.push_back("# positive int means animate in from the right hand side for this many pixels");
+    vec.push_back("");
     vec.push_back(string_format("previewWidth=%i", previewWidth));
     vec.push_back("");
 
@@ -136,21 +147,25 @@ string Skin::toString() {
     vec.push_back("# 0 = icons and text");
     vec.push_back("# 1 = icons only");
     vec.push_back("# 2 = text only");
+    vec.push_back("");
     vec.push_back(string_format("linkDisplayMode=%i", linkDisplayMode));
     vec.push_back("");
 
     vec.push_back("# display the clock in the section title bar or not");
+    vec.push_back("");
     vec.push_back(string_format("showClock=%i", showClock));
     vec.push_back("");
 
     vec.push_back("# display the loader on first boot, if there is one");
+    vec.push_back("");
     vec.push_back(string_format("showLoader=%i", showLoader));
     vec.push_back("");
 
     vec.push_back("# display skin backgrounds for emulators etc");
+    vec.push_back("");
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
     vec.push_back("");
-    
+
     vec.push_back("# if there is a highlight image supplied with the skin, ");
     vec.push_back("# it needs to be located at imgs/iconbg_on.png");
     vec.push_back("# then this flag declares if it is scaleable or not....");
@@ -159,22 +174,26 @@ string Skin::toString() {
     vec.push_back("# and consider anything else that colour to be transparent");
     vec.push_back("# we also don't keep aspect ration in the scaling, ");
     vec.push_back("# because cell sizes change ratio with row and column count");
+    vec.push_back("");
     vec.push_back(string_format("scaleableHighlightImage=%i", scaleableHighlightImage));
     vec.push_back("");
 
     vec.push_back("# the current selected wallpaper");
     vec.push_back("# when designing a skin, set the filename only, no path, ");
     vec.push_back("# the path is resolved at run time");
+    vec.push_back("");
     vec.push_back(string_format("wallpaper=\"%s\"", wallpaper.c_str()));
     vec.push_back("");
 
     vec.push_back("# force skin aspects to grayscale");
     vec.push_back("# imagesToGrayscale covers wallpapers, previews, backdrops");
+    vec.push_back("");
     vec.push_back(string_format("imagesToGrayscale=%i", imagesToGrayscale));
     vec.push_back(string_format("iconsToGrayscale=%i", iconsToGrayscale));
     vec.push_back("");
 
     vec.push_back("# colours section starts");
+    vec.push_back("");
     vec.push_back(string_format("background=%s", rgbatostr(colours.background).c_str()));
     vec.push_back(string_format("listBg=%s", rgbatostr(colours.listBackground).c_str()));
     vec.push_back(string_format("titleBarBg=%s", rgbatostr(colours.titleBarBackground).c_str()));
@@ -320,7 +339,7 @@ void Skin::reset() {
     showClock = true;
     showLoader = false;
     skinBackdrops = false;
-    scaleableHighlightImage = false;
+    scaleableHighlightImage = true;
     sectionBar = SB_LEFT;
     wallpaper = "";
     menuInfoBarImage = "";
@@ -366,6 +385,7 @@ void Skin::constrain() {
     evalIntConf( &this->numLinkCols, 1, 1, 10);
     evalIntConf( &this->numLinkRows, 6, 1, 16);
     evalIntConf( (int)*(&this->linkDisplayMode), ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
+    evalIntConf( &this->scaleableHighlightImage, 1, 0, 1);
 
 }
 
