@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <signal.h>
 
 #include "ihardware.h"
 #include "../constants.h"
@@ -101,7 +102,7 @@ class HwLinux : IHardware {
 
         std::string getDeviceType() { return "Linux"; }
 
-        void powerOff() { std::exit(0); }
+        void powerOff() { raise(SIGINT); }
         void reboot() { return; }
 };
 
