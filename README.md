@@ -10,6 +10,7 @@ Copy the latest [Release](https://github.com/podulator/esoteric/releases/) opk t
 
 If you decide you want to install it, there is an option to do that in the Settings menu.
 You can uninstall it as the default launcher the same way.
+The 'update' option shows if you have installed 350teric, and copies all missing files over to recover or update what it can.
 
 ## Controls
 
@@ -38,30 +39,6 @@ In settings:
 - Suported image types are .png or .jpg;
 - To change how the previews are shown, see the [Skinning]("#Skinning) section
 
-## How to filter files in Selector Browser
-
-- Create a file called `.filters` in a rom browser
-- Add a csv of values to allow, eg. `.gba,.snes,.smc,.cue`
-- This is a temporary work around until we get the opk's updated
-
-## How to create battery logs
-
-To get data of your battery charge and discharge cycle:
-
-- Enter the Battery Logger;
-- Do a full charge;
--* After charged, remove the cable;
-- Stay in this screen and wait until it discharges totally;
-
-Repeat how many times you wish and can.
-
-New data will be printed on screen every minute and will be saved in file **battery.csv** located in your **.gmenunx** folder.
-
-The fields logged are:
-
-- Time: Time in milliseconds since Esoteric started;
-- BatteryStatus: Computed battery status, from 0 (discharged) to 4 (charged) and 5 (charging);
-- BatteryLevel: Raw battery level as given by system.
 
 ## Thanks 
 
