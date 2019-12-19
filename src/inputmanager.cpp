@@ -51,7 +51,7 @@
 	R3              KEY_KPDOT,
 	START           KEY_ENTER,
 	SELECT          KEY_ESC,
-	POWER           KEY_POWER,			320 (SEND KEY_HOME on press)
+	POWER           KEY_POWER,			320 (SEND KEY_HOME on press, 278)
 	VOL_UP          KEY_VOLUMEUP,
 	VOL_DOWN        KEY_VOLUMEDOWN,
 
@@ -88,11 +88,13 @@ InputManager::~InputManager() {
 			SDL_JoystickClose(joysticks[x]);
 }
 
-void InputManager::init(const string &conffile) {
+void InputManager::init(const string &conffile, const int &repeatRate) {
 	TRACE("init started");
-	initJoysticks();
-	if (!readConfFile(conffile))
+	this->initJoysticks();
+	if (!this->readConfFile(conffile)) {
 		ERROR("InputManager initialization from config file failed.");
+	}
+	this->setButtonRepeat(repeatRate);
 	TRACE("init completed");
 }
 
@@ -339,7 +341,10 @@ bool InputManager::update(bool wait) {
 			TRACE("WAIT QUIT");
 			actions[QUIT].active = true;
 			return true;
-		} else if (event.type == SDL_KEYUP) {
+		} else if (event.type == SDL_KEYDOWN) {//SDL_KEYUP) {
+			if (SDLK_UNKNOWN == event.key.keysym.sym) {
+				return false;
+			}
 			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
 			anyactions = true;
 			SDL_Event evcopy = event;
@@ -347,9 +352,106 @@ bool InputManager::update(bool wait) {
 			TRACE("WAIT NOOP");
 			actions[NOOP].active = true;
 			anyactions = true;
-			//return true;
 		} else {
+			/*
 			TRACE("non special event type : %i", event.type);
+				// let's dump out what we can and isolate the wake up event type
+				switch(event.type) {
+                    case SDL_ACTIVEEVENT:
+                        if (event.active.state & SDL_APPMOUSEFOCUS) {
+                                if (event.active.gain) {
+                                        TRACE("event.type test - Mouse focus gained\n");
+                                } else {
+                                        TRACE("event.type test - Mouse focus lost\n");
+                                }
+                        }
+                        if (event.active.state & SDL_APPINPUTFOCUS) {
+                                if (event.active.gain) {
+                                        TRACE("event.type test - Input focus gained\n");
+                                } else {
+                                        TRACE("event.type test - Input focus lost\n");
+                                }
+                        }
+                        if (event.active.state & SDL_APPACTIVE) {
+                                if (event.active.gain) {
+                                        TRACE("event.type test - Application restored\n");
+                                } else {
+                                        TRACE("event.type test - Application iconified\n");
+                                }
+                        }
+                        break;
+                    case SDL_KEYDOWN:
+                        TRACE("event.type test - Key pressed:\n");
+                        TRACE("event.type test -        SDL sim: %i\n",event.key.keysym.sym);
+                        TRACE("event.type test -        modifiers: %i\n",event.key.keysym.mod);
+                        break;
+                    case SDL_KEYUP:
+                        TRACE("event.type test - Key released:\n");
+                        TRACE("event.type test -        SDL sim: %i\n",event.key.keysym.sym);
+                        TRACE("event.type test -        modifiers: %i\n",event.key.keysym.mod);
+                        break;
+                    case SDL_MOUSEMOTION:
+                        TRACE("event.type test - Mouse moved to: (%i,%i) ", event.motion.x, event.motion.y);
+                        TRACE("event.type test - change: (%i,%i)\n", event.motion.xrel, event.motion.yrel);
+                        TRACE("event.type test -        button state: %i\n",event.motion.state);
+                        break;
+                    case SDL_MOUSEBUTTONDOWN:
+                        TRACE("event.type test - Mouse button %i ",event.button.button);
+                        TRACE("event.type test - pressed with mouse at (%i,%i)\n",event.button.x,event.button.y);
+                        break;
+                    case SDL_MOUSEBUTTONUP:
+                        TRACE("event.type test - Mouse button %i ",event.button.button);
+                        TRACE("event.type test - released with mouse at (%i,%i)\n",event.button.x,event.button.y);
+                        break;
+                    case SDL_JOYAXISMOTION:
+                        TRACE("event.type test - Joystick axis %i ",event.jaxis.axis);
+                        TRACE("event.type test - on joystick %i ", event.jaxis.which);
+                        TRACE("event.type test - moved to %i\n", event.jaxis.value);
+                        break;
+                    case SDL_JOYBALLMOTION:
+                        TRACE("event.type test - Trackball axis %i ",event.jball.ball);
+                        TRACE("event.type test - on joystick %i ", event.jball.which);
+                        TRACE("event.type test - moved to (%i,%i)\n", event.jball.xrel, event.jball.yrel);
+                        break;
+                    case SDL_JOYHATMOTION:
+                        TRACE("event.type test - Hat axis %i ",event.jhat.hat);
+                        TRACE("event.type test - on joystick %i ", event.jhat.which);
+                        TRACE("event.type test - moved to %i\n", event.jhat.value);
+                        break;
+                    case SDL_JOYBUTTONDOWN:
+                        TRACE("event.type test - Joystick button %i ",event.jbutton.button);
+                        TRACE("event.type test - on joystick %i ", event.jbutton.which);
+                        TRACE("event.type test - pressed\n");
+                        break;
+                    case SDL_JOYBUTTONUP:
+                        TRACE("event.type test - Joystick button %i ",event.jbutton.button);
+                        TRACE("event.type test - on joystick %i ", event.jbutton.which);
+                        TRACE("event.type test - released\n");
+                        break;
+                    case SDL_VIDEORESIZE:
+                        TRACE("event.type test - Window resized to: (%i,%i)\n",event.resize.w, event.resize.h);
+                        break;
+                    case SDL_VIDEOEXPOSE:
+                        TRACE("event.type test - Window exposed\n");
+                        break;
+                    case SDL_QUIT:
+                        TRACE("event.type test - Request to quit\n");
+                        break;
+                    case SDL_USEREVENT:
+                        TRACE("event.type test - User event:\n");
+                        TRACE("event.type test -        code:  %i\n",event.user.code);
+                        TRACE("event.type test -        data1: %p\n",event.user.data1);
+                        TRACE("event.type test -        data2: %p\n",event.user.data2);
+                        break;
+                    case SDL_SYSWMEVENT:
+                        TRACE("event.type test - Window manager event\n");
+                        break;
+                    default:
+                        TRACE("event.type test - I don't know what this event is!\n");
+                  };
+			*/
+
+		
 		}
 	} 
 
@@ -393,48 +495,6 @@ void InputManager::dropEvents() {
 			actions[x].timer = NULL;
 		}
 	}
-}
-
-uint32_t InputManager::checkRepeat(uint32_t interval, void *_data) {
-	RepeatEventData *data = (RepeatEventData *)_data;
-	InputManager *im = (class InputManager*)data->im;
-	SDL_JoystickUpdate();
-	if (im->isActive(data->action)) {
-		SDL_PushEvent( im->fakeEventForAction(data->action) );
-		return interval;
-	} else {
-		im->actions[data->action].timer = NULL;
-		return 0;
-	}
-}
-
-SDL_Event *InputManager::fakeEventForAction(int action) {
-	MappingList mapList = actions[action].maplist;
-	// Take the first mapping. We only need one of them.
-	InputMap map = *mapList.begin();
-
-	SDL_Event *event = new SDL_Event();
-	switch (map.type) {
-		case InputManager::MAPPING_TYPE_BUTTON:
-			event->type = SDL_JOYBUTTONDOWN;
-			event->jbutton.type = SDL_JOYBUTTONDOWN;
-			event->jbutton.which = map.num;
-			event->jbutton.button = map.value;
-			event->jbutton.state = SDL_PRESSED;
-		break;
-		case InputManager::MAPPING_TYPE_AXIS:
-			event->type = SDL_JOYAXISMOTION;
-			event->jaxis.type = SDL_JOYAXISMOTION;
-			event->jaxis.which = map.num;
-			event->jaxis.axis = map.value;
-			event->jaxis.value = map.treshold;
-		break;
-		case InputManager::MAPPING_TYPE_KEYPRESS:
-			event->type = SDL_KEYDOWN;
-			event->key.keysym.sym = (SDLKey)map.value;
-		break;
-	}
-	return event;
 }
 
 int InputManager::count() {
@@ -481,12 +541,15 @@ bool &InputManager::operator[](int action) {
 }
 
 bool InputManager::isActive(int action) {
-	
-	if (action >= actions.size())
+	//TRACE("enter : %i", action);
+	if (action >= actions.size()) {
+		WARNING("action %i is bigger than actions size %zu", action, actions.size());
 		return false;
+	}
 
 	// is it too soon since last press??
 	if (actions[action].last + actions[action].interval > SDL_GetTicks()) {
+		//TRACE("too soo for : %i", action);
 		return false;
 	}
 
@@ -513,4 +576,30 @@ bool InputManager::isActive(int action) {
 		}
 	}
 	return false;
+}
+
+bool InputManager::isOnlyActive(int action) {
+	TRACE("enter : %i", action);
+	for (int x = 0; x < actions.size(); x++) {
+		if (NOOP == x) {
+			// skip a NOOP, they are never active
+			continue;
+		} else if (action == x) {
+			// skip oursleves, as a short press might be over by now
+			continue;
+		} else if (isActive(x)) {
+			TRACE("also active : %i", x);
+			return false;
+		}
+	}
+	TRACE("exit - true");
+	return true;
+}
+
+void InputManager::setButtonRepeat(const int &repeatRate) {
+	if (repeatRate > 0) {
+		SDL_EnableKeyRepeat(INPUT_KEY_REPEAT_DELAY, repeatRate);
+	} else {
+		SDL_EnableKeyRepeat(0, 0);
+	}
 }

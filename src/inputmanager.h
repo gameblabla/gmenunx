@@ -20,6 +20,12 @@
 #ifndef INPUTMANAGER_H
 #define INPUTMANAGER_H
 
+#include "screenmanager.h"
+#include <SDL.h>
+#include <SDL_image.h>
+#include <vector>
+#include <string>
+
 enum actions {
 	UP = 0, 
 	DOWN = 1, 
@@ -44,12 +50,6 @@ enum actions {
 	QUIT = 20, 
 	NOOP = 21
 };
-
-#include "screenmanager.h"
-#include <SDL.h>
-#include <SDL_image.h>
-#include <vector>
-#include <string>
 
 typedef struct {
 	int type;
@@ -90,22 +90,21 @@ private:
 
 	ScreenManager& screenManager;
 
-	static uint32_t checkRepeat(uint32_t interval, void *_data);
 	static uint32_t wakeUp(uint32_t interval, void *_data);
-	SDL_Event *fakeEventForAction(int action);
 
 public:
 	static const int MAPPING_TYPE_UNDEFINED = -1;
 	static const int MAPPING_TYPE_BUTTON = 0;
 	static const int MAPPING_TYPE_AXIS = 1;
 	static const int MAPPING_TYPE_KEYPRESS = 2;
+	static const int INPUT_KEY_REPEAT_DELAY = 250;
 
 	static const int SDL_WAKEUPEVENT = SDL_USEREVENT + 1;
 	static const int SDL_NOOPEVENT = SDL_WAKEUPEVENT + 1;
 
 	InputManager(ScreenManager& screenManager);
 	~InputManager();
-	void init(const std::string &conffile);
+	void init(const std::string &conffile, const int &repeatRate = 10);
 	void initJoysticks();
 	bool readConfFile(const std::string &conffile = "input.conf");
 
@@ -119,6 +118,10 @@ public:
 	void noop();
 	bool &operator[](int action);
 	bool isActive(int action);
+	bool isOnlyActive(int action);
+
+	void setButtonRepeat(const int &repeatRate);
+
 };
 
 typedef struct {

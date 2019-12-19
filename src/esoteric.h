@@ -47,16 +47,12 @@
 #include <vector>
 #include <tr1/unordered_map>
 
-using std::string;
-using std::vector;
-using fastdelegate::FastDelegate0;
-
-typedef FastDelegate0<> MenuAction;
-typedef std::tr1::unordered_map<string, string, std::hash<string> > ConfStrHash;
-typedef std::tr1::unordered_map<string, int, std::hash<string> > ConfIntHash;
+typedef fastdelegate::FastDelegate0<> MenuAction;
+typedef std::tr1::unordered_map<std::string, string, std::hash<std::string> > ConfStrHash;
+typedef std::tr1::unordered_map<std::string, int, std::hash<std::string> > ConfIntHash;
 
 struct MenuOption {
-	string text;
+	std::string text;
 	MenuAction action;
 };
 
@@ -147,7 +143,6 @@ public:
 
 	void about();
 	void viewLog();
-	//void batteryLogger();
 	void performanceMenu();
 	void contextMenu();
 	void changeWallpaper();
@@ -168,7 +163,7 @@ public:
 
 	void setWallpaper(const std::string &wallpaper = "");
 	void updateAppCache(std::function<void(std::string)> callback = nullptr);
-	void cacheChanged(const DesktopFile & file, const bool & added);
+	void cacheChanged(const DesktopFile &file, const bool &added);
 
 	Menu* menu;
 	Skin* skin;

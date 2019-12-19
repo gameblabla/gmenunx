@@ -204,7 +204,7 @@ Esoteric::Esoteric() : input(screenManager) {
 	this->screenManager.setScreenTimeout(600);
 
 	TRACE("input");
-	this->input.init(this->getReadablePath() + "input.conf");
+	this->input.init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
 	setInputSpeed();
 
 	TRACE("exit");
@@ -428,6 +428,9 @@ void Esoteric::main() {
 			if (this->input[QUIT] ) {
 				INFO("We got a quit request");
 				quit = true;
+				continue;
+			} else if (this->input[POWER] && this->input.isOnlyActive(POWER)) {
+				this->poweroffDialog();
 				continue;
 			} else if (this->input[NOOP]) {
 				continue;
@@ -1011,6 +1014,8 @@ void Esoteric::skinMenu() {
 void Esoteric::settings() {
 	TRACE("enter");
 	bool unhideSections = false;
+	int buttonRepeatRate = this->config->buttonRepeatRate();
+	bool buttonRepeatEnabled = (0 != buttonRepeatRate);
 	std::string prevSkin = config->skin();
 	std::vector<std::string> skinList = Skin::getSkins(getReadablePath());
 
@@ -1039,12 +1044,6 @@ void Esoteric::settings() {
 	encodings.push_back("NTSC");
 	encodings.push_back("PAL");
 
-	/*
-	vector<string> batteryTypes;
-	batteryTypes.push_back("BL-5B");
-	batteryTypes.push_back("Linear");
-	*/
-
 	std::vector<std::string> opFactory;
 	opFactory.push_back(">>");
 	std::string tmp = ">>";
@@ -1067,15 +1066,6 @@ void Esoteric::settings() {
 		tr["Set system's date & time"], 
 		&currentDatetime));
 	
-	/*
-	sd.addSetting(new MenuSettingMultiString(
-		this, 
-		tr["Battery profile"], 
-		tr["Set the battery discharge profile"], 
-		&batteryType, 
-		&batteryTypes));
-	*/
-
 	sd.addSetting(new MenuSettingMultiString(
 		this, 
 		tr["Skin"], 
@@ -1105,6 +1095,20 @@ void Esoteric::settings() {
 		config->externalAppPath(), 
 		"Apps path", 
 		"skin:icons/explorer.png"));
+
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Button repeat enabled"], 
+		tr["Toggle button repeat on or off"], 
+		&buttonRepeatEnabled
+	)); 
+
+	sd.addSetting(new MenuSettingInt(
+		this, 
+		tr["Button repeat rate"], 
+		tr["How fast in ms do you want button repeats"], 
+		&buttonRepeatRate, 50, 25, 500, 10
+	));
 
 	sd.addSetting(new MenuSettingBool(
 		this, 
@@ -1160,8 +1164,14 @@ void Esoteric::settings() {
 			refreshNeeded = true;
 		}
 
+		if (buttonRepeatEnabled) {
+			this->config->buttonRepeatRate(buttonRepeatRate);
+			this->input.setButtonRepeat(buttonRepeatRate);
+		} else {
+			this->config->buttonRepeatRate(0);
+			this->input.setButtonRepeat(0);
+		}
 		this->config->skin(skin);
-		//config->batteryType(batteryType);
 		this->config->saveSelection(saveSelection);
 		this->config->outputLogs(outputLogs);
 		//config->powerTimeout(powerTimeout);
@@ -1459,19 +1469,6 @@ void Esoteric::viewLog() {
 		this->hw->ledOff();
 	}
 }
-
-/*
-void Esoteric::batteryLogger() {
-	this->hw->ledOn();
-	BatteryLoggerDialog bl(
-		this, 
-		tr["Battery Logger"], 
-		tr["Log battery power to battery.csv"], 
-		"skin:icons/ebook.png");
-	bl.exec();
-	this->hw->ledOff();
-}
-*/
 
 void Esoteric::linkScanner() {
 	LinkScannerDialog ls(

@@ -58,13 +58,6 @@ public:
             this->isDirty = true;
         }
     }
-    std::string batteryType() const { return this->batteryType_; }
-    void batteryType(std::string val) {
-        if (val != this->batteryType_) {
-            this->batteryType_ = val;
-            this->isDirty = true;
-        }
-    }
     std::string sectionFilter() const { return this->sectionFilter_; }
     void sectionFilter(std::string val) {
         if (val != this->sectionFilter_) {
@@ -244,7 +237,6 @@ private:
     std::string performance_; //="On demand"
     std::string tvOutMode_; //="NTSC"
     std::string lang_; //=""
-    std::string batteryType_; //="BL-5B"
     std::string sectionFilter_; //="applications,foo"
     std::string launcherPath_; //="/media/sdcard/ROMS"
 

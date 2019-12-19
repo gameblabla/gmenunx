@@ -43,7 +43,6 @@ string Config::toString() {
     vec.push_back(string_format("performance=\"%s\"", this->performance().c_str()));
     vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode().c_str()));
     vec.push_back(string_format("lang=\"%s\"", this->lang().c_str()));
-    vec.push_back(string_format("batteryType=\"%s\"", this->batteryType().c_str()));
     vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
     vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
     vec.push_back(string_format("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
@@ -121,7 +120,6 @@ void Config::reset() {
     this->performance_ = "On demand";
     this->tvOutMode_ = "NTSC";
     this->lang_ = "";
-    this->batteryType_ = "BL-5B";
     this->sectionFilter_ = "";
 
     if (dirExists(EXTERNAL_LAUNCHER_PATH)) {
@@ -163,6 +161,8 @@ void Config::reset() {
 void Config::constrain() {
 
 	evalIntConf( &this->backlightTimeout_, 30, 10, 300);
+    evalIntConf( &this->backlightLevel_, 70, 1, 100);
+    evalIntConf( &this->buttonRepeatRate_, 50, 0, 500);
 	evalIntConf( &this->powerTimeout_, 10, 1, 300);
 	evalIntConf( &this->outputLogs_, 0, 0, 1 );
 	evalIntConf( &this->cpuMax_, 642, 200, 1200 );
@@ -171,7 +171,6 @@ void Config::constrain() {
 	evalIntConf( &this->globalVolume_, 60, 1, 100 );
     evalIntConf (&this->aspectRatio_, 1, 0, 1);
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );
-	evalIntConf( &this->backlightLevel_, 70, 1, 100);
 	evalIntConf( &this->minBattery_, 0, 0, 5);
 	evalIntConf( &this->maxBattery_, 5, 0, 5);
     evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
@@ -182,6 +181,8 @@ void Config::constrain() {
         this->link(0);
     }
 
+    if (this->buttonRepeatRate_ > 0 && this->buttonRepeatRate_ < 25)
+        this->buttonRepeatRate_ = 50;
 	if (this->performance() != "Performance") 
 		this->performance("On demand");
 	if (this->tvOutMode() != "PAL") 
@@ -244,8 +245,6 @@ bool Config::fromFile() {
                             this->tvOutMode(stripQuotes(value));
                         } else if (name == "lang") {
                             this->lang(stripQuotes(value));
-                        } else if (name == "batterytype") {
-                            this->batteryType(stripQuotes(value));
                         } else if (name == "sectionfilter") {
                             this->sectionFilter(stripQuotes(value));
                         } else if (name == "launcherpath") {
