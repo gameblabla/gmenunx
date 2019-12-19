@@ -34,7 +34,7 @@
 #include "skin.h"
 #include "config.h"
 #include "ui.h"
-#include "hwfactory.h"
+#include "hw/hwfactory.h"
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
