@@ -280,8 +280,8 @@ function makePackage () {
 
 function showHelp () {
     echo "Usage:"
-	echo "    -b                 Do a build for \${target}."
-    echo "    -c                 Full clean when \${target} = [${validTargets[@]}]"
+	echo "    -b                 Do a build for a valid target."
+    echo "    -c                 Full clean when \${target} = [all ${validTargets[@]}]"
 	echo "    -d x               set debug level [valid levels are 0 - 5, default is 2]"
 	echo "    -h                 Display this help message."
 	echo "    -i                 install launcher script when \${target} = ['rg350']."
@@ -300,7 +300,7 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-REDIRECT=""
+REDIRECT=" 1>/dev/null"
 debugLevel=2
 requestedDebugLevel=""
 requestedTarget=""
@@ -402,17 +402,21 @@ if [ ${doDebug} == "true" ]; then
 fi
 
 if [ ${doTarget} == "true" ]; then
-	log "checking ${requestedTarget} is a valid target"
-	for myTarget in ${validTargets[*]}; do
-		log "checking ${myTarget} with ${requestedTarget}"
-		if [ ${myTarget} == ${requestedTarget} ]; then
-			log "setting target successfully to : ${myTarget}"
-			target=${myTarget}
-		fi
-	done
+	if [ $requestedTarget == "all" ]; then
+		target="all"
+	else
+		log "checking ${requestedTarget} is a valid target"
+		for myTarget in ${validTargets[*]}; do
+			log "checking ${myTarget} with ${requestedTarget}"
+			if [ ${myTarget} == ${requestedTarget} ]; then
+				log "setting target successfully to : ${myTarget}"
+				target=${myTarget}
+			fi
+		done
+	fi
 	if [[ -z ${target} ]]; then
 		echo "${requestedTarget} is not a valid build target"
-		echo "valid build targets are : ${validTargets[*]}"
+		echo "valid build targets are : [all ${validTargets[*]}]"
 		exit 1
 	fi
 fi
