@@ -93,13 +93,6 @@ int MenuSettingInt::value() {
 	return *_value;
 }
 
-// void MenuSettingInt::adjustInput() {
-// 	app->input.setInterval(100, LEFT);
-// 	app->input.setInterval(100, RIGHT);
-// 	app->input.setInterval(100, DEC);
-// 	app->input.setInterval(100, INC);
-// }
-
 bool MenuSettingInt::edited() {
 	return originalValue != value();
 }
