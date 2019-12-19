@@ -411,6 +411,7 @@ if [ ${doTarget} == "true" ]; then
 			if [ ${myTarget} == ${requestedTarget} ]; then
 				log "setting target successfully to : ${myTarget}"
 				target=${myTarget}
+				break
 			fi
 		done
 	fi
