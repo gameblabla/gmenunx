@@ -124,7 +124,7 @@ Esoteric::Esoteric() : input(screenManager) {
 	this->hw = nullptr;
 
 	TRACE("creating hardware layer");
-	this->hw = HwFactory::GetHardware();
+	this->hw = HwFactory::GetHardware(HwFactory::readDeviceType());
 
 	TRACE("ledOn");
 	this->hw->ledOn();
@@ -1758,16 +1758,14 @@ void Esoteric::poweroffDialog() {
 		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png", 100);
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
-		sync();
-		std::system("poweroff");
+		this->hw->powerOff();
 		pbShutdown.finished(1000);
 	}
 	else if (response == SECTION_NEXT) {
 		ProgressBar pbReboot(this, " Rebooting ", "skin:icons/device.png", 80);
 		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
-		sync();
-		std::system("reboot");
+		this->hw->reboot();
 		pbReboot.finished(1000);
 	}
 }

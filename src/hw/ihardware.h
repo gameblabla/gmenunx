@@ -233,6 +233,16 @@ class IHardware {
         }
 
         virtual std::string getDeviceType() = 0;
+
+        virtual void powerOff() {
+            sync();
+            system("poweroff");
+        }
+
+        virtual void reboot() {
+            sync();
+		    system("reboot");
+        }
 };
 
 #endif
