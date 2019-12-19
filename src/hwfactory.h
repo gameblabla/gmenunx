@@ -626,7 +626,7 @@ class HwFactory {
             } else if (0 == device.compare("v20_mddr_512mb")) {
                 // pocket go 2, miyoo max
                 return (IHardware*)new HwGeneric();
-            }
+            } else return (IHardware*)new HwGeneric();
         }
     protected:
 
