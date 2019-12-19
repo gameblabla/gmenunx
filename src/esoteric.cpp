@@ -53,7 +53,6 @@
 #include "menusettingimage.h"
 #include "menusettingdir.h"
 #include "imageviewerdialog.h"
-#include "batteryloggerdialog.h"
 #include "linkscannerdialog.h"
 #include "linkapp.h"
 #include "menusettingdatetime.h"
@@ -427,7 +426,11 @@ void Esoteric::main() {
 		bool inputAction = this->input.update(true);
 		if (inputAction) {
 			if (this->input[QUIT] ) {
+				INFO("We got a quit request");
 				quit = true;
+				continue;
+			} else if (this->input[NOOP]) {
+				continue;
 			} else if (this->input[CONFIRM] && this->menu->selLink() != NULL) {
 				TRACE("******************RUNNING THIS*******************");
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {

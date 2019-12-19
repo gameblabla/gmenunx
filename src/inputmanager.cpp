@@ -116,7 +116,7 @@ void InputManager::initJoysticks() {
 
 bool InputManager::readConfFile(const string &conffile) {
 	TRACE("enter : %s", conffile.c_str());
-	setActionsCount(20); // plus 2 for BACKLIGHT and POWER
+	setActionsCount(NOOP + 1); // track the highest in the enum
 
 	if (!fileExists(conffile)) {
 		ERROR("File not found: %s", conffile.c_str());
@@ -161,6 +161,7 @@ bool InputManager::readConfFile(const string &conffile) {
 		else if (name == "voldown")      action = VOLDOWN;
 		else if (name == "backlight")    action = BACKLIGHT;
 		else if (name == "power")        action = POWER;
+		else if (name == "quit")         action = QUIT;
 		else if (name == "speaker") {}
 		else {
 			ERROR("%s:%d Unknown action '%s'.", conffile.c_str(), linenum, name.c_str());
@@ -336,7 +337,6 @@ bool InputManager::update(bool wait) {
 
 		if (event.type == SDL_QUIT) {
 			TRACE("WAIT QUIT");
-			anyactions = true;
 			actions[QUIT].active = true;
 			return true;
 		} else if (event.type == SDL_KEYUP) {
@@ -345,8 +345,11 @@ bool InputManager::update(bool wait) {
 			SDL_Event evcopy = event;
 		} else if (event.type == SDL_NOOPEVENT) {
 			TRACE("WAIT NOOP");
+			actions[NOOP].active = true;
 			anyactions = true;
-			return true;
+			//return true;
+		} else {
+			TRACE("non special event type : %i", event.type);
 		}
 	} 
 
@@ -464,12 +467,18 @@ uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
 }
 
 void InputManager::noop() {
+	TRACE("enter");
 	SDL_Event event;
 	event.type = SDL_NOOPEVENT;
 	SDL_PushEvent( &event );
 }
 
 bool &InputManager::operator[](int action) {
+	if (action >= actions.size()) {
+		WARNING("recieved an actions operator request of %i, and we only have %zu elements", action, actions.size());
+		bool retval = false;
+		return retval;
+	}
 	return actions[action].active;
 }
 
