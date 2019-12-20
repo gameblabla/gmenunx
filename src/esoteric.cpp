@@ -2068,6 +2068,7 @@ void Esoteric::hideSection() {
 	} else {
 		this->config->sectionFilter(this->config->sectionFilter() + "," + section);
 	}
+	this->config->save();
 	initMenu();
 }
 

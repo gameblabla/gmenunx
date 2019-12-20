@@ -49,7 +49,7 @@ private:
 	bool selectorbrowser, consoleapp, deletable, editable;
 	string aliasfile;
 	string file;
-	
+
 	void launch(string launchArgs = "");
 	string resolveArgs(const string &selectedFile = "", const string &selectedDir = "");
 	void favourite(string launchArgs, string supportingFile = "");
