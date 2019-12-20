@@ -1959,7 +1959,7 @@ void Esoteric::editLink() {
 	std::string linkParams = menu->selLinkApp()->getParams();
 	std::string linkSelFilter = menu->selLinkApp()->getSelectorFilter();
 	std::string linkSelDir = menu->selLinkApp()->getSelectorDir();
-	//bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
+	bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
 	//std::string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
 	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
 	//int linkClock = menu->selLinkApp()->clock();
@@ -1979,7 +1979,7 @@ void Esoteric::editLink() {
 	//sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, config->cpuMenu, config->cpuMin, config->cpuMax, 6));
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	//sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
+	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
 	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAlias, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
@@ -1997,7 +1997,7 @@ void Esoteric::editLink() {
 		menu->selLinkApp()->setParams(linkParams);
 		menu->selLinkApp()->setSelectorFilter(linkSelFilter);
 		menu->selLinkApp()->setSelectorDir(linkSelDir);
-		//menu->selLinkApp()->setSelectorBrowser(linkSelBrowser);
+		menu->selLinkApp()->setSelectorBrowser(linkSelBrowser);
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
