@@ -42,7 +42,7 @@ const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
 LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	Link(app, MakeDelegate(this, &LinkApp::run)),
 	inputMgr(app->input) {
-
+	if (!deletable_)
 	TRACE("ctor - handling normal desktop file :%s", linkfile);
 	TRACE("ctor - setCPU");
 	setCPU(app->config->cpuMenu());
@@ -59,7 +59,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	this->workdir = "";
 	this->backdrop = "";
 	this->backdropPath = "";
-	this->editable = this->deletable = deletable;
+	this->editable = this->deletable = deletable_;
 	this->params = "";
 	this->exec = "";
 	this->provider = "";
