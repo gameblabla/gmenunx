@@ -68,7 +68,6 @@ dist: dir shared
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/logo.png
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Default/icons/device.png
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Minimal/icons/device.png
-	@echo "binary: $(DISTDIR)/esoteric"
 
 -include $(patsubst src/%.cpp, $(OBJDIR)/src/%.d, $(SOURCES))
 

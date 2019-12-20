@@ -217,6 +217,9 @@ function myBuild () {
 			fi
 			local cmd="make -f ./Makefile.linux all dist${REDIRECT}"
 			eval ${cmd}
+			if [[ $? -eq 0 ]]; then
+				echo "binary: ./dist/LINUX/esoteric/esoteric"
+			fi
 			;;
 		rg350 )
 			log "doing a rg350 build"
@@ -234,7 +237,7 @@ function myBuild () {
 function makePackage () {
 
 	if [[ $# -lt 1 ]]; then
-		echo "makePackage needs a target at least"
+		echo "makePackage needs a target"
 		exit 1
 	fi
 	local target=$1
@@ -407,7 +410,7 @@ if [ ${doTarget} == "true" ]; then
 	else
 		log "checking ${requestedTarget} is a valid target"
 		for myTarget in ${validTargets[*]}; do
-			log "checking ${myTarget} with ${requestedTarget}"
+			log "checking ${myTarget} against ${requestedTarget}"
 			if [ ${myTarget} == ${requestedTarget} ]; then
 				log "setting target successfully to : ${myTarget}"
 				target=${myTarget}
@@ -423,11 +426,12 @@ if [ ${doTarget} == "true" ]; then
 fi
 
 if [ ${doClean} == "true" ] && [[ ! -z ${target} ]]; then
+	echo "cleaning target : ${target}"
 	myClean ${target}
 fi
 
 if [ ${doBuild} == "true" ] && [[ ! -z ${target} ]]; then
-	log "building for ${target}"
+	echo "building for target : ${target}"
 	myBuild ${target}
 fi
 
