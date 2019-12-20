@@ -127,7 +127,7 @@ function launchLinkExists {
 }
 
 function removeLaunchLink {
-	log "removing launch link"
+	echo "removing launch link"
 	local cmd="ssh ${RG350_IP} /bin/busybox sh -c \"if [ -L ${LAUNCHER} ]; then rm -rf ${LAUNCHER}; fi\""
 	${cmd}
 	if [ $? -eq 0 ]; then
@@ -139,7 +139,7 @@ function removeLaunchLink {
 }
 
 function installLaunchLink {
-	log "installing launch link"
+	echo "installing launch link"
 	local cmd="ssh ${RG350_IP} /bin/busybox sh -c \"ln -fs ${RG350_HOME}/${TARGET_DIR}/esoteric ${LAUNCHER}\""
 	log ${cmd}
 	${cmd}
@@ -153,7 +153,7 @@ function installLaunchLink {
 
 function fullSync {
 	local buildFolder="/dist/RG350/esoteric/"
-	log "doing a full sync from '.${buildFolder}' to rg-350 : ${RG350_IP}"
+	echo "doing a full sync from '.${buildFolder}' to rg-350 : ${RG350_IP}"
 	local cmd="rsync -r `pwd`${buildFolder} ${RG350_IP}:${RG350_HOME}/${TARGET_DIR}"
 	log "running : ${cmd}"
 	${cmd}
@@ -176,13 +176,13 @@ function myClean () {
 	local target="${1}"
 	case ${target} in
 		all )
-			log "doing a clean for all targets"
+			echo "doing a clean for all targets"
 			for myTarget in ${validTargets[*]}; do
 				myClean ${myTarget}
 			done
 			;;
 		linux )
-			log "doing a linux clean"
+			echo "doing a linux clean"
 			if [[ -v ${CROSS_COMPILE} ]]; then
 				unset CROSS_COMPILE
 			fi
@@ -190,7 +190,7 @@ function myClean () {
 			eval ${cmd}
 			;;
 		rg350 )
-			log "doing a rg350 clean"
+			echo "doing a rg350 clean"
 			export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 			local cmd="make -f ./Makefile.rg-350 clean${REDIRECT}"
 			eval ${cmd}
@@ -205,13 +205,13 @@ function myBuild () {
 
 	case ${target} in
 		all )
-			log "doing a build for all targets"
+			echo "doing a build for all targets"
 			for myTarget in ${validTargets[*]}; do
 				myBuild ${myTarget}
 			done
 			;;
 		linux )
-			log "doing a linux build"
+			echo "doing a linux build"
 			if [[ -v ${CROSS_COMPILE} ]]; then
 				unset CROSS_COMPILE
 			fi
@@ -222,7 +222,7 @@ function myBuild () {
 			fi
 			;;
 		rg350 )
-			log "doing a rg350 build"
+			echo "doing a rg350 build"
 			export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 			local cmd="make -f ./Makefile.rg-350 all dist${REDIRECT}"
 			eval ${cmd}
@@ -248,13 +248,13 @@ function makePackage () {
 
 	case ${target} in
 		all )
-			log "building packages for all targets"
+			echo "building packages for all targets"
 			for myTarget in ${validTargets[*]}; do
 				makePackage ${myTarget} ${version}
 			done
 			;;
 		linux )
-			log "building a linux package"
+			echo "building a linux package"
 			if [[ -v ${CROSS_COMPILE} ]]; then
 				unset CROSS_COMPILE
 			fi
@@ -266,7 +266,7 @@ function makePackage () {
 			echo "linux package created at : ${artifact}"
 			;;
 		rg350 )
-			log "building a rg350 package"
+			echo "building a rg350 package"
 			export CROSS_COMPILE=/opt/gcw0-toolchain/usr/bin/mipsel-linux-
 			local cmd="make -f ./Makefile.rg-350 dist${REDIRECT}"
 			local artifact="${APP_NAME}-${version}.opk"
@@ -432,17 +432,14 @@ if [ ${doTarget} == "true" ]; then
 fi
 
 if [ ${doClean} == "true" ] && [[ ! -z ${target} ]]; then
-	echo "cleaning target : ${target}"
 	myClean ${target}
 fi
 
 if [ ${doBuild} == "true" ] && [[ ! -z ${target} ]]; then
-	echo "building for target : ${target}"
 	myBuild ${target}
 fi
 
 if [ ${doSync} == "true" ] && [ ${target} != "linux" ] && [[ ! -z ${target} ]]; then
-	echo "syncing files to device"
 	fullSync
 fi
 
@@ -455,7 +452,6 @@ if [ ${doUninstall} == "true" ] && [ ${target} != "linux" ] && [[ ! -z ${target}
 fi
 
 if [ ${doPackage} == "true" ] && [[ ! -z ${target} ]]; then
-	echo "creating a package for : ${target}"
 	makePackage ${target}
 fi
 
