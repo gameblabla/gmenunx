@@ -13,6 +13,7 @@
 	* Optimised surface collection
 	* Build scripts
 	* HW abstraction layer layout
+	* key bindings for linux HW layer
 
 **1.0.1** (*Codename: I wanna die before i g-g-g-g-get old*)
 * Fixed
