@@ -436,6 +436,7 @@ if [ ${doBuild} == "true" ] && [[ ! -z ${target} ]]; then
 fi
 
 if [ ${doSync} == "true" ] && [ ${target} != "linux" ] && [[ ! -z ${target} ]]; then
+	echo "syncing files to device"
 	fullSync
 fi
 

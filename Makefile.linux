@@ -52,7 +52,7 @@ shared: debug
 	$(STRIP) $(APPNAME)-debug -o $(APPNAME)
 
 clean:
-	rm -rf $(OBJDIR) $(DISTDIR) *.gcda *.gcno $(APPNAME)
+	rm -rf $(OBJDIR) $(DISTDIR) *.gcda *.gcno *.zip $(APPNAME)
 
 dist: dir shared
 	install -m755 -D $(APPNAME) $(DISTDIR)/esoteric
