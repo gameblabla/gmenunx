@@ -312,6 +312,7 @@ bool Config::fromFile() {
                 }
             };
             confstream.close();
+            this->isDirty = false;
             result = true;
         }
     }

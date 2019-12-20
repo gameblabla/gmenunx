@@ -32,6 +32,9 @@ public:
     void externalAppPath(std::string val) { 
         if (val != this->externalAppPath_) {
             if (dirExists(val)) {
+                if (!val.empty() && val[val.length() - 1] == '/') {
+                    val = val.substr(0, val.length() -1);
+                }
                 this->externalAppPath_ = val;
                 this->isDirty = true;
             }

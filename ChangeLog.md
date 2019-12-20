@@ -1,5 +1,13 @@
 ## Changelog
 
+**1.0.4** (*Codename: Lock, stock & 2 smoking squirrels*)
+* Added
+	* Lock for selector browsing
+
+* Fixed
+	* Some links weren't editable that should be
+	* Save config after hiding section
+
 **1.0.3** (*Codename: Is that garlic?*)
 * Added
 	* Key repeat
