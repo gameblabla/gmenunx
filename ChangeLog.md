@@ -1,6 +1,6 @@
 ## Changelog
 
-**1.0.2** (*Codename: Is that garlic?*)
+**1.0.3** (*Codename: Is that garlic?*)
 * Added
 	* Key repeat
 	* More skinning docs in templates
