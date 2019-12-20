@@ -101,13 +101,17 @@ void Link::setIcon(const string &icon) {
 }
 
 const string &Link::searchIcon() {
-	if (!app->skin->getSkinFilePath(iconPath).empty()) {
-		iconPath = app->skin->getSkinFilePath(iconPath);
-	}	else if (!fileExists(iconPath)) {
-		iconPath = app->skin->getSkinFilePath("icons/generic.png");
+	TRACE("enter");
+	if (this->iconPath.empty()) {
+		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
+	} else if (!fileExists(this->iconPath)) {
+		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
+	} else if (!app->skin->getSkinFilePath(this->iconPath).empty()) {
+		this->iconPath = app->skin->getSkinFilePath(this->iconPath);
 	} else
-		iconPath = app->skin->getSkinFilePath("icons/generic.png");
-	return iconPath;
+		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
+	TRACE("exit : %s", this->iconPath.c_str());
+	return this->iconPath;
 }
 
 const string &Link::getIconPath() {

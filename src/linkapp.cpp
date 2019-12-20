@@ -162,10 +162,10 @@ const std::string &LinkApp::searchManual() {
 	if (pos != std::string::npos) filename = exec.substr(0, pos);
 	filename += ".man.txt";
 
-	string dname = dir_name(exec) + "/";
+	std::string dname = dir_name(exec) + "/";
 
 	std::string dirtitle = dname + base_name(dir_name(exec)) + ".man.txt";
-	std::string linktitle = base_name(file);
+	std::string linktitle = base_name(this->file);
 	pos = linktitle.rfind(".");
 	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle = dname + linktitle + ".man.txt";
@@ -181,7 +181,9 @@ const std::string &LinkApp::searchManual() {
 }
 
 const std::string &LinkApp::searchBackdrop() {
-	if (!backdropPath.empty() || !this->app->skin->skinBackdrops) return backdropPath;
+	if (!backdropPath.empty() || !this->app->skin->skinBackdrops) 
+		return backdropPath;
+
 	std::string execicon = exec;
 	std::string::size_type pos = exec.rfind(".");
 	if (pos != std::string::npos) execicon = exec.substr(0, pos);

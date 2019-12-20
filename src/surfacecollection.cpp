@@ -45,24 +45,31 @@ bool SurfaceCollection::exists(const string &path) {
 	return surfaces.find(path) != surfaces.end();
 }
 
+// add an image, obeying the skin greyScale flag
 Surface *SurfaceCollection::addImage(const string &path, bool alpha) {
 	return this->add(path, alpha, this->skin->imagesToGrayscale);
 }
 
+// add an icon, obeying the skin greyScale flag
 Surface *SurfaceCollection::addIcon(const string &path, bool alpha) {
 	return this->add(path, alpha, this->skin->iconsToGrayscale);
 }
 
-Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) {
+// adds a skin resource, which ignores the greyscale skin setting flag
+Surface *SurfaceCollection::addSkinRes(const std::string &path, bool alpha) {
+	return this->add(path, alpha, false);
+}
+
+Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool grayScale) {
 	TRACE("enter - %s", path.c_str());
 	if (path.empty()) return NULL;
 	TRACE("path exists test");
 	if (exists(path)) return surfaces[path];
 
-	string filePath = path;
-	if (filePath.substr(0,5)=="skin:") {
+	std::string filePath = path;
+	if (filePath.substr(0, 5) == "skin:") {
 		TRACE("matched on skin:");
-		filePath = this->skin->getSkinFilePath(filePath.substr(5,filePath.length()));
+		filePath = this->skin->getSkinFilePath(filePath.substr(5, filePath.length()));
 		TRACE("filepath - %s", filePath.c_str());
 		if (filePath.empty()) {
 			TRACE("couldn't resolve file from skin : %s", path.c_str());
@@ -73,31 +80,14 @@ Surface *SurfaceCollection::add(const string &path, bool alpha, bool grayScale) 
 		return NULL;
 	}
 
-	TRACE("adding surface: '%s'", path.c_str());
 	Surface *s = new Surface(filePath, alpha);
 	if (s != NULL) {
 		if (grayScale)
 			s->toGrayScale();
-		TRACE("adding surface to collection");
+		TRACE("adding surface to collection under key : %s", path.c_str());
 		surfaces[path] = s;
 	}
 	TRACE("exit");
-	return s;
-}
-
-Surface *SurfaceCollection::addSkinRes(const string &path, bool alpha) {
-	if (path.empty()) return NULL;
-	if (exists(path)) return surfaces[path];
-
-	string skinpath = this->skin->getSkinFilePath(path);
-	if (skinpath.empty())
-		return NULL;
-
-	TRACE("Adding skin surface: '%s'", skinpath.c_str());
-	Surface *s = new Surface(skinpath, alpha);
-	if (NULL != s) {
-		surfaces[path] = s;
-	}
 	return s;
 }
 
