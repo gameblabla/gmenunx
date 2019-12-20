@@ -7,6 +7,7 @@
 * Fixed
 	* Some links weren't editable that should be
 	* Save config after hiding section
+	* possible dangling slash in config file for external apps path
 
 **1.0.3** (*Codename: Is that garlic?*)
 * Added
