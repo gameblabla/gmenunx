@@ -55,9 +55,31 @@ Surface *SurfaceCollection::addIcon(const string &path, bool alpha) {
 	return this->add(path, alpha, this->skin->iconsToGrayscale);
 }
 
+Surface *SurfaceCollection::skinRes(const string &key) {
+	TRACE("enter : %s", key.c_str());
+	if (key.empty()) return NULL;
+	SurfaceHash::iterator i = surfaces.find(key);
+	if (i == surfaces.end()) {
+		return addSkinRes(key, defaultAlpha);
+	}
+	return i->second;
+}
+
 // adds a skin resource, which ignores the greyscale skin setting flag
 Surface *SurfaceCollection::addSkinRes(const std::string &path, bool alpha) {
-	return this->add(path, alpha, false);
+	if (path.empty()) return NULL;
+	if (exists(path)) return surfaces[path];
+
+	string skinpath = this->skin->getSkinFilePath(path);
+	if (skinpath.empty())
+		return NULL;
+
+	TRACE("Adding skin surface: '%s'", skinpath.c_str());
+	Surface *s = new Surface(skinpath, alpha);
+	if (NULL != s) {
+		surfaces[path] = s;
+	}
+	return s;
 }
 
 Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool grayScale) {
@@ -126,15 +148,6 @@ Surface *SurfaceCollection::operator[](const string &key) {
 	SurfaceHash::iterator i = surfaces.find(key);
 	if (i == surfaces.end())
 		return addIcon(key, defaultAlpha);
-
-	return i->second;
-}
-
-Surface *SurfaceCollection::skinRes(const string &key) {
-	if (key.empty()) return NULL;
-	SurfaceHash::iterator i = surfaces.find(key);
-	if (i == surfaces.end())
-		return addSkinRes(key, defaultAlpha);
 
 	return i->second;
 }
