@@ -1,5 +1,19 @@
 ## Changelog
 
+**1.0.2** (*Codename: Is that garlic?*)
+* Added
+	* Key repeat
+	* More skinning docs in templates
+	* Linux HW abstraction layer
+
+* Fixed
+	* Screen sleep if nothing happens after boot
+
+* Improved
+	* Optimised surface collection
+	* Build scripts
+	* HW abstraction layer layout
+
 **1.0.1** (*Codename: I wanna die before i g-g-g-g-get old*)
 * Fixed
 	* button stutter repeats

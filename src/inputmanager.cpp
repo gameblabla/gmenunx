@@ -351,7 +351,10 @@ bool InputManager::update(bool wait) {
 		} else if (event.type == SDL_NOOPEVENT) {
 			TRACE("WAIT NOOP");
 			actions[NOOP].active = true;
-			anyactions = true;
+			// we can return true here, 
+			// so that we don't keep the screen awake
+			// but if it is awake, we redraw it for hardware changes
+			return true;
 		} else {
 			/*
 			TRACE("non special event type : %i", event.type);
