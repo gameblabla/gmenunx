@@ -138,7 +138,7 @@ class IHardware {
                 }
             } else {
                 this->curMMCStatus = MMC_ERROR;
-                WARNING("error, no card present");
+                WARNING("no card present");
             }
             fsize.close();
             TRACE("exit - %i",  this->curMMCStatus);
