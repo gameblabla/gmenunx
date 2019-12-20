@@ -75,10 +75,24 @@ vector<string> Skin::getSkins(string assetsPath) {
 string Skin::toString() {
 
     vector<string> vec;
+    vec.push_back("#      " + APP_NAME + " skin config file      #");
+    vec.push_back("");
+    vec.push_back("# ################################### #");
+    vec.push_back("# lines starting with a # are ignored #");
+    vec.push_back("# ################################### #");
+    vec.push_back("");
 
-    vec.push_back("# " + APP_NAME + " skin config file");
-    vec.push_back("# lines starting with a # are ignored");
-    vec.push_back("# ################################# #");
+    vec.push_back("");
+    vec.push_back("# assets are searched for in the following order");
+    vec.push_back("# - ./skins/{your_skin}/{your_asset}");
+    vec.push_back("# - ./skins/Default/{your_asset}");
+    vec.push_back("# - ./skins/{your_asset}");
+    vec.push_back("");
+    vec.push_back("# this means that you can rely on there being");
+    vec.push_back("# - a font in the skin root folder");
+    vec.push_back("# - basic button icons in the Defaut skin folder");
+    vec.push_back("# - basic device icons in the Defaut skin folder");
+    vec.push_back("# and you can reduce the size of your skin pack if you use them");
     vec.push_back("");
 
     vec.push_back("# the version of skin config file format");
@@ -129,9 +143,7 @@ string Skin::toString() {
     vec.push_back("# but are fixed in position, always top and bottom of the screen");
     vec.push_back("");
     vec.push_back(string_format("menuTitleBarHeight=%i", menuTitleBarHeight));
-    //vec.push_back(string_format("menuTitleBarImage=\"%s\"", menuTitleBarImage.c_str()));
     vec.push_back(string_format("menuInfoBarHeight=%i", menuInfoBarHeight));
-    //vec.push_back(string_format("menuInfoBarImage=\"%s\"", menuInfoBarImage.c_str()));
     vec.push_back("");
 
     vec.push_back("# how game previews look");
@@ -162,6 +174,14 @@ string Skin::toString() {
     vec.push_back("");
 
     vec.push_back("# display skin backgrounds for emulators etc");
+    vec.push_back("# backdrop images can be .png or .jpg.");
+    vec.push_back("# the most efficient place to put them is in a folder called {your_skin}/backdrops.");
+    vec.push_back("# the filename should match one of these three");
+    vec.push_back("# - the link name. eg. ReGBA");
+    vec.push_back("# - the executable name. eg. regba. Not so good for opk's, as this is always opkrun");
+    vec.push_back("# - the directory name. eg. gba");
+    vec.push_back("# only turn this on if you really mean it, as it involves a lot of sdcard scans");
+    vec.push_back("# which is why it defaults to off");
     vec.push_back("");
     vec.push_back(string_format("skinBackdrops=%i", skinBackdrops));
     vec.push_back("");
@@ -169,6 +189,7 @@ string Skin::toString() {
     vec.push_back("# if there is a highlight image supplied with the skin, ");
     vec.push_back("# it needs to be located at imgs/iconbg_on.png");
     vec.push_back("# then this flag declares if it is scaleable or not....");
+    vec.push_back("# why ?");
     vec.push_back("# because of the limitations of SDL 1.2, software scaling kills the Alpha channel,");
     vec.push_back("# and so we take the colour of pixel (0, 0) AKA top left");
     vec.push_back("# and consider anything else that colour to be transparent");
@@ -382,6 +403,7 @@ void Skin::constrain() {
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
     evalIntConf( &this->sectionInfoBarVisible, 0, 0, 1);
     evalIntConf( &this->scaleableHighlightImage, 0, 0, 1);
+    evalIntConf( &this->skinBackdrops, 0, 0, 1);
     evalIntConf( &this->numLinkCols, 1, 1, 10);
     evalIntConf( &this->numLinkRows, 6, 1, 16);
     evalIntConf( (int)*(&this->linkDisplayMode), ICON_AND_TEXT, ICON_AND_TEXT, TEXT);
