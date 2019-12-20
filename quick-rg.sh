@@ -294,6 +294,7 @@ function showHelp () {
 	echo "    -u                 uninstall launcher script when \${target} = ['rg350']."
 	echo "    -t target          Set \${target} = [${validTargets[@]}]"
 	echo "    -v                 verbose output"
+	echo "    -V                 verbose and build output"
 }
 
 # ----------------------------------- #
@@ -322,7 +323,7 @@ doPackage="false"
 
 validTargets=("linux" "rg350")
 
-while getopts ":bcd:hiprst:uv" opt; do
+while getopts ":bcd:hiprst:uvV" opt; do
 
   case ${opt} in
 	b )	
@@ -370,6 +371,11 @@ while getopts ":bcd:hiprst:uv" opt; do
 	v )
 		verbose="true"
 		log "verbose mode enabled"
+	  	;;
+	V )
+		REDIRECT=""
+		verbose="true"
+		log "very verbose mode enabled"
 	  	;;
     \? )
       	showHelp
@@ -454,7 +460,6 @@ if [ ${doPackage} == "true" ] && [[ ! -z ${target} ]]; then
 fi
 
 if [ ${doRelease} == "true" ]; then
-	REDIRECT=" 1>/dev/null"
 	debugLevel=2
 	echo "creating a release"
 	# first we clean and build all
