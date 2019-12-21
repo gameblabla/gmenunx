@@ -21,14 +21,9 @@
 #define LINKAPP_H
 
 #include <string>
-#include <iostream>
 
 #include "link.h"
-
-using std::string;
-
-class Esoteric;
-class InputManager;
+#include "esoteric.h"
 
 /**
 Parses links files.
@@ -38,59 +33,59 @@ Parses links files.
 class LinkApp : public Link {
 
 private:
-	InputManager &inputMgr;
-	static const string FAVOURITE_FOLDER;
+
+	static const std::string FAVOURITE_FOLDER;
 
 	int iclock = 0;
 
-	string exec, params, workdir, manual, manualPath;
-	string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
-	string provider, providerMetadata;
+	std::string exec, params, workdir, manual, manualPath;
+	std::string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
+	std::string provider, providerMetadata;
 	bool selectorbrowser, consoleapp, deletable, editable;
-	string aliasfile;
-	string file;
+	std::string aliasfile;
+	std::string file;
 
-	void launch(string launchArgs = "");
-	string resolveArgs(const string &selectedFile = "", const string &selectedDir = "");
-	void favourite(string launchArgs, string supportingFile = "");
+	void launch(std::string launchArgs = "");
+	string resolveArgs(const std::string &selectedFile = "", const std::string &selectedDir = "");
+	void favourite(std::string launchArgs, std::string supportingFile = "");
 
 public:
 
 	LinkApp(Esoteric *app, const char* linkfile, bool deletable);
 
 	const std::string getFavouriteFolder() { return FAVOURITE_FOLDER; }
-	virtual const string &searchIcon();
-	virtual const string &searchIcon(string path, bool fallBack = true);
-	virtual const string &searchBackdrop();
-	virtual const string &searchManual();
+	virtual const std::string &searchIcon();
+	virtual const std::string &searchIcon(std::string path, bool fallBack = true);
+	virtual const std::string &searchBackdrop();
+	virtual const std::string &searchManual();
 
-	const string &getExec();
-	void setExec(const string &exec);
-	const string &getParams();
-	void setParams(const string &params);
-	const string &getWorkdir();
-	const string getRealWorkdir();
-	void setWorkdir(const string &workdir);
-	const string &getManual();
-	const string &getManualPath() { return manualPath; }
-	void setManual(const string &manual);
-	const string &getSelectorDir();
-	void setSelectorDir(const string &selectordir);
+	const std::string &getExec();
+	void setExec(const std::string &exec);
+	const std::string &getParams();
+	void setParams(const std::string &params);
+	const std::string &getWorkdir();
+	const std::string getRealWorkdir();
+	void setWorkdir(const std::string &workdir);
+	const std::string &getManual();
+	const std::string &getManualPath() { return manualPath; }
+	void setManual(const std::string &manual);
+	const std::string &getSelectorDir();
+	void setSelectorDir(const std::string &selectordir);
 	bool getSelectorBrowser();
 	void setSelectorBrowser(bool value);
 	bool getConsoleApp();
 	void setConsoleApp(bool value);
-	const string &getProvider() { return provider; }
-	void setProvider(const string &provider);
-	const string &getProviderMetadata() { return providerMetadata; }
-	void setProviderMetadata(const string &providerMetadata);
+	const std::string &getProvider() { return provider; }
+	void setProvider(const std::string &provider);
+	const std::string &getProviderMetadata() { return providerMetadata; }
+	void setProviderMetadata(const std::string &providerMetadata);
 
-	const string &getSelectorScreens();
-	void setSelectorScreens(const string &selectorscreens);
-	const string &getSelectorFilter();
-	void setSelectorFilter(const string &selectorfilter);
-	const string &getAliasFile();
-	void setAliasFile(const string &aliasfile);
+	const std::string &getSelectorScreens();
+	void setSelectorScreens(const std::string &selectorscreens);
+	const std::string &getSelectorFilter();
+	void setSelectorFilter(const std::string &selectorfilter);
+	const std::string &getAliasFile();
+	void setAliasFile(const std::string &aliasfile);
 
 	int clock();
 	void setCPU(int mhz = 0);
@@ -100,15 +95,15 @@ public:
 	void makeFavourite();
 
 	// void showManual();
-	void selector(int startSelection=0, const string &selectorDir="");
+	void selector(int startSelection=0, const std::string &selectorDir="");
 	bool targetExists();
 
-	const string &getFile() { return file; }
-	const string &getBackdrop() { return backdrop; }
-	const string &getBackdropPath() { return backdropPath; }
-	void setBackdrop(const string selectedFile="");
+	const std::string &getFile() { return file; }
+	const std::string &getBackdrop() { return backdrop; }
+	const std::string &getBackdropPath() { return backdropPath; }
+	void setBackdrop(const std::string selectedFile="");
 
-	void renameFile(const string &name);
+	void renameFile(const std::string &name);
 	bool isDeletable() { return deletable; }
 	bool isEditable() { return editable; }
 

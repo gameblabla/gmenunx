@@ -40,11 +40,11 @@ static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
-	Link(app, MakeDelegate(this, &LinkApp::run)),
-	inputMgr(app->input) {
-	if (!deletable_)
-	TRACE("ctor - handling normal desktop file :%s", linkfile);
-	TRACE("ctor - setCPU");
+	Link(app, MakeDelegate(this, &LinkApp::run)) {
+
+	TRACE("ctor - handling file :%s", linkfile);
+
+	TRACE("ctor - set default CPU speed");
 	setCPU(app->config->cpuMenu());
 
 	this->file = linkfile;
