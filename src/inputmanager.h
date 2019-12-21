@@ -59,7 +59,6 @@ typedef struct {
 } InputMap;
 
 typedef std::vector<InputMap> MappingList;
-typedef std::vector<SDL_Event> SDLEventList;
 
 typedef struct {
 	bool active;
@@ -68,12 +67,6 @@ typedef struct {
 	MappingList maplist;
 	SDL_TimerID timer = 0;
 } InputManagerAction;
-
-enum InputManagerActionState {
-	IM_INACTIVE,
-	IM_ACTIVE,
-	IM_UNCHANGED
-};
 
 /**
 Manages all input peripherals
@@ -123,10 +116,5 @@ public:
 	void setButtonRepeat(const int &repeatRate);
 
 };
-
-typedef struct {
-	int action;
-	InputManager *im;
-} RepeatEventData;
 
 #endif
