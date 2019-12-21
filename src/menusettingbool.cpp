@@ -73,7 +73,9 @@ void MenuSettingBool::draw(int y)
 
 uint32_t MenuSettingBool::manageInput()
 {
-	if ( app->input[LEFT] || app->input[RIGHT] || app->input[CONFIRM] ) toggle();
+	if ( (*app->inputManager)[LEFT] || (*app->inputManager)[RIGHT] || (*app->inputManager)[CONFIRM] ) {
+		toggle();
+	}
 	return 0; // SD_NO_ACTION
 }
 

@@ -137,23 +137,23 @@ void TextDialog::exec() {
 		app->screen->flip();
 
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 			
-			if ( app->input[UP  ] && firstRow > 0 ) firstRow--;
-			else if ( app->input[DOWN] && firstRow + rowsPerPage < text.size() ) firstRow++;
-			else if ( app->input[PAGEUP] || app->input[LEFT]) {
+			if ( (*app->inputManager)[UP  ] && firstRow > 0 ) firstRow--;
+			else if ( (*app->inputManager)[DOWN] && firstRow + rowsPerPage < text.size() ) firstRow++;
+			else if ( (*app->inputManager)[PAGEUP] || (*app->inputManager)[LEFT]) {
 				if (firstRow >= rowsPerPage - 1)
 					firstRow -= rowsPerPage - 1;
 				else
 					firstRow = 0;
 			}
-			else if ( app->input[PAGEDOWN] || app->input[RIGHT]) {
+			else if ( (*app->inputManager)[PAGEDOWN] || (*app->inputManager)[RIGHT]) {
 				if (firstRow + rowsPerPage * 2 - 1 < text.size())
 					firstRow += rowsPerPage - 1;
 				else
 					firstRow = max(0,text.size()-rowsPerPage);
 			}
-			else if ( app->input[SETTINGS] || app->input[CANCEL] ) close = true;
+			else if ( (*app->inputManager)[SETTINGS] || (*app->inputManager)[CANCEL] ) close = true;
 		} while (!inputAction);
 	}
 }

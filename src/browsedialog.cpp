@@ -101,7 +101,7 @@ bool BrowseDialog::exec() {
 			if (animation < app->skin->previewWidth) {
 				animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
 				app->screen->flip();
-				app->input.setWakeUpInterval(45);
+				app->inputManager->setWakeUpInterval(45);
 				continue;
 			}
 		} else {
@@ -109,16 +109,16 @@ bool BrowseDialog::exec() {
 				app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
 				animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
 				app->screen->flip();
-				app->input.setWakeUpInterval(45);
+				app->inputManager->setWakeUpInterval(45);
 				continue;
 			}
 		}
-		app->input.setWakeUpInterval(1000);
+		app->inputManager->setWakeUpInterval(1000);
 		app->ui->drawScrollBar(numRows, fl->size(), firstElement, app->listRect);
 		app->screen->flip();
 
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 			if (inputAction) tickStart = SDL_GetTicks();
 
 			uint32_t action = getAction();
@@ -173,14 +173,14 @@ uint32_t BrowseDialog::getAction() {
 	TRACE("enter");
 	uint32_t action = BD_NO_ACTION;
 
-	if (app->input[SETTINGS]) action = BD_ACTION_CLOSE;
-	else if (app->input[UP]) action = BD_ACTION_UP;
-	else if (app->input[PAGEUP] || app->input[LEFT]) action = BD_ACTION_PAGEUP;
-	else if (app->input[DOWN]) action = BD_ACTION_DOWN;
-	else if (app->input[PAGEDOWN] || app->input[RIGHT]) action = BD_ACTION_PAGEDOWN;
-	else if (app->input[CANCEL]) action = BD_ACTION_GOUP;
-	else if (app->input[CONFIRM]) action = BD_ACTION_SELECT;
-	else if (app->input[CANCEL] || app->input[MENU]) action = BD_ACTION_CANCEL;
+	if ((*app->inputManager)[SETTINGS]) action = BD_ACTION_CLOSE;
+	else if ((*app->inputManager)[UP]) action = BD_ACTION_UP;
+	else if ((*app->inputManager)[PAGEUP] || (*app->inputManager)[LEFT]) action = BD_ACTION_PAGEUP;
+	else if ((*app->inputManager)[DOWN]) action = BD_ACTION_DOWN;
+	else if ((*app->inputManager)[PAGEDOWN] || (*app->inputManager)[RIGHT]) action = BD_ACTION_PAGEDOWN;
+	else if ((*app->inputManager)[CANCEL]) action = BD_ACTION_GOUP;
+	else if ((*app->inputManager)[CONFIRM]) action = BD_ACTION_SELECT;
+	else if ((*app->inputManager)[CANCEL] || (*app->inputManager)[MENU]) action = BD_ACTION_CANCEL;
 	return action;
 }
 

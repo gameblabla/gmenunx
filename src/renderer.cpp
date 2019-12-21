@@ -614,7 +614,7 @@ void Renderer::pollHW() {
 		this->rtc.refresh();
 	}
 
-	this->app->input.noop();
+	this->app->inputManager->noop();
 	TRACE("exit");
 }
 

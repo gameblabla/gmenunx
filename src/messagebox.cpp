@@ -252,17 +252,17 @@ int MessageBox::exec() {
 			}
 		}
 
-		bool inputAction = app->input.update();
+		bool inputAction = app->inputManager->update();
 		if (inputAction) {
 			for (uint32_t i = 0; i < buttons.size(); i++) {
-				if (!buttons[i].empty() && app->input[i]) {
+				if (!buttons[i].empty() && (*app->inputManager)[i]) {
 					result = i;
 					break;
 				}
 			}
 		}
 	}
-	app->input.dropEvents();
+	app->inputManager->dropEvents();
 	TRACE("exit : %i", result);
 	return result;
 }

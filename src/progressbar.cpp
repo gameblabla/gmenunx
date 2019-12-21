@@ -53,7 +53,7 @@ ProgressBar::ProgressBar(Esoteric *app, const std::string &title, const std::str
 ProgressBar::~ProgressBar() {
     TRACE("enter");
     this->free();
-    this->app->input.dropEvents(); 
+    this->app->inputManager->dropEvents(); 
     TRACE("exit");
 }
 

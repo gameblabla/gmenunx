@@ -108,25 +108,25 @@ void LinkScannerDialog::exec() {
 	this->notify("Completed scan");
 
 	while (!close) {
-		bool inputAction = app->input.update(true);
-		if ( app->input[SETTINGS] || app->input[CANCEL] ) {
+		bool inputAction = app->inputManager->update(true);
+		if ( (*app->inputManager)[SETTINGS] || (*app->inputManager)[CANCEL] ) {
 			close = true;
-		} else if (app->input[UP]) {
+		} else if ((*app->inputManager)[UP]) {
 			--this->selectedItem;
 			if (this->selectedItem < maxMessagesOnScreen) {
 				this->selectedItem = this->messages_.size() -1;
 			}
 			this->render();
-		} else if (app->input[DOWN]) {
+		} else if ((*app->inputManager)[DOWN]) {
 			++this->selectedItem;
 			if (this->selectedItem >= this->messages_.size()) {
 				this->selectedItem = maxMessagesOnScreen;
 			}
 			this->render();
-		} else if (app->input[SECTION_PREV]  || app->input[LEFT]) {
+		} else if ((*app->inputManager)[SECTION_PREV]  || (*app->inputManager)[LEFT]) {
 			this->selectedItem = maxMessagesOnScreen;
 			this->render();
-		} else if (app->input[SECTION_NEXT] || app->input[RIGHT]) {
+		} else if ((*app->inputManager)[SECTION_NEXT] || (*app->inputManager)[RIGHT]) {
 			this->selectedItem = this->messages_.size() -1;
 			this->render();
 		}

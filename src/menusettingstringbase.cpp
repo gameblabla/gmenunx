@@ -41,8 +41,8 @@ void MenuSettingStringBase::draw(int y) {
 }
 
 uint32_t MenuSettingStringBase::manageInput() {
-	if (app->input[MENU]) clear();
-	if (app->input[CONFIRM]) edit();
+	if ((*app->inputManager)[MENU]) clear();
+	if ((*app->inputManager)[CONFIRM]) edit();
 	return 0; // SD_NO_ACTION
 }
 

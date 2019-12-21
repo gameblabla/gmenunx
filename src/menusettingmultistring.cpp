@@ -54,19 +54,19 @@ MenuSettingMultiString::MenuSettingMultiString(
 }
 
 uint32_t MenuSettingMultiString::manageInput() {
-	if (this->app->input[LEFT]) {
+	if ((*this->app->inputManager)[LEFT]) {
 		decSel();
 		return this->onChange && this->onChange();
 	}
-	else if (this->app->input[RIGHT]) {
+	else if ((*this->app->inputManager)[RIGHT]) {
 		incSel();
 		return this->onChange && this->onChange();
 	}
-	else if (this->app->input[CONFIRM] && this->onSelect) {
+	else if ((*this->app->inputManager)[CONFIRM] && this->onSelect) {
 		this->onSelect();
 		return this->onChange && this->onChange();
 	}
-	else if (this->app->input[MENU]) {
+	else if ((*this->app->inputManager)[MENU]) {
 		setSel(0);
 		return this->onChange && this->onChange();
 	}

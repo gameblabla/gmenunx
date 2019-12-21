@@ -92,25 +92,25 @@ bool WallpaperDialog::exec()
 
 		TRACE("loop");
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 
 			TRACE("got an action");
-			if ( app->input[UP] ) {
+			if ( (*app->inputManager)[UP] ) {
 				selected -= 1;
 				if (selected < 0) selected = wallpapers.size() - 1;
-			} else if ( app->input[DOWN] ) {
+			} else if ( (*app->inputManager)[DOWN] ) {
 				selected += 1;
 				if (selected >= wallpapers.size()) selected = 0;
-			} else if ( app->input[PAGEUP] || app->input[LEFT] ) {
+			} else if ( (*app->inputManager)[PAGEUP] || (*app->inputManager)[LEFT] ) {
 				selected -= numRows;
 				if (selected < 0) selected = 0;
-			} else if ( app->input[PAGEDOWN] || app->input[RIGHT] ) {
+			} else if ( (*app->inputManager)[PAGEDOWN] || (*app->inputManager)[RIGHT] ) {
 				selected += numRows;
 				if (selected >= wallpapers.size()) selected = wallpapers.size() - 1;
-			} else if ( app->input[SETTINGS] || app->input[MENU] || app->input[CANCEL] ) {
+			} else if ( (*app->inputManager)[SETTINGS] || (*app->inputManager)[MENU] || (*app->inputManager)[CANCEL] ) {
 				close = true;
 				result = false;
-			} else if ( app->input[CONFIRM] ) {
+			} else if ( (*app->inputManager)[CONFIRM] ) {
 				close = true;
 				if (wallpapers.size() > 0) {
 					wallpaper = wallpaperPath + wallpapers[selected];

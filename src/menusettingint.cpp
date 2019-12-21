@@ -61,11 +61,11 @@ void MenuSettingInt::draw(int y) {
 }
 
 uint32_t MenuSettingInt::manageInput() {
-	if ( app->input[LEFT ] ) dec();
-	if ( app->input[RIGHT] ) inc();
-	if ( app->input[DEC] ) setValue(value() - 10 * delta);
-	if ( app->input[INC] ) setValue(value() + 10 * delta);
-	if ( app->input[MENU] ) setDefault();
+	if ( (*app->inputManager)[LEFT ] ) dec();
+	if ( (*app->inputManager)[RIGHT] ) inc();
+	if ( (*app->inputManager)[DEC] ) setValue(value() - 10 * delta);
+	if ( (*app->inputManager)[INC] ) setValue(value() + 10 * delta);
+	if ( (*app->inputManager)[MENU] ) setDefault();
 	return 0; // SD_NO_ACTION
 }
 

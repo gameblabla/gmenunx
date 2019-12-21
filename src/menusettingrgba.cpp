@@ -78,10 +78,10 @@ void MenuSettingRGBA::handleTS() {
 }
 
 uint32_t MenuSettingRGBA::manageInput() {
-	if (app->input[INC]) inc();
-	if (app->input[DEC]) dec();
-	if (app->input[LEFT]) leftComponent();
-	if (app->input[RIGHT]) rightComponent();
+	if ((*app->inputManager)[INC]) inc();
+	if ((*app->inputManager)[DEC]) dec();
+	if ((*app->inputManager)[LEFT]) leftComponent();
+	if ((*app->inputManager)[RIGHT]) rightComponent();
 	return 0; // SD_NO_ACTION
 }
 
@@ -152,8 +152,8 @@ uint16_t MenuSettingRGBA::getSelPart() {
 }
 
 void MenuSettingRGBA::adjustInput() {
-	app->input.setInterval(30, INC );
-	app->input.setInterval(30, DEC );
+	app->inputManager->setInterval(30, INC );
+	app->inputManager->setInterval(30, DEC );
 }
 
 void MenuSettingRGBA::drawSelected(int y) {

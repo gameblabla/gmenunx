@@ -135,7 +135,7 @@ bool InputDialog::exec() {
 	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
 	while (!close) {
-		app->input.setWakeUpInterval(500);
+		app->inputManager->setWakeUpInterval(500);
 
 		this->bg->blit(app->screen,0,0);
 
@@ -158,18 +158,18 @@ bool InputDialog::exec() {
 		action = drawVirtualKeyboard();
 		app->screen->flip();
 
-		bool inputAction = app->input.update();
+		bool inputAction = app->inputManager->update();
 		
-		if ( app->input[CANCEL] || app->input[MENU] ) action = ID_ACTION_CLOSE;
-		else if ( app->input[SETTINGS] ) action = ID_ACTION_SAVE;
-		else if ( app->input[UP]       ) action = ID_ACTION_UP;
-		else if ( app->input[DOWN]     ) action = ID_ACTION_DOWN;
-		else if ( app->input[LEFT]     ) action = ID_ACTION_LEFT;
-		else if ( app->input[RIGHT]    ) action = ID_ACTION_RIGHT;
-		else if ( app->input[CONFIRM]  ) action = ID_ACTION_SELECT;
-		else if ( app->input[DEC]   ) action = ID_ACTION_KB_CHANGE;
-		else if ( app->input[SECTION_PREV] ) action = ID_ACTION_BACKSPACE;
-		else if ( app->input[SECTION_NEXT] ) action = ID_ACTION_SPACE;
+		if ( (*app->inputManager)[CANCEL] || (*app->inputManager)[MENU] ) action = ID_ACTION_CLOSE;
+		else if ( (*app->inputManager)[SETTINGS] ) action = ID_ACTION_SAVE;
+		else if ( (*app->inputManager)[UP]       ) action = ID_ACTION_UP;
+		else if ( (*app->inputManager)[DOWN]     ) action = ID_ACTION_DOWN;
+		else if ( (*app->inputManager)[LEFT]     ) action = ID_ACTION_LEFT;
+		else if ( (*app->inputManager)[RIGHT]    ) action = ID_ACTION_RIGHT;
+		else if ( (*app->inputManager)[CONFIRM]  ) action = ID_ACTION_SELECT;
+		else if ( (*app->inputManager)[DEC]   ) action = ID_ACTION_KB_CHANGE;
+		else if ( (*app->inputManager)[SECTION_PREV] ) action = ID_ACTION_BACKSPACE;
+		else if ( (*app->inputManager)[SECTION_NEXT] ) action = ID_ACTION_SPACE;
 
 		switch (action) {
 			case ID_ACTION_SAVE:

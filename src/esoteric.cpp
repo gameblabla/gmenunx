@@ -101,11 +101,14 @@ int main(int argc, char * argv[]) {
          throw;
     }
     catch(...) {
+		if (app) {
+			delete app;
+		}
         throw;
     }
 }
 
-Esoteric::Esoteric() : input(screenManager) {
+Esoteric::Esoteric() : screenManager() {
 
 	TRACE("leaving the boot marker");
 	Installer::leaveBootMarker();
@@ -163,9 +166,10 @@ Esoteric::Esoteric() : input(screenManager) {
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
 
 	TRACE("sdl_init");
-	if ( SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO) < 0 ) {
+	int sdlResult = SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO);
+	if (sdlResult < 0 ) {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
-		quit();
+		quit_all(1);
 	}
 	SDL_ShowCursor(SDL_DISABLE);
 
@@ -217,12 +221,12 @@ Esoteric::Esoteric() : input(screenManager) {
 	TRACE("screen mgr long timeout for loading");
 	this->screenManager.setScreenTimeout(600);
 
-	TRACE("input");
-	this->input.init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
+	TRACE("inputManager");
+	this->inputManager = new InputManager(screenManager);
+	this->inputManager->init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
 	setInputSpeed();
 
 	TRACE("exit");
-
 }
 
 Esoteric::~Esoteric() {
@@ -235,6 +239,11 @@ Esoteric::~Esoteric() {
 		cache = nullptr;
 	}
 	#endif
+	if (inputManager) {
+		TRACE("delete - inputManager");
+		delete inputManager;
+		inputManager = nullptr;
+	}
 	if (ui) {
 		TRACE("delete - ui");
 		delete ui;
@@ -278,7 +287,7 @@ Esoteric::~Esoteric() {
 	if (sc) {
 		TRACE("delete - surface collection");
 		delete sc;
-		sc=  nullptr;
+		sc = nullptr;
 	}
 	if (config) {
 		TRACE("delete - config");
@@ -314,11 +323,15 @@ void Esoteric::quit() {
 }
 
 void Esoteric::releaseScreen() {
-	TRACE("calling SDL_Quit");
+	TRACE("enter");
 	if (TTF_WasInit()) {
+		TRACE("calling TTF_Quit");
 		TTF_Quit();
 	}
-	SDL_Quit();
+	if (SDL_WasInit(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO)) {
+		TRACE("calling SDL_Quit");
+		SDL_Quit();
+	}
 	TRACE("exit");
 }
 
@@ -380,7 +393,7 @@ void Esoteric::main() {
 
 	TRACE("set hardware to real settings");
 	this->screenManager.setScreenTimeout(config->backlightTimeout());
-	this->input.setWakeUpInterval(1000);
+	this->inputManager->setWakeUpInterval(1000);
 	this->hw->ledOff();
 
 	pbLoading->finished();
@@ -437,18 +450,18 @@ void Esoteric::main() {
 			ERROR("render - error : %i", e);
 		}
 
-		bool inputAction = this->input.update(true);
+		bool inputAction = this->inputManager->update(true);
 		if (inputAction) {
-			if (this->input[QUIT] ) {
+			if ((*this->inputManager)[QUIT] ) {
 				INFO("We got a quit request");
 				quit = true;
 				continue;
-			} else if (this->input[POWER] && this->input.isOnlyActive(POWER)) {
+			} else if ((*this->inputManager)[POWER] && this->inputManager->isOnlyActive(POWER)) {
 				this->poweroffDialog();
 				continue;
-			} else if (this->input[NOOP]) {
+			} else if ((*this->inputManager)[NOOP]) {
 				continue;
-			} else if (this->input[CONFIRM] && this->menu->selLink() != NULL) {
+			} else if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
 				TRACE("******************RUNNING THIS*******************");
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
@@ -458,36 +471,36 @@ void Esoteric::main() {
 				TRACE("******************RUNNING THIS -- RUN*******************");
 				menu->selLink()->run();
 				TRACE("Run called");
-			} else if (this->input[INC]) {
+			} else if ((*this->inputManager)[INC]) {
 				TRACE("******************favouriting an app THIS*******************");
 				LinkApp * myApp = menu->selLinkApp();
 				if (nullptr != myApp)
 					myApp->makeFavourite();
-			} else if (this->input[SETTINGS]) {
+			} else if ((*this->inputManager)[SETTINGS]) {
 				settings();
-			} else if (this->input[MENU]) {
+			} else if ((*this->inputManager)[MENU]) {
 				contextMenu();
-			} else if (this->input[LEFT] && this->skin->numLinkCols == 1) {
+			} else if ((*this->inputManager)[LEFT] && this->skin->numLinkCols == 1) {
 				menu->pageUp();
-			} else if (this->input[RIGHT] && this->skin->numLinkCols == 1) {
+			} else if ((*this->inputManager)[RIGHT] && this->skin->numLinkCols == 1) {
 				menu->pageDown();
-			} else if (this->input[LEFT]) {
+			} else if ((*this->inputManager)[LEFT]) {
 				menu->linkLeft();
-			} else if (this->input[RIGHT]) {
+			} else if ((*this->inputManager)[RIGHT]) {
 				menu->linkRight();
-			} else if (this->input[UP]) {
+			} else if ((*this->inputManager)[UP]) {
 				menu->linkUp();
-			} else if (this->input[DOWN]) {
+			} else if ((*this->inputManager)[DOWN]) {
 				menu->linkDown();
-			} else if (this->input[SECTION_PREV]) {
+			} else if ((*this->inputManager)[SECTION_PREV]) {
 				menu->decSectionIndex();
-			} else if (this->input[SECTION_NEXT]) {
+			} else if ((*this->inputManager)[SECTION_NEXT]) {
 				menu->incSectionIndex();
-			} else if (this->input[PAGEUP]) {
+			} else if ((*this->inputManager)[PAGEUP]) {
 				menu->letterPrevious();
-			} else if (this->input[PAGEDOWN]) {
+			} else if ((*this->inputManager)[PAGEDOWN]) {
 				menu->letterNext();
-			} else if (this->input[MANUAL] && this->menu->selLinkApp() != NULL) {
+			} else if ((*this->inputManager)[MANUAL] && this->menu->selLinkApp() != NULL) {
 				showManual();
 			}
 		}
@@ -497,14 +510,14 @@ void Esoteric::main() {
 		renderer->stopPolling();
 		delete renderer;
 	}
-
 	TRACE("exit");
+	quit_all(0);
 }
 
 void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
 	TRACE("enter");
 	this->initMenu();
-	this->input.noop();
+	this->inputManager->noop();
 	TRACE("exit");
 }
 
@@ -991,7 +1004,7 @@ void Esoteric::skinMenu() {
 
 	} while (!save);
 
-	this->input.dropEvents();
+	this->inputManager->dropEvents();
 
 	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
 	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
@@ -1180,10 +1193,10 @@ void Esoteric::settings() {
 
 		if (buttonRepeatEnabled) {
 			this->config->buttonRepeatRate(buttonRepeatRate);
-			this->input.setButtonRepeat(buttonRepeatRate);
+			this->inputManager->setButtonRepeat(buttonRepeatRate);
 		} else {
 			this->config->buttonRepeatRate(0);
-			this->input.setButtonRepeat(0);
+			this->inputManager->setButtonRepeat(0);
 		}
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
@@ -1557,7 +1570,7 @@ void Esoteric::explorer() {
 			loop = false;
 			string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
-			quit();
+			quit_all(0);
 			this->hw->setCPUSpeed(config->cpuMenu());
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 			
@@ -1898,7 +1911,7 @@ void Esoteric::contextMenu() {
 	TRACE("box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
 
 	uint32_t tickStart = SDL_GetTicks();
-	input.setWakeUpInterval(1000);
+	this->inputManager->setWakeUpInterval(1000);
 	while (!close) {
 		bg.blit(screen, 0, 0);
 
@@ -1925,14 +1938,16 @@ void Esoteric::contextMenu() {
 			continue;
 		}
 		do {
-			inputAction = input.update();
+			inputAction = this->inputManager->update();
 			if (inputAction) {
-				if ( input[MENU] || input[CANCEL]) close = true;
-				else if ( input[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
-				else if ( input[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
-				else if ( input[LEFT] || input[PAGEUP] ) sel = 0;
-				else if ( input[RIGHT] || input[PAGEDOWN] ) sel = (int)voices.size() - 1;
-				else if ( input[SETTINGS] || input[CONFIRM] ) { voices[sel].action(); close = true; }
+				if ( (*this->inputManager)[MENU] || (*this->inputManager)[CANCEL]) close = true;
+				else if ( (*this->inputManager)[UP] ) sel = (sel - 1 < 0) ? (int)voices.size() - 1 : sel - 1 ;
+				else if ( (*this->inputManager)[DOWN] ) sel = (sel + 1 > (int)voices.size() - 1) ? 0 : sel + 1;
+				else if ( (*this->inputManager)[LEFT] || (*this->inputManager)[PAGEUP] ) sel = 0;
+				else if ( (*this->inputManager)[RIGHT] || (*this->inputManager)[PAGEDOWN] ) sel = (int)voices.size() - 1;
+				else if ( (*this->inputManager)[SETTINGS] || (*this->inputManager)[CONFIRM] ) { 
+					voices[sel].action(); close = true; 
+				}
 			}
 		} while (!inputAction);
 	}
@@ -2130,9 +2145,9 @@ void Esoteric::deleteSection() {
 }
 
 void Esoteric::setInputSpeed() {
-	input.setInterval(180);
-	input.setInterval(1000, SETTINGS);
-	input.setInterval(1000, MENU);
-	input.setInterval(1000, CONFIRM);
-	input.setInterval(1500, POWER);
+	this->inputManager->setInterval(180);
+	this->inputManager->setInterval(1000, SETTINGS);
+	this->inputManager->setInterval(1000, MENU);
+	this->inputManager->setInterval(1000, CONFIRM);
+	this->inputManager->setInterval(1500, POWER);
 }

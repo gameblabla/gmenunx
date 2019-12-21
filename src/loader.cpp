@@ -166,9 +166,9 @@ void Loader::showLoader() {
         }
 
         // and any key to quit
-        bool anyAction = this->app->input.update(false);
+        bool anyAction = this->app->inputManager->update(false);
         if (anyAction) {
-            if (this->app->input[CONFIRM] || this->app->input[CANCEL]) {
+            if ((*this->app->inputManager)[CONFIRM] || (*this->app->inputManager)[CANCEL]) {
                 playSound = false;
                 break;
             }
@@ -204,9 +204,9 @@ void Loader::showLoader() {
             if (alpha < 0) alpha = 0;
 
             // and any key to quit
-            bool anyAction = this->app->input.update(false);
+            bool anyAction = this->app->inputManager->update(false);
             if (anyAction) {
-                if (this->app->input[CONFIRM] || this->app->input[CANCEL]) {
+                if ((*this->app->inputManager)[CONFIRM] || (*this->app->inputManager)[CANCEL]) {
                     playSound = false;
                     break;
                 }

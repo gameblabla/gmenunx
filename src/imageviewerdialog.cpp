@@ -31,22 +31,22 @@ void ImageViewerDialog::exec() {
 			app->screen->clearClipRect();
 
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 
-			if ( app->input[MANUAL] || app->input[CANCEL] || app->input[SETTINGS] ) close = true;
-			else if ( app->input[LEFT] && offsetX < 0) {
+			if ( (*app->inputManager)[MANUAL] || (*app->inputManager)[CANCEL] || (*app->inputManager)[SETTINGS] ) close = true;
+			else if ( (*app->inputManager)[LEFT] && offsetX < 0) {
 				offsetX += app->listRect.w/3;
 				if (offsetX > 0) offsetX = 0;
 			}
-			else if ( app->input[RIGHT] && image.raw->w + offsetX > app->listRect.w) {
+			else if ( (*app->inputManager)[RIGHT] && image.raw->w + offsetX > app->listRect.w) {
 				offsetX -=  app->listRect.w/3;
 				if (image.raw->w + offsetX < app->listRect.w) offsetX = app->listRect.w - image.raw->w;
 			}
-			else if ( app->input[UP] && offsetY < 0) {
+			else if ( (*app->inputManager)[UP] && offsetY < 0) {
 				offsetY +=  app->listRect.h/3;
 				if (offsetY > 0) offsetY = 0;
 			}
-			else if ( app->input[DOWN] && image.raw->w + offsetY > app->listRect.h) {
+			else if ( (*app->inputManager)[DOWN] && image.raw->w + offsetY > app->listRect.h) {
 				offsetY -=  app->listRect.h/3;
 				if (image.raw->h + offsetY < app->listRect.h) offsetY = app->listRect.h - image.raw->h;
 			}

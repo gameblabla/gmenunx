@@ -123,13 +123,16 @@ public:
 	const std::string &getReadablePath();
 
 	ScreenManager screenManager;
-	InputManager input;
+	
 	Touchscreen ts;
+	Translator tr;
 
 	SurfaceCollection *sc;
-	Translator tr;
+	InputManager *inputManager;
 	Surface *screen, *bg;
-	FontHelper *font = NULL, *fontTitle = NULL, *fontSectionTitle = NULL; 
+	FontHelper *font = NULL;
+	FontHelper *fontTitle = NULL;
+	FontHelper *fontSectionTitle = NULL; 
 
 	//Status functions
 	void main();

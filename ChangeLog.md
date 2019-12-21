@@ -1,8 +1,8 @@
 ## Changelog
 
-**1.0.4** (*Codename: Lock, stock & 2 smoking squirrels*)
+**1.0.4** (*Codename: Lock, spock & 2 smoking squirrels*)
 * Added
-	* Lock for selector browsing
+	* Lock for selector browsing when you edit a link
 
 * Fixed
 	* Some links weren't editable that should be
@@ -10,7 +10,9 @@
 	* possible dangling slash in config file for external apps path
 
 * Improved
-	* Video initialisation
+	* Video initialisation is portable across devices
+	* Refactored screen res consumers
+	* Refactored inputManager
 
 **1.0.3** (*Codename: Is that garlic?*)
 * Added

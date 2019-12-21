@@ -38,9 +38,11 @@ ScreenManager::ScreenManager()
 }
 
 ScreenManager::~ScreenManager() {
+	TRACE("enter");
 	removeScreenTimer();
 	instance = nullptr;
 	enableScreen();
+	TRACE("exit");
 }
 
 bool ScreenManager::isAsleep() {

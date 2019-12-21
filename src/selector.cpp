@@ -212,7 +212,7 @@ int Selector::exec(int startSelection) {
 					if (animation < app->skin->previewWidth) {
 						animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
 						app->screen->flip();
-						app->input.setWakeUpInterval(45);
+						app->inputManager->setWakeUpInterval(45);
 						continue;
 					}
 
@@ -229,12 +229,12 @@ int Selector::exec(int startSelection) {
 			
 						animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
 						app->screen->flip();
-						app->input.setWakeUpInterval(45);
+						app->inputManager->setWakeUpInterval(45);
 						continue;
 					}
 				}
 			}
-			app->input.setWakeUpInterval(1000);
+			app->inputManager->setWakeUpInterval(1000);
 			app->screen->clearClipRect();
 			app->ui->drawScrollBar(numRows, fl.size(), firstElement, app->listRect);
 			app->screen->flip();
@@ -242,26 +242,26 @@ int Selector::exec(int startSelection) {
 
 		// handle input
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 			if (inputAction) this->tickStart = SDL_GetTicks();
 
-			if ( app->input[UP] ) {
+			if ( (*app->inputManager)[UP] ) {
 				selected -= 1;
 				if (selected < 0) selected = fl.size() - 1;
-			} else if ( app->input[DOWN] ) {
+			} else if ( (*app->inputManager)[DOWN] ) {
 				selected += 1;
 				if (selected >= fl.size()) selected = 0;
-			} else if ( app->input[LEFT] ) {
+			} else if ( (*app->inputManager)[LEFT] ) {
 				selected -= numRows;
 				if (selected < 0) selected = 0;
-			} else if ( app->input[RIGHT] ) {
+			} else if ( (*app->inputManager)[RIGHT] ) {
 				selected += numRows;
 				if (selected >= fl.size()) selected = fl.size() - 1;
-			} else if (app->input[SECTION_PREV]) {
+			} else if ((*app->inputManager)[SECTION_PREV]) {
 				selected = 0;
-			} else if (app->input[SECTION_NEXT]) {
+			} else if ((*app->inputManager)[SECTION_NEXT]) {
 				selected = fl.size() -1;
-			} else if (app->input[PAGEUP]) {
+			} else if ((*app->inputManager)[PAGEUP]) {
 				// loop thru the titles collection until first char doesn't match
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
@@ -275,7 +275,7 @@ int Selector::exec(int startSelection) {
 					}
 				}
 				if (!found) selected = fl.size() -1;
-			} else if (app->input[PAGEDOWN]) {
+			} else if ((*app->inputManager)[PAGEDOWN]) {
 				// reverse loop thru the titles collection until first char doesn't match
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
@@ -289,16 +289,16 @@ int Selector::exec(int startSelection) {
 					}
 				}
 				if (!found) selected = 0;
-			} else if ( app->input[SETTINGS] ) {
+			} else if ( (*app->inputManager)[SETTINGS] ) {
 				close = true;
 				result = false;
-			} else if ( app->input[CANCEL] && link->getSelectorBrowser()) {
+			} else if ( (*app->inputManager)[CANCEL] && link->getSelectorBrowser()) {
 				string::size_type p = this->dir.rfind("/", this->dir.size() - 2);
 				this->dir = this->dir.substr(0, p + 1);
 				selected = 0;
 				this->firstElement = 0;
 				prepare(&fl, &screens, &titles);
-			} else if ( app->input[CONFIRM] ) {
+			} else if ( (*app->inputManager)[CONFIRM] ) {
 				// file selected or dir selected
 				if (fl.isFile(selected)) {
 					file = fl[selected];
@@ -309,7 +309,7 @@ int Selector::exec(int startSelection) {
 					this->firstElement = 0;
 					prepare(&fl, &screens, &titles);
 				}
-			} else if ( app->input[INC] ) {
+			} else if ( (*app->inputManager)[INC] ) {
 				// favourite
 				if (fl.isFile(selected)) {
 					TRACE("Favourite : %s", fl[selected].c_str());

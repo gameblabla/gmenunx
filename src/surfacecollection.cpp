@@ -32,11 +32,15 @@ SurfaceCollection::SurfaceCollection(Skin *skin, bool defaultAlpha) {
 	this->skin = skin;
 }
 
-SurfaceCollection::~SurfaceCollection() {}
+SurfaceCollection::~SurfaceCollection() {
+	TRACE("enter");
+	this->clear();
+	TRACE("exit");
+}
 
 void SurfaceCollection::debug() {
 	SurfaceHash::iterator end = surfaces.end();
-	for(SurfaceHash::iterator curr = surfaces.begin(); curr != end; curr++){
+	for (SurfaceHash::iterator curr = surfaces.begin(); curr != end; curr++) {
 		TRACE("key: %s", curr->first.c_str());
 	}
 }
@@ -132,6 +136,7 @@ bool SurfaceCollection::empty() {
 void SurfaceCollection::clear() {
 	while (surfaces.size() > 0) {
 		if (surfaces.begin()->second) {
+			TRACE("deleting surface : %s", surfaces.begin()->first.c_str());
 			delete surfaces.begin()->second;
 		}
 		surfaces.erase(surfaces.begin());

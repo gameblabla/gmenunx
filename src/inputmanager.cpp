@@ -83,9 +83,12 @@ InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenM
 }
 
 InputManager::~InputManager() {
-	for (uint32_t x = 0; x < joysticks.size(); x++)
+	TRACE("enter");
+	for (uint32_t x = 0; x < joysticks.size(); x++) {
 		if (SDL_JoystickOpened(x))
 			SDL_JoystickClose(joysticks[x]);
+	}
+	TRACE("exit");
 }
 
 void InputManager::init(const string &conffile, const int &repeatRate) {

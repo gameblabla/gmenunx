@@ -94,15 +94,15 @@ bool SettingsDialog::exec() {
 
 		app->screen->flip();
 		do {
-			inputAction = app->input.update();
+			inputAction = app->inputManager->update();
 
 			action = SD_NO_ACTION;
-			if ( app->input[SETTINGS] ) action = SD_ACTION_SAVE;
-			else if ( app->input[CANCEL] && allowCancel) action = SD_ACTION_CLOSE;
-			else if ( app->input[UP      ] ) action = SD_ACTION_UP;
-			else if ( app->input[DOWN    ] ) action = SD_ACTION_DOWN;
-			else if ( app->input[PAGEUP  ] ) action = SD_ACTION_PAGEUP;
-			else if ( app->input[PAGEDOWN] ) action = SD_ACTION_PAGEDOWN;
+			if ( (*app->inputManager)[SETTINGS] ) action = SD_ACTION_SAVE;
+			else if ( (*app->inputManager)[CANCEL] && allowCancel) action = SD_ACTION_CLOSE;
+			else if ( (*app->inputManager)[UP      ] ) action = SD_ACTION_UP;
+			else if ( (*app->inputManager)[DOWN    ] ) action = SD_ACTION_DOWN;
+			else if ( (*app->inputManager)[PAGEUP  ] ) action = SD_ACTION_PAGEUP;
+			else if ( (*app->inputManager)[PAGEDOWN] ) action = SD_ACTION_PAGEDOWN;
 			else action = voices[selected]->manageInput();
 			switch (action) {
 				case SD_ACTION_SAVE:
