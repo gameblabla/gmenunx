@@ -26,11 +26,11 @@ Uint32 screenTimerCallback(Uint32 timeout, void *d) {
 	return 0;
 }
 
-ScreenManager::ScreenManager()
-	: screenState(false)
-	, screenTimeout(0)
-	, screenTimer(nullptr) {
-
+ScreenManager::ScreenManager(IHardware *hw_) {
+	this->screenState = false;
+	this->screenTimeout = 0;
+	this->screenTimer = nullptr;
+	this->hw = hw_;
 	this->asleep = false;
 	enableScreen();
 	assert(!instance);
@@ -90,40 +90,25 @@ void ScreenManager::removeScreenTimer() {
 	TRACE("exit");
 }
 
-#define SCREEN_BLANK_PATH "/sys/class/graphics/fb0/blank"
 void ScreenManager::setScreenBlanking(bool state) {
 	TRACE("enter : %s", (state ? "on" : "off"));
-	const char *path = SCREEN_BLANK_PATH;
-	const char *blank = state ? "0" : "1";
-
-#ifdef TARGET_RG350
-	int fd = open(path, O_RDWR);
-	if (fd == -1) {
-		WARNING("Failed to open '%s': %s", path, strerror(errno));
-	} else {
-		ssize_t written = write(fd, blank, strlen(blank));
-		if (written == -1) {
-			WARNING("Error writing '%s': %s", path, strerror(errno));
-		}
-		close(fd);
+	if (this->hw->setScreenState(state)) {
+		this->screenState = state;
 	}
-#endif
-
-	screenState = state;
 }
 
 void ScreenManager::enableScreen() {
 	TRACE("enter");
-	asleep = false;
-	if (!screenState) {
+	this->asleep = false;
+	if (!this->screenState) {
 		setScreenBlanking(true);
 	}
 }
 
 void ScreenManager::disableScreen() {
 	TRACE("enter");
-	asleep = true;
-	if (screenState) {
+	this->asleep = true;
+	if (this->screenState) {
 		setScreenBlanking(false);
 	}
 }

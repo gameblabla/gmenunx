@@ -588,7 +588,7 @@ void Renderer::pollHW() {
 	TRACE("enter");
 
 	// save battery life
-	if (this->app->screenManager.isAsleep())
+	if (this->app->screenManager->isAsleep())
 		return;
 
 	TRACE("section bar test");

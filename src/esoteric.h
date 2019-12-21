@@ -110,7 +110,6 @@ public:
 	Esoteric();
 	~Esoteric();
 
-	void quit();
 	static void quit_all(int err);
 	void releaseScreen();
 
@@ -122,12 +121,11 @@ public:
 	const std::string &getWriteablePath();
 	const std::string &getReadablePath();
 
-	ScreenManager screenManager;
-	
 	Touchscreen ts;
 	Translator tr;
 
 	SurfaceCollection *sc;
+	ScreenManager *screenManager;
 	InputManager *inputManager;
 	Surface *screen, *bg;
 	FontHelper *font = NULL;

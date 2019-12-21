@@ -2,10 +2,11 @@
 #define SCREENMANAGER_H
 
 #include <SDL.h>
+#include "hw/ihardware.h"
 
 class ScreenManager {
 public:
-	ScreenManager();
+	ScreenManager(IHardware *hw_);
 	~ScreenManager();
 	void resetScreenTimer();
 	void setScreenTimeout(unsigned int seconds);
@@ -19,6 +20,7 @@ private:
 	void disableScreen();
 
 	static ScreenManager *instance;
+	IHardware *hw;
 	bool screenState;
 	unsigned int screenTimeout;
 	unsigned int timeout_startms;

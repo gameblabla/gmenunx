@@ -523,7 +523,8 @@ void LinkApp::launch(std::string launchArgs) {
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
 		TRACE("quit");
-		app->quit();
+		app->releaseScreen();
+		//Esoteric::quit_all(0);
 
 		TRACE("calling exec");
 		toLaunch->exec();

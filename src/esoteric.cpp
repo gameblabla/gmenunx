@@ -108,7 +108,7 @@ int main(int argc, char * argv[]) {
     }
 }
 
-Esoteric::Esoteric() : screenManager() {
+Esoteric::Esoteric() {
 
 	TRACE("leaving the boot marker");
 	Installer::leaveBootMarker();
@@ -218,11 +218,12 @@ Esoteric::Esoteric() : screenManager() {
 	TRACE("new surface collection");
 	this->sc = new SurfaceCollection(this->skin, true);
 
-	TRACE("screen mgr long timeout for loading");
-	this->screenManager.setScreenTimeout(600);
+	TRACE("screen mgr new && long timeout for loading");
+	this->screenManager = new ScreenManager((IHardware *)this->hw);
+	this->screenManager->setScreenTimeout(600);
 
 	TRACE("inputManager");
-	this->inputManager = new InputManager(screenManager);
+	this->inputManager = new InputManager((*screenManager));
 	this->inputManager->init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
 	setInputSpeed();
 
@@ -231,69 +232,80 @@ Esoteric::Esoteric() : screenManager() {
 
 Esoteric::~Esoteric() {
 	TRACE("enter\n\n");
-	quit();
+
+	this->writeConfig();
+	this->hw->ledOff();
+
 	#ifdef HAVE_LIBOPK
-	if (cache) {
+	if (this->cache) {
 		TRACE("delete - cache");
-		delete cache;
-		cache = nullptr;
+		delete this->cache;
+		this->cache = nullptr;
 	}
 	#endif
-	if (inputManager) {
+	if (this->screenManager) {
+		TRACE("delete - screenManager");
+		delete this->screenManager;
+		this->screenManager = nullptr;
+	}
+	if (this->inputManager) {
 		TRACE("delete - inputManager");
-		delete inputManager;
-		inputManager = nullptr;
+		delete this->inputManager;
+		this->inputManager = nullptr;
 	}
-	if (ui) {
+	if (this->ui) {
 		TRACE("delete - ui");
-		delete ui;
-		ui = nullptr;
+		delete this->ui;
+		this->ui = nullptr;
 	}
-	if (menu) {
+	if (this->menu) {
 		TRACE("delete - menu");
-		delete menu;
-		menu = nullptr;
+		delete this->menu;
+		this->menu = nullptr;
 	}
-	if (screen) {
+	if (this->screen) {
 		TRACE("delete - screen");
-		delete screen;
-		screen = nullptr;
+		delete this->screen;
+		this->screen = nullptr;
 	}
-	if (font) {
+	if (this->font) {
 		TRACE("delete - font");
-		delete font;
-		font = nullptr;
+		delete this->font;
+		this->font = nullptr;
 	}
-	if (fontTitle) {
+	if (this->fontTitle) {
 		TRACE("delete - font Title");
-		delete fontTitle;
-		fontTitle = nullptr;
+		delete this->fontTitle;
+		this->fontTitle = nullptr;
 	}
-	if (fontSectionTitle) {
+	if (this->fontSectionTitle) {
 		TRACE("delete - font section title");
-		delete fontSectionTitle;
-		fontSectionTitle = nullptr;
+		delete this->fontSectionTitle;
+		this->fontSectionTitle = nullptr;
 	}
-	if (hw) {
+	if (this->hw) {
 		TRACE("delete - hw");
-		delete hw;
-		hw = nullptr;
+		delete this->hw;
+		this->hw = nullptr;
 	}
-	if (skin) {
+	if (this->skin) {
 		TRACE("delete - skin");
-		delete skin;
-		skin = nullptr;
+		delete this->skin;
+		this->skin = nullptr;
 	}
-	if (sc) {
+	if (this->sc) {
 		TRACE("delete - surface collection");
-		delete sc;
-		sc = nullptr;
+		delete this->sc;
+		this->sc = nullptr;
 	}
-	if (config) {
+	if (this->config) {
 		TRACE("delete - config");
-		delete config;
-		config = nullptr;
+		delete this->config;
+		this->config = nullptr;
 	}
+	TRACE("freeing the screen");
+	this->screen->free();
+	this->releaseScreen();
 	TRACE("exit\n\n");
 }
 
@@ -305,21 +317,6 @@ void Esoteric::quit_all(int err) {
 	}
 	TRACE("exit");
 	std::exit(err);
-}
-
-void Esoteric::quit() {
-	TRACE("enter");
-	if (!this->sc->empty()) {
-		TRACE("surfaces exist, full quit to do");
-		writeConfig();
-		this->hw->ledOff();
-		TRACE("clearing the surface collection");
-		this->sc->clear();
-		TRACE("freeing the screen");
-		this->screen->free();
-		this->releaseScreen();
-	}
-	TRACE("quit - exit");
 }
 
 void Esoteric::releaseScreen() {
@@ -392,7 +389,7 @@ void Esoteric::main() {
 	setWallpaper(this->skin->wallpaper);
 
 	TRACE("set hardware to real settings");
-	this->screenManager.setScreenTimeout(config->backlightTimeout());
+	this->screenManager->setScreenTimeout(config->backlightTimeout());
 	this->inputManager->setWakeUpInterval(1000);
 	this->hw->ledOff();
 
@@ -420,7 +417,7 @@ void Esoteric::main() {
 
 	bool quit = false;
 	renderer->startPolling();
-	this->screenManager.resetScreenTimer();
+	this->screenManager->resetScreenTimer();
 
 	while (!quit) {
 		try {
@@ -885,7 +882,7 @@ void Esoteric::deviceMenu() {
 		sd.exec();
 		if (backlightTimeout != this->config->backlightTimeout()) {
 			this->config->backlightTimeout(backlightTimeout);
-			this->screenManager.setScreenTimeout(backlightTimeout);
+			this->screenManager->setScreenTimeout(backlightTimeout);
 			changed = true;
 		}
 		if (performanceMode != this->hw->getPerformanceMode()) {
@@ -1220,8 +1217,8 @@ void Esoteric::settings() {
 		}
 
 		TRACE("setScreenTimeout - %i", this->config->backlightTimeout());
-		this->screenManager.resetScreenTimer();
-		this->screenManager.setScreenTimeout(this->config->backlightTimeout());
+		this->screenManager->resetScreenTimer();
+		this->screenManager->setScreenTimeout(this->config->backlightTimeout());
 
 		if (!this->needsInstalling) {
 			this->writeConfig();
