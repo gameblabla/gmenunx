@@ -11,8 +11,10 @@
 
 * Improved
 	* Video initialisation is portable across devices
-	* Refactored screen res consumers
+	* Refactored screen resolution consumers
 	* Refactored inputManager
+	* Refactored screenManager
+	* screenManager now uses hw abstraction layer for blanking
 
 **1.0.3** (*Codename: Is that garlic?*)
 * Added
