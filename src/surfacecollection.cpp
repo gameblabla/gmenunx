@@ -134,6 +134,7 @@ bool SurfaceCollection::empty() {
 }
 
 void SurfaceCollection::clear() {
+	TRACE("enter");
 	while (surfaces.size() > 0) {
 		if (surfaces.begin()->second) {
 			TRACE("deleting surface : %s", surfaces.begin()->first.c_str());
@@ -141,6 +142,7 @@ void SurfaceCollection::clear() {
 		}
 		surfaces.erase(surfaces.begin());
 	}
+	TRACE("exit");
 }
 
 void SurfaceCollection::move(const string &from, const string &to) {
