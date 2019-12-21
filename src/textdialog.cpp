@@ -46,13 +46,13 @@ void TextDialog::preProcess() {
 		row = trim(text.at(i));
 
 		//check if this row is not too long
-		if (app->font->getTextWidth(row) > app->config->resolutionX() - 15) {
+		if (app->font->getTextWidth(row) > app->getScreenWidth() - 15) {
 			vector<string> words;
 			split(words, row, " ");
 
 			uint32_t numWords = words.size();
 			//find the maximum number of rows that can be printed on screen
-			while (app->font->getTextWidth(row) > app->config->resolutionX() - 15 && numWords > 0) {
+			while (app->font->getTextWidth(row) > app->getScreenWidth() - 15 && numWords > 0) {
 				numWords--;
 				row = "";
 				for (uint32_t x = 0; x < numWords; x++)
@@ -86,8 +86,8 @@ void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rows
 		int rowY;
 		if (text->at(i)=="----") { //draw a line
 			rowY = app->listRect.y + (int)((i - firstRow + 0.5) * app->font->getHeight());
-			app->screen->box(5, rowY, app->config->resolutionX() - 16, 1, 255, 255, 255, 130);
-			app->screen->box(5, rowY + 1, app->config->resolutionX() - 16, 1, 0, 0, 0, 130);
+			app->screen->box(5, rowY, app->getScreenWidth() - 16, 1, 255, 255, 255, 130);
+			app->screen->box(5, rowY + 1, app->getScreenWidth() - 16, 1, 0, 0, 0, 130);
 		} else {
 			rowY = app->listRect.y + (i - firstRow) * app->font->getHeight();
 			app->font->write(app->screen, text->at(i), 5, rowY);

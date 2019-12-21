@@ -117,15 +117,15 @@ int Selector::exec(int startSelection) {
 					SDL_Rect bgArea {
 						0, 
 						app->skin->menuTitleBarHeight, 
-						app->config->resolutionX(), 
-						app->config->resolutionY() - app->skin->menuInfoBarHeight - app->skin->menuTitleBarHeight };
+						app->getScreenWidth(), 
+						app->getScreenHeight() - app->skin->menuInfoBarHeight - app->skin->menuTitleBarHeight };
 
 					// only stretch it once if possible
 					if (!app->sc->exists(screenPath)) {
 						TRACE("1st load - stretching screen path : %s", screenPath.c_str());
 						(*app->sc)[screenPath]->softStretch(
-							app->config->resolutionX(), 
-							app->config->resolutionY() - app->skin->menuInfoBarHeight - app->skin->menuTitleBarHeight, 
+							app->getScreenWidth(), 
+							app->getScreenHeight() - app->skin->menuInfoBarHeight - app->skin->menuTitleBarHeight, 
 							true, 
 							true);
 					}
@@ -193,7 +193,7 @@ int Selector::exec(int startSelection) {
 					}
 
 					app->screen->box(
-						app->config->resolutionX() - animation, 
+						app->getScreenWidth() - animation, 
 						app->listRect.y, 
 						app->skin->previewWidth, 
 						app->listRect.h, 
@@ -201,7 +201,7 @@ int Selector::exec(int startSelection) {
 
 					(*app->sc)[screens[selected - fl.dirCount()]]->blit(
 						app->screen, 
-						{	app->config->resolutionX() - animation + padding, 
+						{	app->getScreenWidth() - animation + padding, 
 							app->listRect.y + padding, 
 							app->skin->previewWidth - 2 * padding, 
 							app->listRect.h - 2 * padding
@@ -221,7 +221,7 @@ int Selector::exec(int startSelection) {
 						// we only come in here if we had a screenshot before
 						// and we need to clean it up
 						app->screen->box(
-							app->config->resolutionX() - animation, 
+							app->getScreenWidth() - animation, 
 							app->listRect.y, 
 							app->skin->previewWidth, 
 							app->listRect.h, 

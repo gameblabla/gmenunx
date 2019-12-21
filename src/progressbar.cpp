@@ -20,21 +20,21 @@ ProgressBar::ProgressBar(Esoteric *app, const std::string &title, const std::str
     this->finished_ = false;
     this->timerId_ = 0;
     this->boxPadding = 24 + ((*this->app->sc)[this->icon] != NULL ? 37 : 0);
-    this->maxWidth = this->app->config->resolutionX() - this->boxPadding;
+    this->maxWidth = this->app->getScreenWidth() - this->boxPadding;
 
     if (width < 0) {
-        this->maxWidth = this->app->config->resolutionX() + width - this->boxPadding;
+        this->maxWidth = this->app->getScreenWidth() + width - this->boxPadding;
     } else {
         int textWidth = this->app->font->getLineWidth(this->title_);
-        if (textWidth + this->boxPadding > this->app->config->resolutionX()) {
-            textWidth = this->app->config->resolutionX();
+        if (textWidth + this->boxPadding > this->app->getScreenWidth()) {
+            textWidth = this->app->getScreenWidth();
         }
         if (width > 0) {
             if (width < textWidth) {
                 this->maxWidth = textWidth;
             } else {
-                if (width > this->app->config->resolutionX()) {
-                    this->maxWidth = this->app->config->resolutionX() - this->boxPadding;
+                if (width > this->app->getScreenWidth()) {
+                    this->maxWidth = this->app->getScreenWidth() - this->boxPadding;
                 } else this->maxWidth = width;
             }
         } else {
@@ -81,7 +81,7 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
     }
     //TRACE("rendering");
     me->app->screen->box(
-        (SDL_Rect){ 0, 0, me->app->config->resolutionX(), me->app->config->resolutionY() }, 
+        (SDL_Rect){ 0, 0, me->app->getScreenWidth(), me->app->getScreenHeight() }, 
         (RGBAColor){0, 0, 0, me->bgalpha}
     );
 

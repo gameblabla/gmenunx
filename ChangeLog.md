@@ -9,6 +9,9 @@
 	* Save config after hiding section
 	* possible dangling slash in config file for external apps path
 
+* Improved
+	* Video initialisation
+
 **1.0.3** (*Codename: Is that garlic?*)
 * Added
 	* Key repeat

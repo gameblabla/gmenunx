@@ -1,14 +1,14 @@
 #include "ui.h"
 
 int UI::drawButton(Button *btn, int x, int y) {
-	if (y < 0) y = this->app->config->resolutionY() + y;
+	if (y < 0) y = this->app->getScreenHeight() + y;
 	btn->setPosition(x, y - 7);
 	btn->paint();
 	return x + btn->getRect().w + 6;
 }
 
 int UI::drawButton(Surface *s, const string &btn, const string &text, int x, int y) {
-	if (y < 0) y = this->app->config->resolutionY() + y;
+	if (y < 0) y = this->app->getScreenHeight() + y;
 	SDL_Rect re = {x, y, 0, 16};
 	int padding = 4;
 
@@ -35,8 +35,10 @@ int UI::drawButton(Surface *s, const string &btn, const string &text, int x, int
 }
 
 int UI::drawButtonRight(Surface *s, const string &btn, const string &text, int x, int y) {
-	if (y < 0) y = this->app->config->resolutionY() + y;
-	// y = config->resolutionY - skinConfInt["bottomBarHeight"] / 2;
+	if (y < 0) {
+		y = this->app->getScreenHeight() + y;
+	}
+
 	if (this->app->sc->skinRes("imgs/buttons/" + btn + ".png") != NULL) {
 		x -= 16;
 		(*this->app->sc)["imgs/buttons/" + btn + ".png"]->blit(s, x + 8, y + 2, HAlignCenter | VAlignMiddle);
@@ -81,8 +83,8 @@ void UI::drawScrollBar(uint32_t pagesize, uint32_t totalsize, uint32_t pagepos, 
 
 void UI::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
 
-	SDL_Rect progress = {52, 32, this->app->config->resolutionX()-84, 8};
-	SDL_Rect box = {20, 20, this->app->config->resolutionX()-40, 32};
+	SDL_Rect progress = {52, 32, this->app->getScreenWidth()-84, 8};
+	SDL_Rect box = {20, 20, this->app->getScreenWidth()-40, 32};
 
 	val = constrain(val, min, max);
 

@@ -25,7 +25,7 @@ void Dialog::drawTitleIcon(const std::string &icon, Surface *s) {
 
 	i->blit(
 		s, 
-		{ 4, 4, app->config->resolutionX() - 8, app->skin->menuTitleBarHeight - 8 }, 
+		{ 4, 4, app->getScreenWidth() - 8, app->skin->menuTitleBarHeight - 8 }, 
 		VAlignMiddle);
 
 	this->iconWidth = i->raw->w;
@@ -63,11 +63,11 @@ void Dialog::drawTopBar(Surface *s = NULL, const std::string &title, const std::
 	// Surface *bar = sc.skinRes("imgs/topbar.png");
 	// if (bar != NULL) bar->blit(s, 0, 0);
 	// else
-	s->setClipRect({ 0, 0, app->config->resolutionX(), app->skin->menuTitleBarHeight });
+	s->setClipRect({ 0, 0, app->getScreenWidth(), app->skin->menuTitleBarHeight });
 	s->box(
 		0, 
 		0, 
-		app->config->resolutionX(), 
+		app->getScreenWidth(), 
 		app->skin->menuTitleBarHeight, 
 		app->skin->colours.titleBarBackground);
 
@@ -82,8 +82,8 @@ void Dialog::drawBottomBar(Surface *s) {
 	if (s == NULL) s = app->screen;
 	s->box(
 		0, 
-		app->config->resolutionY() - app->skin->menuInfoBarHeight, 
-		app->config->resolutionX(), 
+		app->getScreenHeight() - app->skin->menuInfoBarHeight, 
+		app->getScreenWidth(), 
 		app->skin->menuInfoBarHeight, 
 		app->skin->colours.infoBarBackground);
 }

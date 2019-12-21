@@ -92,10 +92,12 @@ void Renderer::render() {
     int y = 0;
     int ix = 0;
     int iy = 0;
+	int screenX = this->app->getScreenWidth();
+	int screenY = this->app->getScreenHeight();
 
     //TRACE("setting the clearing box");
 	app->screen->box(
-		(SDL_Rect){ 0, 0, app->config->resolutionX(), app->config->resolutionY() }, 
+		(SDL_Rect){ 0, 0, screenX, screenY }, 
 		(RGBAColor){0, 0, 0, 255});
 
 	// do a background image or a background colour 
@@ -103,7 +105,7 @@ void Renderer::render() {
 		(*app->sc)[currBackdrop]->blit(app->screen,0,0);
 	} else {
 		app->screen->box(
-			(SDL_Rect){ 0, 0, app->config->resolutionX(), app->config->resolutionY() }, 
+			(SDL_Rect){ 0, 0, screenX, screenY }, 
 			app->skin->colours.background);
 	}
 
@@ -118,8 +120,8 @@ void Renderer::render() {
 				case Skin::SB_TOP:
 					infoBarRect = (SDL_Rect) { 
 						0, 
-						app->config->resolutionY() - app->skin->sectionInfoBarSize, 
-						app->config->resolutionX(), 
+						screenY - app->skin->sectionInfoBarSize, 
+						screenX, 
 						app->skin->sectionInfoBarSize 
 					};
 					break;
@@ -127,7 +129,7 @@ void Renderer::render() {
 					infoBarRect = (SDL_Rect) { 
 						0, 
 						0, 
-						app->config->resolutionX(), 
+						screenX, 
 						app->skin->sectionInfoBarSize 
 					};
 					break;
@@ -138,10 +140,10 @@ void Renderer::render() {
 			// do we have an image
 			if (!app->skin->sectionInfoBarImage.empty() && NULL != (*app->sc)[app->skin->sectionInfoBarImage]) {
 				//TRACE("infoBar has an image : %s", app->skin->sectionInfoBarImage.c_str());
-				if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != app->config->resolutionX()) {
+				if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != screenX) {
 					//TRACE("infoBar image is being scaled");
 					(*app->sc)[app->skin->sectionInfoBarImage]->softStretch(
-						app->config->resolutionX(), 
+						screenX, 
 						infoBarRect.h);
 				}
 				(*app->sc)[app->skin->sectionInfoBarImage]->blit(
@@ -179,9 +181,9 @@ void Renderer::render() {
 		// do we have an image
 		if (!app->skin->sectionTitleBarImage.empty() && NULL != (*app->sc)[app->skin->sectionTitleBarImage]) {
 			//TRACE("sectionBar has an image : %s", app->skin->sectionTitleBarImage.c_str());
-			if ((*app->sc)[app->skin->sectionTitleBarImage]->raw->h != app->sectionBarRect.h || (*app->sc)[app->skin->sectionTitleBarImage]->raw->w != app->config->resolutionX()) {
+			if ((*app->sc)[app->skin->sectionTitleBarImage]->raw->h != app->sectionBarRect.h || (*app->sc)[app->skin->sectionTitleBarImage]->raw->w != screenX) {
 				TRACE("sectionBar image is being scaled");
-				(*app->sc)[app->skin->sectionTitleBarImage]->softStretch(app->config->resolutionX(), app->sectionBarRect.h);
+				(*app->sc)[app->skin->sectionTitleBarImage]->softStretch(screenX, app->sectionBarRect.h);
 			}
 			(*app->sc)[app->skin->sectionTitleBarImage]->blit(
 				app->screen, 

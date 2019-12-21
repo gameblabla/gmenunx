@@ -81,7 +81,7 @@ void MessageBox::setBgAlpha(int bgalpha) {
 }
 
 string MessageBox::formatText(int box_w_padding, int buttonWidth) {
-	int wrap_size = ((app->config->resolutionX() - (box_w_padding / 2)) / app->font->getSize() + 15);
+	int wrap_size = ((app->getScreenWidth() - (box_w_padding / 2)) / app->font->getSize() + 15);
 	TRACE("initial wrap size : %i", wrap_size);
 	if (wrap_size < buttonWidth) {
 		wrap_size = buttonWidth;
@@ -123,10 +123,10 @@ int MessageBox::exec() {
 
 	//Darken background
 	app->screen->box(
-		(SDL_Rect){ 0, 0, app->config->resolutionX(), app->config->resolutionY() }, 
+		(SDL_Rect){ 0, 0, app->getScreenWidth(), app->getScreenHeight() }, 
 		(RGBAColor){ 0, 0, 0, bgalpha }
 	);
-	TRACE("resx : %i", app->config->resolutionX());
+	TRACE("resx : %i", app->getScreenWidth());
 	TRACE("text width : %i, size: %i", app->font->getTextWidth(text), app->font->getSize());
 
 	int box_w_padding = 24 + ((*app->sc)[icon] != NULL ? 37 : 0);
@@ -144,8 +144,8 @@ int MessageBox::exec() {
 	string wrappedText = formatText(box_w_padding, buttonWidth);
 
 	int textWidthPx = app->font->getTextWidth(wrappedText);
-	if (textWidthPx + box_w_padding > app->config->resolutionX()) {
-		textWidthPx = app->config->resolutionX(); 
+	if (textWidthPx + box_w_padding > app->getScreenWidth()) {
+		textWidthPx = app->getScreenWidth(); 
 	}
 	TRACE("text width in px : %i", textWidthPx);
 

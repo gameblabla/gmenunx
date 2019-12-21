@@ -243,6 +243,11 @@ class IHardware {
             sync();
 		    system("reboot");
         }
+
+        virtual int defaultScreenWidth() { return 0; }
+        virtual int defaultScreenHeight() { return 0; }
+        virtual int defaultScreenBPP() { return 32; }
+
 };
 
 #endif

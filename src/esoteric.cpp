@@ -157,15 +157,6 @@ Esoteric::Esoteric() : input(screenManager) {
 		this->hw->setPerformanceMode(this->config->performance());
 	}
 
-	TRACE("loading skin : %s", this->config->skin().c_str());
-	this->skin = new Skin(localAssetsPath, 
-		config->resolutionX(),  
-		config->resolutionY());
-
-	if (!this->skin->loadSkin( config->skin())) {
-		WARNING("couldn't load skin, using defaults");
-	}
-
 	//Screen
 	TRACE("setEnv");
 	setenv("SDL_NOMOUSE", "1", 1);
@@ -181,15 +172,20 @@ Esoteric::Esoteric() : input(screenManager) {
 	TRACE("new surface");
 	this->screen = new Surface();
 
-	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", 
-		config->resolutionX(), 
-		config->resolutionY(), 
-		config->videoBpp()
+	int width = config->resolutionX() < 0 ? this->hw->defaultScreenWidth() : config->resolutionX();
+	int height = config->resolutionY() < 0 ? this->hw->defaultScreenHeight() : config->resolutionY();
+	int bpp = config->videoBpp() < 0 ? this->hw->defaultScreenBPP() : config->videoBpp();
+
+	TRACE("setting up SDL_SetVideoMode with - x:%i y:%i bpp:%i", 
+		width, 
+		height, 
+		bpp
 	);
+
 	this->screen->raw = SDL_SetVideoMode(
-		0, //config->resolutionX(), 
-		0, //config->resolutionY(), 
-		0, //config->videoBpp(), 
+		width, 
+		height, 
+		bpp, 
 		SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
 
 	this->screenHalfWidth = this->screen->raw->w / 2;
@@ -198,6 +194,16 @@ Esoteric::Esoteric() : input(screenManager) {
 		this->screen->raw->w, 
 		this->screen->raw->h, 
 		(int)this->screen->raw->format->BitsPerPixel);
+
+	TRACE("loading skin : %s", this->config->skin().c_str());
+	this->skin = new Skin(localAssetsPath, 
+		this->getScreenWidth(),  
+		this->getScreenHeight()
+	);
+
+	if (!this->skin->loadSkin( config->skin())) {
+		WARNING("couldn't load skin, using defaults");
+	}
 
 	TRACE("initFont");
 	initFont();
@@ -535,7 +541,7 @@ void Esoteric::setWallpaper(const string &wallpaper) {
 	TRACE("new surface");
 	this->bg = new Surface(screen);
 	TRACE("bg box");
-	this->bg->box((SDL_Rect){ 0, 0, config->resolutionX(), config->resolutionY() }, (RGBAColor){0, 0, 0, 0});
+	this->bg->box((SDL_Rect){ 0, 0, this->getScreenWidth(), this->getScreenHeight() }, (RGBAColor){0, 0, 0, 0});
 
 	skin->wallpaper = wallpaper;
 	TRACE("null test");
@@ -567,8 +573,8 @@ void Esoteric::setWallpaper(const string &wallpaper) {
 		}
 		if ((*this->sc)[skin->wallpaper]) {
 			(*this->sc)[skin->wallpaper]->softStretch(
-				this->config->resolutionX(), 
-				this->config->resolutionY(), 
+				this->getScreenWidth(), 
+				this->getScreenHeight(), 
 				false, 
 				true);
 			TRACE("blit");
@@ -581,22 +587,22 @@ void Esoteric::setWallpaper(const string &wallpaper) {
 void Esoteric::initLayout() {
 	TRACE("enter");
 	// LINKS rect
-	linksRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
-	sectionBarRect = (SDL_Rect){0, 0, config->resolutionX(), config->resolutionY()};
+	this->linksRect = (SDL_Rect){ 0, 0, this->getScreenWidth(), this->getScreenHeight() };
+	this->sectionBarRect = (SDL_Rect){ 0, 0, this->getScreenWidth(), this->getScreenHeight() };
 
 	if (skin->sectionBar) {
 		if (skin->sectionBar == Skin::SB_LEFT || skin->sectionBar == Skin::SB_RIGHT) {
-			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(config->resolutionX() - skin->sectionTitleBarSize);
+			sectionBarRect.x = (skin->sectionBar == Skin::SB_RIGHT)*(this->getScreenWidth() - skin->sectionTitleBarSize);
 			sectionBarRect.w = skin->sectionTitleBarSize;
-			linksRect.w = config->resolutionX() - skin->sectionTitleBarSize;
+			linksRect.w = this->getScreenWidth() - skin->sectionTitleBarSize;
 
 			if (skin->sectionBar == Skin::SB_LEFT) {
 				linksRect.x = skin->sectionTitleBarSize;
 			}
 		} else {
-			sectionBarRect.y = (skin->sectionBar == Skin::SB_BOTTOM)*(config->resolutionY() - skin->sectionTitleBarSize);
+			sectionBarRect.y = (skin->sectionBar == Skin::SB_BOTTOM)*(this->getScreenHeight() - skin->sectionTitleBarSize);
 			sectionBarRect.h = skin->sectionTitleBarSize;
-			linksRect.h = config->resolutionY() - skin->sectionTitleBarSize;
+			linksRect.h = this->getScreenHeight() - skin->sectionTitleBarSize;
 
 			if (skin->sectionBar == Skin::SB_TOP) {
 				linksRect.y = skin->sectionTitleBarSize;
@@ -612,14 +618,14 @@ void Esoteric::initLayout() {
 		}
 	}
 
-	listRect = (SDL_Rect){
+	this->listRect = (SDL_Rect){
 		0, 
-		skin->menuTitleBarHeight, 
-		config->resolutionX(), 
-		config->resolutionY() - skin->menuInfoBarHeight - skin->menuTitleBarHeight};
+		this->skin->menuTitleBarHeight, 
+		this->getScreenWidth(), 
+		this->getScreenHeight() - skin->menuInfoBarHeight - skin->menuTitleBarHeight};
 
-	linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
-	linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
+	this->linkWidth  = (linksRect.w - (skin->numLinkCols + 1 ) * linkSpacing) / skin->numLinkCols;
+	this->linkHeight = (linksRect.h - (skin->numLinkCols > 1) * (skin->numLinkRows    + 1 ) * linkSpacing) / skin->numLinkRows;
 
 	TRACE("exit - cols: %i, rows: %i, width: %i, height: %i", skin->numLinkCols, skin->numLinkRows, linkWidth, linkHeight);
 }
@@ -949,13 +955,13 @@ void Esoteric::skinMenu() {
 		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
 
-		sd.addSetting(new MenuSettingInt(this, tr["Section title bar size"], tr["Size of section title bar"], &skin->sectionTitleBarSize, 40, 18, config->resolutionX()));
-		sd.addSetting(new MenuSettingInt(this, tr["Section info bar size"], tr["Size of section info bar"], &skin->sectionInfoBarSize, 16, 1, config->resolutionX()));
+		sd.addSetting(new MenuSettingInt(this, tr["Section title bar size"], tr["Size of section title bar"], &skin->sectionTitleBarSize, 40, 18, this->getScreenWidth()));
+		sd.addSetting(new MenuSettingInt(this, tr["Section info bar size"], tr["Size of section info bar"], &skin->sectionInfoBarSize, 16, 1, this->getScreenWidth()));
 		sd.addSetting(new MenuSettingBool(this, tr["Section info bar visible"], tr["Show the section info bar in the launcher view"], &skin->sectionInfoBarVisible));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Section bar position"], tr["Set the position of the Section Bar"], &sectionBar, &sbStr));
 		
-		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->menuTitleBarHeight, 40, 18, config->resolutionY()));
-		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->menuInfoBarHeight, 16, 1, config->resolutionY()));
+		sd.addSetting(new MenuSettingInt(this, tr["Top bar height"], tr["Height of top bar in sub menus"], &skin->menuTitleBarHeight, 40, 18, this->getScreenHeight()));
+		sd.addSetting(new MenuSettingInt(this, tr["Bottom bar height"], tr["Height of bottom bar in sub menus"], &skin->menuInfoBarHeight, 16, 1, this->getScreenHeight()));
 
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
@@ -1896,7 +1902,7 @@ void Esoteric::contextMenu() {
 	while (!close) {
 		bg.blit(screen, 0, 0);
 
-		screen->box(0, 0, config->resolutionX(), config->resolutionY(), 0,0,0, fadeAlpha);
+		screen->box(0, 0, this->getScreenWidth(), this->getScreenHeight(), 0,0,0, fadeAlpha);
 		screen->box(box.x, box.y, box.w, box.h, skin->colours.msgBoxBackground);
 		screen->rectangle( box.x + 2, box.y + 2, box.w - 4, box.h - 4, skin->colours.msgBoxBorder);
 

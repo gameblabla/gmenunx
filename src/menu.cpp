@@ -193,8 +193,8 @@ const string &Menu::selSection() {
 
 int Menu::sectionNumItems() {
 	return app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM 
-		? (app->config->resolutionX() - 40)/app->skin->sectionTitleBarSize 
-		: (app->config->resolutionY() - 40)/app->skin->sectionTitleBarSize;
+		? (app->getScreenWidth() - 40)/app->skin->sectionTitleBarSize 
+		: (app->getScreenHeight() - 40)/app->skin->sectionTitleBarSize;
 }
 
 void Menu::setSectionIndex(int i) {
