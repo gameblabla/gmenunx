@@ -97,7 +97,7 @@ public:
 
 	InputManager(ScreenManager& screenManager);
 	~InputManager();
-	void init(const std::string &conffile, const int &repeatRate = 10);
+	void init(const std::string &conffile, const int &repeatRate = 50);
 	void initJoysticks();
 	bool readConfFile(const std::string &conffile = "input.conf");
 
