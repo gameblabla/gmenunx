@@ -105,9 +105,10 @@ class HwLinux : IHardware {
         void powerOff() { raise(SIGINT); }
         void reboot() { return; }
 
-        virtual int defaultScreenWidth() { return 320; }
-        virtual int defaultScreenHeight() { return 240; }
+        int defaultScreenWidth() { return 320; }
+        int defaultScreenHeight() { return 240; }
 
+        bool setScreenState(const bool &enable) { return true; };
 };
 
 #endif

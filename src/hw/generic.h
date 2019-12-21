@@ -100,6 +100,8 @@ class HwGeneric : IHardware {
         bool setKeepAspectRatio(bool val) { return val; };
 
         std::string getDeviceType() { return "Generic"; }
+
+        bool setScreenState(const bool &enable) { return true; };
 };
 
 #endif

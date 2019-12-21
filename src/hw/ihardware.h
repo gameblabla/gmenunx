@@ -6,6 +6,8 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <linux/fs.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #include <errno.h>
 #include <unistd.h>
@@ -248,6 +250,7 @@ class IHardware {
         virtual int defaultScreenHeight() { return 0; }
         virtual int defaultScreenBPP() { return 32; }
 
+        virtual bool setScreenState(const bool &enable) = 0;
 };
 
 #endif

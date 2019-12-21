@@ -30,6 +30,7 @@ class HwRg350 : IHardware {
         int volumeLevel_ = 0;
         int backlightLevel_ = 0;
         bool keepAspectRatio_ = false;
+        const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
 		const std::string LED_MAX_BRIGHTNESS_PATH = LED_PREFIX + "max_brightness";
 		const std::string LED_BRIGHTNESS_PATH = LED_PREFIX + "brightness";
@@ -286,6 +287,24 @@ class HwRg350 : IHardware {
 
         }
         std::string getDeviceType() { return "RG-350"; }
+
+        bool setScreenState(const bool &enable) {
+            TRACE("enter : %s", (state ? "on" : "off"));
+            const char *path = SCREEN_BLANK_PATH.c_str();
+            const char *blank = enable ? "0" : "1";
+            bool result = false;
+            int fd = open(path, O_RDWR);
+            if (fd == -1) {
+                WARNING("Failed to open '%s': %s", path, strerror(errno));
+            } else {
+                ssize_t written = write(fd, blank, strlen(blank));
+                if (written == -1) {
+                    WARNING("Error writing '%s': %s", path, strerror(errno));
+                } else result = true;
+                close(fd);
+            }
+            return result;
+        }
 };
 
 #endif
