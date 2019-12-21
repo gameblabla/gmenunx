@@ -226,10 +226,6 @@ public:
 
     static bool configExistsUnderPath(const std::string & path);
 
-    // TODO :: cache this
-    int halfX() { return this->resolutionX() / 2; }
-    int halfY() { return this->resolutionY() / 2; }
-
 private:
 
     std::string prefix;

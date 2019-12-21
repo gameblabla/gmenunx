@@ -184,12 +184,20 @@ Esoteric::Esoteric() : input(screenManager) {
 	TRACE("SDL_SetVideoMode - x:%i y:%i bpp:%i", 
 		config->resolutionX(), 
 		config->resolutionY(), 
-		config->videoBpp());
+		config->videoBpp()
+	);
 	this->screen->raw = SDL_SetVideoMode(
-		config->resolutionX(), 
-		config->resolutionY(), 
-		config->videoBpp(), 
-		SDL_HWSURFACE|SDL_DOUBLEBUF);
+		0, //config->resolutionX(), 
+		0, //config->resolutionY(), 
+		0, //config->videoBpp(), 
+		SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
+
+	this->screenHalfWidth = this->screen->raw->w / 2;
+	this->screenHalfHeight = this->screen->raw->h / 2;
+	TRACE("sdl video mode initialised to : w = %i, h = %i, bpp = %i", 
+		this->screen->raw->w, 
+		this->screen->raw->h, 
+		(int)this->screen->raw->format->BitsPerPixel);
 
 	TRACE("initFont");
 	initFont();
@@ -1878,12 +1886,11 @@ void Esoteric::contextMenu() {
 		if (w > box.w) box.w = w;
 	}
 	box.w += 23;
-	box.x = this->config->halfX() - box.w / 2;
-	box.y = this->config->halfY() - box.h / 2;
+	box.x = this->screenHalfWidth - box.w / 2;
+	box.y = this->screenHalfHeight - box.h / 2;
 
 	TRACE("box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
-	TRACE("screen - x: %i, y: %i, halfx: %i, halfy: %i",  config->resolutionX(), config->resolutionY(), this->config->halfX(), this->config->halfY());
-	
+
 	uint32_t tickStart = SDL_GetTicks();
 	input.setWakeUpInterval(1000);
 	while (!close) {

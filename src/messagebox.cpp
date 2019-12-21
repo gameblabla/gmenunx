@@ -155,8 +155,8 @@ int MessageBox::exec() {
 		box.h = 48;
 	}
 	box.w = textWidthPx + box_w_padding;
-	box.x = app->config->halfX() - box.w / 2 - 2;
-	box.y = app->config->halfY() - box.h / 2 - 2;
+	box.x = app->getScreenHalfWidth() - (box.w / 2) - 2;
+	box.y = app->getScreenHalfHeight() - (box.h / 2) - 2;
 
 	//outer box
 	app->screen->box(box, app->skin->colours.msgBoxBackground);
@@ -222,7 +222,7 @@ int MessageBox::exec() {
 		app->font->getHeight(), 
 		app->skin->colours.msgBoxBackground);
 
-	int btnX = app->config->halfX() + (box.w / 2) - 6;
+	int btnX = app->getScreenHalfWidth() + (box.w / 2) - 6;
 	for (uint32_t i = 0; i < buttons.size(); i++) {
 		if (!buttons[i].empty()) {
 			buttonPositions[i].y = box.y + box.h + app->font->getHalfHeight();

@@ -66,6 +66,8 @@ class OpkCache;
 class Esoteric {
 private:
 
+	int screenHalfWidth, screenHalfHeight;
+
 	bool needsInstalling;
 	std::string exe_path; //!< Contains the working directory of Esoteric
 	std::string writeable_path; // Contains the assets path
@@ -107,6 +109,7 @@ private:
 public:
 	Esoteric();
 	~Esoteric();
+
 	void quit();
 	static void quit_all(int err);
 	void releaseScreen();
@@ -136,7 +139,6 @@ public:
 	void resetSettings();
 	void cpuSettings();
 
-
 	void skinColors();
 	void initLayout();
 	void initMenu();
@@ -164,6 +166,11 @@ public:
 	void setWallpaper(const std::string &wallpaper = "");
 	void updateAppCache(std::function<void(std::string)> callback = nullptr);
 	void cacheChanged(const DesktopFile &file, const bool &added);
+
+	int getScreenWidth() { return this->screen->raw->w; };
+	int getScreenHeight() { return this->screen->raw->h; };
+	int getScreenHalfWidth (){ return this->screenHalfWidth; };
+	int getScreenHalfHeight() { return this->screenHalfHeight; };
 
 	Menu* menu;
 	Skin* skin;

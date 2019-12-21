@@ -89,8 +89,8 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
     box.h = me->boxHeight;
     if ((*me->app->sc)[me->icon] != NULL && box.h < 40) box.h = 48;
     box.w = me->maxWidth + me->boxPadding;
-    box.x = me->app->config->halfX() - box.w / 2 - 2;
-    box.y = me->app->config->halfY() - box.h / 2 - 2;
+    box.x = me->app->getScreenHalfWidth() - (box.w / 2) - 2;
+    box.y = me->app->getScreenHalfHeight() - (box.h / 2) - 2;
 
     //outer box
     me->app->screen->box(box, me->app->skin->colours.msgBoxBackground);
