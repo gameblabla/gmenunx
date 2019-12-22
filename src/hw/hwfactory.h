@@ -12,8 +12,11 @@
 #include "linux.h"
 #include "rg350.h"
 
+
+
 class HwFactory {
     public:
+
         static std::vector<std::string> supportedDevices() {
             return std::vector<std::string> {
                 "gcw0", 

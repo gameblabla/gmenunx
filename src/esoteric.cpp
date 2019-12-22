@@ -1426,10 +1426,10 @@ void Esoteric::skinColors() {
 
 void Esoteric::about() {
 	TRACE("enter");
-	vector<string> text;
-	string temp;
+	std::vector<std::string> text;
+	std::string temp;
 
-	string uptime = this->hw->uptime();
+	std::string uptime = this->hw->uptime();
 	int battLevel = this->hw->getBatteryLevel();
 	TRACE("batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
@@ -1437,9 +1437,9 @@ void Esoteric::about() {
 	
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
-	string batt(buffer);
+	std::string batt(buffer);
 
-	string appPath = getOpkPath();
+	std::string appPath = getOpkPath();
 	if (appPath.length() == 0) {
 		appPath = this->getExePath() + BINARY_NAME;
 	}
@@ -1450,12 +1450,12 @@ void Esoteric::about() {
 	temp += tr["Skin: "] + this->skin->name + "\n";
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
-	temp += tr["Battery: "] + ((battLevel == 6) ? tr["Charging"] : batt) + "\n";
+	temp += tr["Battery: "] + ((battLevel == IHardware::BATTERY_CHARGING) ? tr["Charging"] : batt) + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
 	temp += tr["Internal storage free: "] + this->hw->getDiskFree("/media/data") + "\n";
 
 	this->hw->checkUDC();
-	string externalSize;
+	std::string externalSize;
 	switch(this->hw->getCardStatus()) {
 		case IHardware::MMC_MOUNTED:
 			externalSize = this->hw->getDiskSize(this->hw->getExternalMountDevice());
@@ -1491,7 +1491,7 @@ void Esoteric::about() {
 }
 
 void Esoteric::viewLog() {
-	string logfile = getWriteablePath() + "log.txt";
+	std::string logfile = getWriteablePath() + "log.txt";
 	if (!fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
@@ -1538,16 +1538,16 @@ void Esoteric::changeWallpaper() {
 
 void Esoteric::showManual() {
 	TRACE("enter");
-	string linkTitle = menu->selLinkApp()->getTitle();
-	string linkDescription = menu->selLinkApp()->getDescription();
-	string linkIcon = menu->selLinkApp()->getIcon();
-	string linkManual = menu->selLinkApp()->getManualPath();
-	string linkBackdrop = menu->selLinkApp()->getBackdropPath();
+	std::string linkTitle = menu->selLinkApp()->getTitle();
+	std::string linkDescription = menu->selLinkApp()->getDescription();
+	std::string linkIcon = menu->selLinkApp()->getIcon();
+	std::string linkManual = menu->selLinkApp()->getManualPath();
+	std::string linkBackdrop = menu->selLinkApp()->getBackdropPath();
 
 	TRACE("looking for a manual at : %s", linkManual.c_str());
 	if (linkManual.empty() || !fileExists(linkManual)) return;
 
-	string ext = linkManual.substr(linkManual.size() - 4, 4);
+	std::string ext = linkManual.substr(linkManual.size() - 4, 4);
 	if (ext == ".png" || ext == ".bmp" || ext == ".jpg" || ext == "jpeg") {
 		ImageViewerDialog im(this, linkTitle, linkDescription, linkIcon, linkManual);
 		im.exec();
@@ -1567,7 +1567,7 @@ void Esoteric::explorer() {
 
 	bool loop = true;
 	while (fd.exec() && loop) {
-		string ext = fd.getExt();
+		std::string ext = fd.getExt();
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
 			ImageViewerDialog im(this, tr["Image viewer"], fd.getFile(), "icons/explorer.png", fd.getPath() + "/" + fd.getFile());
 			im.exec();
@@ -1581,7 +1581,7 @@ void Esoteric::explorer() {
 				writeConfig();
 
 			loop = false;
-			string command = cmdclean(fd.getPath() + "/" + fd.getFile());
+			std::string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
 			quit_all(0);
 			this->hw->setCPUSpeed(config->cpuMenu());
@@ -1593,7 +1593,7 @@ void Esoteric::explorer() {
 	TRACE("exit");
 }
 
-const string &Esoteric::getExePath() {
+const std::string &Esoteric::getExePath() {
 	TRACE("enter path: %s", exe_path.c_str());
 	if (exe_path.empty()) {
 		char buf[255];
@@ -1609,7 +1609,7 @@ const string &Esoteric::getExePath() {
 	return exe_path;
 }
 
-const string &Esoteric::getWriteablePath() {
+const std::string &Esoteric::getWriteablePath() {
 	if (this->writeable_path.length())
 		return this->writeable_path;
 
@@ -1628,7 +1628,7 @@ const string &Esoteric::getWriteablePath() {
 	return this->writeable_path;
 }
 
-const string &Esoteric::getReadablePath() {
+const std::string &Esoteric::getReadablePath() {
 	return (this->needsInstalling ? this->getExePath() : this->getWriteablePath());
 }
 

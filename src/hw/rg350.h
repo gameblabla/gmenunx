@@ -183,7 +183,7 @@ class HwRg350 : IHardware {
             int online, result = 0;
             sscanf(fileReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
             if (online) {
-                result = 6;
+                result = IHardware::BATTERY_CHARGING;
             } else {
                 int battery_level = 0;
                 sscanf(fileReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);

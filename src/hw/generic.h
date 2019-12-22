@@ -89,7 +89,7 @@ class HwGeneric : IHardware {
         void ledOn(int flashSpeed = 250) { return; };
         void ledOff() { return; };
 
-        int getBatteryLevel() { return 100; };
+        int getBatteryLevel() { return IHardware::BATTERY_CHARGING; };
         int getVolumeLevel() { return 100; };
         int setVolumeLevel(int val) { return val; };;
 

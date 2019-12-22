@@ -29,6 +29,10 @@ class PowerManager : public IManager {
                 this->timeout_startms_ = new_ticks;
                 return interval;
             }
+            if (IHardware::BATTERY_CHARGING == this->hw->getBatteryLevel()) {
+                TRACE("we're plugged in, not powering down")
+                return interval;
+            }
             TRACE("power off event");
             this->hw->powerOff();
             TRACE("exit");

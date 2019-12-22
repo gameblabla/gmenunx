@@ -36,6 +36,7 @@ class IHardware {
 
     public:
 
+        static const int BATTERY_CHARGING = 6;
         enum CARD_STATUS:int16_t {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
