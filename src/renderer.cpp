@@ -83,7 +83,7 @@ void Renderer::quit() {
 }
 
 void Renderer::render() {
-
+	TRACE("render");
 	if (this->locked_ || this->finished_) 
 		return;
 	this->locked_ = true;
@@ -113,7 +113,7 @@ void Renderer::render() {
 	//TRACE("infoBar test");
 	if (app->skin->sectionInfoBarVisible) {
 		if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
-			//TRACE("infobar needs drawing");
+			TRACE("infobar needs drawing");
 
 			SDL_Rect infoBarRect;
 			switch(app->skin->sectionBar) {
@@ -163,19 +163,11 @@ void Renderer::render() {
 			btnX = app->ui->drawButton(app->screen, "a", app->tr["run"], btnX, btnY);
 			btnX = app->ui->drawButton(app->screen, "x", app->tr["fave"], btnX, btnY);
 
-			/*
-			app->screen->write(
-				app->font, 
-				"\u00AB info bar \u00BB", 
-				infoBarRect.w / 2, 
-				infoBarRect.y + (infoBarRect.h / 2),
-				HAlignCenter | VAlignMiddle);
-			*/
 		}
 	}
 
 	// SECTIONS
-	//TRACE("sections");
+	TRACE("sections");
 	if (app->skin->sectionBar) {
 
 		// do we have an image
@@ -538,16 +530,21 @@ void Renderer::render() {
 }
 
 void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootYPos) {
-	//TRACE("enter");
+	TRACE("enter");
 
 	int helperHeight = 20;
 	int iconsPerRow = 0;
 	if (app->sectionBarRect.w > app->sectionBarRect.h) {
 		iconsPerRow = (int)(app->sectionBarRect.h / (float)helperHeight);
-		//TRACE("horizontal mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.h);
+		TRACE("horizontal mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.h);
 	} else {
 		iconsPerRow = (int)(app->sectionBarRect.w / (float)helperHeight);
-		//TRACE("vertical mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.w);
+		TRACE("vertical mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.w);
+	}
+
+	if (0 == iconsPerRow) {
+		WARNING("Section bar is too small for icon size, skipping");
+		return;
 	}
 
 	int iconCounter = 1;
@@ -555,7 +552,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootY
 	int currentYOffset = 0;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
-		//TRACE("blitting");
+		TRACE("blitting");
 		Surface *surface = (*it);
 		if (NULL == surface)
 			continue;
@@ -581,10 +578,10 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootY
 		}
 		iconCounter++;
 	};
+	TRACE("exit");
 }
 
 void Renderer::pollHW() {
-	// if we're going to draw helpers, get their latest value
 	TRACE("enter");
 
 	// save battery life

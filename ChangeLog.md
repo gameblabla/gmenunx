@@ -9,6 +9,7 @@
 	* Some links weren't editable that should be
 	* Save config after hiding section
 	* possible dangling slash in config file for external apps path
+	* crash when info bar is smaller than icons
 
 * Improved
 	* Video initialisation is portable across devices

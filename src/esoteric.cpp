@@ -433,8 +433,7 @@ void Esoteric::main() {
 
 	while (!quit) {
 		try {
-			// TRACE("loop");
-
+			TRACE("loop");
 			renderer->render();
 
 			if (showGreeting) {
