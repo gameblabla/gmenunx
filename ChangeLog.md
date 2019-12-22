@@ -1,6 +1,6 @@
 ## Changelog
 
-**1.0.4** (*Codename: Lock, spock & 2 smoking squirrels*)
+**1.0.4** (*Codename: Fight the power!*)
 * Added
 	* Lock for selector browsing when you edit a link
 	* Auto Power off
