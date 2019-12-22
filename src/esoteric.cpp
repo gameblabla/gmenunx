@@ -855,7 +855,7 @@ void Esoteric::deviceMenu() {
 
 	do {
 
-		SettingsDialog sd(this, ts, tr["Device"], "skin:icons/skin.png");
+		SettingsDialog sd(this, ts, tr["Device"], "skin:icons/device.png");
 		sd.selected = selected;
 		sd.allowCancel = false;
 
@@ -969,25 +969,25 @@ void Esoteric::skinMenu() {
 	int selected = 0;
 	int prevSkinBackdrops = skin->skinBackdrops;
 
-	vector<string> wpLabel;
+	std::vector<std::string> wpLabel;
 	wpLabel.push_back(">>");
-	string tmp = ">>";
+	std::string tmp = ">>";
 
-	vector<string> sbStr;
+	std::vector<std::string> sbStr;
 	sbStr.push_back("OFF");
 	sbStr.push_back("Left");
 	sbStr.push_back("Bottom");
 	sbStr.push_back("Right");
 	sbStr.push_back("Top");
-	string sectionBar = sbStr[skin->sectionBar];
+	std::string sectionBar = sbStr[skin->sectionBar];
 	
-	vector<string> linkDisplayModesList;
+	std::vector<std::string> linkDisplayModesList;
 	linkDisplayModesList.push_back("Icon & text");
 	linkDisplayModesList.push_back("Icon");
 	linkDisplayModesList.push_back("Text");
-    string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
+    std::string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
 
-	vector<string> wallpapers = skin->getWallpapers();
+	std::vector<std::string> wallpapers = skin->getWallpapers();
 	std::vector<string>::iterator it;
 	it = wallpapers.begin();
 	wallpapers.insert(it, "None");
@@ -997,8 +997,8 @@ void Esoteric::skinMenu() {
 	bool currentImageGray = skin->imagesToGrayscale;
 
 	do {
-		string wpPrev = base_name(skin->wallpaper);
-		string wpCurrent = wpPrev;
+		std::string wpPrev = base_name(skin->wallpaper);
+		std::string wpCurrent = wpPrev;
 
 		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
 		sd.selected = selected;
