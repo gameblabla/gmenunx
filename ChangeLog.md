@@ -3,7 +3,9 @@
 **1.0.4** (*Codename: Lock, spock & 2 smoking squirrels*)
 * Added
 	* Lock for selector browsing when you edit a link
-	* Power manager initial work
+	* Auto Power off
+		* Toggleable
+		* Only activates when running on battery
 
 * Fixed
 	* Some links weren't editable that should be
@@ -15,8 +17,9 @@
 	* Video initialisation is portable across devices
 	* Refactored screen resolution consumers
 	* Refactored inputManager
-	* Refactored screenManager
+	* Refactored screenManager and powerManager to a common interface
 	* screenManager now uses hw abstraction layer for blanking
+	* powerManager now uses hw abstraction layer for power off
 
 **1.0.3** (*Codename: Is that garlic?*)
 * Added
