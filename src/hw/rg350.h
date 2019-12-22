@@ -94,6 +94,7 @@ class HwRg350 : IHardware {
         }
         ~HwRg350() {
             delete rtc;
+            this->ledOff();
         }
 
         std::string getSystemdateTime() {

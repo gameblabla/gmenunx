@@ -20,11 +20,13 @@
 #ifndef INPUTMANAGER_H
 #define INPUTMANAGER_H
 
-#include "screenmanager.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #include <vector>
 #include <string>
+
+#include "managers/screenmanager.h"
+#include "managers/powermanager.h"
 
 enum actions {
 	UP = 0, 
@@ -82,6 +84,7 @@ private:
 	std::vector <InputManagerAction> actions;
 
 	ScreenManager& screenManager;
+	PowerManager& powerManager;
 
 	static uint32_t wakeUp(uint32_t interval, void *_data);
 
@@ -95,7 +98,7 @@ public:
 	static const int SDL_WAKEUPEVENT = SDL_USEREVENT + 1;
 	static const int SDL_NOOPEVENT = SDL_WAKEUPEVENT + 1;
 
-	InputManager(ScreenManager& screenManager);
+	InputManager(ScreenManager& screenManager, PowerManager& powerManager);
 	~InputManager();
 	void init(const std::string &conffile, const int &repeatRate = 50);
 	void initJoysticks();

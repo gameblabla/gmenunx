@@ -39,7 +39,8 @@
 #include "iconbutton.h"
 #include "messagebox.h"
 #include "progressbar.h"
-#include "screenmanager.h"
+#include "managers/screenmanager.h"
+#include "managers/powermanager.h"
 #include "inputdialog.h"
 #include "settingsdialog.h"
 #include "wallpaperdialog.h"
@@ -218,12 +219,15 @@ Esoteric::Esoteric() {
 	TRACE("new surface collection");
 	this->sc = new SurfaceCollection(this->skin, true);
 
-	TRACE("screen mgr new && long timeout for loading");
+	TRACE("new power manager");
+	this->powerManager = new PowerManager((IHardware *)this->hw);
+	this->powerManager->setTimeout(this->config->powerTimeout());
+
+	TRACE("new screen manager");
 	this->screenManager = new ScreenManager((IHardware *)this->hw);
-	this->screenManager->setScreenTimeout(600);
 
 	TRACE("inputManager");
-	this->inputManager = new InputManager((*screenManager));
+	this->inputManager = new InputManager((*screenManager), (*powerManager));
 	this->inputManager->init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
 	setInputSpeed();
 
@@ -233,9 +237,9 @@ Esoteric::Esoteric() {
 Esoteric::~Esoteric() {
 	TRACE("enter\n\n");
 
-	this->writeConfig();
-	this->hw->ledOff();
-
+	if (this->config)
+		this->writeConfig();
+	
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -247,6 +251,11 @@ Esoteric::~Esoteric() {
 		TRACE("delete - screenManager");
 		delete this->screenManager;
 		this->screenManager = nullptr;
+	}
+	if (this->powerManager) {
+		TRACE("delete - powerManager");
+		delete this->powerManager;
+		this->powerManager = nullptr;
 	}
 	if (this->inputManager) {
 		TRACE("delete - inputManager");
@@ -303,9 +312,11 @@ Esoteric::~Esoteric() {
 		delete this->config;
 		this->config = nullptr;
 	}
-	TRACE("freeing the screen");
-	this->screen->free();
-	this->releaseScreen();
+	if (this->screen) {
+		TRACE("freeing the screen");
+		this->screen->free();
+		this->releaseScreen();
+	}
 	TRACE("exit\n\n");
 }
 
@@ -389,7 +400,7 @@ void Esoteric::main() {
 	setWallpaper(this->skin->wallpaper);
 
 	TRACE("set hardware to real settings");
-	this->screenManager->setScreenTimeout(config->backlightTimeout());
+	this->screenManager->setTimeout(config->backlightTimeout());
 	this->inputManager->setWakeUpInterval(1000);
 	this->hw->ledOff();
 
@@ -417,7 +428,8 @@ void Esoteric::main() {
 
 	bool quit = false;
 	renderer->startPolling();
-	this->screenManager->resetScreenTimer();
+	this->screenManager->resetTimer();
+	this->powerManager->resetTimer();
 
 	while (!quit) {
 		try {
@@ -828,13 +840,16 @@ void Esoteric::initMenu() {
 void Esoteric::deviceMenu() {
 	TRACE("enter");
 	bool save = false;
-	bool changed = false;
 	int selected = 0;
 
 	int backlightLevel = this->hw->getBacklightLevel();
 	int volumeLevel = this->hw->getVolumeLevel();
 	int backlightTimeout = config->backlightTimeout();
 	bool keepAspectRatio = this->hw->getKeepAspectRatio();
+	int buttonRepeatRate = this->config->buttonRepeatRate();
+	bool buttonRepeatEnabled = (0 != buttonRepeatRate);
+	int powerTimeout = config->powerTimeout();
+	bool enablePowerTimeout = (0 != powerTimeout);
 
 	std::string performanceMode = this->hw->getPerformanceMode();
 	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
@@ -855,8 +870,19 @@ void Esoteric::deviceMenu() {
 			this, 
 			tr["Screen timeout"], 
 			tr["Set screen's backlight timeout in seconds"], 
-			&backlightTimeout, 
-			60, 0, 120));
+			&backlightTimeout, 60, 0, 120));
+
+		sd.addSetting(new MenuSettingBool(
+			this, 
+			tr["Enable auto power off"], 
+			tr["Toggle timer based power off function"], 
+			&enablePowerTimeout));
+		
+		sd.addSetting(new MenuSettingInt(
+			this, 
+			tr["Power off time"], 
+			tr["Minutes to poweroff system if inactive"], 
+			&powerTimeout, 10, 5, 300, 5));
 
 		sd.addSetting(new MenuSettingInt(
 			this, 
@@ -879,40 +905,62 @@ void Esoteric::deviceMenu() {
 			tr["Force hw scaling"], 
 			&keepAspectRatio));
 
+		sd.addSetting(new MenuSettingBool(
+			this, 
+			tr["Button repeat enabled"], 
+			tr["Toggle button repeat on or off"], 
+			&buttonRepeatEnabled
+		)); 
+
+		sd.addSetting(new MenuSettingInt(
+			this, 
+			tr["Button repeat rate"], 
+			tr["How fast in ms do you want button repeats"], 
+			&buttonRepeatRate, 50, 25, 500, 10
+		));
+
 		sd.exec();
+
+		if (enablePowerTimeout) {
+			this->config->powerTimeout(powerTimeout);
+			this->powerManager->setTimeout(powerTimeout);
+		} else {
+			this->config->powerTimeout(0);
+			this->powerManager->setTimeout(0);
+		}
+		if (buttonRepeatEnabled) {
+			this->config->buttonRepeatRate(buttonRepeatRate);
+			this->inputManager->setButtonRepeat(buttonRepeatRate);
+		} else {
+			this->config->buttonRepeatRate(0);
+			this->inputManager->setButtonRepeat(0);
+		}
 		if (backlightTimeout != this->config->backlightTimeout()) {
 			this->config->backlightTimeout(backlightTimeout);
-			this->screenManager->setScreenTimeout(backlightTimeout);
-			changed = true;
+			this->screenManager->setTimeout(backlightTimeout);
 		}
 		if (performanceMode != this->hw->getPerformanceMode()) {
 			this->config->performance(performanceMode);
 			this->hw->setPerformanceMode(performanceMode);
-			changed = true;
 		}
 		if (volumeLevel != this->hw->getVolumeLevel()) {
 			this->config->globalVolume(volumeLevel);
 			this->hw->setVolumeLevel(volumeLevel);
-			changed = true;
 		}
 		if (backlightLevel != this->hw->getBacklightLevel()) {
 			this->config->backlightLevel(backlightLevel);
 			this->hw->setBacklightLevel(backlightLevel);
-			changed = true;
 		}
 		if (keepAspectRatio != this->hw->getKeepAspectRatio()) {
 			this->config->aspectRatio(keepAspectRatio);
 			this->hw->setKeepAspectRatio(keepAspectRatio);
-			changed = true;
 		}
 		selected = sd.selected;
 		save = sd.save;
 
 	} while (!save);
 	
-	if (changed) {
-		this->writeConfig();
-	}
+	this->writeConfig();
 	TRACE("exit");
 }
 
@@ -1038,8 +1086,6 @@ void Esoteric::skinMenu() {
 void Esoteric::settings() {
 	TRACE("enter");
 	bool unhideSections = false;
-	int buttonRepeatRate = this->config->buttonRepeatRate();
-	bool buttonRepeatEnabled = (0 != buttonRepeatRate);
 	std::string prevSkin = config->skin();
 	std::vector<std::string> skinList = Skin::getSkins(getReadablePath());
 
@@ -1047,16 +1093,14 @@ void Esoteric::settings() {
 	FileLister fl_tr(getReadablePath() + "translations");
 	fl_tr.browse();
 	fl_tr.insertFile("English");
-	// local vals
+
 	std::string lang = tr.lang();
 	std::string skin = config->skin();
-	//string batteryType = config->batteryType();
 	std::string appsPath = config->externalAppPath();
 
 	int saveSelection = config->saveSelection();
 	int setHwOnBoot = config->setHwLevelsOnBoot();
 	int outputLogs = config->outputLogs();
-	//int powerTimeout = config->powerTimeout();
 
 	TRACE("found %i translations", fl_tr.fileCount());
 	if (lang.empty()) {
@@ -1122,20 +1166,6 @@ void Esoteric::settings() {
 
 	sd.addSetting(new MenuSettingBool(
 		this, 
-		tr["Button repeat enabled"], 
-		tr["Toggle button repeat on or off"], 
-		&buttonRepeatEnabled
-	)); 
-
-	sd.addSetting(new MenuSettingInt(
-		this, 
-		tr["Button repeat rate"], 
-		tr["How fast in ms do you want button repeats"], 
-		&buttonRepeatRate, 50, 25, 500, 10
-	));
-
-	sd.addSetting(new MenuSettingBool(
-		this, 
 		tr["Output logs"], 
 		tr["Logs the link's output to read with Log Viewer"], 
 		&outputLogs));
@@ -1143,17 +1173,8 @@ void Esoteric::settings() {
 	sd.addSetting(new MenuSettingBool(
 		this, 
 		tr["Set HW levels on boot"], 
-		tr["Set hardware levels on first boot"], 
+		tr["Set volume and brightness levels on 1st boot"], 
 		&setHwOnBoot));
-
-	/*
-	sd.addSetting(new MenuSettingInt(
-		this, 
-		tr["Power timeout"], 
-		tr["Minutes to poweroff system if inactive"], 
-		&powerTimeout, 
-		10, 1, 300));
-	*/
 
 	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
@@ -1188,13 +1209,6 @@ void Esoteric::settings() {
 			refreshNeeded = true;
 		}
 
-		if (buttonRepeatEnabled) {
-			this->config->buttonRepeatRate(buttonRepeatRate);
-			this->inputManager->setButtonRepeat(buttonRepeatRate);
-		} else {
-			this->config->buttonRepeatRate(0);
-			this->inputManager->setButtonRepeat(0);
-		}
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
 		this->config->outputLogs(outputLogs);
@@ -1217,8 +1231,8 @@ void Esoteric::settings() {
 		}
 
 		TRACE("setScreenTimeout - %i", this->config->backlightTimeout());
-		this->screenManager->resetScreenTimer();
-		this->screenManager->setScreenTimeout(this->config->backlightTimeout());
+		this->screenManager->resetTimer();
+		this->screenManager->setTimeout(this->config->backlightTimeout());
 
 		if (!this->needsInstalling) {
 			this->writeConfig();
@@ -1360,13 +1374,16 @@ void Esoteric::writeTmp(int selelem, const string &selectordir) {
 void Esoteric::writeConfig() {
 	TRACE("enter");
 	this->hw->ledOn();
+	TRACE("led set");
 	// don't try and save to RO file system
 	if (!this->needsInstalling) {
+		TRACE("config needs saving");
 		if (config->saveSelection() && menu != NULL) {
 			config->section(menu->selSectionIndex());
 			config->link(menu->selLinkIndex());
 		}
 		config->save();
+		TRACE("config saved");
 	}
 	TRACE("ledOff");
 	this->hw->ledOff();

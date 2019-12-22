@@ -102,8 +102,14 @@ class HwLinux : IHardware {
 
         std::string getDeviceType() { return "Linux"; }
 
-        void powerOff() { raise(SIGINT); }
-        void reboot() { return; }
+        void powerOff() { 
+            TRACE("enter - powerOff");
+            raise(SIGTERM);
+        }
+        void reboot() { 
+            TRACE("enter");
+            return; 
+        }
 
         int defaultScreenWidth() { return 320; }
         int defaultScreenHeight() { return 240; }

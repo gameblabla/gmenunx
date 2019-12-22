@@ -70,7 +70,8 @@
 
 #include "debug.h"
 #include "inputmanager.h"
-#include "screenmanager.h"
+#include "managers/screenmanager.h"
+#include "managers/powermanager.h"
 #include "utilities.h"
 
 #include <iostream>
@@ -78,7 +79,10 @@
 
 using namespace std;
 
-InputManager::InputManager(ScreenManager& screenManager) : screenManager(screenManager) {
+InputManager::InputManager(ScreenManager& screenManager, PowerManager& powerManager) : 
+	screenManager(screenManager), 
+	powerManager(powerManager) {
+
 	wakeUpTimer = NULL;
 }
 
@@ -336,7 +340,8 @@ bool InputManager::update(bool wait) {
                   };
 			TRACE("event.type == %i", event.type);
 			*/
-			screenManager.resetScreenTimer();
+			screenManager.resetTimer();
+			powerManager.resetTimer();
 			return false;
 		}
 
@@ -486,7 +491,8 @@ bool InputManager::update(bool wait) {
 		}
 	}
 	if (anyactions) {
-		screenManager.resetScreenTimer();
+		screenManager.resetTimer();
+		powerManager.resetTimer();
 	}
 
 	//TRACE("update completed");
@@ -517,11 +523,11 @@ void InputManager::setInterval(int ms, int action) {
 
 void InputManager::setWakeUpInterval(int ms) {
 	//TRACE("enter - %i", ms);
-	if (wakeUpTimer != NULL)
-		SDL_RemoveTimer(wakeUpTimer);
+	if (this->wakeUpTimer != NULL)
+		SDL_RemoveTimer(this->wakeUpTimer);
 
 	if (ms > 0)
-		wakeUpTimer = SDL_AddTimer(ms, wakeUp, NULL);
+		this->wakeUpTimer = SDL_AddTimer(ms, wakeUp, NULL);
 }
 
 uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {

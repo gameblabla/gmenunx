@@ -174,7 +174,7 @@ void LinkScannerDialog::render() {
 }
 
 void LinkScannerDialog::notify(std::string message) {
-	this->app->screenManager->resetScreenTimer();
+	this->app->screenManager->resetTimer();
 	this->messages_.push_back(message);
 	this->selectedItem = this->messages_.size() -1;
 	this->render();

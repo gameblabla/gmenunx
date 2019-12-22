@@ -163,7 +163,7 @@ void Config::constrain() {
 	evalIntConf( &this->backlightTimeout_, 30, 10, 300);
     evalIntConf( &this->backlightLevel_, 70, 1, 100);
     evalIntConf( &this->buttonRepeatRate_, 50, 0, 500);
-	evalIntConf( &this->powerTimeout_, 10, 1, 300);
+	evalIntConf( &this->powerTimeout_, 10, 0, 300);
 	evalIntConf( &this->outputLogs_, 0, 0, 1 );
 	evalIntConf( &this->cpuMax_, 642, 200, 1200 );
 	evalIntConf( &this->cpuMin_, 342, 200, 1200 );
@@ -181,8 +181,12 @@ void Config::constrain() {
         this->link(0);
     }
 
-    if (this->buttonRepeatRate_ > 0 && this->buttonRepeatRate_ < 25)
+    if (this->buttonRepeatRate_ > 0 && this->buttonRepeatRate_ < 25) {
         this->buttonRepeatRate_ = 50;
+    }
+    if (this->powerTimeout_ > 0 && this->powerTimeout_ < 5) {
+        this->powerTimeout_ = 5;
+    }
 	if (this->performance() != "Performance") 
 		this->performance("On demand");
 	if (this->tvOutMode() != "PAL") 

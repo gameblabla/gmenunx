@@ -3,6 +3,7 @@
 **1.0.4** (*Codename: Lock, spock & 2 smoking squirrels*)
 * Added
 	* Lock for selector browsing when you edit a link
+	* Power manager initial work
 
 * Fixed
 	* Some links weren't editable that should be

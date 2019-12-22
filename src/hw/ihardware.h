@@ -237,8 +237,10 @@ class IHardware {
         virtual std::string getDeviceType() = 0;
 
         virtual void powerOff() {
+            TRACE("enter");
             sync();
             system("poweroff");
+            TRACE("exit");
         }
 
         virtual void reboot() {

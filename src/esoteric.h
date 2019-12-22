@@ -28,7 +28,8 @@
 #include "utilities.h"
 #include "touchscreen.h"
 #include "inputmanager.h"
-#include "screenmanager.h"
+#include "managers/screenmanager.h"
+#include "managers/powermanager.h"
 #include "surface.h"
 #include "fonthelper.h"
 #include "skin.h"
@@ -126,6 +127,7 @@ public:
 
 	SurfaceCollection *sc;
 	ScreenManager *screenManager;
+	PowerManager *powerManager;
 	InputManager *inputManager;
 	Surface *screen, *bg;
 	FontHelper *font = NULL;
