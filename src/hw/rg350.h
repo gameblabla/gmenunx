@@ -289,7 +289,7 @@ class HwRg350 : IHardware {
         std::string getDeviceType() { return "RG-350"; }
 
         bool setScreenState(const bool &enable) {
-            TRACE("enter : %s", (state ? "on" : "off"));
+            TRACE("enter : %s", (enable ? "on" : "off"));
             const char *path = SCREEN_BLANK_PATH.c_str();
             const char *blank = enable ? "0" : "1";
             bool result = false;
