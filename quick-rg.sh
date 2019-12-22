@@ -241,7 +241,7 @@ function makePackage () {
 		exit 1
 	fi
 	local target=$1
-	local version=`date +%Y-%m-%d-%H:%m:%S`
+	local version=`date +%Y-%m-%d-%H-%m-%S`
 	if [[ $# -gt 1 ]]; then
 		version=$2
 	fi
