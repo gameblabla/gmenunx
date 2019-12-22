@@ -149,7 +149,7 @@ string Skin::toString() {
     vec.push_back("# how game previews look");
     vec.push_back("# game previews live in a subfolder called .previews, within a rom folder");
     vec.push_back("# -1 means fullscreen as a background");
-    vec.push_back("# 0 means disable, and don't search fodlers");
+    vec.push_back("# 0 means disable, and don't search folders");
     vec.push_back("# positive int means animate in from the right hand side for this many pixels");
     vec.push_back("");
     vec.push_back(string_format("previewWidth=%i", previewWidth));
