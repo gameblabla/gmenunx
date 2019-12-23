@@ -30,7 +30,7 @@ class PowerManager : public IManager {
                 return interval;
             }
             if (IHardware::BATTERY_CHARGING == this->hw->getBatteryLevel()) {
-                TRACE("we're plugged in, not powering down")
+                TRACE("we're plugged in, not powering down");
                 return interval;
             }
             TRACE("power off event");
