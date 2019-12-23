@@ -24,6 +24,7 @@ class HwFactory {
                 "gkd350h", 
                 "linux", 
                 "pg2", 
+                "retrofw"
                 "rg350"
             };
         }
@@ -39,6 +40,8 @@ class HwFactory {
             } else if (0 == device.compare("linux")) {
                 return (IHardware*)new HwLinux();
             } else if (0 == device.compare("pg2")) {
+                return (IHardware*)new HwGeneric();
+            } else if (0 == device.compare("retrofw")) {
                 return (IHardware*)new HwGeneric();
             } else if (0 == device.compare("rg350")) {
                 return (IHardware*)new HwRg350();
@@ -71,22 +74,32 @@ class HwFactory {
                 }
             }
             if (result == "generic") {
-                // ok, is it open dingux?
-                std::string issue = fileReader("/etc/issue");
-                bool isDingux = false;
-                if (!issue.empty()) {
-                    std::string lowerIssue = toLower(issue);
-                    std::vector<std::string> issueParts;
-                    split(issueParts, lowerIssue, " ");
-                    for (std::vector<std::string>::iterator it = issueParts.begin(); it != issueParts.end(); it++) {
-                        TRACE("checking token : %s", (*it).c_str());
-                        if (0 == (*it).compare("opendingux")) {
-                            isDingux = true;
-                            break;
-                        }
+                // is it retro fw?
+                if (fileExists("/etc/hostname")) {
+                    std::string host = fileReader("/etc/hostname");
+                    host = toLower(full_trim(host));
+                    if (0 == host.compare("retrofw")) {
+                        return "retrofw";
                     }
-                    if (!isDingux) {
-                        result = "linux";
+                }
+                // ok, is it open dingux?
+                if (fileExists("/etc/issue")) {
+                    std::string issue = fileReader("/etc/issue");
+                    bool isDingux = false;
+                    if (!issue.empty()) {
+                        std::string lowerIssue = toLower(issue);
+                        std::vector<std::string> issueParts;
+                        split(issueParts, lowerIssue, " ");
+                        for (std::vector<std::string>::iterator it = issueParts.begin(); it != issueParts.end(); it++) {
+                            TRACE("checking token : %s", (*it).c_str());
+                            if (0 == (*it).compare("opendingux")) {
+                                isDingux = true;
+                                break;
+                            }
+                        }
+                        if (!isDingux) {
+                            result = "linux";
+                        }
                     }
                 }
             }

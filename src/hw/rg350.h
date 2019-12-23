@@ -30,6 +30,9 @@ class HwRg350 : IHardware {
         int volumeLevel_ = 0;
         int backlightLevel_ = 0;
         bool keepAspectRatio_ = false;
+        bool pollBacklight = false;
+        bool pollBatteries = false;
+        bool pollVolume = false;
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
 		const std::string LED_MAX_BRIGHTNESS_PATH = LED_PREFIX + "max_brightness";
@@ -37,10 +40,13 @@ class HwRg350 : IHardware {
 		const std::string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
 		const std::string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
 		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
-        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume default PCM";
-        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume default PCM "; // keep trailing space
+        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume";
+        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume";
+        const std::string VOLUME_ARGS = "default PCM";
         const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
+        const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
+        const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
 
         std::string performanceModeMap(std::string fromInternal) {
             std::unordered_map<std::string, std::string>::iterator it;
@@ -77,9 +83,13 @@ class HwRg350 : IHardware {
 
             this->rtc = new RTC();
 
-            this->ledMaxBrightness_ = fileReader(LED_MAX_BRIGHTNESS_PATH);
+            this->ledMaxBrightness_ = fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
             this->performanceModes_.insert({"ondemand", "On demand"});
             this->performanceModes_.insert({"performance", "Performance"});
+
+            this->pollBacklight = fileExists(BACKLIGHT_PATH);
+            this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
+            this->pollVolume = fileExists(GET_VOLUME_PATH);
 
             this->getBacklightLevel();
             this->getVolumeLevel();
@@ -181,12 +191,15 @@ class HwRg350 : IHardware {
 
         int getBatteryLevel() { 
             int online, result = 0;
-            sscanf(fileReader("/sys/class/power_supply/usb/online").c_str(), "%i", &online);
+            if (!this->pollBatteries) 
+                return result;
+
+            sscanf(fileReader(BATTERY_CHARGING_PATH).c_str(), "%i", &online);
             if (online) {
                 result = IHardware::BATTERY_CHARGING;
             } else {
                 int battery_level = 0;
-                sscanf(fileReader("/sys/class/power_supply/battery/capacity").c_str(), "%i", &battery_level);
+                sscanf(fileReader(BATTERY_LEVEL_PATH).c_str(), "%i", &battery_level);
                 TRACE("raw battery level - %i", battery_level);
                 if (battery_level >= 100) result = 5;
                 else if (battery_level > 80) result = 4;
@@ -201,14 +214,17 @@ class HwRg350 : IHardware {
 
         int getVolumeLevel() { 
             TRACE("enter");
-            int vol = -1;
-            std::string result = exec(GET_VOLUME_PATH.c_str());
-            if (result.length() > 0) {
-                vol = atoi(trim(result).c_str());
+            if (this->pollVolume) {
+                int vol = -1;
+                std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
+                std::string result = exec(volPath.c_str());
+                if (result.length() > 0) {
+                    vol = atoi(trim(result).c_str());
+                }
+                // scale 0 - 31, turn to percent
+                vol = ceil(vol * 100 / 31);
+                this->volumeLevel_ = vol;
             }
-            // scale 0 - 31, turn to percent
-            vol = ceil(vol * 100 / 31);
-            this->volumeLevel_ = vol;
             TRACE("exit : %i", this->volumeLevel_);
             return this->volumeLevel_;
         };
@@ -218,28 +234,33 @@ class HwRg350 : IHardware {
             else if (val > 100) val = 0;
             if (val == this->volumeLevel_) 
                 return val;
-            int rg350val = (int)(val * (31.0f/100));
-            TRACE("rg350 value : %i", rg350val);
-            std::stringstream ss;
-            std::string cmd;
-            ss << SET_VOLUME_PATH << rg350val;
-            std::getline(ss, cmd);
-            TRACE("cmd : %s", cmd.c_str());
-            std::string result = exec(cmd.c_str());
-            TRACE("result : %s", result.c_str());
+
+            if (this->pollVolume) {
+                int rg350val = (int)(val * (31.0f/100));
+                TRACE("rg350 value : %i", rg350val);
+                std::stringstream ss;
+                std::string cmd;
+                ss << SET_VOLUME_PATH << " " << VOLUME_ARGS << " " << rg350val;
+                std::getline(ss, cmd);
+                TRACE("cmd : %s", cmd.c_str());
+                std::string result = exec(cmd.c_str());
+                TRACE("result : %s", result.c_str());
+            }
             this->volumeLevel_ = val;
             return val;
         };
 
         int getBacklightLevel() { 
             TRACE("enter");
-            int level = 0;
-            //force  scale 0 - 100
-            std::string result = fileReader(BACKLIGHT_PATH);
-            if (result.length() > 0) {
-                level = ceil(atoi(trim(result).c_str()) / 2.55);
+            if (this->pollBacklight) {
+                int level = 0;
+                //force  scale 0 - 100
+                std::string result = fileReader(BACKLIGHT_PATH);
+                if (result.length() > 0) {
+                    level = ceil(atoi(trim(result).c_str()) / 2.55);
+                }
+                this->backlightLevel_ = level;
             }
-            this->backlightLevel_ = level;
             TRACE("exit : %i", this->backlightLevel_);
             return this->backlightLevel_;
         };
@@ -265,13 +286,15 @@ class HwRg350 : IHardware {
 
         bool getKeepAspectRatio() {
             TRACE("enter");
-            std::string result = fileReader(ASPECT_RATIO_PATH);
-            TRACE("raw result : '%s'", result.c_str());
-            if (result.length() > 0) {
-                result = result[0];
-                result = toLower(result);
+            if (fileExists(ASPECT_RATIO_PATH)) {
+                std::string result = fileReader(ASPECT_RATIO_PATH);
+                TRACE("raw result : '%s'", result.c_str());
+                if (result.length() > 0) {
+                    result = result[0];
+                    result = toLower(result);
+                }
+                this->keepAspectRatio_ = ("y" == result);
             }
-            this->keepAspectRatio_ = ("y" == result);
             TRACE("exit : %i", this->keepAspectRatio_);
             return this->keepAspectRatio_;
         }

@@ -344,13 +344,10 @@ bool procWriter(string path, int value) {
 }
 
 string fileReader(string path) {
-	if (fileExists(path)) {
-		ifstream str(path);
-		stringstream buf;
-		buf << str.rdbuf();
-		return buf.str();
-	}
-	return NULL;
+	ifstream str(path);
+	stringstream buf;
+	buf << str.rdbuf();
+	return buf.str();
 }
 
 string splitInLines(string source, size_t max_width, string whitespace) {
