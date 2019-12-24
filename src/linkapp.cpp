@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <fstream>
 #include <sstream>
@@ -523,9 +524,20 @@ void LinkApp::launch(std::string launchArgs) {
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
 		TRACE("quit");
+		app->quit();
 		app->releaseScreen();
-		//Esoteric::quit_all(0);
 
+		if (consoleapp) {
+			std::wclog.clear();
+			std::clog.clear();
+			std::wcout.clear();
+			std::cout.clear();
+			std::wcerr.clear();
+			std::cerr.clear();
+			std::wcin.clear();
+			std::cin.clear();
+			system("reset");
+		}
 		TRACE("calling exec");
 		toLaunch->exec();
 		// If control gets here, execution failed. Since we already destructed

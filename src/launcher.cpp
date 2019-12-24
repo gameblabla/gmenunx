@@ -48,11 +48,13 @@ void Launcher::exec() {
 			write(fd, &c, 1);
 			close(fd);
 		}
+
 		TRACE("opening tty handle");
 		fd = open(APP_TTY.c_str(), O_RDWR);
 		if (fd < 0) {
 			WARNING("Unable to open %s handle", APP_TTY.c_str());
 		} else {
+			TRACE("activating terminal");
 			if (ioctl(fd, VT_ACTIVATE, 1) < 0)
 				WARNING("Unable to activate %s", APP_TTY.c_str());
 			close(fd);

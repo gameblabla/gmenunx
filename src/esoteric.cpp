@@ -85,7 +85,7 @@ using namespace fastdelegate;
 
 int main(int argc, char * argv[]) {
 
-	INFO("%s starting: Build Date - %s", APP_NAME.c_str(), __BUILDTIME__);
+	INFO("%s starting", APP_NAME.c_str());
 
 	signal(SIGINT, &Esoteric::quit_all);
 	signal(SIGSEGV,&Esoteric::quit_all);
@@ -239,7 +239,38 @@ Esoteric::~Esoteric() {
 
 	if (this->config)
 		this->writeConfig();
-	
+
+	this->releaseScreen();
+	this->quit();
+
+	if (this->config) {
+		TRACE("delete - config");
+		delete this->config;
+		this->config = nullptr;
+	}
+	if (this->skin) {
+		TRACE("delete - skin");
+		delete this->skin;
+		this->skin = nullptr;
+	}
+	if (this->menu) {
+		TRACE("delete - menu");
+		delete this->menu;
+		this->menu = nullptr;
+	}
+	if (this->sc) {
+		TRACE("delete - surface collection");
+		delete this->sc;
+		this->sc = nullptr;
+	}
+	if (this->hw) {
+		TRACE("delete - hw");
+		delete this->hw;
+		this->hw = nullptr;
+	}
+}
+
+void Esoteric::quit() {
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -247,6 +278,11 @@ Esoteric::~Esoteric() {
 		this->cache = nullptr;
 	}
 	#endif
+	if (this->inputManager) {
+		TRACE("delete - inputManager");
+		delete this->inputManager;
+		this->inputManager = nullptr;
+	}
 	if (this->screenManager) {
 		TRACE("delete - screenManager");
 		delete this->screenManager;
@@ -257,21 +293,21 @@ Esoteric::~Esoteric() {
 		delete this->powerManager;
 		this->powerManager = nullptr;
 	}
-	if (this->inputManager) {
-		TRACE("delete - inputManager");
-		delete this->inputManager;
-		this->inputManager = nullptr;
+	TRACE("exit\n\n");
+}
+
+void Esoteric::quit_all(int err) {
+	TRACE("enter : %i", err);
+	if (app) {
+		delete app;
+		app = nullptr;
 	}
-	if (this->ui) {
-		TRACE("delete - ui");
-		delete this->ui;
-		this->ui = nullptr;
-	}
-	if (this->menu) {
-		TRACE("delete - menu");
-		delete this->menu;
-		this->menu = nullptr;
-	}
+	TRACE("exit");
+	std::exit(err);
+}
+
+void Esoteric::releaseScreen() {
+	TRACE("enter");
 	if (this->screen) {
 		TRACE("delete - screen");
 		delete this->screen;
@@ -292,46 +328,11 @@ Esoteric::~Esoteric() {
 		delete this->fontSectionTitle;
 		this->fontSectionTitle = nullptr;
 	}
-	if (this->hw) {
-		TRACE("delete - hw");
-		delete this->hw;
-		this->hw = nullptr;
+	if (this->ui) {
+		TRACE("delete - ui");
+		delete this->ui;
+		this->ui = nullptr;
 	}
-	if (this->skin) {
-		TRACE("delete - skin");
-		delete this->skin;
-		this->skin = nullptr;
-	}
-	if (this->sc) {
-		TRACE("delete - surface collection");
-		delete this->sc;
-		this->sc = nullptr;
-	}
-	if (this->config) {
-		TRACE("delete - config");
-		delete this->config;
-		this->config = nullptr;
-	}
-	if (this->screen) {
-		TRACE("freeing the screen");
-		this->screen->free();
-		this->releaseScreen();
-	}
-	TRACE("exit\n\n");
-}
-
-void Esoteric::quit_all(int err) {
-	TRACE("enter : %i", err);
-	if (app) {
-		delete app;
-		app = nullptr;
-	}
-	TRACE("exit");
-	std::exit(err);
-}
-
-void Esoteric::releaseScreen() {
-	TRACE("enter");
 	if (TTF_WasInit()) {
 		TRACE("calling TTF_Quit");
 		TTF_Quit();

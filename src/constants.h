@@ -7,7 +7,7 @@ static const int APP_MIN_CONFIG_VERSION = 1;
 static const std::string APP_NAME = "350teric";
 static const std::string BINARY_NAME = "esoteric";
 static const std::string TEMP_FILE = "/tmp/" + BINARY_NAME + ".tmp";
-static const std::string APP_TTY = "/dev/tty2";
+static const std::string APP_TTY = "/dev/tty1";
 
 #ifdef TARGET_RG350
 static const std::string & EXTERNAL_CARD_PATH = "/media/sdcard";

@@ -112,6 +112,7 @@ public:
 	~Esoteric();
 
 	static void quit_all(int err);
+	void quit();
 	void releaseScreen();
 
 	bool f200 = true;
