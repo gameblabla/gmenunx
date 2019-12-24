@@ -5,6 +5,7 @@ OPK_EXTENSION=".opk";
 ASSETS_PATH="dist/RG350/esoteric";
 argCount=$#
 OPK_NAME="${APP_NAME}${OPK_EXTENSION}"
+SUPPORTED_PLATFORMS=("gcw0" "retrofw")
 
 # ----------------------------- #
 echo "Enter make_opk.sh"
@@ -25,8 +26,11 @@ fi
 
 echo "Making opk : ${OPK_NAME}"
 
-# create default.gcw0.desktop
-cat > default.gcw0.desktop <<EOF
+FLIST="${ASSETS_PATH}/*"
+
+for myPlatform in ${SUPPORTED_PLATFORMS[*]}; do
+    # create default.${myPlatform}.desktop
+    cat > default.${myPlatform}.desktop <<EOF
 [Desktop Entry]
 Name=350teric
 Comment=Esoteric App Launcher
@@ -39,10 +43,11 @@ Categories=applications;
 Version=${VERSION}
 EOF
 
-# create opk
-FLIST="${ASSETS_PATH}/*"
-FLIST="${FLIST} default.gcw0.desktop"
+    FLIST="${FLIST} default.${myPlatform}.desktop"
 
+done
+
+# create opk
 if [ -f ${OPK_NAME} ]; then
     echo "removing already existing file : ${OPK_NAME}"
     rm -f ${OPK_NAME}
@@ -51,7 +56,7 @@ fi
 mksquashfs ${FLIST} ${OPK_NAME} -all-root -no-xattrs -noappend -no-exports
 
 cat default.gcw0.desktop
-rm -f default.gcw0.desktop
+rm -f default.*.desktop
 
 echo "opk created at : ${OPK_NAME}"
 exit 0
