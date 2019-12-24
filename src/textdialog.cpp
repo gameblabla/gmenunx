@@ -197,24 +197,12 @@ void TextDialog::appendCommand(const std::string &executable, const std::string 
 	TRACE("enter : running %s %s", executable.c_str(), args.c_str());
 	if (fileExists(executable)) {
 		TRACE("executable exists");
-		char buffer[128];
-		std::string result = "";
+
 		std::string final = executable;
 		if (args.length() > 0) {
 			final += " " + args;
 		}
-		FILE* pipe = popen(final.c_str(), "r");
-		if (!pipe) throw std::runtime_error("popen() failed!");
-		try {
-			while (fgets(buffer, sizeof buffer, pipe) != NULL) {
-				result += buffer;
-			}
-		} catch (...) {
-			pclose(pipe);
-			throw;
-		}
-		pclose(pipe);
-		this->rawText += result;
+		this->rawText += execute(final.c_str());
 	}
 	TRACE("exit");
 }

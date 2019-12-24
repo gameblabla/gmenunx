@@ -79,6 +79,7 @@ bool split (vector<string> &vec, const string &str, const string &delim, bool de
 int intTransition(int from, int to, int32_t tickStart, int32_t duration = 500, int32_t tickNow = -1);
 
 string exec(const char* cmd);
+string execute(const char* cmd);
 string real_path(const string &path);
 string dir_name(const string &path);
 string base_name(const string &path);

@@ -285,6 +285,10 @@ string exec(const char* cmd) {
 	return result;
 }
 
+string execute(const char* cmd) { 
+	return exec(cmd); 
+}
+
 string real_path(const string &path) {
 	char real_path[PATH_MAX];
 	string outpath;

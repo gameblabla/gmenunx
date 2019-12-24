@@ -18,23 +18,20 @@
 #include "launcher.h"
 #include "debug.h"
 
-using namespace std;
 
-Launcher::Launcher(vector<string> const& commandLine, bool consoleApp)
+Launcher::Launcher(std::vector<std::string> const& commandLine, bool consoleApp)
 	: commandLine(commandLine)
-	, consoleApp(consoleApp)
-{
+	, consoleApp(consoleApp) {
 }
 
-Launcher::Launcher(vector<string> && commandLine, bool consoleApp)
+Launcher::Launcher(std::vector<std::string> && commandLine, bool consoleApp)
 	: commandLine(commandLine)
-	, consoleApp(consoleApp)
-{
+	, consoleApp(consoleApp) {
 }
 
 void Launcher::exec() {
 	TRACE("enter");
-	
+
 	if (this->consoleApp) {
 		TRACE("console app");
 
@@ -63,9 +60,9 @@ void Launcher::exec() {
 	}
 
 	TRACE("sorting args out for size : %zu", commandLine.size());
-	vector<const char *> args;
+	std::vector<const char *> args;
 	args.reserve(commandLine.size() + 1);
-	TRACE("sorting args reserved");
+
 	std::string s;
 	for (auto arg : commandLine) {
 		TRACE("pushing back arg : %s", arg.c_str());

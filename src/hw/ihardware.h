@@ -24,10 +24,13 @@
 
 class IHardware {
 
+    private:
+        
+        std::string kernelVersion_;
+
     protected:
 
         int16_t curMMCStatus;
-
         std::string BLOCK_DEVICE;
         std::string INTERNAL_MOUNT_DEVICE;
         std::string EXTERNAL_MOUNT_DEVICE;
@@ -52,10 +55,25 @@ class IHardware {
         virtual std::string getPerformanceMode() = 0;
         virtual std::vector<std::string>getPerformanceModes() = 0;
 
-        virtual uint32_t setCPUSpeed(uint32_t mhz) = 0;
+        virtual bool supportsOverClocking() = 0;
+        virtual bool setCPUSpeed(uint32_t mhz) = 0;
+        virtual uint32_t getCpuMinSpeed() = 0;
+        virtual uint32_t getCpuMaxSpeed() = 0;
+        virtual uint32_t getCpuDefaultSpeed() = 0;
+        virtual uint32_t getCpuStepSize() { return 20; };
 
         virtual void ledOn(int flashSpeed = 250) = 0;
         virtual void ledOff() = 0;
+
+        virtual std::string getKernelVersion() {
+            TRACE("enter");
+            if (this->kernelVersion_.empty()) {
+                std::string kernel = exec("/bin/uname -r");
+                this->kernelVersion_ = full_trim(kernel);
+            }
+            TRACE("exit - %s", this->kernelVersion_.c_str());
+            return this->kernelVersion_;
+        };
 
         /*!
         Reads the current battery state and returns a number representing it's level of charge
@@ -254,6 +272,12 @@ class IHardware {
         virtual int defaultScreenBPP() { return 32; }
 
         virtual bool setScreenState(const bool &enable) = 0;
+
+        virtual std::string systemInfo() {
+            std::string result = execute("/usr/bin/uname -a");
+            result += execute("/usr/bin/lshw -short 2>/dev/null");
+            return result;
+        }
 };
 
 #endif

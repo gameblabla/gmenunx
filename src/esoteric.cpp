@@ -152,6 +152,9 @@ Esoteric::Esoteric() {
 	if (!config->lang().empty()) {
 		this->tr.setLang(this->config->lang());
 	}
+	if (this->needsInstalling) {
+		this->config->cpuMenu(this->hw->getCpuDefaultSpeed());
+	}
 
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
 		TRACE("backlight, volume, aspect ratio and performance mode");
@@ -159,6 +162,10 @@ Esoteric::Esoteric() {
 		this->hw->setVolumeLevel(this->config->globalVolume());
 		this->hw->setKeepAspectRatio(this->config->aspectRatio());
 		this->hw->setPerformanceMode(this->config->performance());
+	}
+	if (this->hw->supportsOverClocking() && !this->needsInstalling) {
+		TRACE("setting default clock speed back");
+		this->hw->setCPUSpeed(this->config->cpuMenu());
 	}
 
 	//Screen
@@ -853,6 +860,7 @@ void Esoteric::deviceMenu() {
 
 	std::string performanceMode = this->hw->getPerformanceMode();
 	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
+	int menuCpu = this->config->cpuMenu();
 
 	do {
 
@@ -890,13 +898,24 @@ void Esoteric::deviceMenu() {
 			tr["Adjust your volume level"], 
 			&volumeLevel, 70, 1, 100));
 
-		if (performanceModes.size() > 1) {
+		if (performanceModes.size() > 1 && !this->hw->supportsOverClocking()) {
 			sd.addSetting(new MenuSettingMultiString(
 				this, 
 				tr["Performance mode"], 
 				tr["Set the performance mode"], 
 				&performanceMode, 
 				&performanceModes));
+		}
+		if (this->hw->supportsOverClocking()) {
+			sd.addSetting(new MenuSettingInt(
+				this, 
+				tr[APP_NAME + " cpu frequency"], 
+				tr["Set the cpu frequency for your launcher"], 
+				&menuCpu, 
+				this->hw->getCpuDefaultSpeed(), 
+				this->hw->getCpuMinSpeed(), 
+				this->hw->getCpuMaxSpeed(), 
+				this->hw->getCpuStepSize()));
 		}
 
 		sd.addSetting(new MenuSettingBool(
@@ -942,6 +961,10 @@ void Esoteric::deviceMenu() {
 		if (performanceMode != this->hw->getPerformanceMode()) {
 			this->config->performance(performanceMode);
 			this->hw->setPerformanceMode(performanceMode);
+		}
+		if (menuCpu != this->config->cpuMenu()) {
+			this->config->cpuMenu(menuCpu);
+			this->hw->setCPUSpeed(menuCpu);
 		}
 		if (volumeLevel != this->hw->getVolumeLevel()) {
 			this->config->globalVolume(volumeLevel);
@@ -1212,7 +1235,6 @@ void Esoteric::settings() {
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
 		this->config->outputLogs(outputLogs);
-		//config->powerTimeout(powerTimeout);
 		this->config->setHwLevelsOnBoot(setHwOnBoot);
 
 		bool restartNeeded = prevSkin != config->skin();
@@ -1474,15 +1496,8 @@ void Esoteric::about() {
 	TextDialog td(this, APP_NAME, tr["Info about system"], "skin:icons/about.png");
 	td.appendText(temp);
 
-	#ifdef TARGET_RG350
-	TRACE("append - command /usr/bin/system_info");
-	td.appendCommand("/usr/bin/system_info");
-	#else
-	TRACE("append - command /usr/bin/uname -a");
-	td.appendCommand("/usr/bin/uname", "-a");
-	TRACE("append - command /usr/bin/lshw -short 2>/dev/null");
-	td.appendCommand("/usr/bin/lshw", "-short 2>/dev/null");
-	#endif
+	td.appendText(this->hw->systemInfo());
+
 	td.appendText("----\n");
 	
 	TRACE("append - file %sabout.txt", getReadablePath().c_str());

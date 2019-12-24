@@ -60,8 +60,6 @@ string Config::toString() {
     vec.push_back(string_format("minBattery=%i", this->minBattery()));
     vec.push_back(string_format("maxBattery=%i", this->maxBattery()));
 
-    vec.push_back(string_format("cpuMin=%i", this->cpuMin()));
-    vec.push_back(string_format("cpuMax=%i", this->cpuMax()));
     vec.push_back(string_format("cpuMenu=%i", this->cpuMenu()));
 
     vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
@@ -139,8 +137,6 @@ void Config::reset() {
     this->minBattery_ = 0;
     this->maxBattery_ = 5;
 
-    this->cpuMin_ = 342;
-    this->cpuMax_ = 996;
     this->cpuMenu_ = 600;
 
     this->globalVolume_ = 60;
@@ -165,8 +161,6 @@ void Config::constrain() {
     evalIntConf( &this->buttonRepeatRate_, 50, 0, 500);
 	evalIntConf( &this->powerTimeout_, 10, 0, 300);
 	evalIntConf( &this->outputLogs_, 0, 0, 1 );
-	evalIntConf( &this->cpuMax_, 642, 200, 1200 );
-	evalIntConf( &this->cpuMin_, 342, 200, 1200 );
 	evalIntConf( &this->cpuMenu_, 600, 200, 1200 );
 	evalIntConf( &this->globalVolume_, 60, 1, 100 );
     evalIntConf (&this->aspectRatio_, 1, 0, 1);
@@ -274,10 +268,6 @@ bool Config::fromFile() {
                             this->minBattery(atoi(value.c_str()));
                         } else if (name == "maxbattery") {
                             this->maxBattery(atoi(value.c_str()));
-                        } else if (name == "cpumin") {
-                            this->cpuMin(atoi(value.c_str()));
-                        } else if (name == "cpumax") {
-                            this->cpuMax(atoi(value.c_str()));
                         } else if (name == "cpumenu") {
                             this->cpuMenu(atoi(value.c_str()));
                         } else if (name == "globalvolume") {

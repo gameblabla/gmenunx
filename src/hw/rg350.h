@@ -33,6 +33,7 @@ class HwRg350 : IHardware {
         bool pollBacklight = false;
         bool pollBatteries = false;
         bool pollVolume = false;
+
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
 		const std::string LED_MAX_BRIGHTNESS_PATH = LED_PREFIX + "max_brightness";
@@ -47,6 +48,10 @@ class HwRg350 : IHardware {
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
         const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
+        
+        const std::string SYSFS_CPUFREQ_PATH = "/sys/devices/system/cpu/cpu0/cpufreq";
+        const std::string SYSFS_CPUFREQ_MAX = SYSFS_CPUFREQ_PATH + "/scaling_max_freq";
+        const std::string SYSFS_CPUFREQ_SET = SYSFS_CPUFREQ_PATH + "/scaling_setspeed";
 
         std::string performanceModeMap(std::string fromInternal) {
             std::unordered_map<std::string, std::string>::iterator it;
@@ -167,7 +172,44 @@ class HwRg350 : IHardware {
             return results;
         }
 
-        uint32_t setCPUSpeed(uint32_t mhz) { return mhz; };
+        bool supportsOverClocking() {
+            TRACE("enter");
+            std::string kver = this->getKernelVersion();
+            if (kver.empty())
+                return false;
+            //TRACE("we have a kernel version : %s", kver.c_str());
+            char lastChar = kver[kver.length() - 1];
+            //TRACE("checking '+' against : '%c'", lastChar);
+            bool result = '+' == lastChar;
+            TRACE("exit - %i", result);
+            return result;
+        }
+
+        bool setCPUSpeed(uint32_t mhz) {
+            TRACE("enter : %i", mhz);
+            mhz -= (mhz % this->getCpuStepSize());
+            if (mhz < this->getCpuMinSpeed()) {
+                mhz = this->getCpuMinSpeed();
+            } else if (mhz > this->getCpuMaxSpeed()) {
+                mhz = this->getCpuMaxSpeed();
+            }
+            int finalFreq = mhz * 1000;
+            TRACE("finalFreq : %i", finalFreq);
+            if (procWriter(SYSFS_CPUFREQ_MAX, finalFreq)) {
+                if (procWriter(SYSFS_CPUFREQ_SET, finalFreq)) {
+                    TRACE("success");
+                    return true;
+                } else {
+                    ERROR("Couldn't update current cpu freq to : %i", finalFreq);
+                }
+            } else {
+                ERROR("Couldn't update cpu max freq to : %i", finalFreq);
+            }
+            return false;
+        };
+        uint32_t getCpuMinSpeed() { return 360; };
+        uint32_t getCpuMaxSpeed() { return 1080; };
+        uint32_t getCpuDefaultSpeed() { return 996; };
 
         void ledOn(int flashSpeed = 250) {
             TRACE("enter");
@@ -328,6 +370,14 @@ class HwRg350 : IHardware {
                 close(fd);
             }
             return result;
+        }
+
+        std::string systemInfo() {
+            TRACE("append - command /usr/bin/system_info");
+            if (fileExists("/usr/bin/system_info")) {
+                return execute("/usr/bin/system_info") + "\n";
+            }
+            return IHardware::systemInfo();
         }
 };
 

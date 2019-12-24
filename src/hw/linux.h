@@ -84,8 +84,12 @@ class HwLinux : IHardware {
             }
             return results;
         }
-        //std::vector<std::string>getPerformanceModes() { return vector<string> { "Default"}; }
-        uint32_t setCPUSpeed(uint32_t mhz) { return mhz; };
+        
+        bool supportsOverClocking() { return false; }
+        bool setCPUSpeed(uint32_t mhz) { return true; };
+        uint32_t getCpuMinSpeed() { return 0; };
+        uint32_t getCpuMaxSpeed() { return 0; };
+        uint32_t getCpuDefaultSpeed() { return 0; };
 
         void ledOn(int flashSpeed = 250) { return; };
         void ledOff() { return; };
