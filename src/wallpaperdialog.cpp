@@ -22,10 +22,9 @@
 #include "filelister.h"
 #include "debug.h"
 
-using namespace std;
-
-WallpaperDialog::WallpaperDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+WallpaperDialog::WallpaperDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon)
 	: Dialog(app) {
+
 	this->title = title;
 	this->description = description;
 	this->icon = icon;
@@ -41,9 +40,9 @@ bool WallpaperDialog::exec()
 	uint32_t rowHeight = app->font->getHeight() + 1;
 	uint32_t numRows = (app->listRect.h - 2)/rowHeight - 1;
 	int32_t selected = 0;
-	string wallpaperPath = this->app->skin->currentSkinPath() + "/wallpapers/";
+	std::string wallpaperPath = this->app->skin->currentSkinPath() + "/wallpapers/";
 
-	vector<string> wallpapers;
+	std::vector<std::string> wallpapers;
 	wallpapers = app->skin->getWallpapers();
 	
 	wallpaper = base_name(wallpaper);
@@ -57,7 +56,7 @@ bool WallpaperDialog::exec()
 	TRACE("looping on user input");
 	while (!close) {
 
-		string skinPath = wallpaperPath + wallpapers[selected];
+		std::string skinPath = wallpaperPath + wallpapers[selected];
 
 		TRACE("blitting surface : %s", skinPath.c_str());
 		(*app->sc)[skinPath]->blit(app->screen,0,0);
@@ -124,7 +123,7 @@ bool WallpaperDialog::exec()
 	
 	TRACE("looping through %zu wallpapers", wallpapers.size());
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {
-		string skinPath = wallpaperPath + wallpapers[i];
+		std::string skinPath = wallpaperPath + wallpapers[i];
 		TRACE("deleting surface from collection : %s", skinPath.c_str());
 		app->sc->del(skinPath);
 	}

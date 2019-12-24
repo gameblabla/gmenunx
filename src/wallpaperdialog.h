@@ -22,19 +22,17 @@
 #define WALLPAPERDIALOG_H_
 
 #include <string>
+
 #include "esoteric.h"
 #include "dialog.h"
-
-using std::string;
-using std::vector;
 
 class WallpaperDialog : protected Dialog {
 private:
 protected:
-	string title, description, icon;
+	std::string title, description, icon;
 public:
-	WallpaperDialog(Esoteric *app, const string &title, const string &description, const string &icon);
-	string wallpaper;
+	WallpaperDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon);
+	std::string wallpaper;
 
 	bool exec();
 };
