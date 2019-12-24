@@ -35,7 +35,10 @@ class HwGkd350h : IHardware {
         
         std::string getPerformanceMode() { return ""; }
         
-        std::vector<std::string> getPerformanceModes() { return; }
+        std::vector<std::string> getPerformanceModes() {
+            std::vector<std::string> result;
+            return result; 
+        }
         
         bool supportsOverClocking() { return true; }
 
