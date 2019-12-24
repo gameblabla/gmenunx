@@ -11,8 +11,7 @@
 #include "generic.h"
 #include "linux.h"
 #include "rg350.h"
-
-
+#include "gkd350h.h"
 
 class HwFactory {
     public:
@@ -36,7 +35,7 @@ class HwFactory {
             } else if (0 == device.compare("generic")) {
                 return (IHardware*)new HwGeneric();
             } else if (0 == device.compare("gkd350h")) {
-                return (IHardware*)new HwGeneric();
+                return (IHardware*)new HwGkd350h();
             } else if (0 == device.compare("linux")) {
                 return (IHardware*)new HwLinux();
             } else if (0 == device.compare("pg2")) {
