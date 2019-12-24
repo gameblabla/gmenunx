@@ -29,15 +29,14 @@
 #include <fstream>
 #include <sstream>
 
-using namespace std;
-
-TextDialog::TextDialog(Esoteric *app, const string &title, const string &description, const string &icon, const string &backdrop)
+TextDialog::TextDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon, const std::string &backdrop)
 	: Dialog(app), title(title), description(description), icon(icon), backdrop(backdrop)
 {}
 
 void TextDialog::preProcess() {
+	TRACE("enter");
 	uint32_t i = 0;
-	string row;
+	std::string row;
 
 	split(text, rawText, "\n");
 
@@ -47,7 +46,7 @@ void TextDialog::preProcess() {
 
 		//check if this row is not too long
 		if (app->font->getTextWidth(row) > app->getScreenWidth() - 15) {
-			vector<string> words;
+			std::vector<std::string> words;
 			split(words, row, " ");
 
 			uint32_t numWords = words.size();
@@ -73,32 +72,45 @@ void TextDialog::preProcess() {
 
 				if (!row.empty())
 					text.insert(text.begin() + i + 1, row);
+			} else {
+				text.at(i) = cmdclean(row);
 			}
 		}
 		i++;
 	}
+	TRACE("exit");
 }
 
-void TextDialog::drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage) {
+void TextDialog::drawText(std::vector<std::string> *text, uint32_t firstRow, uint32_t rowsPerPage) {
+	TRACE("enter - firstRow : %i, numRows : %zu, rpp : %i", firstRow, text->size(), rowsPerPage);
 	app->screen->setClipRect(app->listRect);
 
-	for (uint32_t i = firstRow; i < firstRow + rowsPerPage && i < text->size(); i++) {
-		int rowY;
-		if (text->at(i)=="----") { //draw a line
-			rowY = app->listRect.y + (int)((i - firstRow + 0.5) * app->font->getHeight());
-			app->screen->box(5, rowY, app->getScreenWidth() - 16, 1, 255, 255, 255, 130);
-			app->screen->box(5, rowY + 1, app->getScreenWidth() - 16, 1, 0, 0, 0, 130);
-		} else {
-			rowY = app->listRect.y + (i - firstRow) * app->font->getHeight();
-			app->font->write(app->screen, text->at(i), 5, rowY);
+	if (nullptr != text) {
+		TRACE("we have something to show");
+		for (uint32_t i = firstRow; i < (firstRow + rowsPerPage) && i < text->size(); i++) {
+			int rowY;
+			TRACE("handling row : %i", i);
+			TRACE("raw text : '%s'", text->at(i).c_str());
+
+			if (text->at(i) == "----") { //draw a line
+				rowY = app->listRect.y + (int)((i - firstRow + 0.5) * app->font->getHeight());
+				app->screen->box(5, rowY, app->getScreenWidth() - 16, 1, 255, 255, 255, 130);
+				app->screen->box(5, rowY + 1, app->getScreenWidth() - 16, 1, 0, 0, 0, 130);
+			} else {
+				rowY = app->listRect.y + (i - firstRow) * app->font->getHeight();
+				app->font->write(app->screen, text->at(i), 5, rowY);
+			}
 		}
 	}
 
+	TRACE("clear clip and scroll bar");
 	app->screen->clearClipRect();
 	app->ui->drawScrollBar(rowsPerPage, text->size(), firstRow, app->listRect);
+	TRACE("exit");
 }
 
 void TextDialog::exec() {
+	TRACE("enter");
 	if ((*app->sc)[backdrop] != NULL) (*app->sc)[backdrop]->blit(this->bg,0,0);
 
 	preProcess();
@@ -107,8 +119,9 @@ void TextDialog::exec() {
 
 	if (this->icon.empty())
 		this->icon = "skin:icons/ebook.png";
-	drawTopBar(this->bg, this->title, this->description, this->icon);
 
+	TRACE("drawing ui");
+	drawTopBar(this->bg, this->title, this->description, this->icon);
 	drawBottomBar(this->bg);
 
 	app->ui->drawButton(
@@ -129,8 +142,9 @@ void TextDialog::exec() {
 	);
 
 	this->bg->box(app->listRect, app->skin->colours.listBackground);
+	TRACE("ui drawn");
 
-	uint32_t firstRow = 0, rowsPerPage = app->listRect.h/app->font->getHeight();
+	uint32_t firstRow = 0, rowsPerPage = app->listRect.h / app->font->getHeight();
 	while (!close) {
 		this->bg->blit(app->screen,0,0);
 		drawText(&text, firstRow, rowsPerPage);
@@ -156,22 +170,30 @@ void TextDialog::exec() {
 			else if ( (*app->inputManager)[SETTINGS] || (*app->inputManager)[CANCEL] ) close = true;
 		} while (!inputAction);
 	}
+	TRACE("exit");
 }
 
-void TextDialog::appendText(const string &text) {
+void TextDialog::appendText(const std::string &text) {
 	this->rawText += text;
 }
 
-void TextDialog::appendFile(const string &file) {
+void TextDialog::appendFile(const std::string &file) {
+	TRACE("enter");
 	if (fileExists(file)) {
-		ifstream t(file);
-		stringstream buf;
-		buf << t.rdbuf();
-		this->rawText += buf.str();
+		std::ifstream t;
+		t.open (file, std::ifstream::in);
+		if (t.is_open()) {
+			TRACE("opened file successfully : %s", file.c_str());
+			std::stringstream buf;
+			buf << t.rdbuf();
+			this->rawText += buf.str();
+			t.close();
+		}
 	}
+	TRACE("exit");
 }
 
-void TextDialog::appendCommand(const string &executable, const string &args) {
+void TextDialog::appendCommand(const std::string &executable, const std::string &args) {
 	TRACE("enter : running %s %s", executable.c_str(), args.c_str());
 	if (fileExists(executable)) {
 		TRACE("executable exists");
