@@ -2019,7 +2019,7 @@ void Esoteric::editLink() {
 	bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
 	//std::string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
 	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
-	//int linkClock = menu->selLinkApp()->clock();
+	int linkClock = menu->selLinkApp()->clock();
 	std::string linkBackdrop = menu->selLinkApp()->getBackdrop();
 	std::string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
 	std::string dialogIcon = menu->selLinkApp()->getIconPath();
@@ -2033,7 +2033,7 @@ void Esoteric::editLink() {
 		sd.addSetting(new MenuSettingMultiString(	this, tr["Section"],		tr["The section this link belongs to"], &newSection, &menu->getSections()));
 	}
 	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon, skin->name));
-	//sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, config->cpuMenu, config->cpuMin, config->cpuMax, 6));
+	sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, this->hw->getCpuDefaultSpeed(), this->hw->getCpuMinSpeed(), this->hw->getCpuMaxSpeed(), this->hw->getCpuStepSize()));
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
@@ -2058,7 +2058,7 @@ void Esoteric::editLink() {
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		//menu->selLinkApp()->setCPU(linkClock);
+		menu->selLinkApp()->setCPU(linkClock);
 
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
