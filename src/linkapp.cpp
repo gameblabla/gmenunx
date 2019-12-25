@@ -521,6 +521,10 @@ void LinkApp::launch(std::string launchArgs) {
 
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (toLaunch) {
+
+		if (this->app->hw->supportsOverClocking() && this->clock > 0) {
+			this->app->hw->setCPUSpeed(this->clock);
+		}
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
 		TRACE("quit");
