@@ -3,9 +3,9 @@
 **1.0.5** (*Codename: *)
 * Added
 	* Hide / show links
-	* CPU underclock option for luncher
+	* CPU underclock option for launcher
 	* CPU underclock for links
-	* Default date to  build date if it's not set
+	* Default the date to build date if it's not set
 
 * Fixed
 	* Crash viewing logs from apps w/ control codes
