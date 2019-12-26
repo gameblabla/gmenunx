@@ -387,7 +387,7 @@ void Renderer::render() {
 					//TRACE("adding icon and text : %s", title.c_str());
 					icon->blit(
 						app->screen, 
-						{ ix, iy, app->linkWidth, app->linkHeight}, 
+						{ ix, iy, app->linkWidth, app->linkHeight }, 
 						HAlignCenter | VAlignMiddle);
 				} else if (app->skin->linkDisplayMode == Skin::ICON_AND_TEXT) {
 					// get the combined height
@@ -448,10 +448,6 @@ void Renderer::render() {
 		INFO("New backdrop: %s", currBackdrop.c_str());
 		app->sc->del(prevBackdrop);
 		prevBackdrop = currBackdrop;
-		// input.setWakeUpInterval(1);
-
-		this->locked_ = false;
-		return;
 	}
 
 	/* 
