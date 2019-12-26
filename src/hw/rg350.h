@@ -187,12 +187,17 @@ class HwRg350 : IHardware {
 
         bool setCPUSpeed(uint32_t mhz) {
             TRACE("enter : %i", mhz);
-            mhz -= (mhz % this->getCpuStepSize());
-            if (mhz < this->getCpuMinSpeed()) {
-                mhz = this->getCpuMinSpeed();
-            } else if (mhz > this->getCpuMaxSpeed()) {
-                mhz = this->getCpuMaxSpeed();
+            std::vector<uint32_t>::iterator it;
+            bool found = false;
+            for (it = cpuSpeeds().begin(); it != cpuSpeeds().end(); it++) {
+                if ((*it) == mhz) {
+                    found = true;
+                    break;
+                }
             }
+            if (!found)
+                return false;
+
             int finalFreq = mhz * 1000;
             TRACE("finalFreq : %i", finalFreq);
             if (procWriter(SYSFS_CPUFREQ_MAX, finalFreq)) {
@@ -207,9 +212,8 @@ class HwRg350 : IHardware {
             }
             return false;
         };
-        uint32_t getCpuMinSpeed() { return 360; };
-        uint32_t getCpuMaxSpeed() { return 1080; };
-        uint32_t getCpuDefaultSpeed() { return 996; };
+        std::vector<uint32_t> cpuSpeeds() { return { 360, 1080 }; };
+        uint32_t getCpuDefaultSpeed() { return 1080; };
 
         void ledOn(int flashSpeed = 250) {
             TRACE("enter");

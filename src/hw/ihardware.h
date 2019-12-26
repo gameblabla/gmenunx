@@ -57,10 +57,9 @@ class IHardware {
 
         virtual bool supportsOverClocking() = 0;
         virtual bool setCPUSpeed(uint32_t mhz) = 0;
-        virtual uint32_t getCpuMinSpeed() = 0;
-        virtual uint32_t getCpuMaxSpeed() = 0;
+        
+        virtual std::vector<uint32_t> cpuSpeeds() = 0;
         virtual uint32_t getCpuDefaultSpeed() = 0;
-        virtual uint32_t getCpuStepSize() { return 20; };
 
         virtual void ledOn(int flashSpeed = 250) = 0;
         virtual void ledOff() = 0;

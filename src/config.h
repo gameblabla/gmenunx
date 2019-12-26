@@ -132,20 +132,6 @@ public:
             this->isDirty = true;
         }
     }
-    int cpuMin() const { return this->cpuMin_; }
-    void cpuMin(int val) {
-        if (val != this->cpuMin_) {
-            this->cpuMin_ = val;
-            this->isDirty = true;
-        }
-    }
-    int cpuMax() const { return this->cpuMax_; }
-    void cpuMax(int val) {
-        if (val != this->cpuMax_) {
-            this->cpuMax_ = val;
-            this->isDirty = true;
-        }
-    }
     int cpuMenu() const { return this->cpuMenu_; }
     void cpuMenu(int val) {
         if (val != this->cpuMenu_) {
@@ -247,8 +233,6 @@ private:
     int maxBattery_; //=5
     int backlightTimeout_; //=30
     int videoBpp_; //=32
-    int cpuMin_; //=342
-    int cpuMax_; //=996
     int cpuMenu_; //=600
     int globalVolume_; //=60
     int aspectRatio_;

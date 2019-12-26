@@ -44,9 +44,7 @@ class HwGkd350h : IHardware {
 
         bool setCPUSpeed(uint32_t mhz) { return true; }
         
-        uint32_t getCpuMinSpeed() { return 0; }
-        
-        uint32_t getCpuMaxSpeed() { return 0; }
+        std::vector<uint32_t> cpuSpeeds() { return {  }; };
         
         uint32_t getCpuDefaultSpeed() { return 0; }
         

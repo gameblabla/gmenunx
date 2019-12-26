@@ -251,8 +251,15 @@ int LinkApp::clock() {
 }
 
 void LinkApp::setCPU(int mhz) {
+	TRACE("enter : %i", mhz);
 	iclock = mhz;
-	if (iclock != 0) iclock = constrain(iclock, app->config->cpuMin(), app->config->cpuMax());
+	if (iclock != 0 && this->app->hw->cpuSpeeds().size() > 0) {
+		TRACE("constraining mhz");
+		int min = this->app->hw->cpuSpeeds().front();
+		int max = this->app->hw->cpuSpeeds().at(this->app->hw->cpuSpeeds().size() - 1);
+		TRACE("constraining %i between %i and %i", mhz, min, max);
+		iclock = constrain(iclock, min, max);
+	}
 	edited = true;
 }
 
@@ -522,8 +529,8 @@ void LinkApp::launch(std::string launchArgs) {
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (toLaunch) {
 
-		if (this->app->hw->supportsOverClocking() && this->clock > 0) {
-			this->app->hw->setCPUSpeed(this->clock);
+		if (this->app->hw->supportsOverClocking() && this->clock() > 0) {
+			this->app->hw->setCPUSpeed(this->clock());
 		}
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 

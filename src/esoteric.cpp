@@ -907,15 +907,22 @@ void Esoteric::deviceMenu() {
 				&performanceModes));
 		}
 		if (this->hw->supportsOverClocking()) {
-			sd.addSetting(new MenuSettingInt(
+			std::stringstream ss;
+			std::vector<std::string> cpuSpeeds;
+			std::vector<uint32_t>speeds = this->hw->cpuSpeeds();
+			for(std::size_t i = 0; i < speeds.size(); ++i) {
+				ss << speeds[i];
+				cpuSpeeds.push_back(ss.str());
+				ss.clear();
+			}
+			ss << menuCpu;
+			std::string strMenuCpu = ss.str();
+			sd.addSetting(new MenuSettingMultiString(
 				this, 
 				tr[APP_NAME + " cpu frequency"], 
 				tr["Set the cpu frequency for your launcher"], 
-				&menuCpu, 
-				this->hw->getCpuDefaultSpeed(), 
-				this->hw->getCpuMinSpeed(), 
-				this->hw->getCpuMaxSpeed(), 
-				this->hw->getCpuStepSize()));
+				&strMenuCpu, 
+				&cpuSpeeds));
 		}
 
 		sd.addSetting(new MenuSettingBool(
@@ -1342,15 +1349,9 @@ void Esoteric::cpuSettings() {
 	TRACE("enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
 	int cpuMenu = config->cpuMenu();
-	int cpuMax = config->cpuMax();
-	int cpuMin = config->cpuMin();
 	sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &cpuMenu, 528, 528, 600, 6));
-	sd.addSetting(new MenuSettingInt(this, tr["Maximum CPU clock "], tr["Maximum overclock for launching links"], &cpuMax, 624, 600, 1200, 6));
-	sd.addSetting(new MenuSettingInt(this, tr["Minimum CPU clock "], tr["Minimum underclock used in Suspend mode"], &cpuMin, 342, 200, 528, 6));
 	if (sd.exec() && sd.edited() && sd.save) {
 		config->cpuMenu(cpuMenu);
-		config->cpuMax(cpuMax);
-		config->cpuMin(cpuMin);
 		this-hw->setCPUSpeed(config->cpuMenu());
 		writeConfig();
 	}
@@ -1999,10 +2000,12 @@ void Esoteric::addLink() {
 }
 
 void Esoteric::editLink() {
+	TRACE("enter");
 	if (menu->selLinkApp() == NULL) return;
+	TRACE("we have a selected link");
 
+	// get the path in case we move sections
 	std::vector<std::string> pathV;
-	// ERROR("FILE: %s", menu->selLinkApp()->getFile().c_str());
 	split(pathV, menu->selLinkApp()->getFile(), "/");
 	std::string oldSection = "";
 	if (pathV.size() > 1) oldSection = pathV[pathV.size()-2];
@@ -2019,21 +2022,97 @@ void Esoteric::editLink() {
 	bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
 	//std::string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
 	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
-	int linkClock = menu->selLinkApp()->clock();
 	std::string linkBackdrop = menu->selLinkApp()->getBackdrop();
+
+	TRACE("cpu starts");
+	std::vector<std::string> cpuSpeeds;
+	std::stringstream ss;
+	ss.clear();
+	int defaultCpu = this->hw->getCpuDefaultSpeed();
+	int cpuSpeed = menu->selLinkApp()->clock();
+	TRACE("default = %i, current = %i", defaultCpu, cpuSpeed);
+	if (cpuSpeed > 0) {
+		ss << cpuSpeed;
+	} else {
+		ss << defaultCpu;
+	}
+	std::string strMenuCpu;
+	ss >> strMenuCpu;
+	TRACE("current cpu : %s", strMenuCpu.c_str());
+
 	std::string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
 	std::string dialogIcon = menu->selLinkApp()->getIconPath();
-
 	SettingsDialog sd(this, ts, dialogTitle, dialogIcon);
-	sd.addSetting(new MenuSettingFile(			this, tr["Executable"],		tr["Application this link points to"], &linkExec, ".dge,.gpu,.gpe,.sh,.bin,.elf,", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingString(		this, tr["Title"],			tr["Link title"], &linkTitle, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingString(		this, tr["Description"],	tr["Link description"], &linkDescription, dialogTitle, dialogIcon));
+	
+	sd.addSetting(new MenuSettingFile(			
+		this, 
+		tr["Executable"],		
+		tr["Application this link points to"], 
+		&linkExec, 
+		".dge,.gpu,.gpe,.sh,.bin,.elf,.opk,", 
+		EXTERNAL_CARD_PATH, 
+		dialogTitle, 
+		dialogIcon));
+
+	sd.addSetting(new MenuSettingString(		
+		this, 
+		tr["Title"],			
+		tr["Link title"], 
+		&linkTitle, 
+		dialogTitle, 
+		dialogIcon));
+
+	sd.addSetting(new MenuSettingString(		
+		this, 
+		tr["Description"],	
+		tr["Link description"], 
+		&linkDescription, 
+		dialogTitle, 
+		dialogIcon));
 	
 	if (oldSection != menu->selLinkApp()->getFavouriteFolder()) {
-		sd.addSetting(new MenuSettingMultiString(	this, tr["Section"],		tr["The section this link belongs to"], &newSection, &menu->getSections()));
+		sd.addSetting(new MenuSettingMultiString(	
+			this, 
+			tr["Section"],		
+			tr["The section this link belongs to"], 
+			&newSection, 
+			&menu->getSections()));
 	}
-	sd.addSetting(new MenuSettingImage(			this, tr["Icon"],			tr["Select a custom icon for the link"], &linkIcon, ".png,.bmp,.jpg,.jpeg,.gif", dir_name(linkIcon), dialogTitle, dialogIcon, skin->name));
-	sd.addSetting(new MenuSettingInt(			this, tr["CPU Clock"],		tr["CPU clock frequency when launching this link"], &linkClock, this->hw->getCpuDefaultSpeed(), this->hw->getCpuMinSpeed(), this->hw->getCpuMaxSpeed(), this->hw->getCpuStepSize()));
+	sd.addSetting(new MenuSettingImage(			
+		this, 
+		tr["Icon"],			
+		tr["Select a custom icon for the link"], 
+		&linkIcon, 
+		".png,.bmp,.jpg,.jpeg,.gif", 
+		dir_name(linkIcon), 
+		dialogTitle, 
+		dialogIcon, 
+		skin->name));
+
+	if (this->hw->supportsOverClocking()) {
+		TRACE("over clocking supported");
+		
+		cpuSpeeds.push_back("Default");
+		std::vector<uint32_t>speeds = this->hw->cpuSpeeds();
+
+		for(std::size_t i = 0; i < speeds.size(); ++i) {
+			ss.clear();
+			ss << speeds[i];
+			std::string speed;
+			ss >> speed;
+			TRACE("adding clock speed : %s", speed.c_str());
+			cpuSpeeds.push_back(speed);
+		}
+
+		sd.addSetting(new MenuSettingMultiString(			
+			this, 
+			tr["CPU Clock"],		
+			tr["CPU clock frequency when launching this link"], 
+			&strMenuCpu, 
+			&cpuSpeeds)
+		);
+	}
+	
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
@@ -2046,7 +2125,9 @@ void Esoteric::editLink() {
 	if (sd.exec() && sd.edited() && sd.save) {
 		this->hw->ledOn();
 
-		menu->selLinkApp()->setExec(linkExec);
+		if (!linkExec.empty() && fileExists(linkExec)) {
+			menu->selLinkApp()->setExec(linkExec);
+		}
 		menu->selLinkApp()->setTitle(linkTitle);
 		menu->selLinkApp()->setDescription(linkDescription);
 		menu->selLinkApp()->setIcon(linkIcon);
@@ -2058,7 +2139,14 @@ void Esoteric::editLink() {
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		menu->selLinkApp()->setCPU(linkClock);
+		if (0 == strMenuCpu.compare("Default") || this->hw->getCpuDefaultSpeed() == atoi(strMenuCpu.c_str())) {
+			TRACE("setting cpu : 0");
+			menu->selLinkApp()->setCPU(0);
+		} else {
+			int cpuSpeed = atoi(strMenuCpu.c_str());
+			TRACE("setting cpu : %i", cpuSpeed);
+			menu->selLinkApp()->setCPU(cpuSpeed);
+		}
 
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
