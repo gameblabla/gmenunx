@@ -28,17 +28,18 @@
 #include <cassert>
 #include <thread>
 
+#include "esoteric.h"
 #include "linkapp.h"
 #include "menu.h"
 #include "fonthelper.h"
 #include "surface.h"
 #include "browsedialog.h"
-#include "esoteric.h"
 #include "filelister.h"
 
 #include "iconbutton.h"
 #include "messagebox.h"
 #include "progressbar.h"
+#include "hwfactory.h"
 #include "managers/screenmanager.h"
 #include "managers/powermanager.h"
 #include "inputdialog.h"
@@ -55,7 +56,6 @@
 #include "menusettingdir.h"
 #include "imageviewerdialog.h"
 #include "linkscannerdialog.h"
-#include "linkapp.h"
 #include "menusettingdatetime.h"
 #include "debug.h"
 #include "skin.h"
@@ -77,11 +77,6 @@ const string OPK_PLATFORM = "gcw0";
 #endif
 
 static Esoteric *app;
-
-using std::ifstream;
-using std::ofstream;
-using std::stringstream;
-using namespace fastdelegate;
 
 int main(int argc, char * argv[]) {
 
@@ -1147,8 +1142,12 @@ void Esoteric::settings() {
 	opFactory.push_back(">>");
 	std::string tmp = ">>";
 
-	std::string currentDatetime = this->hw->getSystemdateTime();
+	std::string currentDatetime = this->hw->Clock()->getDateTime();
 	std::string prevDateTime = currentDatetime;
+	if (this->hw->Clock()->getYear() == 1970) {
+		// let's have a sane base date to set from
+		currentDatetime = IClock::getBuildDate();
+	}
 
 	SettingsDialog sd(this, ts, tr["Settings"], "skin:icons/configure.png");
 
@@ -1285,7 +1284,7 @@ void Esoteric::settings() {
 			MessageBox mb(this, tr["Updating system time"]);
 			mb.setAutoHide(500);
 			mb.exec();
-			this->hw->setSystemDateTime(currentDatetime);
+			this->hw->Clock()->setTime(currentDatetime);
 		}
 		if (restartNeeded) {
 			TRACE("restarting because skins changed");

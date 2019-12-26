@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
 #include <sstream>
@@ -16,16 +17,18 @@
 #include <fstream>
 #include <chrono>
 #include <sys/sysinfo.h>
+#include <string.h>
 #include <string>
 #include <vector>
 
-#include "../debug.h"
-#include "../utilities.h"
+#include "debug.h"
+#include "utilities.h"
+#include "iclock.h"
 
 class IHardware {
 
     private:
-        
+
         std::string kernelVersion_;
 
     protected:
@@ -44,8 +47,7 @@ class IHardware {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
 
-        virtual std::string getSystemdateTime() = 0;
-        virtual bool setSystemDateTime(std::string datetime) = 0;
+        virtual IClock * Clock() = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(std::string mode) = 0;

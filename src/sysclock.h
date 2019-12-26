@@ -1,31 +1,32 @@
-#ifndef __RTC_H__
-#define __RTC_H__
+#ifndef __SysClock_H__
+#define __SysClock_H__
 
-#include <linux/rtc.h>
 #include <string>
+#include <time.h>
 
 #include "iclock.h"
 
-class RTC : IClock {
+class SysClock : IClock {
 
 private:
-    struct rtc_time rt;
+
+    struct tm myTime;
     void refresh();
 
 public:
 
-    RTC();
-    ~RTC();
+    SysClock();
+    ~SysClock();
     std::string getClockTime(bool is24hr = false);
     std::string getDateTime();
+
     int getHours();
     int getMinutes();
     int getYear();
     int getMonth();
     int getDay();
-
     bool setTime(std::string datetime);
 
 };
 
-#endif //__RTC_H__
+#endif //__SysClock_H__

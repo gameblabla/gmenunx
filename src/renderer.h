@@ -2,8 +2,8 @@
 #define __RENDERER_H__
 
 #include <string>
+#include <vector>
 #include "esoteric.h"
-#include "rtc.h"
 
 class Renderer {
 
@@ -14,10 +14,9 @@ private:
     bool finished_;
     bool locked_;
     Esoteric *app;
-    RTC rtc;
 
-	string prevBackdrop;
-	string currBackdrop;
+	std::string prevBackdrop;
+	std::string currBackdrop;
 
     int8_t brightnessIcon;
     Surface *iconBrightness[6];
@@ -30,10 +29,10 @@ private:
 	Surface *iconCPU;
     Surface *highlighter;
 
-    vector<Surface*> helpers;
+    std::vector<Surface*> helpers;
     uint8_t currentVolumeMode;
 
-	void layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootYPos);
+	void layoutHelperIcons(std::vector<Surface*> icons, int rootXPos, int rootYPos);
     uint8_t getVolumeMode(uint8_t vol);
 
     void pollHW();

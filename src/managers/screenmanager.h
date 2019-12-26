@@ -3,7 +3,7 @@
 
 #include "imanager.h"
 #include "../debug.h"
-#include "../hw/ihardware.h"
+#include "../ihardware.h"
 
 class ScreenManager : public IManager {
 

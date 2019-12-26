@@ -1,18 +1,13 @@
-#include <string>
-#include <time.h>
-#include <cstdio>
 #include <linux/rtc.h>
 #include <sys/ioctl.h>
-#include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h> 
 #include <stdlib.h>
 
 #include "rtc.h"
+#include "iclock.h"
 #include "debug.h"
 #include "utilities.h"
-
-using std::string;
 
 RTC::RTC() {
     TRACE("RTC");
@@ -24,7 +19,6 @@ RTC::~RTC() {
 
 void RTC::refresh() {
     TRACE("enter");
-    #ifdef TARGET_RG350
     int fd;
     fd = open("/dev/rtc", O_RDONLY);
     if (fd) {
@@ -33,17 +27,18 @@ void RTC::refresh() {
         TRACE("successful read");
         TRACE("hour raw = %i", this->rt.tm_hour);
     }
-    #else
-        time_t theTime = time(NULL);
-        struct tm *aTime = localtime(&theTime);
-        this->rt.tm_year = aTime->tm_year;
-        this->rt.tm_hour = aTime->tm_hour;
-        this->rt.tm_min = aTime->tm_min;
-        this->rt.tm_isdst = aTime->tm_isdst;
-    #endif
     TRACE("exit");
 }
 
+int RTC::getYear() {
+    return this->rt.tm_year + 1900;
+}
+int RTC::getMonth() {
+    return this->rt.tm_mon + 1;
+}
+int RTC::getDay() {
+    return this->rt.tm_mday;
+}
 int RTC::getHours() {
     return this->rt.tm_hour + (this->rt.tm_isdst ? 1 : 0);
 }
@@ -62,14 +57,15 @@ std::string RTC::getClockTime(bool is24hr) {
 
 	char buf[9];
 	sprintf(buf, "%02i:%02i%s", hours, this->rt.tm_min, is24hr ? "" : (pm ? " pm" : " am"));
-    string result = string(buf);
+    std::string result = std::string(buf);
     TRACE("exit - %s", result.c_str());
 	return result;
 }
 
 std::string RTC::getDateTime() {
     TRACE("enter");
-    string result = string_format(
+    this->refresh();
+    std::string result = string_format(
         "%i-%i-%i %i:%i", 
         1900 + rt.tm_year, 
         1 + rt.tm_mon, 
@@ -81,11 +77,9 @@ std::string RTC::getDateTime() {
     return result;
 }
 
-bool RTC::setTime(string datetime) {
-    string cmd = "/sbin/hwclock --set --localtime --epoch=1900 --date=\"" + datetime + "\";/sbin/hwclock --hctosys";
+bool RTC::setTime(std::string datetime) {
+    std::string cmd = "/sbin/hwclock --set --localtime --epoch=1900 --date=\"" + datetime + "\";/sbin/hwclock --hctosys";
     TRACE("running : %s", cmd.c_str());
-    #ifdef TARGET_RG350
     system(cmd.c_str());
-    #endif
     return true;
 }

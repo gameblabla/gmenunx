@@ -1,5 +1,20 @@
 ## Changelog
 
+**1.0.5** (*Codename: *)
+* Added
+	* Hide / show links
+	* CPU underclock option for luncher
+	* CPU underclock for links
+	* Default date to  build date if it's not set
+
+* Fixed
+	* Crash viewing logs from apps w/ control codes
+
+* Improved
+	* Performance in HW polling
+	* CPU scaling to hw layer
+	* Clock types abstracted
+
 **1.0.4** (*Codename: Fight the power!*)
 * Added
 	* Lock for selector browsing when you edit a link

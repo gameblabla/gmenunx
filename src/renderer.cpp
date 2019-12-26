@@ -2,7 +2,6 @@
 #include "menu.h"
 #include "constants.h"
 #include "linkapp.h"
-#include "rtc.h"
 #include "debug.h"
 #include "utilities.h"
 
@@ -30,7 +29,6 @@ Renderer::Renderer(Esoteric *app) :
 
 	this->finished_ = false;
 	this->app = app;
-    this->rtc.refresh();
 
 	this->prevBackdrop = app->skin->wallpaper;
 	this->currBackdrop = prevBackdrop;
@@ -206,7 +204,7 @@ void Renderer::render() {
 			if (app->skin->showClock) {	
 
                 //TRACE("section text mode - writing clock");
-                string clockTime = rtc.getClockTime(true);
+                string clockTime = app->hw->Clock()->getClockTime(true);
                 //TRACE("section text mode - got clock time : %s", clockTime.c_str());
 				app->screen->write(
 					app->fontSectionTitle, 
@@ -467,7 +465,9 @@ void Renderer::render() {
 
 		// clock
 		if (app->skin->showClock) {
-			string time = rtc.getClockTime(true);
+
+			std::string time = this->app->hw->Clock()->getClockTime(true);
+
 			if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
 				if (app->skin->showSectionIcons) {
 					// grab the new x offset and write the clock
@@ -608,7 +608,7 @@ void Renderer::pollHW() {
 	TRACE("checking clock skin flag");
 	if (this->app->skin->showClock) {
 		TRACE("refreshing the clock");
-		this->rtc.refresh();
+		app->hw->Clock()->getDateTime();
 	}
 
 	this->app->inputManager->noop();
