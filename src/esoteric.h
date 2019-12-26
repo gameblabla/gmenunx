@@ -107,6 +107,15 @@ private:
 	void skinMenu();
 	uint32_t onChangeSkin();
 
+	void addLink();
+	void editLink();
+	void hideLink();
+	void deleteLink();
+	void addSection();
+	void hideSection();
+	void renameSection();
+	void deleteSection();
+
 public:
 	Esoteric();
 	~Esoteric();
@@ -159,13 +168,6 @@ public:
 	void writeSkinConfig();
 	void writeTmp(int selelem=-1, const std::string &selectordir = "");
 
-	void addLink();
-	void editLink();
-	void deleteLink();
-	void addSection();
-	void hideSection();
-	void renameSection();
-	void deleteSection();
 
 	void setWallpaper(const std::string &wallpaper = "");
 	void updateAppCache(std::function<void(std::string)> callback = nullptr);

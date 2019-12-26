@@ -41,7 +41,7 @@ private:
 	std::string exec, params, workdir, manual, manualPath;
 	std::string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
 	std::string provider, providerMetadata;
-	bool selectorbrowser, consoleapp, deletable, editable;
+	bool selectorbrowser, consoleapp, deletable, editable, hidden;
 	std::string aliasfile;
 	std::string file;
 
@@ -75,6 +75,8 @@ public:
 	void setSelectorBrowser(bool value);
 	bool getConsoleApp();
 	void setConsoleApp(bool value);
+	bool getHidden();
+	void setHidden(bool value);
 	const std::string &getProvider() { return provider; }
 	void setProvider(const std::string &provider);
 	const std::string &getProviderMetadata() { return providerMetadata; }

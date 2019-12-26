@@ -195,6 +195,13 @@ public:
             this->isDirty = true;
         }
     }
+    int respectHiddenLinks() const { return this->respectHiddenLinks_; }
+    void setRespectHiddenLinks(int val) {
+        if (val != this->respectHiddenLinks_) {
+            this->respectHiddenLinks_ = val;
+            this->isDirty = true;
+        }
+    }
     int version() const { return this->version_; }
     void version(int val) {
         if (val != this->version_) {
@@ -242,6 +249,7 @@ private:
     int powerTimeout_; //=10
     int outputLogs_; //=1
     int setHwLevelsOnBoot_; // = 0
+    int respectHiddenLinks_; // = 1
     int version_; //=1
 
     void reset();

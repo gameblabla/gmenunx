@@ -57,6 +57,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	this->selectorbrowser = true;
 	this->selectorscreens ="";
 	this->consoleapp = true;
+	this->hidden = false;
 	this->workdir = "";
 	this->backdrop = "";
 	this->backdropPath = "";
@@ -108,6 +109,8 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 						this->setManual(value);
 					} else if (name == "consoleapp") {
 						this->setConsoleApp(value == "true" ? true : false);
+					} else if (name == "hidden") {
+						this->setHidden(value == "true" ? true : false);
 					} else if (name == "selectorfilter") {
 						this->setSelectorFilter( value );
 					} else if (name == "selectorscreens") {
@@ -121,7 +124,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 					} else if (name == "x-providermetadata") {
 						this->setProviderMetadata(value);
 					} else {
-						WARNING("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
+						INFO("Unrecognized native link option: '%s' in %s", name.c_str(), linkfile);
 					}
 				}                     
 				catch (int param) { 
@@ -620,6 +623,12 @@ void LinkApp::setConsoleApp(bool value) {
 	this->edited = true;
 }
 
+bool LinkApp::getHidden() { return this->hidden; }
+void LinkApp::setHidden(bool value) {
+	this->hidden = value;
+	this->edited = true;
+}
+
 const string &LinkApp::getSelectorFilter() { return this->selectorfilter; }
 void LinkApp::setSelectorFilter(const std::string &selectorfilter) {
 	this->selectorfilter = selectorfilter;
@@ -663,6 +672,7 @@ std::string LinkApp::toString() {
 		if (!workdir.empty()          ) out << "workdir="            << workdir          << std::endl;
 		if (consoleapp                ) out << "consoleapp=true"                         << std::endl;
 		if (!consoleapp               ) out << "consoleapp=false"                        << std::endl;
+		if (hidden                    ) out << "hidden=true"                             << std::endl;
 		if (!manual.empty()           ) out << "manual="             << manual           << std::endl;
 		if (selectorbrowser           ) out << "selectorBrowser=true"                    << std::endl;
 		if (!selectorbrowser          ) out << "selectorbrowser=false"                   << std::endl;

@@ -1131,6 +1131,7 @@ void Esoteric::settings() {
 	int saveSelection = config->saveSelection();
 	int setHwOnBoot = config->setHwLevelsOnBoot();
 	int outputLogs = config->outputLogs();
+	int showHiddenLinks = !config->respectHiddenLinks();
 
 	TRACE("found %i translations", fl_tr.fileCount());
 	if (lang.empty()) {
@@ -1206,6 +1207,12 @@ void Esoteric::settings() {
 		tr["Set volume and brightness levels on 1st boot"], 
 		&setHwOnBoot));
 
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Show hidden links"], 
+		tr["Force show hidden links so you can edit them"], 
+		&showHiddenLinks));
+
 	#if defined(TARGET_RS97)
 	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
 	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::cpuSettings)));
@@ -1243,6 +1250,10 @@ void Esoteric::settings() {
 		this->config->saveSelection(saveSelection);
 		this->config->outputLogs(outputLogs);
 		this->config->setHwLevelsOnBoot(setHwOnBoot);
+		if (showHiddenLinks == this->config->respectHiddenLinks()) {
+			this->config->setRespectHiddenLinks(!showHiddenLinks);
+			refreshNeeded = true;
+		}
 
 		bool restartNeeded = prevSkin != config->skin();
 
@@ -1914,6 +1925,8 @@ void Esoteric::contextMenu() {
 					MakeDelegate(this, &Esoteric::deleteLink)
 				});
 		}
+		std::string hideAction = menu->selLinkApp()->getHidden() ? "Show link" : "Hide link";
+		voices.push_back((MenuOption){tr[hideAction],	MakeDelegate(this, &Esoteric::hideLink)});
 	}
 	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &Esoteric::addLink)});
 	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &Esoteric::addSection)});
@@ -2020,6 +2033,7 @@ void Esoteric::editLink() {
 	std::string linkSelFilter = menu->selLinkApp()->getSelectorFilter();
 	std::string linkSelDir = menu->selLinkApp()->getSelectorDir();
 	bool linkSelBrowser = menu->selLinkApp()->getSelectorBrowser();
+
 	//std::string linkSelScreens = menu->selLinkApp()->getSelectorScreens();
 	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
 	std::string linkBackdrop = menu->selLinkApp()->getBackdrop();
@@ -2115,8 +2129,8 @@ void Esoteric::editLink() {
 	
 	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
+	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
 	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAlias, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
 	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon, skin->name));
@@ -2136,6 +2150,7 @@ void Esoteric::editLink() {
 		menu->selLinkApp()->setSelectorFilter(linkSelFilter);
 		menu->selLinkApp()->setSelectorDir(linkSelDir);
 		menu->selLinkApp()->setSelectorBrowser(linkSelBrowser);
+
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
@@ -2190,6 +2205,15 @@ void Esoteric::deleteLink() {
 	}
 }
 
+void Esoteric::hideLink() {
+	bool state = menu->selLinkApp()->getHidden();
+	menu->selLinkApp()->setHidden(!state);
+	menu->selLinkApp()->save();
+	if (this->config->respectHiddenLinks()) {
+		this->initMenu();
+	}
+}
+
 void Esoteric::addSection() {
 	InputDialog id(this, ts, tr["Insert a name for the new section"], "", tr["Add section"], "skin:icons/section.png");
 	if (id.exec()) {
@@ -2214,7 +2238,7 @@ void Esoteric::hideSection() {
 		this->config->sectionFilter(this->config->sectionFilter() + "," + section);
 	}
 	this->config->save();
-	initMenu();
+	this->initMenu();
 }
 
 void Esoteric::renameSection() {

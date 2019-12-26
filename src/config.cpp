@@ -16,11 +16,7 @@
 
 #define sync() sync(); system("sync");
 
-using std::ifstream;
-using std::ofstream;
-using std::string;
-
-Config::Config(string const &prefix) {
+Config::Config(std::string const &prefix) {
     TRACE("enter - prefix : %s", prefix.c_str());
     this->prefix = prefix;
     this->isDirty = false;
@@ -30,9 +26,9 @@ Config::~Config() {
     TRACE("~Config");
 }
 
-string Config::toString() {
+std::string Config::toString() {
 
-    vector<string> vec;
+    std::vector<std::string> vec;
 
     vec.push_back("# " + APP_NAME + " config file");
     vec.push_back("# lines starting with a # are ignored");
@@ -70,6 +66,7 @@ string Config::toString() {
     vec.push_back(string_format("section=%i", this->section()));
     vec.push_back(string_format("link=%i", this->link()));
 
+    vec.push_back(string_format("respectHiddenLinks=%i", this->respectHiddenLinks()));
     vec.push_back(string_format("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
 
     vec.push_back(string_format("version=%i", this->version()));
@@ -82,7 +79,7 @@ string Config::toString() {
 bool Config::save() {
     TRACE("enter");
     if (this->isDirty) {
-        string fileName = this->prefix + CONFIG_FILE_NAME;
+        std::string fileName = this->prefix + CONFIG_FILE_NAME;
         TRACE("saving to : %s", fileName.c_str());
         std::ofstream config(fileName.c_str());
         if (config.is_open()) {
@@ -148,6 +145,7 @@ void Config::reset() {
     this->link_ = 1;
 
     this->setHwLevelsOnBoot_ = 0;
+    this->respectHiddenLinks_ = true;
     this->version_ = CONFIG_CURRENT_VERSION;
 
     TRACE("exit");
@@ -167,6 +165,7 @@ void Config::constrain() {
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );
 	evalIntConf( &this->minBattery_, 0, 0, 5);
 	evalIntConf( &this->maxBattery_, 5, 0, 5);
+    evalIntConf( &this->respectHiddenLinks_, 1, 0, 1);
     evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
 	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
 
@@ -193,7 +192,7 @@ void Config::constrain() {
 	}
 }
 
-bool Config::configExistsUnderPath(const string & path) {
+bool Config::configExistsUnderPath(const std::string & path) {
     std::string filePath = path + CONFIG_FILE_NAME;
     TRACE("checking for config under : %s", filePath.c_str());
     return fileExists(path + CONFIG_FILE_NAME);
@@ -207,24 +206,24 @@ bool Config::remove() {
 bool Config::fromFile() {
     TRACE("enter");
     bool result = false;
-    string fileName = this->configFile();
+    std::string fileName = this->configFile();
     TRACE("loading config file from : %s", fileName.c_str());
 
 	if (fileExists(fileName)) {
 		TRACE("config file exists");
 		std::ifstream confstream(fileName.c_str(), std::ios_base::in);
 		if (confstream.is_open()) {
-			string line;
+			std::string line;
 			while (getline(confstream, line, '\n')) {
                 try {
                     line = trim(line);
                     if (0 == line.length()) continue;
                     if ('#' == line[0]) continue;
-                    string::size_type pos = line.find("=");
+                    std::string::size_type pos = line.find("=");
                     if (string::npos == pos) continue;
                     
-                    string name = trim(line.substr(0,pos));
-                    string value = trim(line.substr(pos+1,line.length()));
+                    std::string name = trim(line.substr(0,pos));
+                    std::string value = trim(line.substr(pos+1,line.length()));
 
                     if (0 == value.length()) continue;
                     name = toLower(name);
@@ -284,6 +283,8 @@ bool Config::fromFile() {
                             this->link(atoi(value.c_str()));
                         } else if (name == "sethwlevelsonboot") {
                             this->setHwLevelsOnBoot(atoi(value.c_str()));
+                        } else if (name == "respecthiddenlinks") {
+                            this->setRespectHiddenLinks(atoi(value.c_str()));
                         } else if (name == "version") {
                             this->version(atoi(value.c_str()));
                         } else {

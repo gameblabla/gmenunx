@@ -530,7 +530,9 @@ void Menu::readLinks() {
 			TRACE("link created...");
 			if (link->targetExists()) {
 				TRACE("target exists");
-				links[i].push_back( link );
+				if (!link->getHidden() || !app->config->respectHiddenLinks()) {
+					links[i].push_back( link );
+				}
 			} else {
 				TRACE("target doesn't exist");
 				delete link;
