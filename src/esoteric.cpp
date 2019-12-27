@@ -175,6 +175,7 @@ Esoteric::Esoteric() {
 		quit_all(1);
 	}
 	SDL_ShowCursor(SDL_DISABLE);
+	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
 	TRACE("new surface");
 	this->screen = new Surface();
