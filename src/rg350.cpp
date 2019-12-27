@@ -139,7 +139,10 @@ bool HwRg350::setCPUSpeed(uint32_t mhz) {
     }
     return false;
 };
-
+uint32_t HwRg350::getCPUSpeed() {
+    std::string rawCpu = fileReader(SYSFS_CPUFREQ_GET);
+    return atoi(rawCpu.c_str()) / 1000;
+}
 std::vector<uint32_t> HwRg350::cpuSpeeds() { return {360, 1080}; };
 uint32_t HwRg350::getCpuDefaultSpeed() { return 1080; };
 

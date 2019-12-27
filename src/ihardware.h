@@ -59,6 +59,7 @@ class IHardware {
 
         virtual bool supportsOverClocking() = 0;
         virtual bool setCPUSpeed(uint32_t mhz) = 0;
+        virtual uint32_t getCPUSpeed() = 0;
         
         virtual std::vector<uint32_t> cpuSpeeds() = 0;
         virtual uint32_t getCpuDefaultSpeed() = 0;

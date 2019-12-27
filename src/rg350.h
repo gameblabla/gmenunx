@@ -48,6 +48,7 @@ class HwRg350 : IHardware {
         const std::string SYSFS_CPUFREQ_PATH = "/sys/devices/system/cpu/cpu0/cpufreq";
         const std::string SYSFS_CPUFREQ_MAX = SYSFS_CPUFREQ_PATH + "/scaling_max_freq";
         const std::string SYSFS_CPUFREQ_SET = SYSFS_CPUFREQ_PATH + "/scaling_setspeed";
+        const std::string SYSFS_CPUFREQ_GET = SYSFS_CPUFREQ_PATH + "/scaling_cur_freq";
 
         std::string performanceModeMap(std::string fromInternal);
 
@@ -72,6 +73,7 @@ class HwRg350 : IHardware {
         bool supportsOverClocking();
 
         bool setCPUSpeed(uint32_t mhz);
+        uint32_t getCPUSpeed();
         std::vector<uint32_t> cpuSpeeds();
         uint32_t getCpuDefaultSpeed();
 

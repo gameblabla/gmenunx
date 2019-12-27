@@ -31,6 +31,8 @@ std::vector<std::string> HwGkd350h::getPerformanceModes() {
 
 bool HwGkd350h::supportsOverClocking() { return true; }
 
+uint32_t HwGkd350h::getCPUSpeed() { return 0; };
+
 bool HwGkd350h::setCPUSpeed(uint32_t mhz) { return true; }
 
 std::vector<uint32_t> HwGkd350h::cpuSpeeds() { return {}; };

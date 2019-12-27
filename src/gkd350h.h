@@ -36,6 +36,8 @@ class HwGkd350h : IHardware {
         
         bool supportsOverClocking();
 
+        uint32_t getCPUSpeed();
+
         bool setCPUSpeed(uint32_t mhz);
         
         std::vector<uint32_t> cpuSpeeds();

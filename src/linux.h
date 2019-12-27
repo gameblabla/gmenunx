@@ -34,6 +34,7 @@ class HwLinux : IHardware {
         std::vector<std::string> getPerformanceModes();
         
         bool supportsOverClocking();
+        uint32_t getCPUSpeed();
         bool setCPUSpeed(uint32_t mhz);
         std::vector<uint32_t> cpuSpeeds();
         uint32_t getCpuDefaultSpeed();

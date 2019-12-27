@@ -1494,7 +1494,7 @@ void Esoteric::about() {
 	TRACE("batt level : %i", battLevel);
 	int battPercent = (battLevel * 20);
 	TRACE("batt percent : %i", battPercent);
-	
+
 	char buffer[50];
 	int n = sprintf (buffer, "%i %%", battPercent);
 	std::string batt(buffer);
@@ -1503,6 +1503,17 @@ void Esoteric::about() {
 	if (appPath.length() == 0) {
 		appPath = this->getExePath() + BINARY_NAME;
 	}
+
+	std::string cpuFreq;
+	if (this->hw->supportsOverClocking()) {
+		std::stringstream ss;
+		ss << this->hw->getCPUSpeed();
+		ss >> cpuFreq;
+		cpuFreq += " mhz";
+	} else {
+		cpuFreq = this->hw->getPerformanceMode() + " mode";
+	}
+
 	temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
 	temp += tr["App: "] + appPath + "\n";
@@ -1511,6 +1522,7 @@ void Esoteric::about() {
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == IHardware::BATTERY_CHARGING) ? tr["Charging"] : batt) + "\n";
+	temp += tr["CPU: "] + cpuFreq + " \n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
 	temp += tr["Internal storage free: "] + this->hw->getDiskFree("/media/data") + "\n";
 
