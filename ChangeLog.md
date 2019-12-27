@@ -6,9 +6,11 @@
 	* CPU underclock option for launcher
 	* CPU underclock for links
 	* Default the date to build date if it's not set
+	* ALSA mixer launcher
 
 * Fixed
 	* Crash viewing logs from apps w/ control codes
+	* Force vsync in any sdl version
 
 * Improved
 	* Performance in HW polling

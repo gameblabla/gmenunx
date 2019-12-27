@@ -134,7 +134,7 @@ void Config::reset() {
     this->minBattery_ = 0;
     this->maxBattery_ = 5;
 
-    this->cpuMenu_ = 600;
+    this->cpuMenu_ = 0;
 
     this->globalVolume_ = 60;
     this->aspectRatio_ = 1;
@@ -159,7 +159,6 @@ void Config::constrain() {
     evalIntConf( &this->buttonRepeatRate_, 50, 0, 500);
 	evalIntConf( &this->powerTimeout_, 10, 0, 300);
 	evalIntConf( &this->outputLogs_, 0, 0, 1 );
-	evalIntConf( &this->cpuMenu_, 1080, 200, 1500 );
 	evalIntConf( &this->globalVolume_, 60, 1, 100 );
     evalIntConf (&this->aspectRatio_, 1, 0, 1);
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );

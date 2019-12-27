@@ -856,7 +856,22 @@ void Esoteric::deviceMenu() {
 
 	std::string performanceMode = this->hw->getPerformanceMode();
 	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
+	
+	TRACE("cpu starts");
+	std::vector<std::string> cpuSpeeds;
+	std::stringstream ss;
+	ss.clear();
+	int defaultCpu = this->hw->getCpuDefaultSpeed();
 	int menuCpu = this->config->cpuMenu();
+	TRACE("default = %i, current = %i", defaultCpu, menuCpu);
+	if (menuCpu > 0) {
+		ss << menuCpu;
+	} else {
+		ss << defaultCpu;
+	}
+	std::string strMenuCpu;
+	ss >> strMenuCpu;
+	TRACE("current cpu : %s", strMenuCpu.c_str());
 
 	do {
 
@@ -903,16 +918,19 @@ void Esoteric::deviceMenu() {
 				&performanceModes));
 		}
 		if (this->hw->supportsOverClocking()) {
-			std::stringstream ss;
-			std::vector<std::string> cpuSpeeds;
+			TRACE("over clocking supported");
+			
+			cpuSpeeds.push_back("Default");
 			std::vector<uint32_t>speeds = this->hw->cpuSpeeds();
-			for(std::size_t i = 0; i < speeds.size(); ++i) {
-				ss << speeds[i];
-				cpuSpeeds.push_back(ss.str());
+
+			for (std::size_t i = 0; i < speeds.size(); ++i) {
 				ss.clear();
+				ss << speeds[i];
+				std::string speed;
+				ss >> speed;
+				TRACE("adding clock speed : %s", speed.c_str());
+				cpuSpeeds.push_back(speed);
 			}
-			ss << menuCpu;
-			std::string strMenuCpu = ss.str();
 			sd.addSetting(new MenuSettingMultiString(
 				this, 
 				tr[APP_NAME + " cpu frequency"], 
@@ -965,10 +983,17 @@ void Esoteric::deviceMenu() {
 			this->config->performance(performanceMode);
 			this->hw->setPerformanceMode(performanceMode);
 		}
-		if (menuCpu != this->config->cpuMenu()) {
-			this->config->cpuMenu(menuCpu);
-			this->hw->setCPUSpeed(menuCpu);
+
+		if (0 == strMenuCpu.compare("Default") || this->hw->getCpuDefaultSpeed() == atoi(strMenuCpu.c_str())) {
+			TRACE("setting cpu : 0");
+			this->config->cpuMenu(0);
+		} else {
+			int cpuSpeed = atoi(strMenuCpu.c_str());
+			TRACE("setting cpu : %i", cpuSpeed);
+			this->config->cpuMenu(cpuSpeed);
+			this->hw->setCPUSpeed(cpuSpeed);
 		}
+
 		if (volumeLevel != this->hw->getVolumeLevel()) {
 			this->config->globalVolume(volumeLevel);
 			this->hw->setVolumeLevel(volumeLevel);
