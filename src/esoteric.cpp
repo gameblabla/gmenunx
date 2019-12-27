@@ -147,10 +147,11 @@ Esoteric::Esoteric() {
 	if (!config->lang().empty()) {
 		this->tr.setLang(this->config->lang());
 	}
+	/*
 	if (this->needsInstalling) {
 		this->config->cpuMenu(this->hw->getCpuDefaultSpeed());
 	}
-
+	*/
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
 		TRACE("backlight, volume, aspect ratio and performance mode");
 		this->hw->setBacklightLevel(config->backlightLevel());
@@ -860,17 +861,10 @@ void Esoteric::deviceMenu() {
 	TRACE("cpu starts");
 	std::vector<std::string> cpuSpeeds;
 	std::stringstream ss;
-	ss.clear();
-	int defaultCpu = this->hw->getCpuDefaultSpeed();
-	int menuCpu = this->config->cpuMenu();
-	TRACE("default = %i, current = %i", defaultCpu, menuCpu);
-	if (menuCpu > 0) {
-		ss << menuCpu;
-	} else {
-		ss << defaultCpu;
-	}
+	ss << this->config->cpuMenu();
 	std::string strMenuCpu;
 	ss >> strMenuCpu;
+	ss.clear();
 	TRACE("current cpu : %s", strMenuCpu.c_str());
 
 	do {
@@ -984,9 +978,10 @@ void Esoteric::deviceMenu() {
 			this->hw->setPerformanceMode(performanceMode);
 		}
 
-		if (0 == strMenuCpu.compare("Default") || this->hw->getCpuDefaultSpeed() == atoi(strMenuCpu.c_str())) {
+		if (0 == strMenuCpu.compare("Default")) {
 			TRACE("setting cpu : 0");
 			this->config->cpuMenu(0);
+			this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
 		} else {
 			int cpuSpeed = atoi(strMenuCpu.c_str());
 			TRACE("setting cpu : %i", cpuSpeed);

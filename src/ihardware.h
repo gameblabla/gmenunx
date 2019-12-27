@@ -33,6 +33,7 @@ class IHardware {
 
     protected:
 
+        std::vector<uint32_t> cpuSpeeds_;
         int16_t curMMCStatus;
         std::string BLOCK_DEVICE;
         std::string INTERNAL_MOUNT_DEVICE;
@@ -61,7 +62,9 @@ class IHardware {
         virtual bool setCPUSpeed(uint32_t mhz) = 0;
         virtual uint32_t getCPUSpeed() = 0;
         
-        virtual std::vector<uint32_t> cpuSpeeds() = 0;
+        const std::vector<uint32_t> & cpuSpeeds() { 
+            return this->cpuSpeeds_;
+        };
         virtual uint32_t getCpuDefaultSpeed() = 0;
 
         virtual void ledOn(int flashSpeed = 250) = 0;

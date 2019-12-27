@@ -37,7 +37,6 @@ class HwGeneric : IHardware {
         bool supportsOverClocking();
         uint32_t getCPUSpeed();
         bool setCPUSpeed(uint32_t mhz);
-        std::vector<uint32_t> cpuSpeeds();
         uint32_t getCpuDefaultSpeed();
 
         void ledOn(int flashSpeed = 250);

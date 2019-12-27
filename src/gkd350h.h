@@ -40,8 +40,6 @@ class HwGkd350h : IHardware {
 
         bool setCPUSpeed(uint32_t mhz);
         
-        std::vector<uint32_t> cpuSpeeds();
-        
         uint32_t getCpuDefaultSpeed();
         
         void ledOn(int flashSpeed);

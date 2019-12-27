@@ -18,6 +18,8 @@ class HwRg350 : IHardware {
 			TIMER
 		};
 
+        bool writeValueToFile(const std::string &path, const char *content);
+
         RTC * clock_;
         std::unordered_map<std::string, std::string> performanceModes_;
 		std::string ledMaxBrightness_;
@@ -74,7 +76,6 @@ class HwRg350 : IHardware {
 
         bool setCPUSpeed(uint32_t mhz);
         uint32_t getCPUSpeed();
-        std::vector<uint32_t> cpuSpeeds();
         uint32_t getCpuDefaultSpeed();
 
         void ledOn(int flashSpeed = 250);

@@ -35,8 +35,6 @@ uint32_t HwGkd350h::getCPUSpeed() { return 0; };
 
 bool HwGkd350h::setCPUSpeed(uint32_t mhz) { return true; }
 
-std::vector<uint32_t> HwGkd350h::cpuSpeeds() { return {}; };
-
 uint32_t HwGkd350h::getCpuDefaultSpeed() { return 0; }
 
 void HwGkd350h::ledOn(int flashSpeed) { return; }

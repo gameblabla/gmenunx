@@ -76,7 +76,7 @@ std::vector<std::string> HwGeneric::getPerformanceModes() {
 bool HwGeneric::supportsOverClocking() { return false; }
 uint32_t HwGeneric::getCPUSpeed() { return 0; };
 bool HwGeneric::setCPUSpeed(uint32_t mhz) { return true; };
-std::vector<uint32_t> HwGeneric::cpuSpeeds() { return {}; };
+
 uint32_t HwGeneric::getCpuDefaultSpeed() { return 0; };
 
 void HwGeneric::ledOn(int flashSpeed) { return; };

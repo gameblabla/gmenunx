@@ -30,6 +30,8 @@ HwRg350::HwRg350() {
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
     this->pollVolume = fileExists(GET_VOLUME_PATH);
 
+    this->cpuSpeeds_ = { 360, 1080 };
+
     this->getBacklightLevel();
     this->getVolumeLevel();
     this->getKeepAspectRatio();
@@ -114,36 +116,40 @@ bool HwRg350::supportsOverClocking() {
 
 bool HwRg350::setCPUSpeed(uint32_t mhz) {
     TRACE("enter : %i", mhz);
-    std::vector<uint32_t>::iterator it;
+
+    std::vector<uint32_t>::const_iterator it;
     bool found = false;
-    for (it = cpuSpeeds().begin(); it != cpuSpeeds().end(); it++) {
-        if ((*it) == mhz) {
+    for (it = this->cpuSpeeds().begin(); it != this->cpuSpeeds().end(); ++it) {
+        int val = (*it);
+        TRACE("comparing %i to %i", mhz, val);
+        if (val == mhz) {
             found = true;
             break;
         }
     }
-    if (!found)
+    if (!found) {
+        TRACE("couldn't find speed : %i", mhz);
         return false;
+    }
 
     int finalFreq = mhz * 1000;
     TRACE("finalFreq : %i", finalFreq);
-    if (procWriter(SYSFS_CPUFREQ_MAX, finalFreq)) {
-        if (procWriter(SYSFS_CPUFREQ_SET, finalFreq)) {
-            TRACE("success");
-            return true;
-        } else {
-            ERROR("Couldn't update current cpu freq to : %i", finalFreq);
-        }
-    } else {
-        ERROR("Couldn't update cpu max freq to : %i", finalFreq);
+    std::stringstream ss;
+    ss << finalFreq;
+    std::string value;
+    ss >> value;
+    if (this->writeValueToFile(SYSFS_CPUFREQ_MAX, value.c_str())) {
+        return this->writeValueToFile(SYSFS_CPUFREQ_SET, value.c_str());
     }
     return false;
 };
 uint32_t HwRg350::getCPUSpeed() {
     std::string rawCpu = fileReader(SYSFS_CPUFREQ_GET);
-    return atoi(rawCpu.c_str()) / 1000;
+    int result = atoi(rawCpu.c_str()) / 1000;
+    TRACE("exit : %i",  result);
+    return result;
 }
-std::vector<uint32_t> HwRg350::cpuSpeeds() { return {360, 1080}; };
+
 uint32_t HwRg350::getCpuDefaultSpeed() { return 1080; };
 
 void HwRg350::ledOn(int flashSpeed) {
@@ -302,19 +308,7 @@ bool HwRg350::setScreenState(const bool &enable) {
     TRACE("enter : %s", (enable ? "on" : "off"));
     const char *path = SCREEN_BLANK_PATH.c_str();
     const char *blank = enable ? "0" : "1";
-    bool result = false;
-    int fd = open(path, O_RDWR);
-    if (fd == -1) {
-        WARNING("Failed to open '%s': %s", path, strerror(errno));
-    } else {
-        ssize_t written = write(fd, blank, strlen(blank));
-        if (written == -1) {
-            WARNING("Error writing '%s': %s", path, strerror(errno));
-        } else
-            result = true;
-        close(fd);
-    }
-    return result;
+    return this->writeValueToFile(path, blank);
 }
 
 std::string HwRg350::systemInfo() {
@@ -346,4 +340,21 @@ std::string HwRg350::triggerToString(LedAllowedTriggers t) {
             return "none";
             break;
     };
+}
+
+bool HwRg350::writeValueToFile(const std::string & path, const char *content) {
+    bool result = false;
+    int fd = open(path.c_str(), O_RDWR);
+    if (fd == -1) {
+        WARNING("Failed to open '%s': %s", path.c_str(), strerror(errno));
+    } else {
+        ssize_t written = write(fd, content, strlen(content));
+        if (written == -1) {
+            WARNING("Error writing '%s': %s", path.c_str(), strerror(errno));
+        } else {
+            result = true;
+        }
+        close(fd);
+    }
+    return result;
 }

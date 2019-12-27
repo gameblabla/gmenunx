@@ -66,7 +66,7 @@ std::vector<std::string> HwLinux::getPerformanceModes() {
 bool HwLinux::supportsOverClocking() { return false; }
 uint32_t HwLinux::getCPUSpeed() { return 0; };
 bool HwLinux::setCPUSpeed(uint32_t mhz) { return true; };
-std::vector<uint32_t> HwLinux::cpuSpeeds() { return {}; };
+
 uint32_t HwLinux::getCpuDefaultSpeed() { return 0; };
 
 void HwLinux::ledOn(int flashSpeed) { return; };

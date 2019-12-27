@@ -3,10 +3,11 @@
 **1.0.5** (*Codename: *)
 * Added
 	* Hide / show links
-	* CPU underclock option for launcher
+	* CPU underclock option for launcher, exposed in Device
 	* CPU underclock for links
 	* Default the date to build date if it's not set
 	* ALSA mixer launcher
+	* CPU freq or governor mode shown in About
 
 * Fixed
 	* Crash viewing logs from apps w/ control codes
