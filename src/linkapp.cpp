@@ -534,6 +534,8 @@ void LinkApp::launch(std::string launchArgs) {
 
 		if (this->app->hw->supportsOverClocking() && this->clock() > 0) {
 			this->app->hw->setCPUSpeed(this->clock());
+		} else {
+			this->app->hw->setCPUSpeed(this->app->hw->getCpuDefaultSpeed());
 		}
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
