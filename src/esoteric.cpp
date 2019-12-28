@@ -2186,7 +2186,7 @@ void Esoteric::editLink() {
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		if (0 == strMenuCpu.compare("Default") || this->hw->getCpuDefaultSpeed() == atoi(strMenuCpu.c_str())) {
+		if (0 == strMenuCpu.compare("Default")) {
 			TRACE("setting cpu : 0");
 			menu->selLinkApp()->setCPU(0);
 		} else {

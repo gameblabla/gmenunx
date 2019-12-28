@@ -46,7 +46,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	TRACE("ctor - handling file :%s", linkfile);
 
 	TRACE("ctor - set default CPU speed");
-	setCPU(app->config->cpuMenu());
+	setCPU(app->hw->getCpuDefaultSpeed());
 
 	this->file = linkfile;
 	this->manual = "";
@@ -256,12 +256,13 @@ int LinkApp::clock() {
 void LinkApp::setCPU(int mhz) {
 	TRACE("enter : %i", mhz);
 	iclock = mhz;
-	if (iclock != 0 && this->app->hw->cpuSpeeds().size() > 0) {
+	if (iclock > 0 && this->app->hw->cpuSpeeds().size() > 0) {
 		TRACE("constraining mhz");
 		int min = this->app->hw->cpuSpeeds().front();
 		int max = this->app->hw->cpuSpeeds().at(this->app->hw->cpuSpeeds().size() - 1);
 		TRACE("constraining %i between %i and %i", mhz, min, max);
 		iclock = constrain(iclock, min, max);
+		TRACE("final mhz : %i", iclock);
 	}
 	edited = true;
 }
