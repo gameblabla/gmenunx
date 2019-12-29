@@ -175,7 +175,6 @@ Esoteric::Esoteric() {
 		ERROR("Could not initialize SDL: %s", SDL_GetError());
 		quit_all(1);
 	}
-	SDL_ShowCursor(SDL_DISABLE);
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
 
 	TRACE("new surface");
@@ -196,6 +195,8 @@ Esoteric::Esoteric() {
 		height, 
 		bpp, 
 		SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
+	// needs to follow set video mode because of sdl bug
+	SDL_ShowCursor(SDL_DISABLE);
 
 	this->screenHalfWidth = this->screen->raw->w / 2;
 	this->screenHalfHeight = this->screen->raw->h / 2;
