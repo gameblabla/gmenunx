@@ -8,10 +8,14 @@
 	* Default the date to build date if it's not set
 	* ALSA mixer launcher
 	* CPU freq or governor mode shown in About
+	* Manual
 
 * Fixed
 	* Crash viewing logs from apps w/ control codes
 	* Force vsync in any sdl version
+	* Reset alt keymap file on launch. thanks @nebuleon
+	* SDL_ShowCursor(SDL_DISABLE); comes after SDL Video setup now to avoid potential side effect
+	* UI race condition removing an OPK
 
 * Improved
 	* Performance in HW polling
