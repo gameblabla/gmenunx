@@ -31,6 +31,43 @@ In settings:
 - START: Save edits and return;
 - SELECT: Clear or set default value.
 
+## New Features (and how to use them)
+
+### Sections
+
+- Section hiding (hit sleect -> hide section)
+  - Unhide in Settings menu -> unhide all sections
+
+### Apps
+
+- Fully Editable Apps, even OPK's (press select on an App, choose edit)
+  - Set rom directory for an app with 'Selector Path'
+  - Set file extension filters with 'File Filter', eg. '.snes,.sfc'
+  - Set specific CPU frequency
+  - Set aliases file for friendly names in rom browser
+- Manuals are shown if present by hitting Y. There is an icon in the tray to tell you if there is a manual.
+- Favourites
+  - Apps can be favourited (select an app, hit x)
+  - Roms and a specific emulagtor can be favourited (select a rom in the rom launcher, hit x)
+    - These are all editable also, so you can set a cpu speed for a rom / emulator combo
+- App hiding (select an app, hit select -> hide)
+  - Unhide temporarily via the Settings menu -> show hidden links
+- Choose your install path (Settings -> External apps path)
+
+### Device
+
+- This depends on your hardware, but includes
+  - Backlight level
+  - Screen timeout in seconds
+  - Sleep (or power off) toggle and timeout in minutes
+  - Launcher clock speed
+  - Button repeat toggle and speed
+  - Volume level
+  - Aspect ratio control
+  - Option to apply volume and brightness on first boot, in Settings menu
+
+Access these options in the Device menu
+
 ## How to have previews in Selector Browser
 
 - Create a folder called `.previews` in a rom folder
@@ -39,6 +76,20 @@ In settings:
 - Suported image types are .png or .jpg;
 - To change how the previews are shown, see the [Skinning]("#Skinning) section
 
+## Skinning
+
+Start by looking at an existing skin file, as they are fully commented.
+These can be found under `~/.esoteric/skins`.
+
+If you don't supply an asset, like an icon for battery level etc, then esoteric will look for it in the Default skin next, and then in the root of the skin folder, so re-use existing assets when it suits.
+
+Helper icons (battery level, brightness, volume etc) have an auto fluid layout to best use the space.
+
+In single row mode the scroll bar is force hidden.
+
+In single column mode, with no cions, the text aligns centre.
+
+- The rest is WIP
 
 ## Thanks 
 
