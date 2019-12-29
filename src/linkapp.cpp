@@ -602,7 +602,7 @@ void LinkApp::setWorkdir(const std::string &workdir) {
 
 const string &LinkApp::getManual() { return manual; }
 void LinkApp::setManual(const std::string &manual) {
-	this->manual = manualPath = manual;
+	this->manual = this->manualPath = manual;
 	edited = true;
 }
 
