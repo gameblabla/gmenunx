@@ -35,6 +35,7 @@ HwRg350::HwRg350() {
     this->getBacklightLevel();
     this->getVolumeLevel();
     this->getKeepAspectRatio();
+    this->resetKeymap();
 
     TRACE(
         "brightness - max : %s, current : %i, volume : %i",
@@ -340,6 +341,10 @@ std::string HwRg350::triggerToString(LedAllowedTriggers t) {
             return "none";
             break;
     };
+}
+
+void HwRg350::resetKeymap() {
+    this->writeValueToFile(ALT_KEYMAP_FILE, "N");
 }
 
 bool HwRg350::writeValueToFile(const std::string & path, const char *content) {

@@ -19,6 +19,7 @@ class HwRg350 : IHardware {
 		};
 
         bool writeValueToFile(const std::string &path, const char *content);
+        void resetKeymap();
 
         RTC * clock_;
         std::unordered_map<std::string, std::string> performanceModes_;
@@ -46,6 +47,7 @@ class HwRg350 : IHardware {
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
         const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
+        const std::string ALT_KEYMAP_FILE = "/sys/devices/platform/linkdev/alt_key_map";
         
         const std::string SYSFS_CPUFREQ_PATH = "/sys/devices/system/cpu/cpu0/cpufreq";
         const std::string SYSFS_CPUFREQ_MAX = SYSFS_CPUFREQ_PATH + "/scaling_max_freq";
