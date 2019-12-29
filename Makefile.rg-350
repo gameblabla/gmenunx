@@ -65,7 +65,7 @@ clean:
 dist: all
 	install -m755 -D $(APPNAME) $(DISTDIR)/esoteric
 	install -m644 assets/$(PATH_DIR)/input.conf $(DISTDIR)
-	install -m644 -D README.md $(DISTDIR)/README.txt
+	install -m644 -D README.md $(DISTDIR)/esoteric.man.txt
 	install -m644 -D COPYING $(DISTDIR)/COPYING
 	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog.md
 	install -m644 -D about.txt $(DISTDIR)/about.txt
