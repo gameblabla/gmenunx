@@ -739,11 +739,11 @@ void OpkCache::handleRemovedOpk(const std::string path) {
     std::list<std::pair<std::string, DesktopFile>>::iterator actionIt;
     for (actionIt = actions.begin(); actionIt != actions.end(); actionIt++) {
         this->notifyProgress("Removing: " + actionIt->second.title());
-        this->removeFromCache(actionIt->first, actionIt->second);
-        TRACE("removed from cache : %s", actionIt->second.title().c_str());
         TRACE("deleting desktop file");
         actionIt->second.remove();
         TRACE("deleted desktop file ok");
+        this->removeFromCache(actionIt->first, actionIt->second);
+        TRACE("removed from cache : %s", actionIt->second.title().c_str());
     }
     TRACE("exit");
 }
