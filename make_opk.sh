@@ -40,6 +40,7 @@ Type=Application
 StartupNotify=true
 Icon=logo
 Categories=applications;
+X-OD-Manual=esoteric.man.txt
 Version=${VERSION}
 EOF
 
