@@ -1,6 +1,6 @@
 ## Changelog
 
-**1.0.5** (*Codename: *)
+**1.0.5** (*Codename: TLOE: Links Hiding*)
 * Added
 	* Hide / show links
 	* CPU underclock option for launcher, exposed in Device
@@ -21,6 +21,7 @@
 	* Performance in HW polling
 	* CPU scaling to hw layer
 	* Clock types abstracted
+	* Only set SDL Fullscreen flag if we're on unknown w/h
 
 **1.0.4** (*Codename: Fight the power!*)
 * Added

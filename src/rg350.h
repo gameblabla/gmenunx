@@ -97,6 +97,9 @@ class HwRg350 : IHardware {
 
         bool setScreenState(const bool &enable);
 
+        int defaultScreenWidth() { return 320; }
+        int defaultScreenHeight() { return 240; }
+
         std::string systemInfo();
 };
 

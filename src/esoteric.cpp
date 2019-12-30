@@ -147,11 +147,7 @@ Esoteric::Esoteric() {
 	if (!config->lang().empty()) {
 		this->tr.setLang(this->config->lang());
 	}
-	/*
-	if (this->needsInstalling) {
-		this->config->cpuMenu(this->hw->getCpuDefaultSpeed());
-	}
-	*/
+
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
 		TRACE("backlight, volume, aspect ratio and performance mode");
 		this->hw->setBacklightLevel(config->backlightLevel());
@@ -183,6 +179,7 @@ Esoteric::Esoteric() {
 	int width = config->resolutionX() < 0 ? this->hw->defaultScreenWidth() : config->resolutionX();
 	int height = config->resolutionY() < 0 ? this->hw->defaultScreenHeight() : config->resolutionY();
 	int bpp = config->videoBpp() < 0 ? this->hw->defaultScreenBPP() : config->videoBpp();
+	uint32_t flags = (0 == width == height) ? SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN : SDL_HWSURFACE|SDL_DOUBLEBUF ;
 
 	TRACE("setting up SDL_SetVideoMode with - x:%i y:%i bpp:%i", 
 		width, 
@@ -194,7 +191,8 @@ Esoteric::Esoteric() {
 		width, 
 		height, 
 		bpp, 
-		SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN);
+		flags);
+
 	// needs to follow set video mode because of sdl bug
 	SDL_ShowCursor(SDL_DISABLE);
 
