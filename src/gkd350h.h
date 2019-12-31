@@ -67,6 +67,16 @@ class HwGkd350h : IHardware {
 
         bool setScreenState(const bool &enable);
 
+        void powerOff() {
+            sync();
+            system("/sbin/poweroff");
+        }
+
+        virtual void reboot() {
+            sync();
+		    system("/sbin/reboot");
+        }
+
 };
 
 #endif // _GKD350H_
