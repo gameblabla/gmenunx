@@ -44,9 +44,12 @@ std::vector<std::string> HwFactory::supportedDevices() {
 }
 
 std::string HwFactory::readDeviceType() {
-    std::string cmdLine = fileReader("/proc/cmdline");
-    std::vector<std::string> cmdParts;
+
     std::string result = "generic";
+
+    std::string cmdLine = fileReader("/proc/cmdline");
+    TRACE("cmdLine : %s", cmdLine.c_str());
+    std::vector<std::string> cmdParts;
     split(cmdParts, cmdLine, " ");
     for (std::vector<std::string>::iterator it = cmdParts.begin(); it != cmdParts.end(); it++) {
         std::string cmdPart = (*it);
@@ -58,45 +61,69 @@ std::string HwFactory::readDeviceType() {
         if (0 == value.length()) continue;
 
         if (name == "hwvariant") {
+            TRACE("hwvariant : '%s'", value.c_str());
             if (0 == value.compare("rg350")) {
-                result = "rg350";
+                return "rg350";
             } else if (0 == value.compare("v11_ddr2_256mb")) {
-                result = "gcw0";
+                return "gcw0";
             } else if (0 == value.compare("v20_mddr_512mb")) {
-                result = "pg2";
+                return "pg2";
             }
             break;
         }
     }
-    if (result == "generic") {
-        // is it retro fw?
-        if (fileExists("/etc/hostname")) {
-            std::string host = fileReader("/etc/hostname");
-            host = toLower(full_trim(host));
-            if (0 == host.compare("retrofw")) {
-                return "retrofw";
+
+    // gkd 350?
+    std::ifstream cpuInput;
+    cpuInput.open("/proc/cpuinfo");
+    if (cpuInput.is_open()) {
+        bool found = false;
+        for (std::string rawLine; std::getline(cpuInput, rawLine); ) {
+            std::string trimLine = full_trim(rawLine);
+            trimLine = toLower(trimLine);
+            TRACE("cpu info line : %s", trimLine.c_str());
+            if (std::string::npos != trimLine.find("gkd350")) {
+                found = true;
+                break;
             }
         }
-        // ok, is it open dingux?
-        if (fileExists("/etc/issue")) {
-            std::string issue = fileReader("/etc/issue");
-            bool isDingux = false;
-            if (!issue.empty()) {
-                std::string lowerIssue = toLower(issue);
-                std::vector<std::string> issueParts;
-                split(issueParts, lowerIssue, " ");
-                for (std::vector<std::string>::iterator it = issueParts.begin(); it != issueParts.end(); it++) {
-                    TRACE("checking token : %s", (*it).c_str());
-                    if (0 == (*it).compare("opendingux")) {
-                        isDingux = true;
-                        break;
-                    }
+        cpuInput.close();
+        if (found) {
+            return "gkd350h";
+        }
+    }
+
+    // is it retro fw?
+    if (fileExists("/etc/hostname")) {
+        std::string host = fileReader("/etc/hostname");
+        host = toLower(full_trim(host));
+        TRACE("hostname : '%s'", host.c_str());
+        if (0 == host.compare("retrofw")) {
+            return "retrofw";
+        }
+    }
+
+    // ok, is it open dingux?
+    if (fileExists("/etc/issue")) {
+        std::string issue = fileReader("/etc/issue");
+        TRACE("issue : '%s'", issue.c_str());
+        bool isDingux = false;
+        if (!issue.empty()) {
+            std::string lowerIssue = toLower(issue);
+            std::vector<std::string> issueParts;
+            split(issueParts, lowerIssue, " ");
+            for (std::vector<std::string>::iterator it = issueParts.begin(); it != issueParts.end(); it++) {
+                TRACE("checking token : '%s'", (*it).c_str());
+                if (0 == (*it).compare("opendingux")) {
+                    isDingux = true;
+                    break;
                 }
-                if (!isDingux) {
-                    result = "linux";
-                }
+            }
+            if (!isDingux) {
+                return "linux";
             }
         }
     }
+
     return result;
 }

@@ -55,6 +55,6 @@ bool HwGkd350h::getKeepAspectRatio() { return true; }
 
 bool HwGkd350h::setKeepAspectRatio(bool val) { return val; }
 
-std::string HwGkd350h::getDeviceType() { return "GKD-350h"; }
+std::string HwGkd350h::getDeviceType() { return "GKD350H"; }
 
 bool HwGkd350h::setScreenState(const bool &enable) { return enable; }
