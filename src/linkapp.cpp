@@ -533,7 +533,7 @@ void LinkApp::launch(std::string launchArgs) {
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (toLaunch) {
 
-		if (this->app->hw->supportsOverClocking() && this->clock() > 0) {
+		if (this->clock() > 0) {
 			this->app->hw->setCPUSpeed(this->clock());
 		} else {
 			this->app->hw->setCPUSpeed(this->app->hw->getCpuDefaultSpeed());

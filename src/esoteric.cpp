@@ -155,7 +155,7 @@ Esoteric::Esoteric() {
 		this->hw->setKeepAspectRatio(this->config->aspectRatio());
 		this->hw->setPerformanceMode(this->config->performance());
 	}
-	if (this->hw->supportsOverClocking() && !this->needsInstalling) {
+	if (!this->needsInstalling) {
 		TRACE("setting default clock speed back");
 		this->hw->setCPUSpeed(this->config->cpuMenu());
 	}
@@ -975,6 +975,7 @@ void Esoteric::deviceMenu() {
 			this->config->cpuMenu(cpuSpeed);
 			this->hw->setCPUSpeed(cpuSpeed);
 		}
+
 
 		if (volumeLevel != this->hw->getVolumeLevel()) {
 			this->config->globalVolume(volumeLevel);

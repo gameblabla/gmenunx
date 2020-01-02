@@ -32,6 +32,7 @@ class HwRg350 : IHardware {
         bool pollBacklight = false;
         bool pollBatteries = false;
         bool pollVolume = false;
+        bool supportsOverclocking_ = false;
 
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";

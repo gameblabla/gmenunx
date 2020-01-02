@@ -30,6 +30,7 @@ HwRg350::HwRg350() {
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
     this->pollVolume = fileExists(GET_VOLUME_PATH);
 
+    this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
@@ -104,19 +105,13 @@ std::vector<std::string> HwRg350::getPerformanceModes() {
 
 bool HwRg350::supportsOverClocking() {
     TRACE("enter");
-    std::string kver = this->getKernelVersion();
-    if (kver.empty())
-        return false;
-    //TRACE("we have a kernel version : %s", kver.c_str());
-    char lastChar = kver[kver.length() - 1];
-    //TRACE("checking '+' against : '%c'", lastChar);
-    bool result = '+' == lastChar;
-    TRACE("exit - %i", result);
-    return result;
+    return this->supportsOverclocking_;
 }
 
 bool HwRg350::setCPUSpeed(uint32_t mhz) {
     TRACE("enter : %i", mhz);
+    if (!this->supportsOverClocking())
+        return false;
 
     std::vector<uint32_t>::const_iterator it;
     bool found = false;
@@ -145,6 +140,9 @@ bool HwRg350::setCPUSpeed(uint32_t mhz) {
     return false;
 };
 uint32_t HwRg350::getCPUSpeed() {
+    if (!this->supportsOverClocking())
+        return 0;
+
     std::string rawCpu = fileReader(SYSFS_CPUFREQ_GET);
     int result = atoi(rawCpu.c_str()) / 1000;
     TRACE("exit : %i",  result);
