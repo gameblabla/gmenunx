@@ -423,7 +423,7 @@ void Esoteric::main() {
 	TRACE("removing the boot marker");
 	Installer::removeBootMarker();
 
-	// readTmp has to come after initMenu
+	// readTmp has to come after initMenu, because of section hiding etc
 	this->readTmp();
 	if (this->lastSelectorElement >- 1 && \
 		this->menu->selLinkApp() != NULL && \
@@ -434,6 +434,9 @@ void Esoteric::main() {
 		this->menu->selLinkApp()->selector(
 			this->lastSelectorElement, 
 			this->lastSelectorDir);
+	} else if (this->config->saveSelection()) {
+		this->menu->setSectionIndex(this->config->section());
+		this->menu->setLinkIndex(this->config->link());
 	}
 
 	bool quit = false;
@@ -698,13 +701,12 @@ void Esoteric::initMenu() {
 
 	int mySection = 0;
 	int myLink = 0;
+	bool restoreView = false;
 	if (nullptr != this->menu) {
 		myLink = menu->selLinkIndex();
 		mySection = menu->selSectionIndex();
+		restoreView = true;
 		delete menu;
-	} else {
-		mySection = config->section();
-		myLink = config->link();
 	}
 
 	TRACE("initLayout");
@@ -718,14 +720,6 @@ void Esoteric::initMenu() {
 
 	TRACE("add built in action links");
 	int i = menu->getSectionIndex("applications");
-
-	/*
-	menu->addActionLink(i, 
-						tr["Battery Logger"], 
-						MakeDelegate(this, &Esoteric::batteryLogger), 
-						tr["Log battery power to battery.csv"], 
-						"skin:icons/ebook.png");
-	*/
 
 	menu->addActionLink(i, 
 						tr["Explorer"], 
@@ -827,19 +821,7 @@ void Esoteric::initMenu() {
 	menu->loadIcons();
 	TRACE("restore the view");
 
-	/*
-	if (config->saveSelection()) {
-		TRACE("menu->setSectionIndex : %i", config->section());
-		menu->setSectionIndex(config->section());
-		TRACE("menu->setLinkIndex : %i", config->link());
-		menu->setLinkIndex(config->link());
-	} else {
-		menu->setSectionIndex(0);
-		menu->setLinkIndex(0);
-	}
-	*/
-
-	if (mySection < menu->sectionLinks()->size()) {
+	if (restoreView) {
 		menu->setSectionIndex(mySection);
 		menu->setLinkIndex(myLink);
 	}
@@ -1642,16 +1624,15 @@ void Esoteric::explorer() {
 			td.appendFile(fd.getPath() + "/" + fd.getFile());
 			td.exec();
 		} else {
-			if (config->saveSelection() && (config->section() != menu->selSectionIndex() || config->link() != menu->selLinkIndex()))
+			if (config->saveSelection())
 				writeConfig();
 
 			loop = false;
 			std::string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
-			quit_all(0);
-			this->hw->setCPUSpeed(config->cpuMenu());
+			this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
+			this->quit();
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
-			
 			Esoteric::quit_all(0);
 		}
 	}
