@@ -1,5 +1,16 @@
 ## Changelog
 
+**1.0.6** (*Codename: *)
+* Added
+
+* Fixed
+	* Restore session handling
+	* Set screen w & h back to config after determined once
+	* Fullpaths for gkd350h poweroff and reboot
+	* Manual file filter extension typo
+
+* Improved
+
 **1.0.5** (*Codename: TLOE: Links Hiding*)
 * Added
 	* Hide / show links

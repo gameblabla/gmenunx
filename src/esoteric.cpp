@@ -2145,14 +2145,76 @@ void Esoteric::editLink() {
 		);
 	}
 	
-	sd.addSetting(new MenuSettingString(		this, tr["Parameters"],		tr["Command line arguments to pass to the application"], &linkParams, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingDir(			this, tr["Selector Path"],	tr["Directory to start the selector"], &linkSelDir, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingString(		this, tr["File Filter"],	tr["Filter by file extension (separate with commas)"], &linkSelFilter, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingBool(			this, tr["Show Folders"],	tr["Allow the selector to change directory"], &linkSelBrowser));
+	sd.addSetting(
+		new MenuSettingString(
+			this, 
+			tr["Parameters"],
+			tr["Command line arguments to pass to the application"], 
+			&linkParams, 
+			dialogTitle, 
+			dialogIcon));
+	
+	sd.addSetting(
+		new MenuSettingDir(	
+			this, 
+			tr["Selector Path"],
+			tr["Directory to start the selector"], 
+			&linkSelDir, 
+			EXTERNAL_CARD_PATH, 
+			dialogTitle, 
+			dialogIcon));
+	
+	sd.addSetting(
+		new MenuSettingString(
+			this, 
+			tr["File Filter"],	
+			tr["Filter by file extension (separate with commas)"], 
+			&linkSelFilter, 
+			dialogTitle, 
+			dialogIcon));
+	
+	sd.addSetting(
+		new MenuSettingBool(
+			this, 
+			tr["Show Folders"],	
+			tr["Allow the selector to change directory"], 
+			&linkSelBrowser));
+	
 	//sd.addSetting(new MenuSettingDir(			this, tr["Screenshots"],	tr["Directory of the screenshots for the selector"], &linkSelScreens, EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingFile(			this, tr["Aliases"],		tr["File containing a list of aliases for the selector"], &linkSelAlias, ".txt,.dat", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon));
-	sd.addSetting(new MenuSettingImage(			this, tr["Backdrop"],		tr["Select an image backdrop"], &linkBackdrop, ".png,.bmp,.jpg,.jpeg", EXTERNAL_CARD_PATH, dialogTitle, dialogIcon, skin->name));
-	sd.addSetting(new MenuSettingFile(			this, tr["Manual"],   		tr["Select a Manual or Readme file"], &linkManual, ".man.png,.txt,.me", dir_name(linkManual), dialogTitle, dialogIcon));
+	
+	sd.addSetting(
+		new MenuSettingFile(
+			this, 
+			tr["Aliases"],
+			tr["File containing a list of aliases for the selector"], 
+			&linkSelAlias, 
+			".txt,.dat", 
+			EXTERNAL_CARD_PATH, 
+			dialogTitle, 
+			dialogIcon));
+
+	sd.addSetting(
+		new MenuSettingImage(
+			this, 
+			tr["Backdrop"],	
+			tr["Select an image backdrop"], 
+			&linkBackdrop, 
+			".png,.bmp,.jpg,.jpeg", 
+			EXTERNAL_CARD_PATH, 
+			dialogTitle, 
+			dialogIcon, 
+			skin->name));
+
+	sd.addSetting(
+		new MenuSettingFile(
+			this, 
+			tr["Manual"], 
+			tr["Select a Manual or Readme file"], 
+			&linkManual, 
+			".man,.png,.txt,.me", 
+			dir_name(linkManual), 
+			dialogTitle, 
+			dialogIcon));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		this->hw->ledOn();
@@ -2184,7 +2246,10 @@ void Esoteric::editLink() {
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
 			std::vector<std::string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);
-			if (newSectionIndex == menu->getSections().end()) return;
+			if (newSectionIndex == menu->getSections().end()) {
+				this->hw->ledOff();
+				return;
+			}
 			std::string newFileName = "sections/" + newSection + "/" + linkTitle;
 			uint32_t x = 2;
 			while (fileExists(newFileName)) {
@@ -2198,7 +2263,10 @@ void Esoteric::editLink() {
 
 			INFO("New section: %s", newSection.c_str());
 
-			menu->linkChangeSection(menu->selLinkIndex(), menu->selSectionIndex(), newSectionIndex - menu->getSections().begin());
+			menu->linkChangeSection(
+				menu->selLinkIndex(), 
+				menu->selSectionIndex(), 
+				newSectionIndex - menu->getSections().begin());
 		}
 		menu->selLinkApp()->save();
 		sync();
