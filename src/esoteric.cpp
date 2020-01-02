@@ -203,6 +203,12 @@ Esoteric::Esoteric() {
 		this->screen->raw->h, 
 		(int)this->screen->raw->format->BitsPerPixel);
 
+	// set the values back for the future
+	if (0  < config->resolutionX()) {
+		config->resolutionX(width);
+		config->resolutionY(height);
+	}
+
 	TRACE("loading skin : %s", this->config->skin().c_str());
 	this->skin = new Skin(localAssetsPath, 
 		this->getScreenWidth(),  
