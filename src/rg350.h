@@ -102,6 +102,8 @@ class HwRg350 : IHardware {
         int defaultScreenHeight() { return 240; }
 
         std::string systemInfo();
+
+        std::string inputFile() { return "rg350.input.conf"; };
 };
 
 #endif

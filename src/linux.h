@@ -60,6 +60,8 @@ class HwLinux : IHardware {
         int defaultScreenHeight();
 
         bool setScreenState(const bool &enable);
+
+        std::string inputFile() { return "linux.input.conf"; };
 };
 
 #endif

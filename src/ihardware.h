@@ -282,7 +282,9 @@ class IHardware {
             std::string result = execute("/usr/bin/uname -a");
             result += execute("/usr/bin/lshw -short 2>/dev/null");
             return result;
-        }
+        };
+
+        virtual std::string inputFile() { return "generic.input.conf"; };
 };
 
 #endif

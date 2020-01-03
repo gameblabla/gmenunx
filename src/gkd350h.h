@@ -77,6 +77,8 @@ class HwGkd350h : IHardware {
 		    system("/sbin/reboot");
         }
 
+        std::string inputFile() { return "gkd350h.input.conf"; };
+
 };
 
 #endif // _GKD350H_

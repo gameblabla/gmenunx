@@ -64,7 +64,6 @@ clean:
 
 dist: all
 	install -m755 -D $(APPNAME) $(DISTDIR)/esoteric
-	install -m644 assets/$(PATH_DIR)/input.conf $(DISTDIR)
 	install -m644 -D README.md $(DISTDIR)/esoteric.man.txt
 	install -m644 -D COPYING $(DISTDIR)/COPYING
 	install -m644 -D ChangeLog.md $(DISTDIR)/ChangeLog.md
@@ -73,6 +72,7 @@ dist: all
 	cp -RH assets/skins assets/translations $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/scripts $(DISTDIR)
 	cp -RH assets/$(PATH_DIR)/sections $(DISTDIR)
+	cp -RH assets/input $(DISTDIR)
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/logo.png
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Default/icons/device.png
 	cp assets/$(PATH_DIR)/icons/rg350.png $(DISTDIR)/skins/Minimal/icons/device.png

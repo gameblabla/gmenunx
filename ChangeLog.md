@@ -2,6 +2,7 @@
 
 **1.0.6** (*Codename: *)
 * Added
+	* Seperate device specific input configs
 
 * Fixed
 	* Restore session handling
@@ -10,6 +11,7 @@
 	* Manual file filter extension typo
 
 * Improved
+	* Overclocking detection
 
 **1.0.5** (*Codename: TLOE: Links Hiding*)
 * Added

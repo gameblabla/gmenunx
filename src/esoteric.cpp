@@ -236,6 +236,12 @@ Esoteric::Esoteric() {
 	this->screenManager = new ScreenManager((IHardware *)this->hw);
 
 	TRACE("inputManager");
+	std::string inputFile = this->getReadablePath() + "input.conf";
+	if (!fileExists(inputFile)) {
+		std::string originFile = this->getReadablePath() + "input/" + this->hw->inputFile();
+		TRACE("copying device input file from '%s' to '%s'", originFile.c_str(), inputFile.c_str());
+		copyFile(originFile, inputFile);
+	}
 	this->inputManager = new InputManager((*screenManager), (*powerManager));
 	this->inputManager->init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
 	setInputSpeed();

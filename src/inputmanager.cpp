@@ -138,15 +138,32 @@ bool InputManager::readConfFile(const string &conffile) {
 		return false;
 	}
 
-	int action, linenum = 0;
-	string line, name, value;
-	string::size_type pos;
-	vector<string> values;
+	bool result = this->readStream(inf);
+	TRACE("close stream");
+	inf.close();
+	TRACE("exit : %i", result);
+	return result;
+}
 
-	while (getline(inf, line, '\n')) {
+bool InputManager::readStream(std::istream & input) {
+	int action, linenum = 0;
+	std::string line, name, value;
+	std::string::size_type pos;
+	std::vector<std::string> values;
+
+	while (std::getline(input, line, '\n')) {
 		TRACE("reading : %s", line.c_str());
 		linenum++;
+		line = full_trim(line);
+		if (0 == line.length())
+			continue;
+		if ('#' == line[0])
+			continue;
+
 		pos = line.find("=");
+		if (std::string::npos == pos)
+			continue;
+
 		name = trim(line.substr(0,pos));
 		value = trim(line.substr(pos + 1,line.length()));
 
@@ -173,8 +190,8 @@ bool InputManager::readConfFile(const string &conffile) {
 		else if (name == "quit")         action = QUIT;
 		else if (name == "speaker") {}
 		else {
-			ERROR("%s:%d Unknown action '%s'.", conffile.c_str(), linenum, name.c_str());
-			return false;
+			ERROR("%d Unknown action '%s'.", linenum, name.c_str());
+			continue;
 		}
 
 		split(values, value, ",");
@@ -186,32 +203,30 @@ bool InputManager::readConfFile(const string &conffile) {
 				map.num = atoi(values[1].c_str());
 				map.value = atoi(values[2].c_str());
 				map.treshold = 0;
-				actions[action].maplist.push_back(map);
+				this->actions[action].maplist.push_back(map);
 			} else if (values[0] == "joystickaxis" && values.size() == 4) {
 				InputMap map;
 				map.type = InputManager::MAPPING_TYPE_AXIS;
 				map.num = atoi(values[1].c_str());
 				map.value = atoi(values[2].c_str());
 				map.treshold = atoi(values[3].c_str());
-				actions[action].maplist.push_back(map);
+				this->actions[action].maplist.push_back(map);
 			} else if (values[0] == "keyboard") {
 				InputMap map;
 				map.type = InputManager::MAPPING_TYPE_KEYPRESS;
 				map.value = atoi(values[1].c_str());
-				actions[action].maplist.push_back(map);
+				this->actions[action].maplist.push_back(map);
 			} else {
-				ERROR("%s:%d Invalid syntax or unsupported mapping type '%s'.", conffile.c_str(), linenum, value.c_str());
+				ERROR("%d Invalid syntax or unsupported mapping type '%s'.", linenum, value.c_str());
 				return false;
 			}
 
 		} else {
-			ERROR("%s:%d Every definition must have at least 2 values (%s).", conffile.c_str(), linenum, value.c_str());
+			ERROR("%d Every definition must have at least 2 values (%s).", linenum, value.c_str());
 			return false;
 		}
 	}
-	TRACE("close stream");
-	inf.close();
-	TRACE("exit");
+
 	return true;
 }
 

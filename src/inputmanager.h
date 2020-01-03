@@ -77,6 +77,7 @@ Manages all input peripherals
 class InputManager {
 private:
 
+	bool readStream(std::istream & input);
 	InputMap getInputMapping(int action);
 	SDL_TimerID wakeUpTimer;
 
