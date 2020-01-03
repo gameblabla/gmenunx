@@ -25,16 +25,15 @@
 #include "messagebox.h"
 #include "debug.h"
 
-using namespace std;
 using namespace fastdelegate;
 
 InputDialog::InputDialog(Esoteric *app,
-		Touchscreen &ts_, const string &text,
-		const string &startvalue, const string &title, const string &icon)
+		Touchscreen &ts_, const std::string &text,
+		const std::string &startvalue, const std::string &title, const std::string &icon)
 	: Dialog(app)
 	, ts(ts_)
 {
-	if (title == "") {
+	if (title.empty()) {
 		this->title = text;
 		this->text = "";
 	} else {
@@ -45,9 +44,11 @@ InputDialog::InputDialog(Esoteric *app,
 	if (!icon.empty() && (*app->sc)[icon] != NULL)
 		this->icon = icon;
 
-	input = startvalue;
-	selCol = 0;
-	selRow = 0;
+	this->input = startvalue;
+	this->position = input.length();
+
+	this->selCol = 0;
+	this->selRow = 0;
 	keyboard.resize(7);
 
 	keyboard[0].push_back("qwertyuiop789");
@@ -95,11 +96,11 @@ InputDialog::InputDialog(Esoteric *app,
 }
 
 void InputDialog::setKeyboard(int kb) {
-	kb = constrain(kb,0,keyboard.size()-1);
+	kb = constrain(kb, 0, keyboard.size() - 1);
 	curKeyboard = kb;
 	this->kb = &(keyboard[kb]);
 	kbLength = this->kb->at(0).length();
-	for (int x = 0, l = kbLength; x<l; x++)
+	for (int x = 0, l = kbLength; x < l; x++)
 		if (app->font->utf8Code(this->kb->at(0)[x])) {
 			kbLength--;
 			x++;
@@ -116,17 +117,19 @@ void InputDialog::setKeyboard(int kb) {
 }
 
 bool InputDialog::exec() {
+
 	SDL_Rect box = {0, 60, 0, app->font->getHeight() + 4};
 
 	uint32_t caretTick = 0, curTick;
 	bool caretOn = true;
 
 	uint32_t action;
-	close = false;
-	ok = true;
+	this->close = false;
+	this->ok = true;
 
 	drawTopBar(this->bg, title, text, icon);
 	drawBottomBar(this->bg);
+
 	app->ui->drawButton(this->bg, "a", app->tr["Press"],
 	app->ui->drawButton(this->bg, "y", app->tr["Keys"],
 	app->ui->drawButton(this->bg, "r", app->tr["Space"],
@@ -137,14 +140,14 @@ bool InputDialog::exec() {
 	while (!close) {
 		app->inputManager->setWakeUpInterval(500);
 
-		this->bg->blit(app->screen,0,0);
+		this->bg->blit(app->screen, 0, 0);
 
 		box.w = app->font->getTextWidth(input) + 18;
 		box.x = 160 - box.w / 2;
 		app->screen->box(box.x, box.y, box.w, box.h, app->skin->colours.selectionBackground);
 		app->screen->rectangle(box.x, box.y, box.w, box.h, app->skin->colours.selectionBackground);
 
-		app->screen->write(app->font, input, box.x + 5, box.y + box.h - 4, VAlignBottom);
+		std::pair<std::string, std::string> parts = this->inputParts();
 
 		curTick = SDL_GetTicks();
 		if (curTick - caretTick >= 600) {
@@ -152,14 +155,39 @@ bool InputDialog::exec() {
 			caretTick = curTick;
 		}
 
-		if (caretOn) app->screen->box(box.x + box.w - 12, box.y + 3, 8, box.h - 6, app->skin->colours.selectionBackground);
+		app->screen->write(
+				app->font, 
+				parts.first, 
+				box.x + 5, 
+				box.y + box.h - 4, 
+				VAlignBottom);
+
+		int xoffset = app->font->getTextWidth(parts.first) + 2;
+
+		if (caretOn) {
+			app->screen->box(
+				box.x + xoffset, 
+				box.y + 3, 
+				8, 
+				box.h - 6, 
+				app->skin->colours.selectionBackground);
+		}
+
+		app->screen->write(
+				app->font, 
+				parts.second, 
+				box.x + xoffset + 8 + 2, 
+				box.y + box.h - 4, 
+				VAlignBottom);
 
 		if (app->f200) ts.poll();
 		action = drawVirtualKeyboard();
 		app->screen->flip();
 
-		bool inputAction = app->inputManager->update();
-		
+		bool inputAction = app->inputManager->update(true);
+		if (!inputAction)
+			continue;
+		TRACE("input manager updated");
 		if ( (*app->inputManager)[CANCEL] || (*app->inputManager)[MENU] ) action = ID_ACTION_CLOSE;
 		else if ( (*app->inputManager)[SETTINGS] ) action = ID_ACTION_SAVE;
 		else if ( (*app->inputManager)[UP]       ) action = ID_ACTION_UP;
@@ -182,10 +210,32 @@ bool InputDialog::exec() {
 				break;
 			case ID_ACTION_UP:
 				selRow--;
+				if (selRow == (int)kb->size() - 1) {
+					if (selCol == 0) {
+						selCol = 0;
+					} else if (selCol == 1) {
+						selCol = 4;
+					} else if (selCol == 2) {
+						selCol = 7;
+					} else selCol = 10;
+				} else if (selRow < 0) {
+					selCol = (selCol / 3);
+					if (selCol > 3) selCol = 3;
+				}
 				break;
 			case ID_ACTION_DOWN:
 				selRow++;
-				if (selRow == (int)kb->size()) selCol = selCol < 8 ? 0 : 1;
+				if (selRow == (int)kb->size()) {
+					if (selCol < 4) {
+						selCol = 0;
+					} else if (selCol < 7) {
+						selCol = 1;
+					} else if (selCol < 10) {
+						selCol = 2;
+					} else selCol = 3;
+				} else if (selRow > (int)kb->size()) {
+					selCol = (selCol * 3) + 1;
+				}
 				break;
 			case ID_ACTION_LEFT:
 				selCol--;
@@ -213,24 +263,96 @@ bool InputDialog::exec() {
 }
 
 void InputDialog::backspace() {
+	TRACE("enter : '%s'", this->input.c_str());
+	std::pair<std::string, std::string> parts = this->inputParts();
+	if (parts.first.empty())
+		return;
 	// check for utf8 characters
-	input = input.substr(0,input.length()-( app->font->utf8Code(input[input.length()-2]) ? 2 : 1 ));
+	bool utf8 = app->font->utf8Code(this->input[this->position - 2]);
+	int subtract = utf8 ? 2 : 1;
+
+	TRACE("deleting %s character from : '%s' at position : %i", (utf8 ? "unicode" : "non-unicode"), this->input.c_str(), this->position);
+	TRACE("first : '%s', second : '%s'", parts.first.c_str(), parts.second.c_str());
+	std::string result;
+	result = parts.first.substr(0, parts.first.length() - subtract);
+	result += parts.second;
+
+	this->input = result;
+	this->position -= subtract;
+	TRACE("exit : '%s'", this->input.c_str());
 }
 
 void InputDialog::space() {
-	input += " ";
+	this->insertCharacter(" ");
+}
+
+void InputDialog::insertCharacter(const std::string & character) {
+	if (character.empty())
+		return;
+	TRACE("inserting character : '%s'", character.c_str());
+	bool utf8 = app->font->utf8Code((int)character[0]);
+	int offset = utf8 ? 2 : 1;
+	std::string original = this->input;
+	std::pair<std::string, std::string> parts = this->inputParts();
+	std::string result = parts.first + character + parts.second;
+	this->input = result;
+	this->position += offset;
+	TRACE("original : '%s', result : '%s'", original.c_str(), this->input.c_str());
+}
+
+std::pair<std::string, std::string> InputDialog::inputParts() {
+	std::string front;
+	std::string back;
+
+	TRACE("splitting '%s' at position %i", this->input.c_str(), this->position);
+
+	if (this->position > 0)
+		front = this->input.substr(0, this->position);
+	if (this->position < this->input.length())
+		back = this->input.substr(this->position, this->input.length() - this->position);
+	
+	TRACE("front : %s, back : %s", front.c_str(), back.c_str());
+	std::pair<std::string, std::string> result { front, back };
+	return result;
+}
+
+void InputDialog::stepLeft() {
+	this->position--;
+	if (this->position < 0)
+		this->position = 0;
+}
+
+void InputDialog::stepRight() {
+	this->position++;
+	if (this->position > this->input.length())
+		this->position = this->input.length();
 }
 
 void InputDialog::confirm() {
 	if (selRow == (int)kb->size()) {
-		if (selCol == 0) ok = false;
-		close = true;
+		if (selCol == 0) {
+			this->stepLeft();
+		} else if (selCol == 1) {
+			this->ok = false;
+			this->close = true;
+		} else if (selCol == 2) {
+			this->ok = true;
+			this->close = true;
+		} else if (selCol == 3) {
+			this->stepRight();
+		}
+		
 	} else {
 		bool utf8;
-		int xc=0;
+		int xc = 0;
 		for (uint32_t x = 0; x < kb->at(selRow).length(); x++) {
 			utf8 = app->font->utf8Code(kb->at(selRow)[x]);
-			if (xc == selCol) input += kb->at(selRow).substr(x, utf8 ? 2 : 1);
+			if (xc == selCol) {
+				std::string character = kb->at(selRow).substr(x, utf8 ? 2 : 1);
+				this->insertCharacter(character);
+				//input += character;//kb->at(selRow).substr(x, utf8 ? 2 : 1);
+				break;
+			}
 			if (utf8) x++;
 			xc++;
 		}
@@ -248,34 +370,51 @@ int InputDialog::drawVirtualKeyboard() {
 	//keyboard border
 	app->screen->rectangle(kbRect, app->skin->colours.selectionBackground);
 
-	if (selCol < 0) selCol = selRow == (int)kb->size() ? 1 : kbLength - 1;
+	// wrap handling
+	if (selCol < 0) selCol = selRow == (int)kb->size() ? 3 : kbLength - 1;
 	if (selCol >= (int)kbLength) selCol = 0;
-	if (selRow < 0) selRow = kb->size() - 1;
+	if (selRow < 0) selRow = kb->size();
 	if (selRow > (int)kb->size()) selRow = 0;
 
 	//selection
 	if (selRow < (int)kb->size())
-		app->screen->box(kbLeft + selCol * KEY_WIDTH - 1, KB_TOP + selRow * KEY_HEIGHT, KEY_WIDTH - 1, KEY_HEIGHT - 2, app->skin->colours.selectionBackground);
+		app->screen->box(
+			kbLeft + selCol * KEY_WIDTH - 1, 
+			KB_TOP + selRow * KEY_HEIGHT, 
+			KEY_WIDTH - 1, 
+			KEY_HEIGHT - 2, 
+			app->skin->colours.selectionBackground);
 	else {
-		if (selCol > 1) selCol = 0;
-		if (selCol < 0) selCol = 1;
-		app->screen->box(kbLeft + selCol * KEY_WIDTH * kbLength / 2 - 1, KB_TOP + kb->size() * KEY_HEIGHT, kbLength * KEY_WIDTH / 2 - 1, KEY_HEIGHT - 1, app->skin->colours.selectionBackground);
+		if (selCol > 3) selCol = 0;
+		if (selCol < 0) selCol = 3;
+		app->screen->box(
+			kbLeft + selCol * KEY_WIDTH * kbLength / 4 - 1, 
+			KB_TOP + kb->size() * KEY_HEIGHT, 
+			kbLength * KEY_WIDTH / 4 - 1, 
+			KEY_HEIGHT - 1, 
+			app->skin->colours.selectionBackground);
+
 	}
 
 	//keys
 	for (uint32_t l = 0; l < kb->size(); l++) {
-		string line = kb->at(l);
+		std::string line = kb->at(l);
 		for (uint32_t x = 0, xc = 0; x < line.length(); x++) {
-			string charX;
+			std::string charX;
 			//utf8 characters
 			if (app->font->utf8Code(line[x])) {
-				charX = line.substr(x,2);
+				charX = line.substr(x, 2);
 				x++;
 			} else {
 				charX = line[x];
 			}
 
-			SDL_Rect re = {kbLeft + xc * KEY_WIDTH - 1, KB_TOP + l * KEY_HEIGHT, KEY_WIDTH - 1, KEY_HEIGHT - 2};
+			SDL_Rect re = { 
+				kbLeft + xc * KEY_WIDTH - 1, 
+				KB_TOP + l * KEY_HEIGHT, 
+				KEY_WIDTH - 1, 
+				KEY_HEIGHT - 2
+			};
 
 			//if ts on rect, change selection
 			if (app->f200 && ts.pressed() && ts.inRect(re)) {
@@ -289,22 +428,58 @@ int InputDialog::drawVirtualKeyboard() {
 		}
 	}
 
-	//Ok/Cancel
-	SDL_Rect re = {kbLeft - 1, KB_TOP + kb->size() * KEY_HEIGHT, kbLength * KEY_WIDTH / 2 - 1, KEY_HEIGHT - 1};
-	app->screen->rectangle(re, app->skin->colours.selectionBackground);
-	if (app->f200 && ts.pressed() && ts.inRect(re)) {
-		selCol = 0;
-		selRow = kb->size();
-	}
-	app->screen->write(app->font, app->tr["Cancel"], (int)(160 - kbLength * KEY_WIDTH / 4), KB_TOP + kb->size() * KEY_HEIGHT + KEY_HEIGHT / 2, HAlignCenter | VAlignMiddle);
+	int numOpts = 4;
+	SDL_Rect re = {
+		kbLeft - 1, 
+		KB_TOP + kb->size() * KEY_HEIGHT, 
+		kbLength * KEY_WIDTH / numOpts - 1, 
+		KEY_HEIGHT - 1
+	};
+	for (int x = 0; x < numOpts; x++) {
+		app->screen->rectangle(re, app->skin->colours.selectionBackground);
+		std::string behaviour;
+		switch (x) {
+			case 0:
+				behaviour = "<";
+				if (app->f200 && ts.pressed() && ts.inRect(re)) {
+					this->stepLeft();
+				}
+				break;
+			case 1:
+				behaviour = app->tr["Cancel"];
+				if (app->f200 && ts.pressed() && ts.inRect(re)) {
+					selCol = 0;
+					selRow = kb->size();
+				}
+				break;
+			case 2:
+				behaviour = app->tr["Ok"];
+				if (app->f200 && ts.pressed() && ts.inRect(re)) {
+					selCol = 1;
+					selRow = kb->size();
+				}
+				break;
+			case 3:
+				behaviour = ">";
+				if (app->f200 && ts.pressed() && ts.inRect(re)) {
+					this->stepLeft();
+				}
+				break;
+			default:
+				break;
+		};
 
-	re.x = kbLeft + kbLength * KEY_WIDTH / 2 - 1;
-	app->screen->rectangle(re, app->skin->colours.selectionBackground);
-	if (app->f200 && ts.pressed() && ts.inRect(re)) {
-		selCol = 1;
-		selRow = kb->size();
+		int xpos = re.x + ((kbLength * KEY_WIDTH / numOpts) / 2);
+		app->screen->write(
+			app->font, 
+			behaviour, 
+			xpos, 
+			KB_TOP + kb->size() * KEY_HEIGHT + KEY_HEIGHT / 2, 
+			HAlignCenter | VAlignMiddle);
+
+		re.x += kbLength * KEY_WIDTH / numOpts;
+
 	}
-	app->screen->write(app->font, app->tr["OK"], (int)(160 + kbLength * KEY_WIDTH / 4), KB_TOP + kb->size() * KEY_HEIGHT + KEY_HEIGHT / 2, HAlignCenter | VAlignMiddle);
 
 	//if ts released
 	if (app->f200 && ts.released() && ts.inRect(kbRect)) {

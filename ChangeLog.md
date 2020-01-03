@@ -3,6 +3,7 @@
 **1.0.6** (*Codename: *)
 * Added
 	* Seperate device specific input configs
+	* Keyboard nav arrows
 
 * Fixed
 	* Restore session handling

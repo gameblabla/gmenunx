@@ -29,10 +29,7 @@
 #include "esoteric.h"
 #include "dialog.h"
 
-using std::string;
-using std::vector;
-
-typedef vector<string> stringlist;
+typedef std::vector<std::string> stringlist;
 
 // class InputManager;
 class Touchscreen;
@@ -58,28 +55,34 @@ private:
 	Touchscreen &ts;
 	int selRow, selCol;
 	bool close, ok;
-	string title, text, icon;
+	std::string title, text, icon;
 	int16_t curKeyboard;
-	vector<stringlist> keyboard;
+	std::vector<stringlist> keyboard;
 	stringlist *kb;
 	int kbLength, kbWidth, kbHeight, kbLeft;
 	SDL_Rect kbRect;
 	IconButton *btnBackspaceX, *btnBackspaceL, *btnSpace, *btnConfirm, *btnChangeKeys;
-	string input;
+	std::string input;
+
+	int position;
 
 	void backspace();
 	void space();
 	void confirm();
 	void changeKeys();
 
+	void insertCharacter(const std::string & character);
+	void stepLeft();
+	void stepRight();
+	std::pair<std::string, std::string> inputParts();
 	int drawVirtualKeyboard();
 	void setKeyboard(int);
 
 public:
-	InputDialog(Esoteric *app, Touchscreen &ts, const string &text, const string &startvalue="", const string &title="", const string &icon="");
+	InputDialog(Esoteric *app, Touchscreen &ts, const std::string &text, const std::string &startvalue="", const std::string &title="", const string &icon="");
 
 	bool exec();
-	const string &getInput() { return input; }
+	const std::string &getInput() { return input; }
 };
 
 #endif /*INPUTDIALOG_H_*/
