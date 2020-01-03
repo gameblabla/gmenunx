@@ -850,15 +850,12 @@ void Esoteric::deviceMenu() {
 
 	std::string performanceMode = this->hw->getPerformanceMode();
 	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
-	
-	TRACE("cpu starts");
 	std::vector<std::string> cpuSpeeds;
 	std::stringstream ss;
 	ss << this->config->cpuMenu();
 	std::string strMenuCpu;
 	ss >> strMenuCpu;
 	ss.clear();
-	TRACE("current cpu : %s", strMenuCpu.c_str());
 
 	do {
 
@@ -896,14 +893,17 @@ void Esoteric::deviceMenu() {
 			tr["Adjust your volume level"], 
 			&volumeLevel, 70, 1, 100));
 
-		if (performanceModes.size() > 1 && !this->hw->supportsOverClocking()) {
-			sd.addSetting(new MenuSettingMultiString(
-				this, 
-				tr["Performance mode"], 
-				tr["Set the performance mode"], 
-				&performanceMode, 
-				&performanceModes));
+		if (this->hw->supportsPowerGovernors()) {
+			if (performanceModes.size() > 1 && !this->hw->supportsOverClocking()) {
+				sd.addSetting(new MenuSettingMultiString(
+					this, 
+					tr["Performance mode"], 
+					tr["Set the performance mode"], 
+					&performanceMode, 
+					&performanceModes));
+			}
 		}
+
 		if (this->hw->supportsOverClocking()) {
 			TRACE("over clocking supported");
 			
@@ -966,22 +966,26 @@ void Esoteric::deviceMenu() {
 			this->config->backlightTimeout(backlightTimeout);
 			this->screenManager->setTimeout(backlightTimeout);
 		}
-		if (performanceMode != this->hw->getPerformanceMode()) {
-			this->config->performance(performanceMode);
-			this->hw->setPerformanceMode(performanceMode);
+
+		if (this->hw->supportsPowerGovernors()) {
+			if (performanceMode != this->hw->getPerformanceMode()) {
+				this->config->performance(performanceMode);
+				this->hw->setPerformanceMode(performanceMode);
+			}
 		}
 
-		if (0 == strMenuCpu.compare("Default")) {
-			TRACE("setting cpu : 0");
-			this->config->cpuMenu(0);
-			this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
-		} else {
-			int cpuSpeed = atoi(strMenuCpu.c_str());
-			TRACE("setting cpu : %i", cpuSpeed);
-			this->config->cpuMenu(cpuSpeed);
-			this->hw->setCPUSpeed(cpuSpeed);
+		if (this->hw->supportsOverClocking()) {
+			if (0 == strMenuCpu.compare("Default")) {
+				TRACE("setting cpu : 0");
+				this->config->cpuMenu(0);
+				this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
+			} else {
+				int cpuSpeed = atoi(strMenuCpu.c_str());
+				TRACE("setting cpu : %i", cpuSpeed);
+				this->config->cpuMenu(cpuSpeed);
+				this->hw->setCPUSpeed(cpuSpeed);
+			}
 		}
-
 
 		if (volumeLevel != this->hw->getVolumeLevel()) {
 			this->config->globalVolume(volumeLevel);
@@ -1499,8 +1503,10 @@ void Esoteric::about() {
 		ss << this->hw->getCPUSpeed();
 		ss >> cpuFreq;
 		cpuFreq += " mhz";
-	} else {
+	} else if (this->hw->supportsPowerGovernors()) {
 		cpuFreq = this->hw->getPerformanceMode() + " mode";
+	} else {
+		cpuFreq = "Unknown";
 	}
 
 	temp = "\n";

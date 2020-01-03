@@ -33,6 +33,7 @@ class HwRg350 : IHardware {
         bool pollBatteries = false;
         bool pollVolume = false;
         bool supportsOverclocking_ = false;
+        bool supportsPowerGovernors_ = false;
 
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
@@ -54,6 +55,7 @@ class HwRg350 : IHardware {
         const std::string SYSFS_CPUFREQ_MAX = SYSFS_CPUFREQ_PATH + "/scaling_max_freq";
         const std::string SYSFS_CPUFREQ_SET = SYSFS_CPUFREQ_PATH + "/scaling_setspeed";
         const std::string SYSFS_CPUFREQ_GET = SYSFS_CPUFREQ_PATH + "/scaling_cur_freq";
+        const std::string SYSFS_CPU_SCALING_GOVERNOR = SYSFS_CPUFREQ_PATH + "/scaling_governor";
 
         std::string performanceModeMap(std::string fromInternal);
 
@@ -71,6 +73,7 @@ class HwRg350 : IHardware {
         std::string getTVOutMode();
         void setTVOutMode(std::string mode);
 
+        bool supportsPowerGovernors();
         std::string getPerformanceMode();
         void setPerformanceMode(std::string alias = "");
         std::vector<std::string> getPerformanceModes();

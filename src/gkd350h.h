@@ -28,6 +28,8 @@ class HwGkd350h : IHardware {
 
         std::string getTVOutMode();
 
+        bool supportsPowerGovernors();
+
         void setPerformanceMode(std::string alias);
 
         std::string getPerformanceMode();

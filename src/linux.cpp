@@ -27,6 +27,8 @@ void HwLinux::setTVOutMode(std::string mode) {
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
 
+bool HwLinux::supportsPowerGovernors() { return true; }
+
 std::string HwLinux::getPerformanceMode() {
     TRACE("enter");
     return this->performanceModeMap(this->performanceMode_);

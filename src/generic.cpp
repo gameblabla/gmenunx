@@ -37,6 +37,9 @@ void HwGeneric::setTVOutMode(std::string mode) {
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
 
+bool HwGeneric::supportsPowerGovernors() {
+    return true;
+}
 std::string HwGeneric::getPerformanceMode() {
     TRACE("enter");
     return this->performanceModeMap(this->performanceMode_);

@@ -29,6 +29,7 @@ class HwLinux : IHardware {
         std::string getTVOutMode();
         void setTVOutMode(std::string mode);
 
+        bool supportsPowerGovernors();
         std::string getPerformanceMode();
         void setPerformanceMode(std::string alias = "");
         std::vector<std::string> getPerformanceModes();

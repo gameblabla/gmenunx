@@ -20,6 +20,8 @@ void HwGkd350h::setTVOutMode(std::string mode) { return; }
 
 std::string HwGkd350h::getTVOutMode() { return ""; }
 
+bool HwGkd350h::supportsPowerGovernors() { return false; }
+
 void HwGkd350h::setPerformanceMode(std::string alias) { return; }
 
 std::string HwGkd350h::getPerformanceMode() { return ""; }

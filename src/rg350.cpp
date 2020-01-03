@@ -31,6 +31,7 @@ HwRg350::HwRg350() {
     this->pollVolume = fileExists(GET_VOLUME_PATH);
 
     this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
+    this->supportsPowerGovernors_ = fileExists(SYSFS_CPU_SCALING_GOVERNOR);
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
@@ -58,18 +59,24 @@ void HwRg350::setTVOutMode(std::string mode) {
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
 
+bool HwRg350::supportsPowerGovernors() { return this->supportsPowerGovernors_; }
+
 std::string HwRg350::getPerformanceMode() {
     TRACE("enter");
     this->performanceMode_ = "ondemand";
-    if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-        string rawValue = fileReader("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+    if (this->supportsPowerGovernors_) {
+        std::string rawValue = fileReader(SYSFS_CPU_SCALING_GOVERNOR);
         this->performanceMode_ = full_trim(rawValue);
-    }
+
     TRACE("read - %s", this->performanceMode_.c_str());
+    }
     return this->performanceModeMap(this->performanceMode_);
 }
 void HwRg350::setPerformanceMode(std::string alias) {
     TRACE("raw desired : %s", alias.c_str());
+    if (!this->supportsPowerGovernors_)
+        return;
+
     std::string mode = this->defaultPerformanceMode;
     if (!alias.empty()) {
         std::unordered_map<std::string, std::string>::iterator it;
@@ -85,10 +92,8 @@ void HwRg350::setPerformanceMode(std::string alias) {
     TRACE("internal desired : %s", mode.c_str());
     if (mode != this->performanceMode_) {
         TRACE("update needed : current '%s' vs. desired '%s'", this->performanceMode_.c_str(), mode.c_str());
-        if (fileExists("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor")) {
-            procWriter("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor", mode);
-            this->performanceMode_ = mode;
-        }
+        procWriter(SYSFS_CPU_SCALING_GOVERNOR, mode);
+        this->performanceMode_ = mode;
     } else {
         TRACE("nothing to do");
     }
@@ -96,9 +101,11 @@ void HwRg350::setPerformanceMode(std::string alias) {
 }
 std::vector<std::string> HwRg350::getPerformanceModes() {
     std::vector<std::string> results;
-    std::unordered_map<std::string, std::string>::iterator it;
-    for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
-        results.push_back(it->second);
+    if (this->supportsPowerGovernors_) {
+        std::unordered_map<std::string, std::string>::iterator it;
+        for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
+            results.push_back(it->second);
+        }
     }
     return results;
 }

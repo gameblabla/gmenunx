@@ -54,6 +54,7 @@ class IHardware {
         virtual void setTVOutMode(std::string mode) = 0;
         virtual std::string getTVOutMode() = 0;
 
+        virtual bool supportsPowerGovernors() = 0;
         virtual void setPerformanceMode(std::string alias = "") = 0;
         virtual std::string getPerformanceMode() = 0;
         virtual std::vector<std::string>getPerformanceModes() = 0;
