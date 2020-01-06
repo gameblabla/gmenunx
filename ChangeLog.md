@@ -4,6 +4,7 @@
 * Added
 	* Seperate device specific input configs
 	* Keyboard nav arrows
+	* Skin settings for preview image size
 
 * Fixed
 	* Restore session handling
@@ -12,7 +13,8 @@
 	* Manual file filter extension typo
 
 * Improved
-	* Overclocking detection
+	* Overclocking detection and guard conditions
+	* Performance mode detection and guard conditions
 
 **1.0.5** (*Codename: TLOE: Links Hiding*)
 * Added

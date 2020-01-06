@@ -204,9 +204,10 @@ Esoteric::Esoteric() {
 		(int)this->screen->raw->format->BitsPerPixel);
 
 	// set the values back for the future
-	if (0  < config->resolutionX()) {
-		config->resolutionX(width);
-		config->resolutionY(height);
+	if (0 >= config->resolutionX()) {
+		TRACE("saving back the device resolution for the future");
+		config->resolutionX(this->screen->raw->w);
+		config->resolutionY(this->screen->raw->h);
 	}
 
 	TRACE("loading skin : %s", this->config->skin().c_str());
@@ -1037,6 +1038,34 @@ void Esoteric::skinMenu() {
 	it = wallpapers.begin();
 	wallpapers.insert(it, "None");
 
+	int previewMax = this->config->resolutionX() - 1;
+	previewMax -= (previewMax % 5);
+	int previewMin = this->config->resolutionX() / 4;
+	previewMin -= (previewMin % 5);
+
+	TRACE("previews range is %i <-> %i, with resolution : %i", previewMin, previewMax, this->config->resolutionX());
+	std::vector<std::string> previewWidths;
+	previewWidths.push_back("Off");
+	std::stringstream ss;
+	for (int x = previewMin; x <= previewMax; x += 5) {
+		ss << x;
+		previewWidths.push_back(ss.str());
+		ss.str("");
+		ss.clear();
+	}
+	previewWidths.push_back("Fullscreen");
+	std::string curPreviewWidth;
+	if (this->skin->previewWidth == 0) {
+		curPreviewWidth = "Off";
+	} else if (this->skin->previewWidth == -1) {
+		curPreviewWidth = "Fullscreen";
+	} else {
+		ss << this->skin->previewWidth;
+		curPreviewWidth = ss.str();
+		ss.str("");
+		ss.clear();
+	}
+
 	bool restartRequired = false;
 	bool currentIconGray = skin->iconsToGrayscale;
 	bool currentImageGray = skin->imagesToGrayscale;
@@ -1052,7 +1081,9 @@ void Esoteric::skinMenu() {
 		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::changeWallpaper)));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::skinColors)));
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
-		
+
+		sd.addSetting(new MenuSettingMultiString(this, tr["Preview width"], tr["How big the preview image is"], &curPreviewWidth, &previewWidths));
+
 		sd.addSetting(new MenuSettingInt(this, tr["Title font size"], tr["Size of title's text font"], &skin->fontSizeTitle, 20, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Font size"], tr["Size of text font"], &skin->fontSize, 12, 6, 60));
 		sd.addSetting(new MenuSettingInt(this, tr["Section font size"], tr["Size of section bar font"], &skin->fontSizeSectionTitle, 30, 6, 60));
@@ -1094,6 +1125,14 @@ void Esoteric::skinMenu() {
 	} while (!save);
 
 	this->inputManager->dropEvents();
+
+	if (curPreviewWidth == "Off") {
+		this->skin->previewWidth = 0;
+	} else if (curPreviewWidth == "Fullscreen") {
+		this->skin->previewWidth = -1;
+	} else {
+		this->skin->previewWidth = atoi(curPreviewWidth.c_str());
+	}
 
 	if (sectionBar == "OFF") skin->sectionBar = Skin::SB_OFF;
 	else if (sectionBar == "Right") skin->sectionBar = Skin::SB_RIGHT;
