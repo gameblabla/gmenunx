@@ -22,13 +22,14 @@ class Installer {
         std::vector<std::string> fileManifest = {
             BINARY_NAME, 
             BINARY_NAME + ".conf", 
+            BINARY_NAME + ".man.txt",
             "about.txt", 
             "ChangeLog.md", 
             "COPYING", 
-            "logo.png", 
-            "input.conf"
+            "logo.png"
         };
         std::vector<std::string> folderManifest = {
+            "input", 
             "scripts", 
             "sections", 
             "skins", 
