@@ -122,6 +122,10 @@ Esoteric::Esoteric() {
 	this->config = nullptr;
 	this->hw = nullptr;
 
+	#if (LOG_LEVEL >= INFO_L)
+		this->isDebugMode = true;
+	#endif
+
 	TRACE("creating hardware layer");
 	this->hw = HwFactory::GetHardware(HwFactory::readDeviceType());
 
@@ -812,8 +816,7 @@ void Esoteric::initMenu() {
 							"skin:icons/install.png");
 	}
 
-
-	if (this->config->version() < APP_MIN_CONFIG_VERSION || !getOpkPath().empty()) {
+	if (this->config->version() < APP_MIN_CONFIG_VERSION || !getOpkPath().empty() || this->isDebugMode) {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 

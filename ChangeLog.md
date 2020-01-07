@@ -15,6 +15,7 @@
 * Improved
 	* Overclocking detection and guard conditions
 	* Performance mode detection and guard conditions
+	* Upgrade
 
 **1.0.5** (*Codename: TLOE: Links Hiding*)
 * Added
