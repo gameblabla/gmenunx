@@ -1,6 +1,6 @@
 ## Changelog
 
-**1.0.6** (*Codename: *)
+**1.0.6** (*Codename: Lay some skin on me*)
 * Added
 	* Seperate device specific input configs
 	* Keyboard nav arrows
