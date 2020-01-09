@@ -1,5 +1,13 @@
 ## Changelog
 
+**1.0.7** (*Codename: *)
+* Added
+
+* Fixed
+	* Default clock speed reporting for non overclocked rg350
+
+* Improved
+
 **1.0.6** (*Codename: Lay some skin on me*)
 * Added
 	* Seperate device specific input configs

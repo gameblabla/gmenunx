@@ -895,7 +895,7 @@ void Esoteric::deviceMenu() {
 			this, 
 			tr["Volume level"], 
 			tr["Adjust your volume level"], 
-			&volumeLevel, 70, 1, 100));
+			&volumeLevel, 70, 0, 100));
 
 		if (this->hw->supportsPowerGovernors()) {
 			if (performanceModes.size() > 1 && !this->hw->supportsOverClocking()) {
