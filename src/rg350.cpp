@@ -111,7 +111,6 @@ std::vector<std::string> HwRg350::getPerformanceModes() {
 }
 
 bool HwRg350::supportsOverClocking() {
-    TRACE("enter");
     return this->supportsOverclocking_;
 }
 

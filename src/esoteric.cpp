@@ -1541,14 +1541,20 @@ void Esoteric::about() {
 
 	std::string cpuFreq;
 	if (this->hw->supportsOverClocking()) {
+		TRACE("getting a live cpu freq");
 		std::stringstream ss;
 		ss << this->hw->getCPUSpeed();
 		ss >> cpuFreq;
 		cpuFreq += " mhz";
 	} else if (this->hw->supportsPowerGovernors()) {
+		TRACE("getting live cpu governor");
 		cpuFreq = this->hw->getPerformanceMode() + " mode";
 	} else {
-		cpuFreq = this->hw->getCpuDefaultSpeed() + " mhz";
+		TRACE("getting default cpu");
+		std::stringstream ss;
+		ss << this->hw->getCpuDefaultSpeed();
+		ss >> cpuFreq;
+		cpuFreq += " mhz";
 	}
 
 	temp = "\n";
