@@ -156,7 +156,9 @@ uint32_t HwRg350::getCPUSpeed() {
     return result;
 }
 
-uint32_t HwRg350::getCpuDefaultSpeed() { return 1080; };
+uint32_t HwRg350::getCpuDefaultSpeed() { 
+    return this->supportsOverClocking() ? 1080 : 1000; 
+};
 
 void HwRg350::ledOn(int flashSpeed) {
     TRACE("enter");
