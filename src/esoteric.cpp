@@ -1548,7 +1548,7 @@ void Esoteric::about() {
 	} else if (this->hw->supportsPowerGovernors()) {
 		cpuFreq = this->hw->getPerformanceMode() + " mode";
 	} else {
-		cpuFreq = this->hw->getCpuDefaultSpeed();
+		cpuFreq = this->hw->getCpuDefaultSpeed() + " mhz";
 	}
 
 	temp = "\n";

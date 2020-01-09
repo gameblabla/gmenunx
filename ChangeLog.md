@@ -5,6 +5,7 @@
 
 * Fixed
 	* Default clock speed reporting for non overclocked rg350
+	* Allow zero volumes in device menu
 
 * Improved
 
