@@ -1,8 +1,13 @@
 ## Changelog
 
-**1.0.7** (*Codename: *)
+**1.0.7** (*Codename: In the mix*)
 * Added
-	* ALSA Mixer
+	* ALSA Mixer for RG350
+	* GKD350H
+		* Screen off timer
+		* Power off timer
+		* Real Time Clock setting
+		* Battery reporting
 
 * Fixed
 	* Default clock speed reporting for non overclocked rg350

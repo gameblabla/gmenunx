@@ -5,15 +5,29 @@
 #include <vector>
 
 #include "ihardware.h"
-#include "sysclock.h"
+#include "rtc.h"
 #include "constants.h"
 
 class HwGkd350h : IHardware {
 
     private:
 
-        SysClock * clock_;
+        bool writeValueToFile(const std::string &path, const char *content);
+        void resetKeymap();
 
+        RTC * clock_;
+
+        int volumeLevel_ = 0;
+        bool pollVolume = false;
+        bool pollBatteries = false;
+
+        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume";
+        const std::string VOLUME_ARGS = "default PCM";
+        const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
+        const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
+        const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
+        const std::string ALT_KEYMAP_FILE = "/sys/devices/platform/linkdev/alt_key_map";
+    
     protected:
 
     public:
