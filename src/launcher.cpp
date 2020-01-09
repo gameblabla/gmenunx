@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <stdlib.h>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -57,6 +58,7 @@ void Launcher::exec() {
 			close(fd);
 		}
 		TRACE("opened %s successfully", APP_TTY.c_str());
+
 	}
 
 	TRACE("sorting args out for size : %zu", commandLine.size());
@@ -73,8 +75,18 @@ void Launcher::exec() {
 	TRACE("args finished");
 	TRACE("exec-ing : %s", s.c_str());
 
+	if (this->consoleApp) {
+		TRACE("resetting the console");
+		std::wclog.clear();
+		std::clog.clear();
+		std::wcout.clear();
+		std::cout.clear();
+		std::wcerr.clear();
+		std::cerr.clear();
+		std::wcin.clear();
+		std::cin.clear();
+		system("reset");
+	}
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
-	WARNING("Failed to exec '%s': %s", s.c_str(), strerror(errno));
-	
 	TRACE("exit");
 }

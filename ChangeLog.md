@@ -2,12 +2,14 @@
 
 **1.0.7** (*Codename: *)
 * Added
+	* ALSA Mixer
 
 * Fixed
 	* Default clock speed reporting for non overclocked rg350
 	* Allow zero volumes in device menu
 
 * Improved
+	* Tear down of the app on launch
 
 **1.0.6** (*Codename: Lay some skin on me*)
 * Added

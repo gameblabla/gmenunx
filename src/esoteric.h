@@ -74,6 +74,7 @@ private:
 	std::string writeable_path; // Contains the assets path
 
 	bool isDebugMode = false;
+	bool quitApp = false;
 
 	/*!
 	Starts the scanning of the nand and sd filesystems, searching for gpe and gpu files and creating the links in 2 dedicated sections.

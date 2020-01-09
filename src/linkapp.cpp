@@ -533,30 +533,29 @@ void LinkApp::launch(std::string launchArgs) {
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (toLaunch) {
 
-		if (this->clock() > 0) {
-			this->app->hw->setCPUSpeed(this->clock());
-		} else {
-			this->app->hw->setCPUSpeed(this->app->hw->getCpuDefaultSpeed());
+		if (this->app->hw->supportsOverClocking()) {
+			if (this->clock() > 0) {
+				this->app->hw->setCPUSpeed(this->clock());
+			} else {
+				this->app->hw->setCPUSpeed(this->app->hw->getCpuDefaultSpeed());
+			}
 		}
 		unsetenv("SDL_FBCON_DONT_CLEAR");
 
-		TRACE("quit");
-		app->quit();
-		app->releaseScreen();
+		TRACE("calling : quit");
+		TRACE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		this->app->quit();
+		TRACE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		TRACE("quit completed");
+		TRACE("calling : release screen");
+		TRACE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		this->app->releaseScreen();
+		TRACE("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+		TRACE("release screen completed");
 
-		if (consoleapp) {
-			std::wclog.clear();
-			std::clog.clear();
-			std::wcout.clear();
-			std::cout.clear();
-			std::wcerr.clear();
-			std::cerr.clear();
-			std::wcin.clear();
-			std::cin.clear();
-			system("reset");
-		}
 		TRACE("calling exec");
 		toLaunch->exec();
+		TRACE("exec called");
 		// If control gets here, execution failed. Since we already destructed
 		// everything, the easiest solution is to exit and let the system
 		// respawn the menu.

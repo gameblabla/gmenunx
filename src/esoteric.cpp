@@ -109,6 +109,7 @@ Esoteric::Esoteric() {
 	TRACE("leaving the boot marker");
 	Installer::leaveBootMarker();
 
+	this->quitApp = false;
 	this->cache = nullptr;
 	this->bg = nullptr;
 	this->menu = nullptr;
@@ -291,6 +292,7 @@ Esoteric::~Esoteric() {
 }
 
 void Esoteric::quit() {
+	this->quitApp = true;
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -313,7 +315,7 @@ void Esoteric::quit() {
 		delete this->powerManager;
 		this->powerManager = nullptr;
 	}
-	TRACE("exit\n\n");
+	TRACE("exit");
 }
 
 void Esoteric::quit_all(int err) {
@@ -450,12 +452,11 @@ void Esoteric::main() {
 		this->menu->setLinkIndex(this->config->link());
 	}
 
-	bool quit = false;
 	renderer->startPolling();
 	this->screenManager->resetTimer();
 	this->powerManager->resetTimer();
-
-	while (!quit) {
+	bool uiControlledQuit= false;
+	while (!this->quitApp) {
 		try {
 			TRACE("loop");
 			renderer->render();
@@ -486,7 +487,8 @@ void Esoteric::main() {
 		if (inputAction) {
 			if ((*this->inputManager)[QUIT] ) {
 				INFO("We got a quit request");
-				quit = true;
+				this->quitApp = true;
+				uiControlledQuit = true;
 				continue;
 			} else if ((*this->inputManager)[POWER] && this->inputManager->isOnlyActive(POWER)) {
 				this->poweroffDialog();
@@ -542,8 +544,11 @@ void Esoteric::main() {
 		renderer->stopPolling();
 		delete renderer;
 	}
+	if (uiControlledQuit) {
+		quit_all(0);
+	}
+
 	TRACE("exit");
-	quit_all(0);
 }
 
 void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
