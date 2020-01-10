@@ -103,8 +103,9 @@ bool dirExists(const string &path) {
 
 bool fileExists(const string &path) {
 	struct stat s;
-	// check both that it exists and is file
-	bool result = ( (stat(path.c_str(), &s) == 0) && s.st_mode & S_IFREG); 
+	// check both that it exists and is a file or a link
+	bool result = ( (lstat(path.c_str(), &s) == 0) && (S_ISREG(s.st_mode) || S_ISLNK(s.st_mode)) );
+	TRACE("installer - st.mode : %i", s.st_mode);
 	TRACE("file '%s' exists : %i", path.c_str(), result);
 	return result;
 }
