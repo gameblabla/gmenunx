@@ -7,14 +7,15 @@
 		* Screen off timer
 		* Power off timer
 		* Real Time Clock setting
-		* Battery reporting
+		* Battery level reporting
 
 * Fixed
 	* Default clock speed reporting for non overclocked rg350
 	* Allow zero volumes in device menu
+	* Screen tearing on rg350 and gkd350h
 
 * Improved
-	* Tear down of the app on launch
+	* Tear down of the app on link launch
 
 **1.0.6** (*Codename: Lay some skin on me*)
 * Added
