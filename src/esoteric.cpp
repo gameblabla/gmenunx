@@ -184,7 +184,8 @@ Esoteric::Esoteric() {
 	int width = config->resolutionX() < 0 ? this->hw->defaultScreenWidth() : config->resolutionX();
 	int height = config->resolutionY() < 0 ? this->hw->defaultScreenHeight() : config->resolutionY();
 	int bpp = config->videoBpp() < 0 ? this->hw->defaultScreenBPP() : config->videoBpp();
-	uint32_t flags = (0 == width == height) ? SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN : SDL_HWSURFACE|SDL_DOUBLEBUF ;
+	//uint32_t flags = (0 == width == height) ? SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_FULLSCREEN : SDL_HWSURFACE|SDL_DOUBLEBUF ;
+	uint32_t flags = (0 == width == height) ? SDL_SWSURFACE|SDL_FULLSCREEN : SDL_SWSURFACE;
 
 	TRACE("setting up SDL_SetVideoMode with - x:%i y:%i bpp:%i", 
 		width, 
@@ -1808,7 +1809,6 @@ void Esoteric::doInstall() {
 			pbInstall->finished(2000);
 			success = true;
 		} else {
-//			pbInstall->updateDetail("Install failed");
 			pbInstall->finished(2000);
 		}
 		delete installer;
