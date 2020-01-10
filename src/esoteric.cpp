@@ -107,7 +107,7 @@ int main(int argc, char * argv[]) {
 Esoteric::Esoteric() {
 
 	TRACE("leaving the boot marker");
-	Installer::leaveBootMarker();
+	Installer::setBootMarker();
 
 	this->quitApp = false;
 	this->cache = nullptr;
@@ -1808,7 +1808,7 @@ void Esoteric::doInstall() {
 			pbInstall->finished(2000);
 			success = true;
 		} else {
-			pbInstall->updateDetail("Install failed");
+//			pbInstall->updateDetail("Install failed");
 			pbInstall->finished(2000);
 		}
 		delete installer;

@@ -49,7 +49,7 @@ class Installer {
         static const bool isDefaultLauncher(const std::string &opkPath);
         static const bool removeLauncher();
         const bool deployLauncher();
-        static const bool leaveBootMarker();
+        static const bool setBootMarker();
         static const bool removeBootMarker();
         std::string binaryPath() { return this-> destinationRootPath + BINARY_NAME; }
         bool install();
