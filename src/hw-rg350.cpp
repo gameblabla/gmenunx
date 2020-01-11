@@ -29,14 +29,12 @@ HwRg350::HwRg350() : IHardware() {
 
     this->pollBacklight = fileExists(BACKLIGHT_PATH);
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
-    //this->pollVolume = fileExists(GET_VOLUME_PATH);
 
     this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
     this->supportsPowerGovernors_ = fileExists(SYSFS_CPU_SCALING_GOVERNOR);
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
-    //this->getVolumeLevel();
     this->getKeepAspectRatio();
     this->resetKeymap();
 
@@ -150,7 +148,7 @@ bool HwRg350::setCPUSpeed(uint32_t mhz) {
         return this->writeValueToFile(SYSFS_CPUFREQ_SET, value.c_str());
     }
     return false;
-};
+}
 uint32_t HwRg350::getCPUSpeed() {
     if (!this->supportsOverClocking())
         return 0;
@@ -163,7 +161,7 @@ uint32_t HwRg350::getCPUSpeed() {
 
 uint32_t HwRg350::getCpuDefaultSpeed() { 
     return this->supportsOverClocking() ? 1080 : 1000; 
-};
+}
 
 void HwRg350::ledOn(int flashSpeed) {
     TRACE("enter");
@@ -174,7 +172,7 @@ void HwRg350::ledOn(int flashSpeed) {
     procWriter(LED_DELAY_ON_PATH, limited);
     procWriter(LED_DELAY_OFF_PATH, limited);
     TRACE("exit");
-};
+}
 void HwRg350::ledOff() {
     TRACE("enter");
     std::string trigger = triggerToString(LedAllowedTriggers::NONE);
@@ -183,7 +181,7 @@ void HwRg350::ledOff() {
     procWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
     TRACE("exit");
     return;
-};
+}
 
 int HwRg350::getBatteryLevel() {
     int online, result = 0;
@@ -212,50 +210,7 @@ int HwRg350::getBatteryLevel() {
     }
     TRACE("scaled battery level : %i", result);
     return result;
-};
-
-/*
-todo :: clean me
-int HwRg350::getVolumeLevel() {
-    TRACE("enter");
-    if (this->pollVolume) {
-        int vol = -1;
-        std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
-        std::string result = exec(volPath.c_str());
-        if (result.length() > 0) {
-            vol = atoi(trim(result).c_str());
-        }
-        // scale 0 - 31, turn to percent
-        vol = ceil(vol * 100 / 31);
-        this->volumeLevel_ = vol;
-    }
-    TRACE("exit : %i", this->volumeLevel_);
-    return this->volumeLevel_;
 }
-int HwRg350::setVolumeLevel(int val) {
-    TRACE("enter - %i", val);
-    if (val < 0)
-        val = 100;
-    else if (val > 100)
-        val = 0;
-    if (val == this->volumeLevel_)
-        return val;
-
-    if (this->pollVolume) {
-        int deviceVal = (int)(val * (31.0f / 100));
-        TRACE("rg350 value : %i", deviceVal);
-        std::stringstream ss;
-        std::string cmd;
-        ss << SET_VOLUME_PATH << " " << VOLUME_ARGS << " " << deviceVal;
-        std::getline(ss, cmd);
-        TRACE("cmd : %s", cmd.c_str());
-        std::string result = exec(cmd.c_str());
-        TRACE("result : %s", result.c_str());
-    }
-    this->volumeLevel_ = val;
-    return val;
-}
-*/
 
 int HwRg350::getBacklightLevel() {
     TRACE("enter");

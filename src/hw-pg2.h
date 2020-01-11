@@ -46,12 +46,7 @@ class HwPG2 : IHardware {
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
         const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
         const std::string ALT_KEYMAP_FILE = "/sys/devices/platform/linkdev/alt_key_map";
-        /*
-        todo :: clean me
-        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume";
-        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume";
-        const std::string VOLUME_ARGS = "default PCM";
-    */
+
         const std::string SYSFS_CPUFREQ_PATH = "/sys/devices/system/cpu/cpu0/cpufreq";
         const std::string SYSFS_CPUFREQ_MAX = SYSFS_CPUFREQ_PATH + "/scaling_max_freq";
         const std::string SYSFS_CPUFREQ_SET = SYSFS_CPUFREQ_PATH + "/scaling_setspeed";
@@ -91,9 +86,6 @@ class HwPG2 : IHardware {
 
         int getBatteryLevel();
 
-/*
-        int getVolumeLevel();
-*/
         int getBacklightLevel();
         int setBacklightLevel(int val);
 

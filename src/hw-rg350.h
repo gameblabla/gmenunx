@@ -41,12 +41,7 @@ class HwRg350 : IHardware {
 		const std::string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
 		const std::string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
 		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
-/*
-todo :: clean me
-        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume";
-        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume";
-        const std::string VOLUME_ARGS = "default PCM";
-*/
+
         const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
@@ -91,10 +86,7 @@ todo :: clean me
         void ledOff();
 
         int getBatteryLevel();
-/*
-        int getVolumeLevel();
-        int setVolumeLevel(int val);
-*/
+
         int getBacklightLevel();
         int setBacklightLevel(int val);
 

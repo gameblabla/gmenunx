@@ -182,26 +182,6 @@ void HwPG2::ledOff() {
     return;
 }
 
-/*
-todo :: clean me
-int HwPG2::getVolumeLevel() {
-    TRACE("enter");
-    if (this->pollVolume) {
-        int vol = -1;
-        std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
-        std::string result = exec(volPath.c_str());
-        if (result.length() > 0) {
-            vol = atoi(trim(result).c_str());
-        }
-        // scale 0 - 31, turn to percent
-        vol = ceil(vol * 100 / 31);
-        this->volumeLevel_ = vol;
-    }
-    TRACE("exit : %i", this->volumeLevel_);
-    return this->volumeLevel_;
-}
-*/
-
 int HwPG2::getBatteryLevel() {
     int online, result = 0;
     if (!this->pollBatteries)
