@@ -34,8 +34,7 @@ using namespace std;
 
 const string PREVIEWS_DIR = ".previews";
 
-Selector::Selector(Esoteric *app, LinkApp *link, const string &selectorDir) :
-Dialog(app) {
+Selector::Selector(Esoteric *app, LinkApp *link, const string &selectorDir) : Dialog(app) {
 	TRACE("enter : %s", selectorDir.c_str());
 	this->link = link;
 	loadAliases();
@@ -66,7 +65,6 @@ int Selector::exec(int startSelection) {
 	this->tickStart = SDL_GetTicks();
 	this->animation = 0;
 	this->firstElement = 0;
-	this->favourited = false;
 
 	uint32_t i, iY, padding = 6;
 	uint32_t rowHeight = app->font->getHeight() + 1;
@@ -313,9 +311,8 @@ int Selector::exec(int startSelection) {
 				// favourite
 				if (fl.isFile(selected)) {
 					TRACE("Favourite : %s", fl[selected].c_str());
-					this->favourited = true;
 					file = fl[selected];
-					close = true;
+					this->link->makeFavourite(this->dir, file);
 				}
 			}
 		} while (!inputAction);

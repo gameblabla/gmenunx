@@ -95,6 +95,7 @@ public:
 	bool save();
 	void run();
 	void makeFavourite();
+	void makeFavourite(std::string dir, std::string file);
 
 	// void showManual();
 	void selector(int startSelection=0, const std::string &selectorDir="");

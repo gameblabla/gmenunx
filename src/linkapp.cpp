@@ -374,6 +374,12 @@ void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
 	TRACE("exit");
 }
 
+void LinkApp::makeFavourite(std::string dir, std::string file) {
+	TRACE("enter");
+	std::string launchArgs = this->resolveArgs(file, dir);
+	this->favourite(launchArgs, file);
+}
+
 void LinkApp::makeFavourite() {
 	TRACE("enter");
 	std::string launchArgs = this->resolveArgs();
@@ -422,19 +428,10 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	int selection = sel.exec(startSelection);
 	// we got a file
 	if (selection != -1) {
-
 		std::string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
 		this->app->config->launcherPath(sel.getDir());
-
-		if (sel.isFavourited()) {
-			TRACE("we're saving a favourite");
-			std::string romFile = sel.getDir() + sel.getFile();
-			TRACE("launchArgs : %s, romFile : %s", launchArgs.c_str(), romFile.c_str());
-			favourite(launchArgs, romFile);
-		} else {
-			this->app->writeTmp(selection, sel.getDir());
-			launch(launchArgs);
-		}
+		this->app->writeTmp(selection, sel.getDir());
+		launch(launchArgs);
 	}
 }
 
