@@ -65,6 +65,11 @@
 	Backlight       pwm1
 	Rumble          pwm4
 	Power LED       JZ_GPIO_PORTB(30)
+
+	# pg2 changes L2 and R2
+
+	L2 SDLK_RSHIFT		= 303,
+	R2 SDLK_RALT		= 307,
 	
 */
 
