@@ -27,7 +27,7 @@ Installer::~Installer() {
     TRACE("enter");
 }
 
-bool Installer::install() {
+bool Installer::install(IHardware * hw) {
     TRACE("enter");
     bool result = false;
     if (!dirExists(this->destinationRootPath)) {
@@ -42,6 +42,15 @@ bool Installer::install() {
             result = this->setBinaryPermissions();
         }
     }
+
+    // hardware specific files
+    std::string fileName = hw->inputFile();
+    this->notify("file: " + fileName);
+    std::string source = this->sourceRootPath + "input/" + fileName;
+    std::string destination = this->destinationRootPath + "input.conf";
+    if (!copyFile(source, destination)) 
+        return false;
+	
     TRACE("exit : %i", result);
     return result;
 }

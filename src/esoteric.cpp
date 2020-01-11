@@ -243,13 +243,7 @@ Esoteric::Esoteric() {
 	TRACE("inputManager");
 	std::string inputFile = this->getWriteablePath() + "input.conf";
 	if (!fileExists(inputFile)) {
-		if (this->needsInstalling) {
-			inputFile = this->getReadablePath() + "input/" + this->hw->inputFile();
-		} else {
-			std::string originFile = this->getReadablePath() + "input/" + this->hw->inputFile();
-			TRACE("copying device input file from '%s' to '%s'", originFile.c_str(), inputFile.c_str());
-			copyFile(originFile, inputFile);
-		}
+		inputFile = this->getReadablePath() + "input/" + this->hw->inputFile();
 	}
 	this->inputManager = new InputManager((*screenManager), (*powerManager));
 	this->inputManager->init(inputFile, this->config->buttonRepeatRate());
@@ -378,7 +372,7 @@ void Esoteric::main() {
 	bool showGreeting = false;
 	std::string title = "Please wait, loading...";
 	if (this->needsInstalling) {
-		if(dirExists(this->getWriteablePath())) {
+		if (dirExists(this->getWriteablePath())) {
 			title = "Please wait, upgrading your installation";
 			this->doUpgrade();
 		} else {
@@ -1874,7 +1868,7 @@ bool Esoteric::doInitialSetup() {
 		destination, 
 		[&](std::string message){ return pbInstall->updateDetail(message); });
 
-	if (installer->install()) {
+	if (installer->install(this->hw)) {
 		TRACE("changing paths to : %s", destination.c_str());
 		this->config->changePath(destination);
 		this->skin->changePath(destination);

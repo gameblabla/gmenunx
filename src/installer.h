@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "constants.h"
+#include "hw-ihardware.h"
 
 class Installer {
 
@@ -52,7 +53,7 @@ class Installer {
         static const bool setBootMarker();
         static const bool removeBootMarker();
         std::string binaryPath() { return this-> destinationRootPath + BINARY_NAME; }
-        bool install();
+        bool install(IHardware * hw);
         bool upgrade();
 
 };
