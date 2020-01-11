@@ -6,11 +6,12 @@
 #include "utilities.h"
 
 #include "hwfactory.h"
-#include "ihardware.h"
-#include "generic.h"
-#include "gkd350h.h"
-#include "linux.h"
-#include "rg350.h"
+#include "hw-ihardware.h"
+#include "hw-generic.h"
+#include "hw-gkd350h.h"
+#include "hw-linux.h"
+#include "hw-pg2.h"
+#include "hw-rg350.h"
 
 IHardware* HwFactory::GetHardware(std::string device) {
     TRACE("enter : %s", device.c_str());
@@ -23,7 +24,7 @@ IHardware* HwFactory::GetHardware(std::string device) {
     } else if (0 == device.compare("linux")) {
         return (IHardware*)new HwLinux();
     } else if (0 == device.compare("pg2")) {
-        return (IHardware*)new HwGeneric();
+        return (IHardware*)new HwPG2();
     } else if (0 == device.compare("retrofw")) {
         return (IHardware*)new HwGeneric();
     } else if (0 == device.compare("rg350")) {
@@ -66,7 +67,7 @@ std::string HwFactory::readDeviceType() {
                 return "rg350";
             } else if (0 == value.compare("v11_ddr2_256mb")) {
                 return "gcw0";
-            } else if (0 == value.compare("v20_mddr_512mb")) {
+            } else if (0 == value.compare("v20_mddr_512mb")) { 
                 return "pg2";
             }
             break;

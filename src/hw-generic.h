@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 
-#include "ihardware.h"
+#include "hw-ihardware.h"
 #include "sysclock.h"
 #include "constants.h"
 
@@ -44,8 +44,6 @@ class HwGeneric : IHardware {
         void ledOff();
 
         int getBatteryLevel();
-        int getVolumeLevel();
-        int setVolumeLevel(int val);
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

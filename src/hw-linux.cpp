@@ -5,14 +5,19 @@
 #include <unordered_map>
 #include <vector>
 
-#include "linux.h"
+#include "hw-linux.h"
 #include "sysclock.h"
 
-HwLinux::HwLinux() {
+HwLinux::HwLinux() : IHardware() {
     this->performanceModes_.insert({"ondemand", "On demand"});
     this->performanceModes_.insert({"performance", "Performance"});
 
     this->clock_ = new SysClock();
+
+    this->getBacklightLevel();
+    this->getVolumeLevel();
+    this->getKeepAspectRatio();
+
 }
 HwLinux::~HwLinux() {
     delete this->clock_;
@@ -75,9 +80,6 @@ void HwLinux::ledOn(int flashSpeed) { return; };
 void HwLinux::ledOff() { return; };
 
 int HwLinux::getBatteryLevel() { return 100; };
-int HwLinux::getVolumeLevel() { return 100; };
-int HwLinux::setVolumeLevel(int val) { return val; };
-;
 
 int HwLinux::getBacklightLevel() { return 100; };
 int HwLinux::setBacklightLevel(int val) { return val; };

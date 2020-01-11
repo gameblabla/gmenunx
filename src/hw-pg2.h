@@ -1,15 +1,15 @@
-#ifndef _HWRG350_
-#define _HWRG350_
+#ifndef _HwPG2_
+#define _HwPG2_
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "ihardware.h"
+#include "hw-ihardware.h"
 #include "rtc.h"
 #include "constants.h"
 
-class HwRg350 : IHardware {
+class HwPG2 : IHardware {
 
     private:
 
@@ -18,7 +18,6 @@ class HwRg350 : IHardware {
 			TIMER
 		};
 
-        bool writeValueToFile(const std::string &path, const char *content);
         void resetKeymap();
 
         RTC * clock_;
@@ -26,12 +25,10 @@ class HwRg350 : IHardware {
 		std::string ledMaxBrightness_;
         std::string performanceMode_ = "ondemand";
         const std::string defaultPerformanceMode = "ondemand";
-        int volumeLevel_ = 0;
         int backlightLevel_ = 0;
         bool keepAspectRatio_ = false;
         bool pollBacklight = false;
         bool pollBatteries = false;
-        bool pollVolume = false;
         bool supportsOverclocking_ = false;
         bool supportsPowerGovernors_ = false;
 
@@ -42,9 +39,6 @@ class HwRg350 : IHardware {
 		const std::string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
 		const std::string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
 		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
-        const std::string GET_VOLUME_PATH = "/usr/bin/alsa-getvolume";
-        const std::string SET_VOLUME_PATH = "/usr/bin/alsa-setvolume";
-        const std::string VOLUME_ARGS = "default PCM";
         const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
@@ -64,8 +58,8 @@ class HwRg350 : IHardware {
     protected:
 
      public:
-        HwRg350();
-        ~HwRg350();
+        HwPG2();
+        ~HwPG2();
 
         IClock * Clock();
 
@@ -89,9 +83,6 @@ class HwRg350 : IHardware {
 
         int getBatteryLevel();
 
-        int getVolumeLevel();
-        int setVolumeLevel(int val);
-
         int getBacklightLevel();
         int setBacklightLevel(int val);
 
@@ -106,7 +97,7 @@ class HwRg350 : IHardware {
 
         std::string systemInfo();
 
-        std::string inputFile() { return "rg350.input.conf"; };
+        std::string inputFile() { return "pg2.input.conf"; };
 };
 
 #endif

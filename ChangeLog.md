@@ -1,13 +1,31 @@
 ## Changelog
 
-**1.0.7** (*Codename: In the mix*)
+**1.0.7** (*Codename: Meet the family*)
 * Added
-	* ALSA Mixer for RG350
+	* RG350
+		* ALSA Mixer
+		* Console apps in general
 	* GKD350H
+		* All standard opk / launcher functionality
+		* Key mappings
+		* Power off and reboot
 		* Screen off timer
 		* Power off timer
+		* Screen brightness
 		* Real Time Clock setting
 		* Battery level reporting
+		* Volume level adjust and reporting
+	* PocketGo 2
+		* All standard opk / launcher functionality
+		* CPU performance guvernor (on demand / performance)
+		* Key mappings
+		* Power off and reboot
+		* Screen off timer
+		* Power off timer
+		* Battery level reporting
+		* Brightness control
+		* Led control
+		* Volume level adjust and reporting
 
 * Fixed
 	* Default clock speed reporting for non overclocked rg350

@@ -3,10 +3,10 @@
 #include <math.h>
 
 #include "constants.h"
-#include "gkd350h.h"
+#include "hw-gkd350h.h"
 #include "sysclock.h"
 
-HwGkd350h::HwGkd350h() {
+HwGkd350h::HwGkd350h() : IHardware() {
     TRACE("enter");
 
     this->BLOCK_DEVICE = "/sys/block/mmcblk1/size";
@@ -16,14 +16,18 @@ HwGkd350h::HwGkd350h() {
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
     this->clock_ = new RTC();
-    this->pollVolume = fileExists(GET_VOLUME_PATH);
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
+    this->pollBacklight = fileExists(BACKLIGHT_PATH);
 
     this->getBacklightLevel();
     this->getVolumeLevel();
     this->getKeepAspectRatio();
     this->resetKeymap();
 
+    TRACE(
+        "brightness - current : %i, volume : %i",
+        this->backlightLevel_,
+        this->volumeLevel_);
     TRACE("exit");
 }
 
@@ -91,31 +95,39 @@ int HwGkd350h::getBatteryLevel() {
     return result;
 }
 
-int HwGkd350h::getVolumeLevel() {
+int HwGkd350h::getBacklightLevel() {
     TRACE("enter");
-    if (this->pollVolume) {
-        int vol = -1;
-        std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
-        std::string result = exec(volPath.c_str());
+    if (this->pollBacklight) {
+        int level = 0;
+        //force  scale 0 - 100
+        std::string result = fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
-            vol = atoi(trim(result).c_str());
+            level = ceil(atoi(trim(result).c_str()));
         }
-        // scale 0 - 31, turn to percent
-        vol = ceil(vol * 100 / 31);
-        this->volumeLevel_ = vol;
+        this->backlightLevel_ = level;
     }
-    TRACE("exit : %i", this->volumeLevel_);
-    return this->volumeLevel_;
+    TRACE("exit : %i", this->backlightLevel_);
+    return this->backlightLevel_;
 }
 
-int HwGkd350h::setVolumeLevel(int val) {
+int HwGkd350h::setBacklightLevel(int val) {
     TRACE("enter - %i", val);
-    return val;
-}
+    // wrap it
+    if (val <= 0)
+        val = 100;
+    else if (val > 100)
+        val = 0;
+    if (val == this->backlightLevel_)
+        return val;
 
-int HwGkd350h::getBacklightLevel() { return 100; }
-
-int HwGkd350h::setBacklightLevel(int val) { return val; }
+    if (procWriter(BACKLIGHT_PATH, val)) {
+        TRACE("success");
+    } else {
+        ERROR("Couldn't update backlight value to : %i", val);
+    }
+    this->backlightLevel_ = val;
+    return this->backlightLevel_;
+ }
 
 bool HwGkd350h::getKeepAspectRatio() { return true; }
 
@@ -132,21 +144,4 @@ bool HwGkd350h::setScreenState(const bool &enable) {
 
 void HwGkd350h::resetKeymap() {
     this->writeValueToFile(ALT_KEYMAP_FILE, "N");
-}
-
-bool HwGkd350h::writeValueToFile(const std::string & path, const char *content) {
-    bool result = false;
-    int fd = open(path.c_str(), O_RDWR);
-    if (fd == -1) {
-        WARNING("Failed to open '%s': %s", path.c_str(), strerror(errno));
-    } else {
-        ssize_t written = write(fd, content, strlen(content));
-        if (written == -1) {
-            WARNING("Error writing '%s': %s", path.c_str(), strerror(errno));
-        } else {
-            result = true;
-        }
-        close(fd);
-    }
-    return result;
 }

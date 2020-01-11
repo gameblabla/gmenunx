@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "constants.h"
-#include "generic.h"
+#include "hw-generic.h"
 #include "sysclock.h"
 
 std::string HwGeneric::performanceModeMap(std::string fromInternal) {
@@ -18,15 +18,15 @@ std::string HwGeneric::performanceModeMap(std::string fromInternal) {
     return "On demand";
 }
 
-HwGeneric::HwGeneric() {
+HwGeneric::HwGeneric() : IHardware() {
     this->performanceModes_.insert({"ondemand", "On demand"});
     this->performanceModes_.insert({"performance", "Performance"});
 
     this->clock_ = new SysClock();
-};
+}
 HwGeneric::~HwGeneric() {
     delete this->clock_;
-};
+}
 
 IClock *HwGeneric::Clock() { return (IClock *)this->clock_; };
 
@@ -86,9 +86,6 @@ void HwGeneric::ledOn(int flashSpeed) { return; };
 void HwGeneric::ledOff() { return; };
 
 int HwGeneric::getBatteryLevel() { return IHardware::BATTERY_CHARGING; };
-int HwGeneric::getVolumeLevel() { return 100; };
-int HwGeneric::setVolumeLevel(int val) { return val; };
-;
 
 int HwGeneric::getBacklightLevel() { return 100; };
 int HwGeneric::setBacklightLevel(int val) { return val; };

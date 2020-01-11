@@ -1,4 +1,3 @@
-
 #include <math.h>
 #include <string.h>
 #include <algorithm>
@@ -9,10 +8,10 @@
 
 #include "constants.h"
 #include "debug.h"
-#include "rg350.h"
+#include "hw-pg2.h"
 #include "rtc.h"
 
-HwRg350::HwRg350() {
+HwPG2::HwPG2() : IHardware() {
     TRACE("enter");
     this->BLOCK_DEVICE = "/sys/block/mmcblk1/size";
     this->INTERNAL_MOUNT_DEVICE = "/dev/mmcblk0";
@@ -28,7 +27,6 @@ HwRg350::HwRg350() {
 
     this->pollBacklight = fileExists(BACKLIGHT_PATH);
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
-    this->pollVolume = fileExists(GET_VOLUME_PATH);
 
     this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
     this->supportsPowerGovernors_ = fileExists(SYSFS_CPU_SCALING_GOVERNOR);
@@ -45,23 +43,23 @@ HwRg350::HwRg350() {
         this->backlightLevel_,
         this->volumeLevel_);
 }
-HwRg350::~HwRg350() {
+HwPG2::~HwPG2() {
     delete this->clock_;
     this->ledOff();
 }
 
-IClock *HwRg350::Clock() { return (IClock *)this->clock_; };
+IClock *HwPG2::Clock() { return (IClock *)this->clock_; };
 
-bool HwRg350::getTVOutStatus() { return 0; };
-std::string HwRg350::getTVOutMode() { return "OFF"; }
-void HwRg350::setTVOutMode(std::string mode) {
+bool HwPG2::getTVOutStatus() { return 0; };
+std::string HwPG2::getTVOutMode() { return "OFF"; }
+void HwPG2::setTVOutMode(std::string mode) {
     std::string val = mode;
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
 
-bool HwRg350::supportsPowerGovernors() { return this->supportsPowerGovernors_; }
+bool HwPG2::supportsPowerGovernors() { return this->supportsPowerGovernors_; }
 
-std::string HwRg350::getPerformanceMode() {
+std::string HwPG2::getPerformanceMode() {
     TRACE("enter");
     this->performanceMode_ = "ondemand";
     if (this->supportsPowerGovernors_) {
@@ -72,7 +70,7 @@ std::string HwRg350::getPerformanceMode() {
     }
     return this->performanceModeMap(this->performanceMode_);
 }
-void HwRg350::setPerformanceMode(std::string alias) {
+void HwPG2::setPerformanceMode(std::string alias) {
     TRACE("raw desired : %s", alias.c_str());
     if (!this->supportsPowerGovernors_)
         return;
@@ -99,7 +97,7 @@ void HwRg350::setPerformanceMode(std::string alias) {
     }
     TRACE("exit");
 }
-std::vector<std::string> HwRg350::getPerformanceModes() {
+std::vector<std::string> HwPG2::getPerformanceModes() {
     std::vector<std::string> results;
     if (this->supportsPowerGovernors_) {
         std::unordered_map<std::string, std::string>::iterator it;
@@ -110,11 +108,11 @@ std::vector<std::string> HwRg350::getPerformanceModes() {
     return results;
 }
 
-bool HwRg350::supportsOverClocking() {
+bool HwPG2::supportsOverClocking() {
     return this->supportsOverclocking_;
 }
 
-bool HwRg350::setCPUSpeed(uint32_t mhz) {
+bool HwPG2::setCPUSpeed(uint32_t mhz) {
     TRACE("enter : %i", mhz);
     if (!this->supportsOverClocking())
         return false;
@@ -144,8 +142,8 @@ bool HwRg350::setCPUSpeed(uint32_t mhz) {
         return this->writeValueToFile(SYSFS_CPUFREQ_SET, value.c_str());
     }
     return false;
-};
-uint32_t HwRg350::getCPUSpeed() {
+}
+uint32_t HwPG2::getCPUSpeed() {
     if (!this->supportsOverClocking())
         return 0;
 
@@ -155,11 +153,11 @@ uint32_t HwRg350::getCPUSpeed() {
     return result;
 }
 
-uint32_t HwRg350::getCpuDefaultSpeed() { 
+uint32_t HwPG2::getCpuDefaultSpeed() { 
     return this->supportsOverClocking() ? 1080 : 1000; 
-};
+}
 
-void HwRg350::ledOn(int flashSpeed) {
+void HwPG2::ledOn(int flashSpeed) {
     TRACE("enter");
     int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
     std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
@@ -168,8 +166,8 @@ void HwRg350::ledOn(int flashSpeed) {
     procWriter(LED_DELAY_ON_PATH, limited);
     procWriter(LED_DELAY_OFF_PATH, limited);
     TRACE("exit");
-};
-void HwRg350::ledOff() {
+}
+void HwPG2::ledOff() {
     TRACE("enter");
     std::string trigger = triggerToString(LedAllowedTriggers::NONE);
     TRACE("mode : %s", trigger.c_str());
@@ -177,9 +175,9 @@ void HwRg350::ledOff() {
     procWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
     TRACE("exit");
     return;
-};
+}
 
-int HwRg350::getBatteryLevel() {
+int HwPG2::getBatteryLevel() {
     int online, result = 0;
     if (!this->pollBatteries)
         return result;
@@ -206,49 +204,9 @@ int HwRg350::getBatteryLevel() {
     }
     TRACE("scaled battery level : %i", result);
     return result;
-};
+}
 
-int HwRg350::getVolumeLevel() {
-    TRACE("enter");
-    if (this->pollVolume) {
-        int vol = -1;
-        std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
-        std::string result = exec(volPath.c_str());
-        if (result.length() > 0) {
-            vol = atoi(trim(result).c_str());
-        }
-        // scale 0 - 31, turn to percent
-        vol = ceil(vol * 100 / 31);
-        this->volumeLevel_ = vol;
-    }
-    TRACE("exit : %i", this->volumeLevel_);
-    return this->volumeLevel_;
-};
-int HwRg350::setVolumeLevel(int val) {
-    TRACE("enter - %i", val);
-    if (val < 0)
-        val = 100;
-    else if (val > 100)
-        val = 0;
-    if (val == this->volumeLevel_)
-        return val;
-
-    if (this->pollVolume) {
-        int rg350val = (int)(val * (31.0f / 100));
-        TRACE("rg350 value : %i", rg350val);
-        std::stringstream ss;
-        std::string cmd;
-        ss << SET_VOLUME_PATH << " " << VOLUME_ARGS << " " << rg350val;
-        std::getline(ss, cmd);
-        TRACE("cmd : %s", cmd.c_str());
-        std::string result = exec(cmd.c_str());
-        TRACE("result : %s", result.c_str());
-    }
-    this->volumeLevel_ = val;
-    return val;
-};
-
-int HwRg350::getBacklightLevel() {
+int HwPG2::getBacklightLevel() {
     TRACE("enter");
     if (this->pollBacklight) {
         int level = 0;
@@ -256,34 +214,37 @@ int HwRg350::getBacklightLevel() {
         std::string result = fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
             level = ceil(atoi(trim(result).c_str()) / 2.55);
+            //level = (level * -1) + 100;
         }
         this->backlightLevel_ = level;
     }
     TRACE("exit : %i", this->backlightLevel_);
     return this->backlightLevel_;
 }
-int HwRg350::setBacklightLevel(int val) {
+int HwPG2::setBacklightLevel(int val) {
     TRACE("enter - %i", val);
     // wrap it
     if (val <= 0)
         val = 100;
     else if (val > 100)
         val = 0;
-    int rg350val = (int)(val * (255.0f / 100));
-    TRACE("rg350 value : %i", rg350val);
-    if (rg350val == this->backlightLevel_)
+    if (val == this->backlightLevel_)
         return val;
 
-    if (procWriter(BACKLIGHT_PATH, rg350val)) {
+    int localVal = (int)(val * (255.0f / 100));
+    //localVal = (localVal * -1) + 100;
+    TRACE("device value : %i", localVal);
+
+    if (procWriter(BACKLIGHT_PATH, localVal)) {
         TRACE("success");
     } else {
-        ERROR("Couldn't update backlight value to : %i", rg350val);
+        ERROR("Couldn't update backlight value to : %i", localVal);
     }
     this->backlightLevel_ = val;
     return this->backlightLevel_;
 }
 
-bool HwRg350::getKeepAspectRatio() {
+bool HwPG2::getKeepAspectRatio() {
     TRACE("enter");
     if (fileExists(ASPECT_RATIO_PATH)) {
         std::string result = fileReader(ASPECT_RATIO_PATH);
@@ -297,7 +258,7 @@ bool HwRg350::getKeepAspectRatio() {
     TRACE("exit : %i", this->keepAspectRatio_);
     return this->keepAspectRatio_;
 }
-bool HwRg350::setKeepAspectRatio(bool val) {
+bool HwPG2::setKeepAspectRatio(bool val) {
     TRACE("enter - %i", val);
     std::string payload = val ? "Y" : "N";
     if (procWriter(ASPECT_RATIO_PATH, payload)) {
@@ -309,16 +270,16 @@ bool HwRg350::setKeepAspectRatio(bool val) {
     return this->keepAspectRatio_;
 }
 
-std::string HwRg350::getDeviceType() { return "RG-350"; }
+std::string HwPG2::getDeviceType() { return "PocketGo 2"; }
 
-bool HwRg350::setScreenState(const bool &enable) {
+bool HwPG2::setScreenState(const bool &enable) {
     TRACE("enter : %s", (enable ? "on" : "off"));
     const char *path = SCREEN_BLANK_PATH.c_str();
     const char *blank = enable ? "0" : "1";
     return this->writeValueToFile(path, blank);
 }
 
-std::string HwRg350::systemInfo() {
+std::string HwPG2::systemInfo() {
     TRACE("append - command /usr/bin/system_info");
     if (fileExists("/usr/bin/system_info")) {
         return execute("/usr/bin/system_info") + "\n";
@@ -326,7 +287,7 @@ std::string HwRg350::systemInfo() {
     return IHardware::systemInfo();
 }
 
-std::string HwRg350::performanceModeMap(std::string fromInternal) {
+std::string HwPG2::performanceModeMap(std::string fromInternal) {
     std::unordered_map<std::string, std::string>::iterator it;
     for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
         if (fromInternal == it->first) {
@@ -337,7 +298,7 @@ std::string HwRg350::performanceModeMap(std::string fromInternal) {
     return "On demand";
 }
 
-std::string HwRg350::triggerToString(LedAllowedTriggers t) {
+std::string HwPG2::triggerToString(LedAllowedTriggers t) {
     TRACE("mode : %i", t);
     switch (t) {
         case TIMER:
@@ -349,23 +310,6 @@ std::string HwRg350::triggerToString(LedAllowedTriggers t) {
     };
 }
 
-void HwRg350::resetKeymap() {
+void HwPG2::resetKeymap() {
     this->writeValueToFile(ALT_KEYMAP_FILE, "N");
-}
-
-bool HwRg350::writeValueToFile(const std::string & path, const char *content) {
-    bool result = false;
-    int fd = open(path.c_str(), O_RDWR);
-    if (fd == -1) {
-        WARNING("Failed to open '%s': %s", path.c_str(), strerror(errno));
-    } else {
-        ssize_t written = write(fd, content, strlen(content));
-        if (written == -1) {
-            WARNING("Error writing '%s': %s", path.c_str(), strerror(errno));
-        } else {
-            result = true;
-        }
-        close(fd);
-    }
-    return result;
 }

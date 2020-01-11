@@ -1,6 +1,7 @@
 # Esoteric
 
-[Esoteric](https://github.com/podulator/esoteric/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the ANBERNICRG-350 - (hence 350teric), released under the GNU GPL license v2.
+[Esoteric](https://github.com/podulator/esoteric/) is a fork of [GMenu2X](http://mtorromeo.github.com/gmenu2x) developed for the ANBERNIC RG-350 - (hence 350teric), released under the GNU GPL license v2.
+It also supports the GKD350H and the PocketGo 2.
 
 View releases [changelog](ChangeLog.md).
 
@@ -10,7 +11,9 @@ Copy the latest [Release](https://github.com/podulator/esoteric/releases/) opk t
 
 If you decide you want to install it, there is an option to do that in the Settings menu.
 You can uninstall it as the default launcher the same way.
-The 'update' option shows if you have installed 350teric, and copies all missing files over to recover or update what it can.
+
+The 'update' option shows if you have installed 350teric but are running from a new opk. 
+It overwrites the binary, the manual, and the settings file, and replaces any missing files in subfolders.
 
 ## Controls
 
@@ -64,7 +67,7 @@ In settings:
   - Button repeat toggle and speed
   - Volume level
   - Aspect ratio control
-  - Option to apply volume and brightness on first boot, in Settings menu
+  - Option to apply volume and brightness settings on first boot
 
 Access these options in the Device menu
 
@@ -88,6 +91,8 @@ Helper icons (battery level, brightness, volume etc) have an auto fluid layout t
 In single row mode the scroll bar is force hidden.
 
 In single column mode, with no cions, the text aligns centre.
+
+You can have a 1st run animation and sound splash screen by using the skins/loader folder. See the minimal skin for an example. 
 
 - The rest is WIP
 

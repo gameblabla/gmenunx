@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <sys/soundcard.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -33,6 +34,12 @@ class IHardware {
 
     protected:
 
+        int volumeLevel_ = 0;
+
+        bool pollVolume = true;
+        const std::string GET_VOLUME_PATH = "/dev/mixer";
+        const std::string SET_VOLUME_PATH = "/dev/mixer";
+
         std::vector<uint32_t> cpuSpeeds_;
         int16_t curMMCStatus;
         std::string BLOCK_DEVICE;
@@ -41,12 +48,33 @@ class IHardware {
         std::string EXTERNAL_MOUNT_POINT;
         std::string EXTERNAL_MOUNT_FORMAT;// = "auto";
 
+        bool writeValueToFile(const std::string & path, const char *content) {
+            bool result = false;
+            int fd = open(path.c_str(), O_RDWR);
+            if (fd == -1) {
+                WARNING("Failed to open '%s': %s", path.c_str(), strerror(errno));
+            } else {
+                ssize_t written = write(fd, content, strlen(content));
+                if (written == -1) {
+                    WARNING("Error writing '%s': %s", path.c_str(), strerror(errno));
+                } else {
+                    result = true;
+                }
+                close(fd);
+            }
+            return result;
+        }
+
     public:
 
         static const int BATTERY_CHARGING = 6;
         enum CARD_STATUS:int16_t {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
+
+        IHardware() {
+            this->pollVolume = fileExists(GET_VOLUME_PATH);
+        }
 
         virtual IClock * Clock() = 0;
 
@@ -91,8 +119,49 @@ class IHardware {
         /*!
         Gets or sets the devices volume level, scale 0 - 100
         */
-        virtual int getVolumeLevel() = 0;
-        virtual int setVolumeLevel(int val) = 0;
+        virtual int getVolumeLevel() {
+            TRACE("enter");
+
+            if (this->pollVolume) {
+                int volume = -1;
+                long soundDev = open(GET_VOLUME_PATH.c_str(), O_RDONLY);
+                if (soundDev) {
+                    TRACE("opened file handle successfully");
+                    ioctl (soundDev, SOUND_MIXER_READ_VOLUME, & volume);
+                    close (soundDev);
+                    if (volume != -1) {
+                        // return only left channel value
+                        this->volumeLevel_ = ((volume) & 0xff);
+                    } else {
+                        TRACE("couldn't read value");
+                    }
+                }
+            }
+
+            TRACE("exit : %i", this->volumeLevel_);
+            return this->volumeLevel_;
+        };
+        virtual int setVolumeLevel(int val) {
+            TRACE("enter : %i", val);
+            if (val < 0) val = 0;
+            if (val > 100) val = 100;
+            if (val == this->volumeLevel_)
+                return val;
+            long soundDev = open(SET_VOLUME_PATH.c_str(), O_RDWR | O_NONBLOCK);
+            if (soundDev) {
+                // balance left and right channels to same value
+                int volume = val | (val << 8);
+                TRACE("writing ioctl value %i to '%s'", volume, SET_VOLUME_PATH.c_str());
+                ioctl (soundDev, SOUND_MIXER_WRITE_VOLUME, &volume);
+                close (soundDev);
+                TRACE("new sound level written to ioctl");
+                this->volumeLevel_ = val;
+            } else {
+                TRACE("couldn't open handle to '%s'", SET_VOLUME_PATH.c_str());
+            }
+            TRACE("exit : %i", this->volumeLevel_);
+            return this->volumeLevel_;
+        };
 
         /*!
         Gets or sets the devices backlight level, scale 0 - 100
