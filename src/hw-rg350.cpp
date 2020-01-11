@@ -21,6 +21,7 @@ HwRg350::HwRg350() : IHardware() {
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
     this->clock_ = new RTC();
+    this->soundcard_ = new AlsaSoundcard("default", "PCM");
 
     this->ledMaxBrightness_ = fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
     this->performanceModes_.insert({"ondemand", "On demand"});
@@ -28,29 +29,34 @@ HwRg350::HwRg350() : IHardware() {
 
     this->pollBacklight = fileExists(BACKLIGHT_PATH);
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
-    this->pollVolume = fileExists(GET_VOLUME_PATH);
+    //this->pollVolume = fileExists(GET_VOLUME_PATH);
 
     this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
     this->supportsPowerGovernors_ = fileExists(SYSFS_CPU_SCALING_GOVERNOR);
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
-    this->getVolumeLevel();
+    //this->getVolumeLevel();
     this->getKeepAspectRatio();
     this->resetKeymap();
 
     TRACE(
-        "brightness - max : %s, current : %i, volume : %i",
-        ledMaxBrightness_.c_str(),
-        this->backlightLevel_,
-        this->volumeLevel_);
+        "brightness: %i, volume : %i",
+        this->getBacklightLevel(),
+        this->soundcard_->getVolume());
 }
 HwRg350::~HwRg350() {
     delete this->clock_;
+    delete this->soundcard_;
     this->ledOff();
 }
 
-IClock *HwRg350::Clock() { return (IClock *)this->clock_; };
+IClock *HwRg350::Clock() {
+    return (IClock *)this->clock_;
+}
+ISoundcard *HwRg350::Soundcard() {
+    return (ISoundcard *)this->soundcard_;
+}
 
 bool HwRg350::getTVOutStatus() { return 0; };
 std::string HwRg350::getTVOutMode() { return "OFF"; }
@@ -208,6 +214,8 @@ int HwRg350::getBatteryLevel() {
     return result;
 };
 
+/*
+todo :: clean me
 int HwRg350::getVolumeLevel() {
     TRACE("enter");
     if (this->pollVolume) {
@@ -223,7 +231,7 @@ int HwRg350::getVolumeLevel() {
     }
     TRACE("exit : %i", this->volumeLevel_);
     return this->volumeLevel_;
-};
+}
 int HwRg350::setVolumeLevel(int val) {
     TRACE("enter - %i", val);
     if (val < 0)
@@ -246,7 +254,8 @@ int HwRg350::setVolumeLevel(int val) {
     }
     this->volumeLevel_ = val;
     return val;
-};
+}
+*/
 
 int HwRg350::getBacklightLevel() {
     TRACE("enter");

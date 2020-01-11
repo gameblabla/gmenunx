@@ -13,6 +13,8 @@ private:
     int interval_;
     bool finished_;
     bool locked_;
+    bool polling_;
+    
     Esoteric *app;
 
 	std::string prevBackdrop;

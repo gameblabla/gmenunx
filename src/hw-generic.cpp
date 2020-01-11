@@ -23,14 +23,25 @@ HwGeneric::HwGeneric() : IHardware() {
     this->performanceModes_.insert({"performance", "Performance"});
 
     this->clock_ = new SysClock();
+    this->soundcard_ = new DummySoundcard();
+    TRACE(
+        "brightness: %i, volume : %i",
+        this->getBacklightLevel(),
+        this->soundcard_->getVolume());
 }
 HwGeneric::~HwGeneric() {
     delete this->clock_;
+    delete this->soundcard_;
 }
 
-IClock *HwGeneric::Clock() { return (IClock *)this->clock_; };
+IClock *HwGeneric::Clock() {
+    return (IClock *)this->clock_; 
+}
+ISoundcard *HwGeneric::Soundcard() {
+    return (ISoundcard *)this->soundcard_;
+}
 
-bool HwGeneric::getTVOutStatus() { return 0; };
+bool HwGeneric::getTVOutStatus() { return 0; }
 std::string HwGeneric::getTVOutMode() { return "OFF"; }
 void HwGeneric::setTVOutMode(std::string mode) {
     std::string val = mode;
@@ -77,22 +88,22 @@ std::vector<std::string> HwGeneric::getPerformanceModes() {
 }
 
 bool HwGeneric::supportsOverClocking() { return false; }
-uint32_t HwGeneric::getCPUSpeed() { return 0; };
-bool HwGeneric::setCPUSpeed(uint32_t mhz) { return true; };
+uint32_t HwGeneric::getCPUSpeed() { return 0; }
+bool HwGeneric::setCPUSpeed(uint32_t mhz) { return true; }
 
-uint32_t HwGeneric::getCpuDefaultSpeed() { return 0; };
+uint32_t HwGeneric::getCpuDefaultSpeed() { return 0; }
 
-void HwGeneric::ledOn(int flashSpeed) { return; };
-void HwGeneric::ledOff() { return; };
+void HwGeneric::ledOn(int flashSpeed) { return; }
+void HwGeneric::ledOff() { return; }
 
-int HwGeneric::getBatteryLevel() { return IHardware::BATTERY_CHARGING; };
+int HwGeneric::getBatteryLevel() { return IHardware::BATTERY_CHARGING; }
 
-int HwGeneric::getBacklightLevel() { return 100; };
-int HwGeneric::setBacklightLevel(int val) { return val; };
+int HwGeneric::getBacklightLevel() { return 100; }
+int HwGeneric::setBacklightLevel(int val) { return val; }
 
-bool HwGeneric::getKeepAspectRatio() { return true; };
-bool HwGeneric::setKeepAspectRatio(bool val) { return val; };
+bool HwGeneric::getKeepAspectRatio() { return true; }
+bool HwGeneric::setKeepAspectRatio(bool val) { return val; }
 
 std::string HwGeneric::getDeviceType() { return "Generic"; }
 
-bool HwGeneric::setScreenState(const bool &enable) { return true; };
+bool HwGeneric::setScreenState(const bool &enable) { return true; }

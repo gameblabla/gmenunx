@@ -9,7 +9,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <sys/soundcard.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -25,6 +24,7 @@
 #include "debug.h"
 #include "utilities.h"
 #include "iclock.h"
+#include "hw-soundcard.h"
 
 class IHardware {
 
@@ -33,12 +33,12 @@ class IHardware {
         std::string kernelVersion_;
 
     protected:
-
+/*
         int volumeLevel_ = 0;
-
         bool pollVolume = true;
         const std::string GET_VOLUME_PATH = "/dev/mixer";
         const std::string SET_VOLUME_PATH = "/dev/mixer";
+*/
 
         std::vector<uint32_t> cpuSpeeds_;
         int16_t curMMCStatus;
@@ -73,10 +73,14 @@ class IHardware {
         };
 
         IHardware() {
+            /*
+            this->volumeLevel_ = 0;
             this->pollVolume = fileExists(GET_VOLUME_PATH);
+            */
         }
 
         virtual IClock * Clock() = 0;
+        virtual ISoundcard * Soundcard() = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(std::string mode) = 0;
@@ -119,6 +123,7 @@ class IHardware {
         /*!
         Gets or sets the devices volume level, scale 0 - 100
         */
+/*
         virtual int getVolumeLevel() {
             TRACE("enter");
 
@@ -135,6 +140,8 @@ class IHardware {
                     } else {
                         TRACE("couldn't read value");
                     }
+                } else {
+                    TRACE("couldn't open : '%s' for read only access", GET_VOLUME_PATH.c_str());
                 }
             }
 
@@ -162,7 +169,7 @@ class IHardware {
             TRACE("exit : %i", this->volumeLevel_);
             return this->volumeLevel_;
         };
-
+*/
         /*!
         Gets or sets the devices backlight level, scale 0 - 100
         */

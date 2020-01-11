@@ -23,7 +23,7 @@ CFLAGS = -ggdb \
     -Wno-narrowing
 
 CXXFLAGS := $(CFLAGS)
-LDFLAGS := $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lpng -L/usr/local/lib -lopk 
+LDFLAGS := $(SDL_LIBS) -lSDL_image -lSDL_ttf -lSDL_gfx -lSDL_mixer -lfreetype -lpthread -lpng -L/usr/local/lib -lopk -lasound
 
 OBJDIR = objs/$(TARGET)
 DISTDIR = dist/$(TARGET)/esoteric

@@ -156,7 +156,7 @@ Esoteric::Esoteric() {
 	if (this->config->setHwLevelsOnBoot() && Loader::isFirstRun()) {
 		TRACE("backlight, volume, aspect ratio and performance mode");
 		this->hw->setBacklightLevel(config->backlightLevel());
-		this->hw->setVolumeLevel(this->config->globalVolume());
+		this->hw->Soundcard()->setVolume(this->config->globalVolume());
 		this->hw->setKeepAspectRatio(this->config->aspectRatio());
 		this->hw->setPerformanceMode(this->config->performance());
 	}
@@ -449,13 +449,13 @@ void Esoteric::main() {
 		this->menu->setLinkIndex(this->config->link());
 	}
 
-	renderer->startPolling();
 	this->screenManager->resetTimer();
 	this->powerManager->resetTimer();
 	bool uiControlledQuit= false;
+	renderer->startPolling();
 	while (!this->quitApp) {
 		try {
-			TRACE("loop");
+			//TRACE("loop");
 			renderer->render();
 
 			if (showGreeting) {
@@ -482,7 +482,10 @@ void Esoteric::main() {
 
 		bool inputAction = this->inputManager->update(true);
 		if (inputAction) {
-			if ((*this->inputManager)[QUIT] ) {
+
+			if ((*this->inputManager)[NOOP]) {
+				continue;
+			} else if ((*this->inputManager)[QUIT] ) {
 				INFO("We got a quit request");
 				this->quitApp = true;
 				uiControlledQuit = true;
@@ -490,9 +493,12 @@ void Esoteric::main() {
 			} else if ((*this->inputManager)[POWER] && this->inputManager->isOnlyActive(POWER)) {
 				this->poweroffDialog();
 				continue;
-			} else if ((*this->inputManager)[NOOP]) {
-				continue;
-			} else if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
+			}
+
+			// if we get here then we can block the renderer while we act on the command
+			renderer->stopPolling();
+
+			if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
 				TRACE("******************RUNNING THIS*******************");
 				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
@@ -534,6 +540,8 @@ void Esoteric::main() {
 			} else if ((*this->inputManager)[MANUAL] && this->menu->selLinkApp() != NULL) {
 				showManual();
 			}
+			// and start polling again now we're done
+			renderer->startPolling();
 		}
 	}
 
@@ -846,7 +854,7 @@ void Esoteric::deviceMenu() {
 	int selected = 0;
 
 	int backlightLevel = this->hw->getBacklightLevel();
-	int volumeLevel = this->hw->getVolumeLevel();
+	int volumeLevel = this->hw->Soundcard()->getVolume();
 	int backlightTimeout = config->backlightTimeout();
 	bool keepAspectRatio = this->hw->getKeepAspectRatio();
 	int buttonRepeatRate = this->config->buttonRepeatRate();
@@ -993,9 +1001,9 @@ void Esoteric::deviceMenu() {
 			}
 		}
 
-		if (volumeLevel != this->hw->getVolumeLevel()) {
+		if (volumeLevel != this->hw->Soundcard()->getVolume()) {
 			this->config->globalVolume(volumeLevel);
-			this->hw->setVolumeLevel(volumeLevel);
+			this->hw->Soundcard()->setVolume(volumeLevel);
 		}
 		if (backlightLevel != this->hw->getBacklightLevel()) {
 			this->config->backlightLevel(backlightLevel);
@@ -1523,8 +1531,6 @@ void Esoteric::skinColors() {
 
 void Esoteric::about() {
 	TRACE("enter");
-	std::vector<std::string> text;
-	std::string temp;
 
 	std::string uptime = this->hw->uptime();
 	int battLevel = this->hw->getBatteryLevel();
@@ -1559,7 +1565,13 @@ void Esoteric::about() {
 		cpuFreq += " mhz";
 	}
 
-	temp = "\n";
+	std::string volume;
+	std::stringstream ss;
+	ss << this->hw->Soundcard()->getVolume();
+	ss >> volume;
+	volume += "%";
+
+	std::string temp = "\n";
 	temp += tr["Build date: "] + __BUILDTIME__ + "\n";
 	temp += tr["App: "] + appPath + "\n";
 	temp += tr["Config: "] + this->config->configFile() + "\n";
@@ -1567,7 +1579,8 @@ void Esoteric::about() {
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == IHardware::BATTERY_CHARGING) ? tr["Charging"] : batt) + "\n";
-	temp += tr["CPU: "] + cpuFreq + " \n";
+	temp += tr["CPU: "] + cpuFreq + "\n";
+	temp += tr["Volume: "] + volume + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
 	temp += tr["Internal storage free: "] + this->hw->getDiskFree("/media/data") + "\n";
 

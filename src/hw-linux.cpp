@@ -13,19 +13,27 @@ HwLinux::HwLinux() : IHardware() {
     this->performanceModes_.insert({"performance", "Performance"});
 
     this->clock_ = new SysClock();
-
+    this->soundcard_ = new AlsaSoundcard("default", "Master");
     this->getBacklightLevel();
-    this->getVolumeLevel();
     this->getKeepAspectRatio();
+    TRACE(
+        "brightness: %i, volume : %i",
+        this->getBacklightLevel(),
+        this->soundcard_->getVolume());
 
 }
 HwLinux::~HwLinux() {
     delete this->clock_;
+    delete this->soundcard_;
 }
 
-IClock *HwLinux::Clock() { return (IClock *)this->clock_; };
-
-bool HwLinux::getTVOutStatus() { return 0; };
+IClock *HwLinux::Clock() {
+    return (IClock *)this->clock_; 
+}
+ISoundcard *HwLinux::Soundcard() {
+    return (ISoundcard *)this->soundcard_;
+}
+bool HwLinux::getTVOutStatus() { return 0; }
 std::string HwLinux::getTVOutMode() { return "OFF"; }
 void HwLinux::setTVOutMode(std::string mode) {
     std::string val = mode;
@@ -71,21 +79,21 @@ std::vector<std::string> HwLinux::getPerformanceModes() {
 }
 
 bool HwLinux::supportsOverClocking() { return false; }
-uint32_t HwLinux::getCPUSpeed() { return 0; };
-bool HwLinux::setCPUSpeed(uint32_t mhz) { return true; };
+uint32_t HwLinux::getCPUSpeed() { return 0; }
+bool HwLinux::setCPUSpeed(uint32_t mhz) { return true; }
 
-uint32_t HwLinux::getCpuDefaultSpeed() { return 0; };
+uint32_t HwLinux::getCpuDefaultSpeed() { return 0; }
 
-void HwLinux::ledOn(int flashSpeed) { return; };
-void HwLinux::ledOff() { return; };
+void HwLinux::ledOn(int flashSpeed) { return; }
+void HwLinux::ledOff() { return; }
 
-int HwLinux::getBatteryLevel() { return 100; };
+int HwLinux::getBatteryLevel() { return 100; }
 
 int HwLinux::getBacklightLevel() { return 100; };
-int HwLinux::setBacklightLevel(int val) { return val; };
+int HwLinux::setBacklightLevel(int val) { return val; }
 
-bool HwLinux::getKeepAspectRatio() { return true; };
-bool HwLinux::setKeepAspectRatio(bool val) { return val; };
+bool HwLinux::getKeepAspectRatio() { return true; }
+bool HwLinux::setKeepAspectRatio(bool val) { return val; }
 
 std::string HwLinux::getDeviceType() { return "Linux"; }
 
@@ -101,7 +109,7 @@ void HwLinux::reboot() {
 int HwLinux::defaultScreenWidth() { return 320; }
 int HwLinux::defaultScreenHeight() { return 240; }
 
-bool HwLinux::setScreenState(const bool &enable) { return true; };
+bool HwLinux::setScreenState(const bool &enable) { return true; }
 
 std::string HwLinux::performanceModeMap(std::string fromInternal) {
     std::unordered_map<string, string>::iterator it;

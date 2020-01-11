@@ -19,12 +19,14 @@ class HwGeneric : IHardware {
         std::string performanceMode_ = "ondemand";
         const std::string defaultPerformanceMode = "ondemand";
         SysClock * clock_;
+        DummySoundcard * soundcard_;
 
     public:
         HwGeneric();
         ~HwGeneric();
 
         IClock * Clock();
+        ISoundcard * Soundcard();
 
         bool getTVOutStatus();
         std::string getTVOutMode();

@@ -18,12 +18,14 @@ class HwLinux : IHardware {
         std::string performanceMode_ = "ondemand";
         const std::string defaultPerformanceMode = "ondemand";
         SysClock * clock_;
+        AlsaSoundcard * soundcard_;
 
     public:
         HwLinux();
         ~HwLinux();
 
         IClock * Clock();
+        ISoundcard * Soundcard();
 
         bool getTVOutStatus();
         std::string getTVOutMode();

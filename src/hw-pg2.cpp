@@ -20,6 +20,7 @@ HwPG2::HwPG2() : IHardware() {
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
     this->clock_ = new RTC();
+    this->soundcard_ = new AlsaSoundcard("default", "PCM");
 
     this->ledMaxBrightness_ = fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
     this->performanceModes_.insert({"ondemand", "On demand"});
@@ -33,22 +34,26 @@ HwPG2::HwPG2() : IHardware() {
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
-    this->getVolumeLevel();
     this->getKeepAspectRatio();
     this->resetKeymap();
 
     TRACE(
-        "brightness - max : %s, current : %i, volume : %i",
-        ledMaxBrightness_.c_str(),
-        this->backlightLevel_,
-        this->volumeLevel_);
+        "brightness: %i, volume : %i",
+        this->getBacklightLevel(),
+        this->soundcard_->getVolume());
 }
 HwPG2::~HwPG2() {
     delete this->clock_;
+    delete this->soundcard_;
     this->ledOff();
 }
 
-IClock *HwPG2::Clock() { return (IClock *)this->clock_; };
+IClock *HwPG2::Clock() {
+    return (IClock *)this->clock_;
+}
+ISoundcard *HwPG2::Soundcard() {
+    return (ISoundcard *)this->soundcard_;
+}
 
 bool HwPG2::getTVOutStatus() { return 0; };
 std::string HwPG2::getTVOutMode() { return "OFF"; }
@@ -176,6 +181,26 @@ void HwPG2::ledOff() {
     TRACE("exit");
     return;
 }
+
+/*
+todo :: clean me
+int HwPG2::getVolumeLevel() {
+    TRACE("enter");
+    if (this->pollVolume) {
+        int vol = -1;
+        std::string volPath = GET_VOLUME_PATH + " " + VOLUME_ARGS;
+        std::string result = exec(volPath.c_str());
+        if (result.length() > 0) {
+            vol = atoi(trim(result).c_str());
+        }
+        // scale 0 - 31, turn to percent
+        vol = ceil(vol * 100 / 31);
+        this->volumeLevel_ = vol;
+    }
+    TRACE("exit : %i", this->volumeLevel_);
+    return this->volumeLevel_;
+}
+*/
 
 int HwPG2::getBatteryLevel() {
     int online, result = 0;

@@ -16,26 +16,32 @@ HwGkd350h::HwGkd350h() : IHardware() {
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
     this->clock_ = new RTC();
+    this->soundcard_ = new AlsaSoundcard("default", "Master");
     this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
     this->pollBacklight = fileExists(BACKLIGHT_PATH);
 
     this->getBacklightLevel();
-    this->getVolumeLevel();
     this->getKeepAspectRatio();
     this->resetKeymap();
 
     TRACE(
-        "brightness - current : %i, volume : %i",
-        this->backlightLevel_,
-        this->volumeLevel_);
+        "brightness: %i, volume : %i",
+        this->getBacklightLevel(),
+        this->soundcard_->getVolume());
     TRACE("exit");
 }
 
 HwGkd350h::~HwGkd350h() {
     delete this->clock_;
+    delete this->soundcard_;
 }
 
-IClock *HwGkd350h::Clock() { return (IClock *)this->clock_; };
+IClock *HwGkd350h::Clock() {
+    return (IClock *)this->clock_; 
+}
+ISoundcard *HwGkd350h::Soundcard() {
+    return (ISoundcard *)this->soundcard_;
+}
 
 bool HwGkd350h::getTVOutStatus() { return false; }
 
@@ -56,11 +62,13 @@ std::vector<std::string> HwGkd350h::getPerformanceModes() {
 
 bool HwGkd350h::supportsOverClocking() { return true; }
 
-uint32_t HwGkd350h::getCPUSpeed() { return 0; };
+uint32_t HwGkd350h::getCPUSpeed() { 
+    return this->getCpuDefaultSpeed(); 
+}
 
 bool HwGkd350h::setCPUSpeed(uint32_t mhz) { return true; }
 
-uint32_t HwGkd350h::getCpuDefaultSpeed() { return 0; }
+uint32_t HwGkd350h::getCpuDefaultSpeed() { return 1500; }
 
 void HwGkd350h::ledOn(int flashSpeed) { return; }
 

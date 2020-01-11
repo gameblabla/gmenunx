@@ -57,15 +57,19 @@ Renderer::~Renderer() {
 }
 
 void Renderer::startPolling() {
-	if (this->timerId_ != 0) 
-	 return;
+	TRACE("enter");
+	if (this->timerId_ != 0)  {
+		TRACE("we already have a timer running");
+		return;
+	}
 	this->timerId_ = SDL_AddTimer(this->interval_, callback, this);
+	TRACE("timer started with id : %lu", (long)this->timerId_);
 }
 
 void Renderer::stopPolling() {
 	TRACE("enter - timer id : %lu", (long)this->timerId_);
     if (this->timerId_ > 0) {
-		SDL_SetTimer(0, NULL);
+		//SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(this->timerId_);
 		this->timerId_ = 0;
     }
@@ -165,7 +169,7 @@ void Renderer::render() {
 	}
 
 	// SECTIONS
-	TRACE("sections");
+	//TRACE("sections");
 	if (app->skin->sectionBar) {
 
 		// do we have an image
@@ -282,10 +286,10 @@ void Renderer::render() {
 				int localXpos = ix + app->linkSpacing + padding;
 				int localAlignTitle = VAlignMiddle;
 				int totalFontHeight = app->fontTitle->getHeight() + app->font->getHeight();
-				TRACE("total Font Height : %i, linkHeight: %i", totalFontHeight, app->linkHeight);
+				//TRACE("total Font Height : %i, linkHeight: %i", totalFontHeight, app->linkHeight);
 
 				if (app->skin->sectionBar == Skin::SB_BOTTOM || app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_OFF) {
-					TRACE("HITTING MIDDLE ALIGN");
+					//TRACE("HITTING MIDDLE ALIGN");
 					localXpos = app->linksRect.w / 2;
 					localAlignTitle = HAlignCenter | VAlignMiddle;
 				}
@@ -519,6 +523,14 @@ void Renderer::render() {
 
 	} // app->skin->sectionBar
 
+	#if (LOG_LEVEL >= INFO_L)
+		if (this->polling_) {
+			app->screen->box(
+				{ 2, 2, 6, 6 }, 
+				{255, 0, 0, 255});
+		}
+	#endif
+
     //TRACE("flip"); 
 	app->screen->flip();
 	this->locked_ = false;
@@ -532,10 +544,10 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootY
 	int iconsPerRow = 0;
 	if (app->sectionBarRect.w > app->sectionBarRect.h) {
 		iconsPerRow = (int)(app->sectionBarRect.h / (float)helperHeight);
-		TRACE("horizontal mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.h);
+		//TRACE("horizontal mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.h);
 	} else {
 		iconsPerRow = (int)(app->sectionBarRect.w / (float)helperHeight);
-		TRACE("vertical mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.w);
+		//TRACE("vertical mode - %i items in %i pixels", iconsPerRow, app->sectionBarRect.w);
 	}
 
 	if (0 == iconsPerRow) {
@@ -548,7 +560,7 @@ void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootY
 	int currentYOffset = 0;
 
 	for(std::vector<Surface*>::iterator it = icons.begin(); it != icons.end(); ++it) {
-		TRACE("blitting");
+		//TRACE("blitting");
 		Surface *surface = (*it);
 		if (NULL == surface)
 			continue;
@@ -584,10 +596,12 @@ void Renderer::pollHW() {
 	if (this->app->screenManager->isAsleep())
 		return;
 
-	TRACE("section bar test");
+	this->polling_ = true;
+
+	//TRACE("section bar test");
 	if (this->app->skin->sectionBar) {
-		TRACE("section bar exists in skin settings");
-		TRACE("updating helper icon status");
+		//TRACE("section bar exists in skin settings");
+		//TRACE("updating helper icon status");
 		this->batteryIcon = this->app->hw->getBatteryLevel();
 		if (this->batteryIcon > 5) this->batteryIcon = 6;
 
@@ -595,31 +609,34 @@ void Renderer::pollHW() {
 		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
 			this->brightnessIcon = 5;
 
-		int currentVolume = this->app->hw->getVolumeLevel();
+		int currentVolume = this->app->hw->Soundcard()->getVolume();
 		this->currentVolumeMode = this->getVolumeMode(currentVolume);
 
-		TRACE("helper icon status updated");
+		//TRACE("helper icon status updated");
     }
 
-	TRACE("checking clock skin flag");
+	//TRACE("checking clock skin flag");
 	if (this->app->skin->showClock) {
 		TRACE("refreshing the clock");
 		app->hw->Clock()->getDateTime();
 	}
 
 	this->app->inputManager->noop();
+	this->polling_ = false;
 	TRACE("exit");
+
 }
 
 uint32_t Renderer::callback(uint32_t interval, void * data) {
 	TRACE("enter");
 	Renderer * me = static_cast<Renderer*>(data);
 	if (me->finished_) {
+		TRACE("callback returning early because of finished flag");
 		return 0;
 	}
 	me->pollHW();
-	TRACE("exit");
-	return me->interval_;
+	TRACE("exit : %i", interval);
+	return interval;
 }
 
 uint8_t Renderer::getVolumeMode(uint8_t vol) {

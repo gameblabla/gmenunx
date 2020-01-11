@@ -60,8 +60,9 @@ ProgressBar::~ProgressBar() {
 void ProgressBar::free() {
     TRACE("enter");
     if (this->timerId_ > 0) {
-        SDL_SetTimer(0, NULL);
+        //SDL_SetTimer(0, NULL);
         SDL_RemoveTimer(this->timerId_);
+        this->timerId_ = 0;
     }
     TRACE("exit");
 }
@@ -94,7 +95,7 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
 
     //outer box
     me->app->screen->box(box, me->app->skin->colours.msgBoxBackground);
-        
+
     //draw inner rectangle
     me->app->screen->rectangle(
         box.x + 2, 
@@ -132,7 +133,7 @@ uint32_t ProgressBar::render(uint32_t interval, void * data) {
         me->app->skin->colours.fontAltOutline);
 
     me->app->screen->flip();
-    return(interval);
+    return interval;
 }
 
 void ProgressBar::exec() {
