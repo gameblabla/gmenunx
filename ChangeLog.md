@@ -1,5 +1,14 @@
 ## Changelog
 
+**1.0.8** (*Codename: *)
+* Added
+
+* Fixed
+	* Save last selection
+
+* Improved
+	* Stay in rom browser after making a favourite
+
 **1.0.7** (*Codename: Meet the family*)
 * Added
 	* RG350
