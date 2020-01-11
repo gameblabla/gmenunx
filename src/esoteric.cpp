@@ -177,6 +177,7 @@ Esoteric::Esoteric() {
 		quit_all(1);
 	}
 	SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1);
+	SDL_ShowCursor(SDL_DISABLE);
 
 	TRACE("new surface");
 	this->screen = new Surface();
@@ -198,9 +199,6 @@ Esoteric::Esoteric() {
 		height, 
 		bpp, 
 		flags);
-
-	// needs to follow set video mode because of sdl bug
-	SDL_ShowCursor(SDL_DISABLE);
 
 	this->screenHalfWidth = this->screen->raw->w / 2;
 	this->screenHalfHeight = this->screen->raw->h / 2;
@@ -243,14 +241,18 @@ Esoteric::Esoteric() {
 	this->screenManager = new ScreenManager((IHardware *)this->hw);
 
 	TRACE("inputManager");
-	std::string inputFile = this->getReadablePath() + "input.conf";
+	std::string inputFile = this->getWriteablePath() + "input.conf";
 	if (!fileExists(inputFile)) {
-		std::string originFile = this->getReadablePath() + "input/" + this->hw->inputFile();
-		TRACE("copying device input file from '%s' to '%s'", originFile.c_str(), inputFile.c_str());
-		copyFile(originFile, inputFile);
+		if (this->needsInstalling) {
+			inputFile = this->getReadablePath() + "input/" + this->hw->inputFile();
+		} else {
+			std::string originFile = this->getReadablePath() + "input/" + this->hw->inputFile();
+			TRACE("copying device input file from '%s' to '%s'", originFile.c_str(), inputFile.c_str());
+			copyFile(originFile, inputFile);
+		}
 	}
 	this->inputManager = new InputManager((*screenManager), (*powerManager));
-	this->inputManager->init(this->getReadablePath() + "input.conf", this->config->buttonRepeatRate());
+	this->inputManager->init(inputFile, this->config->buttonRepeatRate());
 	setInputSpeed();
 
 	TRACE("exit");
