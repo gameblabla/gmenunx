@@ -255,9 +255,6 @@ Esoteric::Esoteric() {
 Esoteric::~Esoteric() {
 	TRACE("enter\n\n");
 
-	if (this->config)
-		this->writeConfig();
-
 	this->releaseScreen();
 	this->quit();
 
@@ -290,6 +287,10 @@ Esoteric::~Esoteric() {
 
 void Esoteric::quit() {
 	this->quitApp = true;
+
+	if (this->config)
+		this->writeConfig();
+
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -1483,6 +1484,7 @@ void Esoteric::writeConfig() {
 	if (!this->needsInstalling) {
 		TRACE("config needs saving");
 		if (config->saveSelection() && menu != NULL) {
+			TRACE("saving current selection : [%i:%i]", menu->selSectionIndex(), menu->selLinkIndex());
 			config->section(menu->selSectionIndex());
 			config->link(menu->selLinkIndex());
 		}
