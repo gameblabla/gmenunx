@@ -31,6 +31,7 @@
 #include "managers/screenmanager.h"
 #include "managers/powermanager.h"
 #include "surface.h"
+#include "desktopfile.h"
 #include "fonthelper.h"
 #include "skin.h"
 #include "config.h"
