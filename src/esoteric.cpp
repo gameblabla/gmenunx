@@ -110,7 +110,9 @@ Esoteric::Esoteric() {
 	Installer::setBootMarker();
 
 	this->quitApp = false;
+	#ifdef HAVE_LIBOPK
 	this->cache = nullptr;
+	#endif
 	this->bg = nullptr;
 	this->menu = nullptr;
 	this->font = nullptr;
