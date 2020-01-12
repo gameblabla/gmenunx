@@ -22,6 +22,7 @@
 #define SELECTOR_H_
 
 #include <string>
+#include <unordered_map>
 #include "esoteric.h"
 #include "utilities.h"
 #include "dialog.h"

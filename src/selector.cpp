@@ -30,8 +30,6 @@
 #include "filelister.h"
 #include "debug.h"
 
-using namespace std;
-
 const string PREVIEWS_DIR = ".previews";
 
 Selector::Selector(Esoteric *app, LinkApp *link, const string &selectorDir) : Dialog(app) {
@@ -54,7 +52,7 @@ int Selector::exec(int startSelection) {
 		(*app->sc)[link->getBackdrop()]->blit(this->bg,0,0);
 
 	bool close = false, result = true, inputAction = false;
-	vector<string> screens, titles;
+	std::vector<std::string> screens, titles;
 
 	TRACE("starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
@@ -109,7 +107,7 @@ int Selector::exec(int startSelection) {
 
 			if  (-1 == app->skin->previewWidth  && currentFileIndex >= 0) {
 				// we are doing a full background thing
-				string screenPath = screens.at(currentFileIndex);
+				std::string screenPath = screens.at(currentFileIndex);
 				if (!screenPath.empty()) {
 					// line it up with the text
 					SDL_Rect bgArea {
@@ -139,7 +137,7 @@ int Selector::exec(int startSelection) {
 			iY = app->listRect.y + 1;
 			for (i = firstElement; i < fl.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 				if (i == selected) {
-					// slected item highlight
+					// selected item highlight
 					app->screen->box(
 						app->listRect.x, 
 						iY, 
@@ -180,7 +178,7 @@ int Selector::exec(int startSelection) {
 				// we're in the files section and there's some art to deal with
 				if (!screens[currentFileIndex].empty()) {
 
-					string screenPath = screens.at(currentFileIndex);
+					std::string screenPath = screens.at(currentFileIndex);
 					if (!app->sc->exists(screenPath)) {
 						TRACE("1st load windowed - stretching screen path : %s", screenPath.c_str());
 						(*app->sc)[screenPath]->softStretch(
@@ -326,7 +324,7 @@ int Selector::exec(int startSelection) {
 }
 
 // checks for screen shots etc
-void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *titles) {
+void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::vector<std::string> *titles) {
 	TRACE("enter");
 
 	if (this->dir.length() > 0) {
@@ -336,7 +334,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	fl->setPath(this->dir, false);
 
 	TRACE("setting filter");
-	string filter = link->getSelectorFilter();
+	std::string filter = link->getSelectorFilter();
 	fl->setFilter(filter);
 	TRACE("filter : %s", filter.c_str());
 
@@ -350,9 +348,9 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	screens->resize(fl->getFiles().size());
 	titles->resize(fl->dirCount() + fl->getFiles().size());
 
-	string fname, noext, realdir;
-	string::size_type pos;
-	string realPath = real_path(fl->getPath());
+	std::string fname, noext, realdir;
+	std::string::size_type pos;
+	std::string realPath = real_path(fl->getPath());
 	if (realPath.length() > 0) {
 		if (0 != realPath.compare(realPath.length() -1, 1, "/")) 
 			realPath += "/";
@@ -370,7 +368,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 		fname = fl->getFiles()[i];
 		pos = fname.rfind(".");
 		// cache a version of fname without extension
-		if (pos != string::npos && pos > 0) 
+		if (pos != std::string::npos && pos > 0) 
 			noext = fname.substr(0, pos);
 		// and push into titles
 		titles->at(fl->dirCount() + i) = getAlias(noext, fname);
@@ -405,7 +403,7 @@ void Selector::prepare(FileLister *fl, vector<string> *screens, vector<string> *
 	TRACE("exit - loaded %zu screens", screens->size());
 }
 
-void Selector::freeScreenshots(vector<string> *screens) {
+void Selector::freeScreenshots(std::vector<std::string> *screens) {
 	for (uint32_t i = 0; i < screens->size(); i++) {
 		if (!screens->at(i).empty())
 			app->sc->del(screens->at(i));
@@ -418,12 +416,12 @@ void Selector::loadAliases() {
 	std::string aliasFile = link->getAliasFile();
 	if (!aliasFile.empty() && fileExists(aliasFile)) {
 		TRACE("alias file found at : %s", aliasFile.c_str());
-		string line;
-		ifstream infile (aliasFile.c_str(), ios_base::in);
+		std::string line;
+		std::ifstream infile (aliasFile.c_str(), std::ios_base::in);
 		while (getline(infile, line, '\n')) {
-			string::size_type position = line.find("=");
-			string name = trim(line.substr(0,position));
-			string value = trim(line.substr(position+1));
+			std::string::size_type position = line.find("=");
+			std::string name = trim(line.substr(0,position));
+			std::string value = trim(line.substr(position+1));
 			aliases[name] = value;
 		}
 		infile.close();
@@ -431,10 +429,10 @@ void Selector::loadAliases() {
 	TRACE("exit : loaded %zu aliases", aliases.size());
 }
 
-string Selector::getAlias(const string &key, const string &fname) {
+std::string Selector::getAlias(const std::string &key, const std::string &fname) {
 	//TRACE("enter");
 	if (aliases.empty()) return fname;
-	std::unordered_map<string, string>::iterator i = aliases.find(key);
+	std::unordered_map<std::string, std::string>::iterator i = aliases.find(key);
 	if (i == aliases.end())
 		return fname;
 	else
