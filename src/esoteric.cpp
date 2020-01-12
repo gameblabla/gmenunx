@@ -1052,33 +1052,50 @@ void Esoteric::skinMenu() {
 	it = wallpapers.begin();
 	wallpapers.insert(it, "None");
 
+	const int stepSize = 5;
 	int previewMax = this->config->resolutionX() - 1;
-	previewMax -= (previewMax % 5);
+	previewMax -= (previewMax % stepSize);
 	int previewMin = this->config->resolutionX() / 4;
-	previewMin -= (previewMin % 5);
+	previewMin -= (previewMin % stepSize);
 
 	TRACE("previews range is %i <-> %i, with resolution : %i", previewMin, previewMax, this->config->resolutionX());
-	std::vector<std::string> previewWidths;
-	previewWidths.push_back("Off");
-	std::stringstream ss;
-	for (int x = previewMin; x <= previewMax; x += 5) {
-		ss << x;
-		previewWidths.push_back(ss.str());
-		ss.str("");
-		ss.clear();
-	}
-	previewWidths.push_back("Fullscreen");
+
+	bool addCustom = false;
 	std::string curPreviewWidth;
+	std::stringstream ss;
 	if (this->skin->previewWidth == 0) {
 		curPreviewWidth = "Off";
 	} else if (this->skin->previewWidth == -1) {
 		curPreviewWidth = "Fullscreen";
 	} else {
+		if (this->skin->previewWidth % stepSize != 0) {
+			TRACE("adding a custom step : %i", this->skin->previewWidth);
+			addCustom = true;
+		}
 		ss << this->skin->previewWidth;
 		curPreviewWidth = ss.str();
 		ss.str("");
 		ss.clear();
 	}
+
+	std::vector<std::string> previewWidths;
+	previewWidths.push_back("Off");
+	for (int x = previewMin; x <= previewMax; x += stepSize) {
+		ss << x;
+		previewWidths.push_back(ss.str());
+		ss.str("");
+		ss.clear();
+		if (addCustom) {
+			if (x < this->skin->previewWidth && x + stepSize > this->skin->previewWidth) {
+				TRACE("injecting %i between %i and %i", this->skin->previewWidth, x, x + stepSize);
+				ss << this->skin->previewWidth;
+				previewWidths.push_back(ss.str());
+				ss.str("");
+				ss.clear();
+			}
+		}
+	}
+	previewWidths.push_back("Fullscreen");
 
 	bool restartRequired = false;
 	bool currentIconGray = skin->iconsToGrayscale;
