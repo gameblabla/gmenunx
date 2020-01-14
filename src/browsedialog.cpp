@@ -5,14 +5,11 @@
 
 #include <algorithm>
 
-using namespace fastdelegate;
-using namespace std;
-
-BrowseDialog::BrowseDialog(Esoteric *app, const string &title, const string &description, const string &icon)
+BrowseDialog::BrowseDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon)
 : Dialog(app), title(title), description(description), icon(icon) {
 	
 	TRACE("enter");
-	string startPath = USER_HOME;
+	std::string startPath = USER_HOME;
 	if (FileUtils::dirExists(app->config->launcherPath())) {
 		startPath = app->config->launcherPath();
 	} else if (FileUtils::dirExists(EXTERNAL_CARD_PATH)) {
@@ -35,7 +32,7 @@ bool BrowseDialog::exec() {
 	Surface *iconFolder = app->sc->skinRes("imgs/folder.png");
 	Surface *iconFile = app->sc->skinRes("imgs/file.png");
 
-	string path = fl->getPath();
+	std::string path = fl->getPath();
 	if (path.empty() || !FileUtils::dirExists(path)) {
 		setPath(EXTERNAL_CARD_PATH);
 	}
@@ -89,8 +86,8 @@ bool BrowseDialog::exec() {
 		}
 
 		// preview
-		string filename = fl->getPath() + "/" + getFile();
-		string ext = getExt();
+		std::string filename = fl->getPath() + "/" + getFile();
+		std::string ext = getExt();
 
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
 			app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
@@ -185,15 +182,15 @@ uint32_t BrowseDialog::getAction() {
 }
 
 void BrowseDialog::directoryUp() {
-	string path = fl->getPath();
-	string::size_type p = path.rfind("/");
+	std::string path = fl->getPath();
+	std::string::size_type p = path.rfind("/");
 	if (p == path.size() - 1) p = path.rfind("/", p - 1);
 	selected = 0;
 	setPath("/" + path.substr(0, p));
 }
 
 void BrowseDialog::directoryEnter() {
-	string path = fl->getPath();
+	std::string path = fl->getPath();
 	setPath(path + "/" + fl->at(selected));
 	selected = 0;
 }
@@ -209,17 +206,17 @@ void BrowseDialog::cancel() {
 }
 
 const std::string BrowseDialog::getExt() {
-	string filename = (*fl)[selected];
-	string ext = "";
-	string::size_type pos = filename.rfind(".");
-	if (pos != string::npos && pos > 0) {
+	std::string filename = (*fl)[selected];
+	std::string ext = "";
+	std::string::size_type pos = filename.rfind(".");
+	if (pos != std::string::npos && pos > 0) {
 		ext = filename.substr(pos, filename.length());
 		transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower);
 	}
 	return ext;
 }
 
-void BrowseDialog::setPath(const string &path) {
+void BrowseDialog::setPath(const std::string &path) {
 	fl->showDirectories = showDirectories;
 	fl->showFiles = showFiles;
 	fl->setPath(path, true);
@@ -232,6 +229,6 @@ const std::string &BrowseDialog::getPath() {
 std::string BrowseDialog::getFile() {
 	return (*fl)[selected];
 }
-void BrowseDialog::setFilter(const string &filter) {
+void BrowseDialog::setFilter(const std::string &filter) {
 	fl->setFilter(filter);
 }

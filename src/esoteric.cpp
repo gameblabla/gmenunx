@@ -67,9 +67,9 @@
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
-const string OPK_FOLDER_NAME = "apps";
-const string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
-const string OPK_PLATFORM = "gcw0";
+const std::string OPK_FOLDER_NAME = "apps";
+const std::string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
+const std::string OPK_PLATFORM = "gcw0";
 #endif
 
 #ifndef __BUILDTIME__
@@ -140,7 +140,7 @@ Esoteric::Esoteric() {
 	this->getWriteablePath();
 	this->needsInstalling = !Config::configExistsUnderPath(this->getWriteablePath());
 
-	string localAssetsPath = this->getReadablePath();
+	std::string localAssetsPath = this->getReadablePath();
 	TRACE("needs deploying : %i, localAssetsPath : %s", 
 		this->needsInstalling, 
 		localAssetsPath.c_str());
@@ -592,7 +592,7 @@ void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
 	TRACE("exit");
 }
 
-void Esoteric::setWallpaper(const string &wallpaper) {
+void Esoteric::setWallpaper(const std::string &wallpaper) {
 	TRACE("enter : %s", wallpaper.c_str());
 	if (this->bg != nullptr) 
 		delete this->bg;
@@ -619,7 +619,7 @@ void Esoteric::setWallpaper(const string &wallpaper) {
 	} else {
 		if (this->sc->addImage(wallpaper) == NULL) {
 			// try and add a default one
-			string relativePath = "skins/" + this->skin->name + "/wallpapers";
+			std::string relativePath = "skins/" + this->skin->name + "/wallpapers";
 			TRACE("searching for wallpaper in :%s", relativePath.c_str());
 
 			FileLister fl(this->getReadablePath() + relativePath, false, true);
@@ -692,7 +692,7 @@ void Esoteric::initLayout() {
 void Esoteric::initFont() {
 	TRACE("enter");
 
-	string fontPath = this->skin->getSkinFilePath("font.ttf");
+	std::string fontPath = this->skin->getSkinFilePath("font.ttf");
 	TRACE("font path: %s", fontPath.c_str());
 
 	if (FileUtils::fileExists(fontPath)) {
@@ -748,7 +748,7 @@ void Esoteric::initMenu() {
 
 	menu->addActionLink(i, 
 						tr["Explorer"], 
-						MakeDelegate(this, &Esoteric::explorer), 
+						fastdelegate::MakeDelegate(this, &Esoteric::explorer), 
 						tr["Browse files and launch apps"], 
 						"skin:icons/explorer.png");
 
@@ -756,14 +756,14 @@ void Esoteric::initMenu() {
 	menu->addActionLink(
 						i, 
 						tr["About"], 
-						MakeDelegate(this, &Esoteric::about), 
+						fastdelegate::MakeDelegate(this, &Esoteric::about), 
 						tr["Info about system"], 
 						"skin:icons/about.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Device"], 
-						MakeDelegate(this, &Esoteric::deviceMenu), 
+						fastdelegate::MakeDelegate(this, &Esoteric::deviceMenu), 
 						tr["Tweak things on this device"], 
 						"skin:icons/device.png");
 
@@ -771,7 +771,7 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 							i, 
 							tr["Install me"], 
-							MakeDelegate(this, &Esoteric::doInstall), 
+							fastdelegate::MakeDelegate(this, &Esoteric::doInstall), 
 							tr["Set " + APP_NAME + " as your launcher"], 
 							"skin:icons/install.png");
 	}
@@ -780,7 +780,7 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Log Viewer"], 
-						MakeDelegate(this, &Esoteric::viewLog), 
+						fastdelegate::MakeDelegate(this, &Esoteric::viewLog), 
 						tr["Displays last launched program's output"], 
 						"skin:icons/ebook.png");
 
@@ -788,28 +788,28 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Mount"], 
-						MakeDelegate(this, &Esoteric::mountSdDialog), 
+						fastdelegate::MakeDelegate(this, &Esoteric::mountSdDialog), 
 						tr["Mount external SD"], 
 						"skin:icons/eject.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Power"], 
-						MakeDelegate(this, &Esoteric::poweroffDialog), 
+						fastdelegate::MakeDelegate(this, &Esoteric::poweroffDialog), 
 						tr["Power menu"], 
 						"skin:icons/exit.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Settings"], 
-						MakeDelegate(this, &Esoteric::settings), 
+						fastdelegate::MakeDelegate(this, &Esoteric::settings), 
 						tr["Configure system and choose skin"], 
 						"skin:icons/configure.png");
 
 	menu->addActionLink(
 						i, 
 						tr["Skin - " + skin->name], 
-						MakeDelegate(this, &Esoteric::skinMenu), 
+						fastdelegate::MakeDelegate(this, &Esoteric::skinMenu), 
 						tr["Adjust skin settings"], 
 						"skin:icons/skin.png");
 
@@ -817,7 +817,7 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 						i, 
 						tr["Umount"], 
-						MakeDelegate(this, &Esoteric::umountSdDialog), 
+						fastdelegate::MakeDelegate(this, &Esoteric::umountSdDialog), 
 						tr["Umount external SD"], 
 						"skin:icons/eject.png");
 
@@ -825,7 +825,7 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 							i, 
 							tr["UnInstall me"], 
-							MakeDelegate(this, &Esoteric::doUnInstall), 
+							fastdelegate::MakeDelegate(this, &Esoteric::doUnInstall), 
 							tr["Remove " + APP_NAME + " as your launcher"], 
 							"skin:icons/install.png");
 	}
@@ -834,7 +834,7 @@ void Esoteric::initMenu() {
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
-							MakeDelegate(this, &Esoteric::doUpgrade), 
+							fastdelegate::MakeDelegate(this, &Esoteric::doUpgrade), 
 							tr["Upgrade " + APP_NAME + ", restore missing files"], 
 							"skin:icons/upgrade.png");
 	}
@@ -1051,7 +1051,7 @@ void Esoteric::skinMenu() {
     std::string linkDisplayModeCurrent = linkDisplayModesList[skin->linkDisplayMode];
 
 	std::vector<std::string> wallpapers = skin->getWallpapers();
-	std::vector<string>::iterator it;
+	std::vector<std::string>::iterator it;
 	it = wallpapers.begin();
 	wallpapers.insert(it, "None");
 
@@ -1112,8 +1112,8 @@ void Esoteric::skinMenu() {
 		sd.selected = selected;
 		sd.allowCancel = false;
 
-		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::changeWallpaper)));
-		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, MakeDelegate(this, &Esoteric::onChangeSkin), MakeDelegate(this, &Esoteric::skinColors)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Wallpaper"], tr["Select an image to use as a wallpaper"], &wpCurrent, &wallpapers, fastdelegate::MakeDelegate(this, &Esoteric::onChangeSkin), fastdelegate::MakeDelegate(this, &Esoteric::changeWallpaper)));
+		sd.addSetting(new MenuSettingMultiString(this, tr["Skin colors"], tr["Customize skin colors"], &tmp, &wpLabel, fastdelegate::MakeDelegate(this, &Esoteric::onChangeSkin), fastdelegate::MakeDelegate(this, &Esoteric::skinColors)));
 		sd.addSetting(new MenuSettingBool(this, tr["Skin backdrops"], tr["Automatic load backdrops from skin pack"], &skin->skinBackdrops));
 
 		sd.addSetting(new MenuSettingMultiString(this, tr["Preview width"], tr["How big the preview image is"], &curPreviewWidth, &previewWidths));
@@ -1316,7 +1316,7 @@ void Esoteric::settings() {
 		&tmp, 
 		&opFactory, 
 		0, 
-		MakeDelegate(this, &Esoteric::resetSettings)));
+		fastdelegate::MakeDelegate(this, &Esoteric::resetSettings)));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		bool refreshNeeded = false;
@@ -1398,7 +1398,7 @@ void Esoteric::resetSettings() {
 			reset_preview = false,
 			reset_cpu = false;
 
-	string tmppath = "";
+	std::string tmppath = "";
 
 	SettingsDialog sd(this, ts, tr["Reset settings"], "skin:icons/configure.png");
 	sd.addSetting(new MenuSettingBool(this, tr[APP_NAME], tr["Reset " + APP_NAME + " settings"], &reset_gmenu));
@@ -1464,12 +1464,12 @@ void Esoteric::readTmp() {
 	TRACE("enter");
 	lastSelectorElement = -1;
 	if (!FileUtils::fileExists(TEMP_FILE)) return;
-	ifstream inf(TEMP_FILE, ios_base::in);
+	std::ifstream inf(TEMP_FILE, std::ios_base::in);
 	if (!inf.is_open()) return;
-	string line, name, value;
+	std::string line, name, value;
 
 	while (getline(inf, line, '\n')) {
-		string::size_type pos = line.find("=");
+		std::string::size_type pos = line.find("=");
 		name = trim(line.substr(0,pos));
 		value = trim(line.substr(pos+1,line.length()));
 		if (name == "section") menu->setSectionIndex(atoi(value.c_str()));
@@ -1483,15 +1483,15 @@ void Esoteric::readTmp() {
 	unlink(TEMP_FILE.c_str());
 }
 
-void Esoteric::writeTmp(int selelem, const string &selectordir) {
-	ofstream inf(TEMP_FILE.c_str());
+void Esoteric::writeTmp(int selelem, const std::string &selectordir) {
+	std::ofstream inf(TEMP_FILE.c_str());
 	if (inf.is_open()) {
-		inf << "section=" << menu->selSectionIndex() << endl;
-		inf << "link=" << menu->selLinkIndex() << endl;
-		if (selelem >- 1) inf << "selectorelem=" << selelem << endl;
-		if (selectordir != "") inf << "selectordir=" << selectordir << endl;
-		//inf << "tvOutPrev=" << tvOutPrev << endl;
-		inf << "TVOut=" << this->hw->getTVOutMode() << endl;
+		inf << "section=" << menu->selSectionIndex() << std::endl;
+		inf << "link=" << menu->selLinkIndex() << std::endl;
+		if (selelem >- 1) inf << "selectorelem=" << selelem << std::endl;
+		if (selectordir != "") inf << "selectordir=" << selectordir << std::endl;
+		//inf << "tvOutPrev=" << tvOutPrev << std::endl;
+		inf << "TVOut=" << this->hw->getTVOutMode() << std::endl;
 		inf.close();
 	}
 }
@@ -1757,7 +1757,7 @@ const std::string &Esoteric::getWriteablePath() {
 	if (this->writeable_path.length())
 		return this->writeable_path;
 
-	string result = USER_PREFIX;
+	std::string result = USER_PREFIX;
 	if (result.find("~") != std::string::npos) {
 		TRACE("need to work out home dir");
 		const char * homedir;
@@ -1780,8 +1780,8 @@ void Esoteric::doUpgrade() {
 	INFO("Esoteric::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
-	string source = getExePath();
-	string destination = getWriteablePath();
+	std::string source = getExePath();
+	std::string destination = getWriteablePath();
 
 	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
 	ProgressBar *pbInstall = new ProgressBar(
@@ -1883,8 +1883,8 @@ bool Esoteric::doInitialSetup() {
 	bool success = false;
 
 	// check for the writable home directory existing
-	string source = getExePath();
-	string destination = getWriteablePath();
+	std::string source = getExePath();
+	std::string destination = getWriteablePath();
 
 	TRACE("from : %s, to : %s", source.c_str(), destination.c_str());
 	INFO("testing for writable home dir : %s", destination.c_str());
@@ -1961,12 +1961,12 @@ void Esoteric::mountSdDialog() {
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		string result = this->hw->mountSd();
+		std::string result = this->hw->mountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
 
-		string msg, icon;
+		std::string msg, icon;
 		int wait = 1000;
 		bool error = false;
 		switch(this->hw->getCardStatus()) {
@@ -1997,12 +1997,12 @@ void Esoteric::umountSdDialog() {
 	if (mb.exec() == CONFIRM) {
 		int currentMenuIndex = menu->selSectionIndex();
 		int currentLinkIndex = menu->selLinkIndex();
-		string result = this->hw->umountSd();
+		std::string result = this->hw->umountSd();
 		initMenu();
 		menu->setSectionIndex(currentMenuIndex);
 		menu->setLinkIndex(currentLinkIndex);
 
-		string msg, icon;
+		std::string msg, icon;
 		int wait = 1000;
 		switch(this->hw->getCardStatus()) {
 			case IHardware::MMC_UNMOUNTED:
@@ -2024,31 +2024,31 @@ void Esoteric::umountSdDialog() {
 void Esoteric::contextMenu() {
 	
 	TRACE("enter");
-	vector<MenuOption> voices;
+	std::vector<MenuOption> voices;
 	if (menu->selLinkApp() != NULL) {
 		if (menu->selLinkApp()->isEditable() ){
 			voices.push_back(
 				(MenuOption){
 					tr.translate("Edit $1", menu->selLink()->getTitle().c_str(), NULL), 
-					MakeDelegate(this, &Esoteric::editLink)
+					fastdelegate::MakeDelegate(this, &Esoteric::editLink)
 				});
 		}
 		if (menu->selLinkApp()->isDeletable()) {
 			voices.push_back(
 				(MenuOption){
 					tr.translate("Delete $1", menu->selLink()->getTitle().c_str(), NULL), 
-					MakeDelegate(this, &Esoteric::deleteLink)
+					fastdelegate::MakeDelegate(this, &Esoteric::deleteLink)
 				});
 		}
 		std::string hideAction = menu->selLinkApp()->getHidden() ? "Show link" : "Hide link";
-		voices.push_back((MenuOption){tr[hideAction],	MakeDelegate(this, &Esoteric::hideLink)});
+		voices.push_back((MenuOption){tr[hideAction],	fastdelegate::MakeDelegate(this, &Esoteric::hideLink)});
 	}
-	voices.push_back((MenuOption){tr["Add link"], 		MakeDelegate(this, &Esoteric::addLink)});
-	voices.push_back((MenuOption){tr["Add section"],	MakeDelegate(this, &Esoteric::addSection)});
-	voices.push_back((MenuOption){tr["Rename section"],	MakeDelegate(this, &Esoteric::renameSection)});
-	voices.push_back((MenuOption){tr["Hide section"],	MakeDelegate(this, &Esoteric::hideSection)});
-	voices.push_back((MenuOption){tr["Delete section"],	MakeDelegate(this, &Esoteric::deleteSection)});
-	voices.push_back((MenuOption){tr["App scanner"],	MakeDelegate(this, &Esoteric::linkScanner)});
+	voices.push_back((MenuOption){tr["Add link"], 		fastdelegate::MakeDelegate(this, &Esoteric::addLink)});
+	voices.push_back((MenuOption){tr["Add section"],	fastdelegate::MakeDelegate(this, &Esoteric::addSection)});
+	voices.push_back((MenuOption){tr["Rename section"],	fastdelegate::MakeDelegate(this, &Esoteric::renameSection)});
+	voices.push_back((MenuOption){tr["Hide section"],	fastdelegate::MakeDelegate(this, &Esoteric::hideSection)});
+	voices.push_back((MenuOption){tr["Delete section"],	fastdelegate::MakeDelegate(this, &Esoteric::deleteSection)});
+	voices.push_back((MenuOption){tr["App scanner"],	fastdelegate::MakeDelegate(this, &Esoteric::linkScanner)});
 
 	Surface bg(screen);
 	bool close = false, inputAction = false;
@@ -2414,7 +2414,7 @@ void Esoteric::addSection() {
 }
 
 void Esoteric::hideSection() {
-	string section = menu->selSection();
+	std::string section = menu->selSection();
 	if (this->config->sectionFilter().empty()) {
 		this->config->sectionFilter(section);
 	} else {
@@ -2430,12 +2430,12 @@ void Esoteric::renameSection() {
 		//only if a section with the same name does not exist & !samename
 		if (menu->selSection() != id.getInput() && find(menu->getSections().begin(),menu->getSections().end(), id.getInput()) == menu->getSections().end()) {
 			//section directory doesn't exists
-			string newsectiondir = "sections/" + id.getInput();
-			string sectiondir = "sections/" + menu->selSection();
+			std::string newsectiondir = "sections/" + id.getInput();
+			std::string sectiondir = "sections/" + menu->selSection();
 			this->hw->ledOn();
 			if (rename(sectiondir.c_str(), "tmpsection")==0 && rename("tmpsection", newsectiondir.c_str())==0) {
-				string oldpng = sectiondir + ".png", newpng = newsectiondir+".png";
-				string oldicon = this->skin->getSkinFilePath(oldpng), newicon = this->skin->getSkinFilePath(newpng);
+				std::string oldpng = sectiondir + ".png", newpng = newsectiondir+".png";
+				std::string oldicon = this->skin->getSkinFilePath(oldpng), newicon = this->skin->getSkinFilePath(newpng);
 				if (!oldicon.empty() && newicon.empty()) {
 					newicon = oldicon;
 					newicon.replace(newicon.find(oldpng), oldpng.length(), newpng);

@@ -2,14 +2,9 @@
 #include "esoteric.h"
 #include "surface.h"
 
-using namespace std;
-using namespace fastdelegate;
-
-IconButton::IconButton(Esoteric *app, const string &icon,
-					   const string &label)
+IconButton::IconButton(Esoteric *app, const std::string &icon, const std::string &label)
 	: Button(app->ts)
-	, app(app)
-{
+	, app(app) {
 	this->icon = icon;
 	labelPosition = IconButton::DISP_RIGHT;
 	labelMargin = 2;
@@ -69,7 +64,7 @@ void IconButton::recalcSize() {
 		iconRect.h = 0;
 	}
 
-	if (label != "") {
+	if (!label.empty()) {
 		labelRect.w = app->font->getTextWidth(label);
 		labelRect.h = app->font->getHeight();
 		if (labelPosition == IconButton::DISP_LEFT || labelPosition == IconButton::DISP_RIGHT) {
@@ -86,11 +81,11 @@ void IconButton::recalcSize() {
 
 		switch (labelPosition) {
 			case IconButton::DISP_BOTTOM:
-				labelRect.x = iconRect.x + iconRect.w/2;
+				labelRect.x = iconRect.x + iconRect.w / 2;
 				labelRect.y = iconRect.y + iconRect.h + margin;
 			break;
 			case IconButton::DISP_TOP:
-				labelRect.x = iconRect.x + iconRect.w/2;
+				labelRect.x = iconRect.x + iconRect.w / 2;
 				labelRect.y = rect.y;
 				iconRect.y += labelRect.h + margin;
 			break;
@@ -108,11 +103,11 @@ void IconButton::recalcSize() {
 	setSize(w, h);
 }
 
-const string &IconButton::getLabel() {
+const std::string &IconButton::getLabel() {
 	return label;
 }
 
-void IconButton::setLabel(const string &label) {
+void IconButton::setLabel(const std::string &label) {
 	this->label = label;
 }
 
@@ -122,11 +117,11 @@ void IconButton::setLabelPosition(int pos, int margin) {
 	recalcSize();
 }
 
-const string &IconButton::getIcon() {
+const std::string &IconButton::getIcon() {
 	return icon;
 }
 
-void IconButton::setIcon(const string &icon) {
+void IconButton::setIcon(const std::string &icon) {
 	this->icon = icon;
 	updateSurfaces();
 }

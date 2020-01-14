@@ -29,20 +29,20 @@ Hash Map of translation strings.
 */
 class Translator {
 private:
-	string _path;
-	string _lang;
-	std::tr1::unordered_map<string, string> translations;
+	std::string _path;
+	std::string _lang;
+	std::tr1::unordered_map<std::string, std::string> translations;
 
 public:
-	Translator(const string &lang="");
+	Translator(const std::string &lang = "");
 	~Translator();
 
-	string lang();
-	void setLang(const string &lang);
-	void setPath(const string &path);
-	bool exists(const string &term);
-	string translate(const string &term,const char *replacestr=NULL,...);
-	string operator[](const string &term);
+	std::string lang();
+	void setLang(const std::string &lang);
+	void setPath(const std::string &path);
+	bool exists(const std::string &term);
+	std::string translate(const std::string &term,const char *replacestr=NULL,...);
+	std::string operator[](const std::string &term);
 };
 
 #endif

@@ -19,11 +19,10 @@
  ***************************************************************************/
 #include "menusettingbool.h"
 #include "esoteric.h"
-using fastdelegate::MakeDelegate;
 
-MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const string &description, int *value)
-	: MenuSetting(app, title, description)
-{
+MenuSettingBool::MenuSettingBool(Esoteric *app, const std::string &title, const std::string &description, int *value)
+	: MenuSetting(app, title, description) {
+
 	_ivalue = value;
 	_value = NULL;
 	originalValue = *value != 0;
@@ -31,9 +30,8 @@ MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const strin
 	initButton();
 }
 
-MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const string &description, bool *value)
-	: MenuSetting(app, title, description)
-{
+MenuSettingBool::MenuSettingBool(Esoteric *app, const std::string &title, const std::string &description, bool *value)
+	: MenuSetting(app, title, description) {
 	_value = value;
 	_ivalue = NULL;
 	originalValue = *value;
@@ -41,9 +39,9 @@ MenuSettingBool::MenuSettingBool(Esoteric *app, const string &title, const strin
 	initButton();
 }
 
-void MenuSettingBool::initButton()
-{
-	ButtonAction actionToggle = MakeDelegate(this, &MenuSettingBool::toggle);
+void MenuSettingBool::initButton() {
+
+	ButtonAction actionToggle = fastdelegate::MakeDelegate(this, &MenuSettingBool::toggle);
 
 	btn = new IconButton(app, "skin:imgs/buttons/left.png");
 	btn->setAction(actionToggle);
@@ -58,8 +56,7 @@ void MenuSettingBool::initButton()
 	buttonBox.add(btn);
 }
 
-void MenuSettingBool::draw(int y)
-{
+void MenuSettingBool::draw(int y) {
 	MenuSetting::draw(y);
 
 	RGBAColor color = (RGBAColor){255, 0, 0, 255};
@@ -71,26 +68,22 @@ void MenuSettingBool::draw(int y)
 	app->screen->write( app->font, strvalue, 155 + w + 2, y + app->font->getHalfHeight(), VAlignMiddle );
 }
 
-uint32_t MenuSettingBool::manageInput()
-{
+uint32_t MenuSettingBool::manageInput() {
 	if ( (*app->inputManager)[LEFT] || (*app->inputManager)[RIGHT] || (*app->inputManager)[CONFIRM] ) {
 		toggle();
 	}
 	return 0; // SD_NO_ACTION
 }
 
-void MenuSettingBool::toggle()
-{
+void MenuSettingBool::toggle() {
 	setValue(!value());
 }
 
-void MenuSettingBool::setValue(int value)
-{
+void MenuSettingBool::setValue(int value) {
 	setValue(value != 0);
 }
 
-void MenuSettingBool::setValue(bool value)
-{
+void MenuSettingBool::setValue(bool value) {
 	if (_value == NULL)
 		*_ivalue = value;
 	else
@@ -98,15 +91,13 @@ void MenuSettingBool::setValue(bool value)
 	strvalue = value ? "ON" : "OFF";
 }
 
-bool MenuSettingBool::value()
-{
+bool MenuSettingBool::value() {
 	if (_value == NULL)
 		return *_ivalue != 0;
 	else
 		return *_value;
 }
 
-bool MenuSettingBool::edited()
-{
+bool MenuSettingBool::edited() {
 	return originalValue != value();
 }

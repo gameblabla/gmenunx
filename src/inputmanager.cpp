@@ -82,8 +82,6 @@
 #include "managers/powermanager.h"
 #include "fileutils.h"
 
-using namespace std;
-
 InputManager::InputManager(ScreenManager& screenManager, PowerManager& powerManager) : 
 	screenManager(screenManager), 
 	powerManager(powerManager) {
@@ -100,7 +98,7 @@ InputManager::~InputManager() {
 	TRACE("exit");
 }
 
-void InputManager::init(const string &conffile, const int &repeatRate) {
+void InputManager::init(const std::string &conffile, const int &repeatRate) {
 	TRACE("init started");
 	this->initJoysticks();
 	if (!this->readConfFile(conffile)) {
@@ -128,7 +126,7 @@ void InputManager::initJoysticks() {
 	TRACE("initJoysticks completed");
 }
 
-bool InputManager::readConfFile(const string &conffile) {
+bool InputManager::readConfFile(const std::string &conffile) {
 	TRACE("enter : %s", conffile.c_str());
 	setActionsCount(NOOP + 1); // track the highest in the enum
 
@@ -137,7 +135,7 @@ bool InputManager::readConfFile(const string &conffile) {
 		return false;
 	}
 
-	ifstream inf(conffile.c_str(), ios_base::in);
+	std::ifstream inf(conffile.c_str(), std::ios_base::in);
 	if (!inf.is_open()) {
 		ERROR("Could not open %s", conffile.c_str());
 		return false;

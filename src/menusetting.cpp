@@ -20,7 +20,7 @@
 #include "menusetting.h"
 #include "esoteric.h"
 
-MenuSetting::MenuSetting(Esoteric *app, const string &title, const string &description)
+MenuSetting::MenuSetting(Esoteric *app, const std::string &title, const std::string &description)
 	: app(app), buttonBox(app), title(title), description(description) {
 }
 

@@ -21,15 +21,11 @@
 #include "settingsdialog.h"
 #include "messagebox.h"
 
-using namespace std;
-
-SettingsDialog::SettingsDialog(
-		Esoteric *app, Touchscreen &ts_,
-		const string &title, const string &icon)
+SettingsDialog::SettingsDialog(Esoteric *app, Touchscreen &ts_, const std::string &title, const std::string &icon)
 	: Dialog(app)
 	, ts(ts_)
-	, title(title)
-{
+	, title(title) {
+
 	if (!icon.empty() && (*app->sc)[icon] != NULL)
 		this->icon = icon;
 	else

@@ -22,12 +22,9 @@
 
 #include <sstream>
 
-using std::string;
-using std::stringstream;
-using fastdelegate::MakeDelegate;
-
-MenuSettingRGBA::MenuSettingRGBA(Esoteric *app, const string &title, const string &description, RGBAColor *value)
+MenuSettingRGBA::MenuSettingRGBA(Esoteric *app, const std::string &title, const std::string &description, RGBAColor *value)
 	: MenuSetting(app, title, description) {
+
 	selPart = 0;
 	_value = value;
 	originalValue = *value;
@@ -37,19 +34,19 @@ MenuSettingRGBA::MenuSettingRGBA(Esoteric *app, const string &title, const strin
 	this->setA(this->value().a);
 
 	btn = new IconButton(app, "skin:imgs/buttons/left.png");
-	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::leftComponent));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::leftComponent));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Component"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::rightComponent));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::rightComponent));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/y.png", app->tr["Decrease"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::dec));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::dec));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/x.png", app->tr["Increase"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingRGBA::inc));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::inc));
 	buttonBox.add(btn);
 }
 
@@ -66,14 +63,13 @@ void MenuSettingRGBA::draw(int y) {
 
 void MenuSettingRGBA::handleTS() {
 	if (app->ts.pressed()) {
-		for (int i=0; i<4; i++) {
-			if (i!=selPart && app->ts.inRect(166+i*36,y,36,14)) {
+		for (int i = 0; i < 4; i++) {
+			if (i != selPart && app->ts.inRect(166+i*36,y,36,14)) {
 				selPart = i;
 				i = 4;
 			}
 		}
 	}
-
 	MenuSetting::handleTS();
 }
 
@@ -103,28 +99,28 @@ void MenuSettingRGBA::rightComponent() {
 
 void MenuSettingRGBA::setR(uint16_t r) {
 	_value->r = r;
-	stringstream ss;
+	std::stringstream ss;
 	ss << r;
 	ss >> strR;
 }
 
 void MenuSettingRGBA::setG(uint16_t g) {
 	_value->g = g;
-	stringstream ss;
+	std::stringstream ss;
 	ss << g;
 	ss >> strG;
 }
 
 void MenuSettingRGBA::setB(uint16_t b) {
 	_value->b = b;
-	stringstream ss;
+	std::stringstream ss;
 	ss << b;
 	ss >> strB;
 }
 
 void MenuSettingRGBA::setA(uint16_t a) {
 	_value->a = a;
-	stringstream ss;
+	std::stringstream ss;
 	ss << a;
 	ss >> strA;
 }

@@ -20,13 +20,9 @@
 
 #include "surfacecollection.h"
 #include "surface.h"
-//#include "utilities.h"
 #include "fileutils.h"
 #include "skin.h"
 #include "debug.h"
-
-using std::endl;
-using std::string;
 
 SurfaceCollection::SurfaceCollection(Skin *skin, bool defaultAlpha) {
 	this->defaultAlpha = defaultAlpha;
@@ -46,21 +42,21 @@ void SurfaceCollection::debug() {
 	}
 }
 
-bool SurfaceCollection::exists(const string &path) {
+bool SurfaceCollection::exists(const std::string &path) {
 	return surfaces.find(path) != surfaces.end();
 }
 
 // add an image, obeying the skin greyScale flag
-Surface *SurfaceCollection::addImage(const string &path, bool alpha) {
+Surface *SurfaceCollection::addImage(const std::string &path, bool alpha) {
 	return this->add(path, alpha, this->skin->imagesToGrayscale);
 }
 
 // add an icon, obeying the skin greyScale flag
-Surface *SurfaceCollection::addIcon(const string &path, bool alpha) {
+Surface *SurfaceCollection::addIcon(const std::string &path, bool alpha) {
 	return this->add(path, alpha, this->skin->iconsToGrayscale);
 }
 
-Surface *SurfaceCollection::skinRes(const string &key) {
+Surface *SurfaceCollection::skinRes(const std::string &key) {
 	TRACE("enter : %s", key.c_str());
 	if (key.empty()) return NULL;
 	SurfaceHash::iterator i = surfaces.find(key);
@@ -75,7 +71,7 @@ Surface *SurfaceCollection::addSkinRes(const std::string &path, bool alpha) {
 	if (path.empty()) return NULL;
 	if (exists(path)) return surfaces[path];
 
-	string skinpath = this->skin->getSkinFilePath(path);
+	std::string skinpath = this->skin->getSkinFilePath(path);
 	if (skinpath.empty())
 		return NULL;
 
@@ -118,7 +114,7 @@ Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool graySc
 	return s;
 }
 
-void SurfaceCollection::del(const string &path) {
+void SurfaceCollection::del(const std::string &path) {
 	SurfaceHash::iterator i = surfaces.find(path);
 	if (i != surfaces.end()) {
 		delete i->second;
@@ -146,13 +142,13 @@ void SurfaceCollection::clear() {
 	TRACE("exit");
 }
 
-void SurfaceCollection::move(const string &from, const string &to) {
+void SurfaceCollection::move(const std::string &from, const std::string &to) {
 	del(to);
 	surfaces[to] = surfaces[from];
 	surfaces.erase(from);
 }
 
-Surface *SurfaceCollection::operator[](const string &key) {
+Surface *SurfaceCollection::operator[](const std::string &key) {
 	SurfaceHash::iterator i = surfaces.find(key);
 	if (i == surfaces.end())
 		return addIcon(key, defaultAlpha);

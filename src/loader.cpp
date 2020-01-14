@@ -8,8 +8,6 @@
 #include "messagebox.h"
 #include "debug.h"
 
-using namespace std;
-
 Loader::Loader(Esoteric *app) {
     this->app = app;
     this->interval=1000;
@@ -29,32 +27,32 @@ bool Loader::isFirstRun() {
 
 void Loader::setFirstRunMarker() {
     TRACE("no marker, so setting file : %s", LOADER_MARKER_FILE.c_str());
-    fstream fs;
-    fs.open(LOADER_MARKER_FILE, ios::out);
+    std::fstream fs;
+    fs.open(LOADER_MARKER_FILE, std::ios::out);
     fs.close();
     sync();
 }
 
 bool Loader::fromFile() {
-    string loaderPath = this->app->skin->currentSkinPath() + "/" + LOADER_FOLDER;
-    string confFile = loaderPath + "/" + LOADER_CONFIG_FILE;
+    std::string loaderPath = this->app->skin->currentSkinPath() + "/" + LOADER_FOLDER;
+    std::string confFile = loaderPath + "/" + LOADER_CONFIG_FILE;
     
     TRACE("enter : %s", confFile.c_str());
     if (FileUtils::fileExists(confFile)) {
         TRACE("config exists");
-        string tempImages;
-		ifstream loaderConf(confFile.c_str(), std::ios_base::in);
+        std::string tempImages;
+		std::ifstream loaderConf(confFile.c_str(), std::ios_base::in);
 		if (loaderConf.is_open()) {
-			string line;
+			std::string line;
 			while (getline(loaderConf, line, '\n')) {
 				line = trim(line);
                 if (0 == line.length()) continue;
                 if ('#' == line[0]) continue;
-				string::size_type pos = line.find("=");
-                if (string::npos == pos) continue;
+				std::string::size_type pos = line.find("=");
+                if (std::string::npos == pos) continue;
                 
-				string name = trim(line.substr(0,pos));
-				string value = trim(line.substr(pos+1,line.length()));
+				std::string name = trim(line.substr(0,pos));
+				std::string value = trim(line.substr(pos+1,line.length()));
 
                 if (0 == value.length()) continue;
                 TRACE("key : value - %s : %s", name.c_str(), value.c_str());
@@ -82,12 +80,12 @@ bool Loader::fromFile() {
 
         if (!tempImages.empty()) {
             TRACE("found images : %s", tempImages.c_str());
-            vector<string> temp;
+            std::vector<std::string> temp;
             split(temp, tempImages, ",");
             // load images into sc
-            for(std::vector<string>::iterator it = temp.begin(); it != temp.end(); ++it) {
-                string name = *it;
-                string imagePath = loaderPath + "/" + name;
+            for(std::vector<std::string>::iterator it = temp.begin(); it != temp.end(); ++it) {
+                std::string name = *it;
+                std::string imagePath = loaderPath + "/" + name;
                 TRACE("checking image exists : %s", imagePath.c_str());
                 if (FileUtils::fileExists(imagePath)) {
                     TRACE("image exists");
@@ -98,7 +96,7 @@ bool Loader::fromFile() {
         }
         TRACE("checking sound file");
         if (!this->soundFile.empty()) {
-            string tempSoundFile = loaderPath + "/" + this->soundFile;
+            std::string tempSoundFile = loaderPath + "/" + this->soundFile;
             TRACE("checking sound file : %s", tempSoundFile.c_str());
             if (FileUtils::fileExists(tempSoundFile)) {
                 TRACE("found sound file at : %s", this->soundFile.c_str());

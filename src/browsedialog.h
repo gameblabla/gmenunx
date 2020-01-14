@@ -22,14 +22,12 @@
 #define BROWSEDIALOG_H_
 
 #include <string>
+
 #include "filelister.h"
 #include "esoteric.h"
-// #include "buttonbox.h"
 #include "dialog.h"
 
 class FileLister;
-
-using std::string;
 
 class BrowseDialog : protected Dialog {
 protected:
@@ -53,7 +51,7 @@ private:
 	};
 
 	bool close, result, ts_pressed;
-	string title, description, icon;
+	std::string title, description, icon;
 
 	uint32_t getAction();
 	void directoryUp();
@@ -62,7 +60,7 @@ private:
 	void cancel();
 
 public:
-	BrowseDialog(Esoteric *app, const string &title, const string &description, const string &icon = "icons/explorer.png");
+	BrowseDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon = "icons/explorer.png");
 	virtual ~BrowseDialog();
 
 	bool exec();
@@ -72,11 +70,11 @@ public:
 
 	const std::string getExt();
 
-	void setFilter(const string &filter);
+	void setFilter(const std::string &filter);
 
 	bool showDirectories, showFiles, allowSelectDirectory = false;
 
-	void setPath(const string &path);
+	void setPath(const std::string &path);
 };
 
 #endif /*INPUTDIALOG_H_*/

@@ -5,11 +5,8 @@
 #include <vector>
 #include "surface.h"
 
-using std::string;
-using std::vector;
-
-static const string SKIN_FILE_NAME = "skin.conf";
-static const string SKIN_FOLDER = "skins";
+static const std::string SKIN_FILE_NAME = "skin.conf";
+static const std::string SKIN_FOLDER = "skins";
 
 class Skin {
 
@@ -45,26 +42,26 @@ public:
         TEXT
     };
 
-    Skin(string const &prefix, int const &maxX, int const &maxY);
+    Skin(std::string const &prefix, int const &maxX, int const &maxY);
     ~Skin();
 
     void changePath(std::string const &prefix) { this->assetsPrefix = prefix; }
-    static vector<string> getSkins(string assetsPath) ;
+    static std::vector<std::string> getSkins(std::string assetsPath) ;
 
-    std::string getSkinFilePath(const string &file);
+    std::string getSkinFilePath(const std::string &file);
     std::string currentSkinPath();
-    bool loadSkin(string name);
-    vector<string> getWallpapers();
+    bool loadSkin(std::string name);
+    std::vector<std::string> getWallpapers();
     std::string toString();
     bool save();
     bool remove();
 
-    string name;
-    string sectionTitleBarImage;
-    string sectionInfoBarImage;
-    string menuTitleBarImage;
-    string menuInfoBarImage;
-    string wallpaper;
+    std::string name;
+    std::string sectionTitleBarImage;
+    std::string sectionInfoBarImage;
+    std::string menuTitleBarImage;
+    std::string menuInfoBarImage;
+    std::string wallpaper;
 
     int fontSize;
     int fontSizeTitle;
@@ -95,7 +92,7 @@ public:
 
 private:
 
-    string assetsPrefix;
+    std::string assetsPrefix;
     int maxX, maxY;
 
     void reset();

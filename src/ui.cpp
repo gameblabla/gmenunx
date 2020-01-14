@@ -7,7 +7,7 @@ int UI::drawButton(Button *btn, int x, int y) {
 	return x + btn->getRect().w + 6;
 }
 
-int UI::drawButton(Surface *s, const string &btn, const string &text, int x, int y) {
+int UI::drawButton(Surface *s, const std::string &btn, const std::string &text, int x, int y) {
 	if (y < 0) y = this->app->getScreenHeight() + y;
 	SDL_Rect re = {x, y, 0, 16};
 	int padding = 4;
@@ -34,7 +34,7 @@ int UI::drawButton(Surface *s, const string &btn, const string &text, int x, int
 	return x + re.w + (2 * padding);
 }
 
-int UI::drawButtonRight(Surface *s, const string &btn, const string &text, int x, int y) {
+int UI::drawButtonRight(Surface *s, const std::string &btn, const std::string &text, int x, int y) {
 	if (y < 0) {
 		y = this->app->getScreenHeight() + y;
 	}

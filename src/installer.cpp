@@ -18,7 +18,7 @@
 const std::string Installer::LAUNCHER_PATH="/usr/local/sbin/frontend_start";
 const std::string Installer::INSTALLER_MARKER_FILE = "/tmp/" + BINARY_NAME + ".marker";
 
-Installer::Installer(std::string const & source, std::string const & destination, std::function<void(string)> callback) {
+Installer::Installer(std::string const & source, std::string const & destination, std::function<void(std::string)> callback) {
     this->sourceRootPath = source;
     this->destinationRootPath = destination;
     this->notifiable = callback;
@@ -88,7 +88,7 @@ bool Installer::upgrade() {
 
 bool Installer::copyFiles() {
     TRACE("enter");
-    for (vector<string>::iterator it = this->fileManifest.begin(); it != this->fileManifest.end(); it++) {
+    for (std::vector<std::string>::iterator it = this->fileManifest.begin(); it != this->fileManifest.end(); it++) {
         std::string fileName = (*it);
         std::string source = this->sourceRootPath + fileName;
         std::string destination = this->destinationRootPath + fileName;
@@ -103,8 +103,8 @@ bool Installer::copyFiles() {
 
 bool Installer::copyDirs(bool force) {
     TRACE("enter");
-    string cp = force ? "/bin/cp -arfp" : "/bin/cp -arp";
-    for (vector<string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
+    std::string cp = force ? "/bin/cp -arfp" : "/bin/cp -arp";
+    for (std::vector<std::string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
         std::string directory = (*it);
         std::string source = this->sourceRootPath + directory;
         std::string destination = this->destinationRootPath;// + directory;
@@ -202,7 +202,7 @@ const bool Installer::deployLauncher() {
     return true;
 }
 
-const bool Installer::isDefaultLauncher(const string &path) {
+const bool Installer::isDefaultLauncher(const std::string &path) {
 
     if (path.empty())
         return false;

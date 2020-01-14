@@ -47,12 +47,12 @@ private:
 	std::string file, dir;
 	std::unordered_map<std::string, std::string> aliases;
 	void loadAliases();
-	string getAlias(const std::string &key, const std::string &fname);
+	std::string getAlias(const std::string &key, const std::string &fname);
 	void prepare(FileLister *fl, std::vector<std::string> *screens, std::vector<std::string> *titles);
-	void freeScreenshots(vector<std::string> *screens);
+	void freeScreenshots(std::vector<std::string> *screens);
 	
 public:
-	Selector(Esoteric *app, LinkApp *link, const std::string &selectorDir="");
+	Selector(Esoteric *app, LinkApp *link, const std::string &selectorDir = "");
 	
 	int exec(int startSelection=0);
 	

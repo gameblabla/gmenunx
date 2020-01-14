@@ -1,9 +1,12 @@
 #include "imageviewerdialog.h"
 #include "debug.h"
 
-ImageViewerDialog::ImageViewerDialog(Esoteric *app, const string &title, const string &description, const string &icon, const string &path)
-: Dialog(app), title(title), description(description), icon(icon), path(path)
-{}
+ImageViewerDialog::ImageViewerDialog(	Esoteric *app, 
+										const std::string &title, 
+										const std::string &description, 
+										const std::string &icon, 
+										const std::string &path)
+										: Dialog(app), title(title), description(description), icon(icon), path(path) {}
 
 void ImageViewerDialog::exec() {
 	Surface image(path);

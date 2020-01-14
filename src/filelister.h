@@ -24,36 +24,33 @@
 #include <string>
 #include <vector>
 
-using std::string;
-using std::vector;
-
 class FileLister {
 private:
-	string path, filter;
-	vector<string> directories, files, excludes;
+	std::string path, filter;
+	std::vector<std::string> directories, files, excludes;
 
 public:
 	bool showDirectories, showFiles, allowDirUp = true;
-	FileLister(const string &startPath = "/media/", bool showDirectories = true, bool showFiles = true);
+	FileLister(const std::string &startPath = "/media/", bool showDirectories = true, bool showFiles = true);
 	void browse();
 
 	uint32_t size();
 	uint32_t dirCount();
 	uint32_t fileCount();
-	string operator[](uint32_t);
-	string at(uint32_t);
+	std::string operator[](uint32_t);
+	std::string at(uint32_t);
 	bool isFile(uint32_t);
 	bool isDirectory(uint32_t);
 
-	const string &getPath();
-	void setPath(const string &path, bool doBrowse=true);
-	const string &getFilter();
-	void setFilter(const string &filter);
+	const std::string &getPath();
+	void setPath(const std::string &path, bool doBrowse=true);
+	const std::string &getFilter();
+	void setFilter(const std::string &filter);
 
-	const vector<string> &getDirectories() { return directories; }
-	const vector<string> &getFiles() { return files; }
-	void insertFile(const string &file);
-	void addExclude(const string &exclude);
+	const std::vector<std::string> &getDirectories() { return directories; }
+	const std::vector<std::string> &getFiles() { return files; }
+	void insertFile(const std::string &file);
+	void addExclude(const std::string &exclude);
 };
 
 #endif /*FILELISTER_H_*/

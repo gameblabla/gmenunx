@@ -26,9 +26,7 @@
 #include "translator.h"
 #include "debug.h"
 
-using namespace std;
-
-Translator::Translator(const string &lang) {
+Translator::Translator(const std::string &lang) {
 	_path = "";
 	_lang = "";
 	if (!lang.empty())
@@ -37,32 +35,32 @@ Translator::Translator(const string &lang) {
 
 Translator::~Translator() {}
 
-bool Translator::exists(const string &term) {
+bool Translator::exists(const std::string &term) {
 	return translations.find(term) != translations.end();
 }
 
-void Translator::setPath(const string &path) {
+void Translator::setPath(const std::string &path) {
 	TRACE("%s", path.c_str());
 	_path = path;
 	if (!_lang.empty())
 		setLang(_lang);
 }
 
-void Translator::setLang(const string &lang) {
+void Translator::setLang(const std::string &lang) {
 	TRACE("%s", lang.c_str());
 	translations.clear();
 
-	string line;
-	string path = _path + "translations/" + lang;
+	std::string line;
+	std::string path = _path + "translations/" + lang;
 	TRACE("opening - %s", path.c_str());
-	ifstream infile (path.c_str(), ios_base::in);
+	std::ifstream infile (path.c_str(), std::ios_base::in);
 	if (infile.is_open()) {
 		while (getline(infile, line, '\n')) {
 			line = trim(line);
 			if (line.empty()) continue;
 			if (line[0]=='#') continue;
 
-			string::size_type position = line.find("=");
+			std::string::size_type position = line.find("=");
 			translations[ trim(line.substr(0,position)) ] = trim(line.substr(position+1));
 		}
 		infile.close();
@@ -71,11 +69,11 @@ void Translator::setLang(const string &lang) {
 	}
 }
 
-string Translator::translate(const string &term,const char *replacestr,...) {
-	string result = term;
+std::string Translator::translate(const std::string &term,const char *replacestr,...) {
+	std::string result = term;
 
 	if (!_lang.empty()) {
-		unordered_map<string, string>::iterator i = translations.find(term);
+		std::tr1::unordered_map<std::string, std::string>::iterator i = translations.find(term);
 		if (i != translations.end()) {
 			result = i->second;
 		}
@@ -88,9 +86,9 @@ string Translator::translate(const string &term,const char *replacestr,...) {
 	const char *param = replacestr;
 	int argnum = 1;
 	while (param!=NULL) {
-		string id = "";
-		stringstream ss; ss << argnum; ss >> id;
-		result = strreplace(result,"$"+id,param);
+		std::string id;
+		std::stringstream ss; ss << argnum; ss >> id;
+		result = strreplace(result,"$" + id,param);
 
 		param = va_arg(arglist,const char*);
 		argnum++;
@@ -100,10 +98,10 @@ string Translator::translate(const string &term,const char *replacestr,...) {
 	return result;
 }
 
-string Translator::operator[](const string &term) {
+std::string Translator::operator[](const std::string &term) {
 	return translate(term);
 }
 
-string Translator::lang() {
+std::string Translator::lang() {
 	return _lang;
 }

@@ -23,26 +23,26 @@
 #include "debug.h"
 #include <algorithm>
 
-using std::find;
+MenuSettingMultiString::MenuSettingMultiString(	Esoteric *app, 
+												const std::string &title, 
+												const std::string &description, 
+												std::string *value, 
+												const std::vector<std::string> *choices_, 
+												msms_onchange_t onChange, 
+												msms_onselect_t onSelect) 
+						: MenuSettingStringBase(app, title, description, value), choices(choices_),
+						onChange(onChange), onSelect(onSelect) {
 
-MenuSettingMultiString::MenuSettingMultiString(
-		Esoteric *app, const string &title,
-		const string &description, string *value,
-		const vector<string> *choices_,
-		msms_onchange_t onChange, msms_onselect_t onSelect)
-	: MenuSettingStringBase(app, title, description, value), choices(choices_),
-	onChange(onChange), onSelect(onSelect)
-{
 	TRACE("Initialised with value : %s", (*value).c_str());
 	setSel(find(choices->begin(), choices->end(), *value) - choices->begin());
 
 	if (choices->size() > 1) {
 		btn = new IconButton(app, "skin:imgs/buttons/left.png");
-		btn->setAction(MakeDelegate(this, &MenuSettingMultiString::decSel));
+		btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingMultiString::decSel));
 		buttonBox.add(btn);
 
 		btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Change"]);
-		btn->setAction(MakeDelegate(this, &MenuSettingMultiString::incSel));
+		btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingMultiString::incSel));
 		buttonBox.add(btn);
 	}
 
@@ -81,15 +81,13 @@ void MenuSettingMultiString::decSel() {
 	setSel(selected - 1);
 }
 
-void MenuSettingMultiString::setSel(int sel)
-{
+void MenuSettingMultiString::setSel(int sel) {
 	if (sel < 0) {
 		sel = choices->size()-1;
 	} else if (sel >= (int)choices->size()) {
 		sel = 0;
 	}
 	selected = sel;
-
 	setValue((*choices)[sel]);
 	TRACE("current value : %s", (*choices)[sel].c_str());
 }

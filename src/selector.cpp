@@ -30,9 +30,9 @@
 #include "filelister.h"
 #include "debug.h"
 
-const string PREVIEWS_DIR = ".previews";
+const std::string PREVIEWS_DIR = ".previews";
 
-Selector::Selector(Esoteric *app, LinkApp *link, const string &selectorDir) : Dialog(app) {
+Selector::Selector(Esoteric *app, LinkApp *link, const std::string &selectorDir) : Dialog(app) {
 	TRACE("enter : %s", selectorDir.c_str());
 	this->link = link;
 	loadAliases();
@@ -264,7 +264,7 @@ int Selector::exec(int startSelection) {
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
 				bool found = false;
-				for(std::vector<string>::iterator current = titles.begin() + selected; current != titles.begin(); current--) {
+				for(std::vector<std::string>::iterator current = titles.begin() + selected; current != titles.begin(); current--) {
 					--offset;
 					if (currentStartChar != (*current)[0]) {
 						selected += offset + 1;
@@ -278,7 +278,7 @@ int Selector::exec(int startSelection) {
 				char currentStartChar = titles.at(selected)[0];
 				int offset = 0;
 				bool found = false;
-				for(std::vector<string>::iterator current = titles.begin() + selected; current != titles.end(); current++) {
+				for(std::vector<std::string>::iterator current = titles.begin() + selected; current != titles.end(); current++) {
 					++offset;
 					if (currentStartChar != (*current)[0]) {
 						selected += offset - 1;
@@ -291,7 +291,7 @@ int Selector::exec(int startSelection) {
 				close = true;
 				result = false;
 			} else if ( (*app->inputManager)[CANCEL] && link->getSelectorBrowser()) {
-				string::size_type p = this->dir.rfind("/", this->dir.size() - 2);
+				std::string::size_type p = this->dir.rfind("/", this->dir.size() - 2);
 				this->dir = this->dir.substr(0, p + 1);
 				selected = 0;
 				this->firstElement = 0;

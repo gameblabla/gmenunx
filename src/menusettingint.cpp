@@ -23,11 +23,7 @@
 
 #include <sstream>
 
-using std::string;
-using std::stringstream;
-using fastdelegate::MakeDelegate;
-
-MenuSettingInt::MenuSettingInt(Esoteric *app, const string &title, const string &description, int *value, int def, int min, int max, int delta)
+MenuSettingInt::MenuSettingInt(Esoteric *app, const std::string &title, const std::string &description, int *value, int def, int min, int max, int delta)
 	: MenuSetting(app, title, description) {
 
 	_value = value;
@@ -39,11 +35,11 @@ MenuSettingInt::MenuSettingInt(Esoteric *app, const string &title, const string 
 	setValue(evalIntConf(value, def, min, max));
 
 	//Delegates
-	ButtonAction actionInc = MakeDelegate(this, &MenuSettingInt::inc);
-	ButtonAction actionDec = MakeDelegate(this, &MenuSettingInt::dec);
+	ButtonAction actionInc = fastdelegate::MakeDelegate(this, &MenuSettingInt::inc);
+	ButtonAction actionDec = fastdelegate::MakeDelegate(this, &MenuSettingInt::dec);
 
 	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Default"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingInt::setDefault));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingInt::setDefault));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/left.png");
@@ -57,7 +53,7 @@ MenuSettingInt::MenuSettingInt(Esoteric *app, const string &title, const string 
 
 void MenuSettingInt::draw(int y) {
 	MenuSetting::draw(y);
-	app->screen->write( app->font, strvalue, 155, y+app->font->getHalfHeight(), VAlignMiddle );
+	app->screen->write( app->font, strvalue, 155, y + app->font->getHalfHeight(), VAlignMiddle );
 }
 
 uint32_t MenuSettingInt::manageInput() {
@@ -79,7 +75,7 @@ void MenuSettingInt::dec() {
 
 void MenuSettingInt::setValue(int value) {
 	*_value = constrain(value,min,max);
-	stringstream ss;
+	std::stringstream ss;
 	ss << *_value;
 	strvalue = "";
 	ss >> strvalue;

@@ -23,8 +23,6 @@
 #include <iostream>
 #include <SDL.h>
 
-using std::string;
-
 const int	HAlignLeft		= 1,
 			HAlignRight		= 2,
 			HAlignCenter	= 4,
@@ -47,8 +45,8 @@ struct RGBAColor {
 
 };
 
-RGBAColor strtorgba(const string &strColor);
-string rgbatostr(RGBAColor color);
+RGBAColor strtorgba(const std::string &strColor);
+std::string rgbatostr(RGBAColor color);
 SDL_Color rgbatosdl(RGBAColor color);
 
 /**
@@ -63,8 +61,8 @@ private:
 
 public:
 	Surface();
-	Surface(const string &img, const string &skin="", bool alpha=true);
-	Surface(const string &img, bool alpha, const string &skin="");
+	Surface(const std::string &img, const std::string &skin = "", bool alpha = true);
+	Surface(const std::string &img, bool alpha, const std::string &skin = "");
 	Surface(SDL_Surface *s, SDL_PixelFormat *fmt = NULL, uint32_t flags = 0);
 	Surface(Surface *s);
 	Surface(int w, int h, uint32_t flags = SDL_HWSURFACE|SDL_SRCALPHA);
@@ -76,7 +74,7 @@ public:
 	SDL_Surface *ScreenSurface;
 
 	void free();
-	void load(const string &img, bool alpha=true, const string &skin="");
+	void load(const std::string &img, bool alpha=true, const std::string &skin = "");
 	void lock();
 	void unlock();
 	void flip();
@@ -95,8 +93,8 @@ public:
 	bool blit(Surface *destination, int x, int y, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha=-1);
 	bool blit(Surface *destination, SDL_Rect destrect, const uint8_t align = HAlignLeft | VAlignTop, uint8_t alpha=-1);
 
-	void write(FontHelper *font, const string &text, int x, int y, const uint8_t align = HAlignLeft | VAlignTop);
-	void write(FontHelper *font, const string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor);
+	void write(FontHelper *font, const std::string &text, int x, int y, const uint8_t align = HAlignLeft | VAlignTop);
+	void write(FontHelper *font, const std::string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor);
 
 	void box(SDL_Rect re, RGBAColor c);
 	void box(Sint16 x, Sint16 y, Uint16 w, Uint16 h, RGBAColor c) {

@@ -50,7 +50,7 @@
 #include <tr1/unordered_map>
 
 typedef fastdelegate::FastDelegate0<> MenuAction;
-typedef std::tr1::unordered_map<std::string, string, std::hash<std::string> > ConfStrHash;
+typedef std::tr1::unordered_map<std::string, std::string, std::hash<std::string> > ConfStrHash;
 typedef std::tr1::unordered_map<std::string, int, std::hash<std::string> > ConfIntHash;
 
 struct MenuOption {

@@ -8,8 +8,6 @@
 #include "debug.h"
 #include "utilities.h"
 
-using namespace std;
-
 ProgressBar::ProgressBar(Esoteric *app, const std::string &title, const std::string &icon, const int width) {
     TRACE("enter - width : %i", width);
 	this->app = app;

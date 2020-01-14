@@ -46,7 +46,7 @@ private:
 	std::string file;
 
 	void launch(std::string launchArgs = "");
-	string resolveArgs(const std::string &selectedFile = "", const std::string &selectedDir = "");
+	std::string resolveArgs(const std::string &selectedFile = "", const std::string &selectedDir = "");
 	void favourite(std::string launchArgs, std::string supportingFile = "", std::string backdrop = "");
 
 public:

@@ -21,15 +21,13 @@
 #include "esoteric.h"
 #include "debug.h"
 
-using std::string;
-
-MenuSettingStringBase::MenuSettingStringBase(
-		Esoteric *app, const string &title,
-		const string &description, string *value)
+MenuSettingStringBase::MenuSettingStringBase(	Esoteric *app, 
+												const std::string &title, 
+												const std::string &description, 
+												std::string *value)
 	: MenuSetting(app, title, description)
 	, originalValue(*value)
-	, _value(value)
-{
+	, _value(value) {
 }
 
 MenuSettingStringBase::~MenuSettingStringBase() {

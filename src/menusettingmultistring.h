@@ -26,11 +26,9 @@
 #include "debug.h"
 
 #include "FastDelegate.h"
-using namespace fastdelegate;
-using fastdelegate::MakeDelegate;
 
-typedef FastDelegate0<uint32_t> msms_onchange_t;
-typedef FastDelegate0<> msms_onselect_t;
+typedef fastdelegate::FastDelegate0<uint32_t> msms_onchange_t;
+typedef fastdelegate::FastDelegate0<> msms_onselect_t;
 
 class MenuSettingMultiString : public MenuSettingStringBase {
 private:
@@ -50,15 +48,16 @@ private:
 
 public:
 	MenuSettingMultiString(
-			Esoteric *app, const std::string &title,
-			const std::string &description, std::string *value,
+			Esoteric *app, 
+			const std::string &title,
+			const std::string &description, 
+			std::string *value,
 			const std::vector<std::string> *choices,
-			msms_onchange_t onChange = 0, msms_onselect_t onSelect = 0
-			);
+			msms_onchange_t onChange = 0, 
+			msms_onselect_t onSelect = 0
+	);
 
 	uint32_t voidAction() { return 0; };
-
-
 	virtual ~MenuSettingMultiString() {};
 	virtual uint32_t manageInput();
 };

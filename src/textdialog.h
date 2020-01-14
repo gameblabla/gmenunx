@@ -25,24 +25,20 @@
 #include "esoteric.h"
 #include "dialog.h"
 
-using std::string;
-using std::vector;
-
 class TextDialog : protected Dialog {
 protected:
-	vector<string> text;
-	string title, description, icon, backdrop, rawText = "";
+	std::vector<std::string> text;
+	std::string title, description, icon, backdrop, rawText = "";
 
 	void preProcess();
-	void drawText(vector<string> *text, uint32_t firstRow, uint32_t rowsPerPage);
+	void drawText(std::vector<std::string> *text, uint32_t firstRow, uint32_t rowsPerPage);
 
 public:
-	TextDialog(Esoteric *app, const string &title, const string &description, const string &icon, const string &backdrop = "");
+	TextDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon, const std::string &backdrop = "");
 
-	void appendText(const string &text);
-	void appendFile(const string &file);
-	void appendCommand(const string &executable, const string &args="");
-	
+	void appendText(const std::string &text);
+	void appendFile(const std::string &file);
+	void appendCommand(const std::string &executable, const std::string &args = "");
 	void exec();
 };
 

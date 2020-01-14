@@ -232,7 +232,7 @@ void Renderer::render() {
 		// we're in section text mode....
 		if (!app->skin->showSectionIcons && (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM)) {
             //TRACE("section text mode");
-            string sectionName = app->menu->selSection();
+            std::string sectionName = app->menu->selSection();
 
             //TRACE("section text mode - writing title");
 			app->screen->write(
@@ -246,7 +246,7 @@ void Renderer::render() {
 			if (app->skin->showClock) {	
 
                 //TRACE("section text mode - writing clock");
-                string clockTime = app->hw->Clock()->getClockTime(true);
+                std::string clockTime = app->hw->Clock()->getClockTime(true);
                 //TRACE("section text mode - got clock time : %s", clockTime.c_str());
 				app->screen->write(
 					app->fontSectionTitle, 
@@ -361,7 +361,7 @@ void Renderer::render() {
 			for (x = 0; x < app->skin->numLinkCols && i < app->menu->sectionLinks()->size(); x++, i++) {
 
 				//TRACE("getting title");
-				string title = app->tr.translate(app->menu->sectionLinks()->at(i)->getDisplayTitle());
+				std::string title = app->tr.translate(app->menu->sectionLinks()->at(i)->getDisplayTitle());
 				//TRACE("got title : %s for index %i", title.c_str(), i);
 
 				// calc cell x && y
@@ -572,7 +572,7 @@ void Renderer::render() {
     TRACE("exit");
 }
 
-void Renderer::layoutHelperIcons(vector<Surface*> icons, int rootXPos, int rootYPos) {
+void Renderer::layoutHelperIcons(std::vector<Surface*> icons, int rootXPos, int rootYPos) {
 	TRACE("enter");
 
 	int helperHeight = 20;

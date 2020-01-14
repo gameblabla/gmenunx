@@ -27,18 +27,16 @@
 #include "esoteric.h"
 #include "dialog.h"
 
-using namespace std;
-using std::string;
-using std::vector;
-using std::ifstream;
-using std::ios_base;
-
 class ImageViewerDialog : protected Dialog {
 protected:
-	string title, description, icon, path;
+	std::string title, description, icon, path;
 
 public:
-	ImageViewerDialog(Esoteric *app, const string &title, const string &description, const string &icon = "icons/ebook.png", const string &path = "");
+	ImageViewerDialog(	Esoteric *app, 
+						const std::string &title, 
+						const std::string &description, 
+						const std::string &icon = "icons/ebook.png", 
+						const std::string &path = "");
 	void exec();
 };
 

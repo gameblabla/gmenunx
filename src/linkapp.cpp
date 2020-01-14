@@ -41,7 +41,7 @@ static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
-	Link(app, MakeDelegate(this, &LinkApp::run)) {
+	Link(app, fastdelegate::MakeDelegate(this, &LinkApp::run)) {
 
 	TRACE("ctor - handling file :%s", linkfile);
 
@@ -214,17 +214,17 @@ const std::string &LinkApp::searchBackdrop() {
 	return backdropPath;
 }
 
-const string &LinkApp::searchIcon() {
+const std::string &LinkApp::searchIcon() {
 	return searchIcon(exec, true);
 }
 
-const string &LinkApp::searchIcon(std::string path, bool fallBack) {
+const std::string &LinkApp::searchIcon(std::string path, bool fallBack) {
 	TRACE("enter - fallback : %i", fallBack);
 
 	// get every permutation possible from the metadata opts
 	std::string execicon = path;
 	std::string::size_type pos = path.rfind(".");
-	if (pos != string::npos) execicon = path.substr(0, pos);
+	if (pos != std::string::npos) execicon = path.substr(0, pos);
 	execicon += ".png";
 	std::string exectitle = FileUtils::pathBaseName(execicon);
 	std::string dirtitle = FileUtils::pathBaseName(FileUtils::dirName(path)) + ".png";
@@ -443,7 +443,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	TRACE("exit");
 }
 
-string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &selectedDir) {
+std::string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &selectedDir) {
 	TRACE("enter file : '%s', dir : '%s'", selectedFile.c_str(), selectedDir.c_str());
 	std::string launchArgs = "";
 
@@ -571,21 +571,21 @@ void LinkApp::launch(std::string launchArgs) {
 	TRACE("exit");
 }
 
-const string &LinkApp::getExec() { return exec; }
+const std::string &LinkApp::getExec() { return exec; }
 void LinkApp::setExec(const std::string &exec) {
 	this->exec = exec;
 	edited = true;
 }
 
-const string &LinkApp::getParams() { return params; }
+const std::string &LinkApp::getParams() { return params; }
 void LinkApp::setParams(const std::string &params) {
 	this->params = params;
 	edited = true;
 }
 
-const string &LinkApp::getWorkdir() { return workdir; }
+const std::string &LinkApp::getWorkdir() { return workdir; }
 
-const string LinkApp::getRealWorkdir() {
+const std::string LinkApp::getRealWorkdir() {
 	std::string wd = workdir;
 	if (wd.empty()) {
 		if (exec[0] != '/') {
@@ -604,13 +604,13 @@ void LinkApp::setWorkdir(const std::string &workdir) {
 	edited = true;
 }
 
-const string &LinkApp::getManual() { return manual; }
+const std::string &LinkApp::getManual() { return manual; }
 void LinkApp::setManual(const std::string &manual) {
 	this->manual = this->manualPath = manual;
 	edited = true;
 }
 
-const string &LinkApp::getSelectorDir() { return selectordir; }
+const std::string &LinkApp::getSelectorDir() { return selectordir; }
 void LinkApp::setSelectorDir(const std::string &selectordir) {
 	this->selectordir = selectordir;
 	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
@@ -636,19 +636,19 @@ void LinkApp::setHidden(bool value) {
 	this->edited = true;
 }
 
-const string &LinkApp::getSelectorFilter() { return this->selectorfilter; }
+const std::string &LinkApp::getSelectorFilter() { return this->selectorfilter; }
 void LinkApp::setSelectorFilter(const std::string &selectorfilter) {
 	this->selectorfilter = selectorfilter;
 	edited = true;
 }
 
-const string &LinkApp::getSelectorScreens() { return selectorscreens; }
+const std::string &LinkApp::getSelectorScreens() { return selectorscreens; }
 void LinkApp::setSelectorScreens(const std::string &selectorscreens) {
 	this->selectorscreens = selectorscreens;
 	edited = true;
 }
 
-const string &LinkApp::getAliasFile() { return aliasfile; }
+const std::string &LinkApp::getAliasFile() { return aliasfile; }
 void LinkApp::setAliasFile(const std::string &aliasfile) {
 	if (FileUtils::fileExists(aliasfile)) {
 		this->aliasfile = aliasfile;

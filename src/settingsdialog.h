@@ -26,9 +26,6 @@
 #include "menusetting.h"
 #include "dialog.h"
 
-using std::string;
-using std::vector;
-
 class Touchscreen;
 
 class SettingsDialog : protected Dialog {

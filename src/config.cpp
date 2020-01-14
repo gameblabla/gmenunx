@@ -219,7 +219,7 @@ bool Config::fromFile() {
                     if (0 == line.length()) continue;
                     if ('#' == line[0]) continue;
                     std::string::size_type pos = line.find("=");
-                    if (string::npos == pos) continue;
+                    if (std::string::npos == pos) continue;
                     
                     std::string name = trim(line.substr(0,pos));
                     std::string value = trim(line.substr(pos+1,line.length()));

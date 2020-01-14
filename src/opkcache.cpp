@@ -101,7 +101,7 @@ void OpkCache::setMonitorDirs(std::vector<std::string> dirs) {
 
 int OpkCache::size() {
     int result = 0;
-    std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator it;
+    std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>>::iterator it;
     for (it = this->sectionCache->begin(); it != this->sectionCache->end(); it++) {
         result += it->second.size();
     }
@@ -376,7 +376,7 @@ DesktopFile * OpkCache::findMatchingProvider(const std::string & section, myOpk 
 bool OpkCache::createMissingOpkDesktopFiles() {
     TRACE("enter");
     this->notifyProgress("Adding missing files");
-    for (std::vector<string>::iterator opkDir = this->opkDirs_.begin(); opkDir != this->opkDirs_.end(); opkDir++) {
+    for (std::vector<std::string>::iterator opkDir = this->opkDirs_.begin(); opkDir != this->opkDirs_.end(); opkDir++) {
         std::string dir = (*opkDir);
         TRACE("checking opk directory : %s", dir.c_str());
         if (!FileUtils::dirExists(dir)) {
@@ -471,7 +471,7 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
     this->notifyProgress("Removing any deleted files");
 
     std::list<std::pair<std::string, DesktopFile>> actions;
-    std::unordered_map<string, std::list<std::pair<std::string, DesktopFile>>>::iterator section;
+    std::unordered_map<std::string, std::list<std::pair<std::string, DesktopFile>>>::iterator section;
     for (section = sectionCache->begin(); section != sectionCache->end(); section++) {
         TRACE("section : %s", section->first.c_str());
         std::list<std::pair<std::string, DesktopFile>> fileList = section->second;

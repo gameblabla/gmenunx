@@ -15,17 +15,13 @@
 #include "fileutils.h"
 #include "constants.h"
 
-#define sync() sync(); system("sync");
-
-using std::ifstream;
-using std::ofstream;
-using std::string;
+//#define sync() sync(); system("sync");
 
 const int SKIN_VERSION = 1;
 
-Skin::Skin(string const &prefix, int const &maxX, int const &maxY) {
-    TRACE("enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
+Skin::Skin(std::string const &prefix, int const &maxX, int const &maxY) {
 
+    TRACE("enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
     this->assetsPrefix = prefix;
     this->maxX = maxX;
     this->maxY = maxY;
@@ -36,10 +32,10 @@ Skin::~Skin() {
     TRACE("~Skin");
 }
 
-vector<string> Skin::getSkins(string assetsPath) {
+std::vector<std::string> Skin::getSkins(std::string assetsPath) {
 
-	string skinPath = assetsPath + SKIN_FOLDER;
-    vector<string> result;
+	std::string skinPath = assetsPath + SKIN_FOLDER;
+    std::vector<std::string> result;
 	TRACE("getSkins - searching for skins in : %s", skinPath.c_str());
 	if (FileUtils::dirExists(skinPath)) {
 
@@ -51,7 +47,7 @@ vector<string> Skin::getSkins(string assetsPath) {
 
 		struct stat st;
 		struct dirent *dptr;
-        string folder, fullPath;
+        std::string folder, fullPath;
 
 		while ((dptr = readdir(dirp))) {
 			folder = dptr->d_name;
@@ -73,9 +69,9 @@ vector<string> Skin::getSkins(string assetsPath) {
     return result;
 }
 
-string Skin::toString() {
+std::string Skin::toString() {
 
-    vector<string> vec;
+    std::vector<std::string> vec;
     vec.push_back("#      " + APP_NAME + " skin config file      #");
     vec.push_back("");
     vec.push_back("# ################################### #");
@@ -235,16 +231,16 @@ string Skin::toString() {
 }
 
 bool Skin::remove() {
-    string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
+    std::string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
     return (0 ==unlink(fileName.c_str()));
 }
 
 bool Skin::save() {
     TRACE("enter");
-    string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;
+    std::string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;
     TRACE("saving to : %s", fileName.c_str());
 
-	ofstream config(fileName.c_str());
+	std::ofstream config(fileName.c_str());
 	if (config.is_open()) {
 		config << this->toString();
 		config.close();
@@ -255,19 +251,19 @@ bool Skin::save() {
     return true;
 }
 
-bool Skin::loadSkin(string name) {
+bool Skin::loadSkin(std::string name) {
     TRACE("loading skin : %s", name.c_str());
     this->name = name;
     this->reset();
     return this->fromFile();
 }
 
-vector<string> Skin::getWallpapers() {
+std::vector<std::string> Skin::getWallpapers() {
     TRACE("enter");
-    string path = this->currentSkinPath() + "/wallpapers";
+    std::string path = this->currentSkinPath() + "/wallpapers";
     TRACE("searching for wallpapers in : %s", path.c_str());
 
-    vector<string> results;
+    std::vector<std::string> results;
 
     if (!FileUtils::dirExists(path)) {
         TRACE("wallpaper directory diesn't exist : %s", path.c_str());
@@ -280,10 +276,10 @@ vector<string> Skin::getWallpapers() {
 		return results;
 	}
 
-    vector<string> vfilter;
+    std::vector<std::string> vfilter;
 	split(vfilter, ".png,.jpg,.jpeg,.bmp", ",");
 
-	string filepath, file;
+	std::string filepath, file;
 	struct stat st;
 	struct dirent *dptr;
 
@@ -296,7 +292,7 @@ vector<string> Skin::getWallpapers() {
 			ERROR("Stat failed on '%s' with error '%s'", filepath.c_str(), strerror(errno));
 			continue;
 		}
-		for (vector<string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
+		for (std::vector<std::string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
 			if (vfilter.size() > 1 && it->length() == 0 && (int32_t)file.rfind(".") >= 0) continue;
 			if (it->length() <= file.length()) {
 				if (file.compare(file.length() - it->length(), it->length(), *it) == 0) {
@@ -317,10 +313,10 @@ std::string Skin::currentSkinPath() {
     return this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
 }
 
-string Skin::getSkinFilePath(const string &file) {
+std::string Skin::getSkinFilePath(const std::string &file) {
 	TRACE("enter : %s", file.c_str());
 	TRACE("prefix : %s, skin : %s", this->assetsPrefix.c_str(), this->name.c_str());
-	string result = "";
+	std::string result = "";
 
 	if (FileUtils::fileExists(this->currentSkinPath() + "/" + file)) {
 		TRACE("found file in current skin");
@@ -415,25 +411,25 @@ void Skin::constrain() {
 bool Skin::fromFile() {
     TRACE("enter");
     bool result = false;
-    string skinPath = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/";
-    string fileName = skinPath + SKIN_FILE_NAME;
+    std::string skinPath = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/";
+    std::string fileName = skinPath + SKIN_FILE_NAME;
     TRACE("loading skin from : %s", fileName.c_str());
 
 	if (FileUtils::fileExists(fileName)) {
 		TRACE("skin file exists");
-		ifstream skinconf(fileName.c_str(), std::ios_base::in);
+		std::ifstream skinconf(fileName.c_str(), std::ios_base::in);
 		if (skinconf.is_open()) {
-			string line;
-			while (getline(skinconf, line, '\n')) {
+			std::string line;
+			while (std::getline(skinconf, line, '\n')) {
                 try {
                     line = trim(line);
                     if (0 == line.length()) continue;
                     if ('#' == line[0]) continue;
-                    string::size_type pos = line.find("=");
-                    if (string::npos == pos) continue;
+                    std::string::size_type pos = line.find("=");
+                    if (std::string::npos == pos) continue;
                     
-                    string name = trim(line.substr(0, pos));
-                    string value = trim(line.substr(pos + 1,line.length()));
+                    std::string name = trim(line.substr(0, pos));
+                    std::string value = trim(line.substr(pos + 1,line.length()));
 
                     if (0 == value.length()) continue;
                     name = toLower(name);

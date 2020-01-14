@@ -23,10 +23,7 @@
 #include <sstream>
 #include <iomanip>
 
-using std::stringstream;
-using fastdelegate::MakeDelegate;
-
-MenuSettingDateTime::MenuSettingDateTime(Esoteric *app, const string &title, const string &description, string *value)
+MenuSettingDateTime::MenuSettingDateTime(Esoteric *app, const std::string &title, const std::string &description, std::string *value)
 	: MenuSetting(app, title, description) {
 	_value = value;
 	originalValue = *value;
@@ -42,19 +39,19 @@ MenuSettingDateTime::MenuSettingDateTime(Esoteric *app, const string &title, con
 	this->setMinute(iminute);
 
 	btn = new IconButton(app, "skin:imgs/buttons/left.png");
-	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::leftComponent));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDateTime::leftComponent));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/right.png", app->tr["Component"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::rightComponent));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDateTime::rightComponent));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/y.png", app->tr["Decrease"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::dec));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDateTime::dec));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/x.png", app->tr["Increase"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingDateTime::inc));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDateTime::inc));
 	buttonBox.add(btn);
 }
 
@@ -90,7 +87,7 @@ void MenuSettingDateTime::rightComponent() {
 
 void MenuSettingDateTime::setYear(int16_t i) {
 	iyear = constrain(i, 1970, 2100);
-	stringstream ss;
+	std::stringstream ss;
 	ss << iyear;
 	ss >> year;
 }
@@ -99,7 +96,7 @@ void MenuSettingDateTime::setMonth(int16_t i) {
 	imonth = i;
 	if (i < 1) imonth = 12;
 	else if (i > 12) imonth = 0;
-	stringstream ss;
+	std::stringstream ss;
 	ss << std::setw(2) << std::setfill('0') << imonth;
 	ss >> month;
 }
@@ -108,7 +105,7 @@ void MenuSettingDateTime::setDay(int16_t i) {
 	iday = i;
 	if (i < 1) iday = 31;
 	else if (i > 31) iday = 0;
-	stringstream ss;
+	std::stringstream ss;
 	ss << std::setw(2) << std::setfill('0') << iday;
 	ss >> day;
 }
@@ -117,7 +114,7 @@ void MenuSettingDateTime::setHour(int16_t i) {
 	ihour = i;
 	if (i < 0) ihour = 23;
 	else if (i > 23) ihour = 0;
-	stringstream ss;
+	std::stringstream ss;
 	ss << std::setw(2) << std::setfill('0') << ihour;
 	ss >> hour;
 }
@@ -126,7 +123,7 @@ void MenuSettingDateTime::setMinute(int16_t i) {
 	iminute = i;
 	if (i < 0) iminute = 59;
 	else if (i > 59) iminute = 0;
-	stringstream ss;
+	std::stringstream ss;
 	ss << std::setw(2) << std::setfill('0') << iminute;
 	ss >> minute;
 }
@@ -143,7 +140,7 @@ void MenuSettingDateTime::setSelPart(uint16_t i) {
 	*_value = year + "-" + month + "-" + day + " " + hour + ":" + minute;
 }
 
-string MenuSettingDateTime::value() {
+std::string MenuSettingDateTime::value() {
 	return *_value;
 }
 

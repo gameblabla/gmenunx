@@ -25,9 +25,7 @@
 #include "debug.h"
 #include "utilities.h"
 
-using namespace std;
-
-MessageBox::MessageBox(Esoteric *app, const string &text, const string &icon) {
+MessageBox::MessageBox(Esoteric *app, const std::string &text, const std::string &icon) {
 	this->app = app;
 	this->text = text;
 	this->icon = icon;
@@ -68,7 +66,7 @@ MessageBox::MessageBox(Esoteric *app, const string &text, const string &icon) {
 	buttonLabels[VOLDOWN] = "vol-";
 }
 
-void MessageBox::setButton(int action, const string &btn) {
+void MessageBox::setButton(int action, const std::string &btn) {
 	buttons[action] = btn;
 }
 
@@ -80,7 +78,7 @@ void MessageBox::setBgAlpha(int bgalpha) {
 	this->bgalpha = bgalpha;
 }
 
-string MessageBox::formatText(int box_w_padding, int buttonWidth) {
+std::string MessageBox::formatText(int box_w_padding, int buttonWidth) {
 	int wrap_size = ((app->getScreenWidth() - (box_w_padding / 2)) / app->font->getSize() + 15);
 	TRACE("initial wrap size : %i", wrap_size);
 	if (wrap_size < buttonWidth) {
@@ -141,7 +139,7 @@ int MessageBox::exec() {
 	}
 	TRACE("button width : %i", buttonWidth);
 
-	string wrappedText = formatText(box_w_padding, buttonWidth);
+	std::string wrappedText = formatText(box_w_padding, buttonWidth);
 
 	int textWidthPx = app->font->getTextWidth(wrappedText);
 	if (textWidthPx + box_w_padding > app->getScreenWidth()) {
@@ -179,11 +177,11 @@ int MessageBox::exec() {
 	}
 
 	// text
-	vector<string> lines;
+	std::vector<std::string> lines;
 	split(lines, wrappedText, "\n");
 	int iY = box.y + 12;
-	for (vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
-		string line = (*it);
+	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) {
+		std::string line = (*it);
 
 		app->screen->write(
 			app->font, 

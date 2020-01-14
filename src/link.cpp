@@ -42,15 +42,15 @@ void Link::run() {
 	TRACE("action called");
 }
 
-const string &Link::getTitle() {
+const std::string &Link::getTitle() {
 	return this->title;
 }
 
-const string &Link::getDisplayTitle() {
+const std::string &Link::getDisplayTitle() {
 	return this->displayTitle;
 }
 
-void Link::setTitle(const string &title) {
+void Link::setTitle(const std::string &title) {
 	if (title != this->title) {
 		this->title = title;
 		this->edited = true;
@@ -58,10 +58,10 @@ void Link::setTitle(const string &title) {
 		// Reduce title length to fit the link width
 		// TODO :: maybe move to a format function, called after loading in LinkApp
 		// and called again after skin column change etc
-		string temp = string(title);
+		std::string temp = std::string(title);
 		temp = strreplace(temp, "-", " ");
-		string::size_type pos = temp.find( "  ", 0 );
-		while (pos != string::npos) {
+		std::string::size_type pos = temp.find( "  ", 0 );
+		while (pos != std::string::npos) {
 			temp = strreplace(temp, "  ", " ");
 			pos = temp.find( "  ", 0 );
 		};
@@ -76,31 +76,31 @@ void Link::setTitle(const string &title) {
 	}
 }
 
-const string &Link::getDescription() {
+const std::string &Link::getDescription() {
 	return description;
 }
 
-void Link::setDescription(const string &description) {
+void Link::setDescription(const std::string &description) {
 	this->description = description;
 	edited = true;
 }
 
-const string &Link::getIcon() {
+const std::string &Link::getIcon() {
 	return icon;
 }
 
-void Link::setIcon(const string &icon) {
+void Link::setIcon(const std::string &icon) {
 	this->icon = icon;
 
 	if (icon.compare(0, 5, "skin:") == 0)
-		this->iconPath = app->skin->getSkinFilePath(icon.substr(5, string::npos));
+		this->iconPath = app->skin->getSkinFilePath(icon.substr(5, std::string::npos));
 	else
 		this->iconPath = icon;
 
 	edited = true;
 }
 
-const string &Link::searchIcon() {
+const std::string &Link::searchIcon() {
 	TRACE("enter");
 	if (this->iconPath.empty()) {
 		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
@@ -114,12 +114,12 @@ const string &Link::searchIcon() {
 	return this->iconPath;
 }
 
-const string &Link::getIconPath() {
+const std::string &Link::getIconPath() {
 	if (iconPath.empty()) searchIcon();
 	return iconPath;
 }
 
-void Link::setIconPath(const string &icon) {
+void Link::setIconPath(const std::string &icon) {
 	if (FileUtils::fileExists(icon))
 		iconPath = icon;
 	else

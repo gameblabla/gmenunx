@@ -54,7 +54,7 @@ public:
 	void setHour(int16_t i);
 	void setMinute(int16_t i);
 	uint16_t getSelPart();
-	string value();
+	std::string value();
 };
 
 #endif

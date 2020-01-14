@@ -120,7 +120,7 @@ uint32_t FontHelper::getLineWidth(const std::string &text) {
 
 uint32_t FontHelper::getTextWidth(const std::string &text) {
 	if (text.find("\n", 0) != std::string::npos) {
-		vector<string> textArr;
+		std::vector<std::string> textArr;
 		split(textArr, text, "\n");
 		return getTextWidth(&textArr);
 	} else

@@ -56,7 +56,7 @@ Menu::Menu(Esoteric *app) {
 	//TRACE("readdir : %zu", (long)dirp);
 	while ((dptr = readdir(dirp))) {
 		if (dptr->d_name[0] == '.') continue;
-		string dirName = string(dptr->d_name);
+		std::string dirName = std::string(dptr->d_name);
 		//TRACE("reading : %s", dptr->d_name);
 		filepath = resolvedPath + dirName;
 		TRACE("checking : %s", filepath.c_str());
@@ -156,7 +156,7 @@ void Menu::loadIcons() {
    SECTION MANAGEMENT
   ====================================*/
 void Menu::freeLinks() {
-	for (vector<linklist>::iterator section = links.begin(); section < links.end(); section++)
+	for (std::vector<linklist>::iterator section = links.begin(); section < links.end(); section++)
 		for (linklist::iterator link = section->begin(); link < section->end(); link++)
 			delete *link;
 }
@@ -187,7 +187,7 @@ int Menu::selSectionIndex() {
 	return iSection;
 }
 
-const string &Menu::selSection() {
+const std::string &Menu::selSection() {
 	return sections[iSection];
 }
 
@@ -214,7 +214,7 @@ void Menu::setSectionIndex(int i) {
 	iFirstDispRow = 0;
 }
 
-string Menu::sectionPath(int section) {
+std::string Menu::sectionPath(int section) {
 	if (section < 0 || section > (int)sections.size()) section = iSection;
 	return "sections/" + sections[section] + "/";
 }
@@ -222,7 +222,7 @@ string Menu::sectionPath(int section) {
 /*====================================
    LINKS MANAGEMENT
   ====================================*/
-bool Menu::addActionLink(uint32_t section, const std::string &title, fastdelegate::FastDelegate0<> action, const std::string &description, const string &icon) {
+bool Menu::addActionLink(uint32_t section, const std::string &title, fastdelegate::FastDelegate0<> action, const std::string &description, const std::string &icon) {
 	if (section >= sections.size()) return false;
 
 	Link *linkact = new Link(app, action);
@@ -556,7 +556,7 @@ int Menu::getSectionIndex(const std::string &name) {
 	return distance(sections.begin(), std::find(sections.begin(), sections.end(), name));
 }
 
-const string Menu::getSectionIcon(int i) {
+const std::string Menu::getSectionIcon(int i) {
 	std::string sectionIcon = "skin:sections/" + sections[i] + ".png";
 	if (!app->sc->exists(sectionIcon)) {
 		sectionIcon = "skin:icons/section.png";

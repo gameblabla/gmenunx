@@ -21,17 +21,15 @@
 #ifndef BUTTON_H_
 #define BUTTON_H_
 
-#include <string>
 #include <SDL.h>
 #include "FastDelegate.h"
 
-using std::string;
-using fastdelegate::FastDelegate0;
+typedef fastdelegate::FastDelegate0<> ButtonAction;
 
-typedef FastDelegate0<> ButtonAction;
 class Touchscreen;
 
 class Button {
+	
 private:
 	Touchscreen &ts;
 

@@ -29,22 +29,19 @@
 #include <string>
 #include "esoteric.h"
 
-using std::string;
-using std::vector;
-
 class MessageBox {
 private:
-	string text, icon;
+	std::string text, icon;
 	int autohide, bgalpha;
 	Esoteric *app;
-	vector<string> buttons;
-	vector<string> buttonLabels;
-	vector<SDL_Rect> buttonPositions;
-	string formatText(int box_w_padding, int buttonWidth);
+	std::vector<std::string> buttons;
+	std::vector<std::string> buttonLabels;
+	std::vector<SDL_Rect> buttonPositions;
+	std::string formatText(int box_w_padding, int buttonWidth);
 
 public:
-	MessageBox(Esoteric *app, const string &text, const string &icon="");
-	void setButton(int action, const string &btn);
+	MessageBox(Esoteric *app, const std::string &text, const std::string &icon = "");
+	void setButton(int action, const std::string &btn);
 	int exec();
 	void setAutoHide(int delay);
 	void setBgAlpha(int bgalpha);

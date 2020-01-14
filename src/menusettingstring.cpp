@@ -21,28 +21,24 @@
 #include "iconbutton.h"
 #include "inputdialog.h"
 
-using std::string;
-using fastdelegate::MakeDelegate;
-
 MenuSettingString::MenuSettingString(
-		Esoteric *app, const string &title,
-		const string &description, string *value,
-		const string &dialogTitle, const string &dialogIcon)
-	: MenuSettingStringBase(app, title, description, value)
-	, dialogTitle(dialogTitle)
-	, dialogIcon(dialogIcon)
-{
+		Esoteric *app, const std::string &title,
+		const std::string &description, std::string *value,
+		const std::string &dialogTitle, const std::string &dialogIcon)
+		: MenuSettingStringBase(app, title, description, value)
+		, dialogTitle(dialogTitle)
+		, dialogIcon(dialogIcon) {
+
 	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Clear"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingString::clear));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingString::clear));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Edit"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingString::edit));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingString::edit));
 	buttonBox.add(btn);
 }
 
-void MenuSettingString::edit()
-{
+void MenuSettingString::edit() {
 	InputDialog id(app, app->ts, description, value(), dialogTitle, dialogIcon);
 	if (id.exec()) setValue(id.getInput());
 }

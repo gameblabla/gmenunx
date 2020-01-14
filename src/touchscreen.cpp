@@ -23,7 +23,6 @@
 
 #include "touchscreen.h"
 #include "SDL.h"
-using namespace std;
 
 Touchscreen::Touchscreen() {
 	wm97xx = 0;

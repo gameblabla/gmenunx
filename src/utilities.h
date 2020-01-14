@@ -25,11 +25,6 @@
 #include <vector>
 #include <tr1/unordered_map>
 
-using std::tr1::unordered_map;
-using std::tr1::hash;
-using std::string;
-using std::vector;
-
 #ifndef NULL
 #ifdef __cplusplus
 #define NULL 0
@@ -40,22 +35,22 @@ using std::vector;
 
 class case_less {
 public:
-	bool operator()(const string &left, const string &right) const;
+	bool operator()(const std::string &left, const std::string &right) const;
 };
 
-string& ltrim(string& str, const string& chars = "\t\n\v\f\r ");
-string& rtrim(string& str, const string& chars = "\t\n\v\f\r ");
-string& full_trim(string& str, const string& chars = "\t\n\v\f\r ");
+std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
+std::string& full_trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
 
-string trim(const string& s);
-string strreplace (string orig, const string &search, const string &replace);
-string cmdclean (string cmdline);
+std::string trim(const std::string& s);
+std::string strreplace (std::string orig, const std::string &search, const std::string &replace);
+std::string cmdclean (std::string cmdline);
 
-char *string_copy(const string &);
-void string_copy(const string &, char **);
+char *string_copy(const std::string &);
+void string_copy(const std::string &, char **);
 
 template <typename T>
-string to_string( const T& value );
+std::string to_string( const T& value );
 
 int max (int a, int b);
 int min (int a, int b);
@@ -63,28 +58,28 @@ int constrain(int x, int imin, int imax);
 
 int evalIntConf (int val, int def, int imin, int imax);
 int evalIntConf (int *val, int def, int imin, int imax);
-const string &evalStrConf (const string &val, const string &def);
-const string &evalStrConf (string *val, const string &def);
+const std::string &evalStrConf (const std::string &val, const std::string &def);
+const std::string &evalStrConf (std::string *val, const std::string &def);
 
 float max (float a, float b);
 float min (float a, float b);
 float constrain (float x, float imin, float imax);
 
-bool split (vector<string> &vec, const string &str, const string &delim, bool destructive=true);
+bool split (std::vector<std::string> &vec, const std::string &str, const std::string &delim, bool destructive=true);
 
 int intTransition(int from, int to, int32_t tickStart, int32_t duration = 500, int32_t tickNow = -1);
 
-string exec(const char* cmd);
-string execute(const char* cmd);
+std::string exec(const char* cmd);
+std::string execute(const char* cmd);
 
-bool procWriter(string path, string value);
-bool procWriter(string path, int value);
-string fileReader(string path);
+bool procWriter(std::string path, std::string value);
+bool procWriter(std::string path, int value);
+std::string fileReader(std::string path);
 
-string splitInLines(string source, std::size_t max_width, string whitespace = " \t\r");
-string string_format(const std::string fmt_str, ...);
-string stripQuotes(std::string const &input);
-string toLower(const std::string & input);
+std::string splitInLines(std::string source, std::size_t max_width, std::string whitespace = " \t\r");
+std::string string_format(const std::string fmt_str, ...);
+std::string stripQuotes(std::string const &input);
+std::string toLower(const std::string & input);
 
 std::string getOpkPath();
 

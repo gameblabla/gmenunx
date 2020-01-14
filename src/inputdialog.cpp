@@ -18,21 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-// #include <SDL.h>
-// #include <SDL_gfxPrimitives.h>
-
 #include "inputdialog.h"
 #include "messagebox.h"
 #include "debug.h"
-
-using namespace fastdelegate;
 
 InputDialog::InputDialog(Esoteric *app,
 		Touchscreen &ts_, const std::string &text,
 		const std::string &startvalue, const std::string &title, const std::string &icon)
 	: Dialog(app)
-	, ts(ts_)
-{
+	, ts(ts_) {
+
 	if (title.empty()) {
 		this->title = text;
 		this->text = "";

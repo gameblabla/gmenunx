@@ -8,7 +8,7 @@
 #include "sysclock.h"
 
 std::string HwGeneric::performanceModeMap(std::string fromInternal) {
-    std::unordered_map<string, string>::iterator it;
+    std::unordered_map<std::string, std::string>::iterator it;
     for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
         if (fromInternal == it->first) {
             return it->second;

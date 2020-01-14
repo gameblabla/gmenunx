@@ -79,7 +79,12 @@ private:
 	void setKeyboard(int);
 
 public:
-	InputDialog(Esoteric *app, Touchscreen &ts, const std::string &text, const std::string &startvalue="", const std::string &title="", const string &icon="");
+	InputDialog(Esoteric *app, 
+				Touchscreen &ts, 
+				const std::string &text, 
+				const std::string &startvalue = "", 
+				const std::string &title = "", 
+				const std::string &icon = "");
 
 	bool exec();
 	const std::string &getInput() { return input; }

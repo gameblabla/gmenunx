@@ -26,7 +26,7 @@
 #include "fileutils.h"
 #include "debug.h"
 
-RGBAColor strtorgba(const string &strColor) {
+RGBAColor strtorgba(const std::string &strColor) {
 	const int s = (strColor.at(0) == '#') ? 1 : 0;
 	RGBAColor c = {0,0,0,255};
 	c.r = constrain( strtol( strColor.substr(0 + s, 2).c_str(), NULL, 16 ), 0, 255 );
@@ -36,10 +36,10 @@ RGBAColor strtorgba(const string &strColor) {
 	return c;
 }
 
-string rgbatostr(RGBAColor color) {
+std::string rgbatostr(RGBAColor color) {
 	char hexcolor[10];
 	snprintf(hexcolor, sizeof(hexcolor), "#%02x%02x%02x%02x", color.r, color.g, color.b, color.a);
-	return (string)hexcolor;
+	return (std::string)hexcolor;
 }
 
 SDL_Color rgbatosdl(RGBAColor color) {
@@ -51,7 +51,7 @@ Surface::Surface() {
 	this->dblbuffer = NULL;
 }
 
-Surface::Surface(const string &img, bool alpha, const string &skin) {
+Surface::Surface(const std::string &img, bool alpha, const std::string &skin) {
 	this->raw = NULL;
 	this->dblbuffer = NULL;
 	load(img, alpha, skin);
@@ -59,7 +59,7 @@ Surface::Surface(const string &img, bool alpha, const string &skin) {
 	halfH = raw->h / 2;
 }
 
-Surface::Surface(const string &img, const string &skin, bool alpha) {
+Surface::Surface(const std::string &img, const std::string &skin, bool alpha) {
 	this->raw = NULL;
 	this->dblbuffer = NULL;
 	load(img, alpha, skin);
@@ -135,9 +135,9 @@ SDL_PixelFormat *Surface::format() {
 		return this->raw->format;
 }
 
-void Surface::load(const string &img, bool alpha, const string &skin) {
+void Surface::load(const std::string &img, bool alpha, const std::string &skin) {
 	free();
-	string skinpath;
+	std::string skinpath;
 	if (!skin.empty() && !img.empty() && img[0]!='/') {
 		skinpath = "skins/"+skin+"/"+img;
 		if (!FileUtils::fileExists(skinpath))
@@ -255,10 +255,10 @@ void Surface::blendAdd(Surface *target, int x, int y) {
 */
 }
 
-void Surface::write(FontHelper *font, const string &text, int x, int y, const uint8_t align) {
+void Surface::write(FontHelper *font, const std::string &text, int x, int y, const uint8_t align) {
 	font->write(this, text, x, y, align);
 }
-void Surface::write(FontHelper *font, const string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
+void Surface::write(FontHelper *font, const std::string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
 	font->write(this, text, x, y, align, fgColor, bgColor);
 }
 

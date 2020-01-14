@@ -10,7 +10,7 @@
 #include "constants.h"
 
 // TODO :: fix me to a constants file?
-const string OPK_PLATFORM = "gcw0";
+const std::string OPK_PLATFORM = "gcw0";
 
 myOpk::myOpk() {
     this->fileName_ = "";
@@ -68,17 +68,17 @@ bool myOpk::load(OPK * opk) {
 
         char buf[lval + 1];
         sprintf(buf, "%.*s", (int)lval, val);
-        string value = buf;
+        std::string value = buf;
         
         char keyBuf[lkey + 1];
         sprintf(keyBuf, "%.*s", (int)lkey, key);
-        const string & myKey = keyBuf;
+        const std::string & myKey = keyBuf;
         std::string loweredKey = toLower(myKey);
 
         TRACE("extracted - raw key : %s - lowered key : %s - value : %s", keyBuf, loweredKey.c_str(), value.c_str());
 
         if (loweredKey == "categories") {
-            string temp = value;
+            std::string temp = value;
             std::size_t pos = temp.find(';');
             if (pos != temp.npos)
                 temp = temp.substr(0, pos);
@@ -221,10 +221,10 @@ std::list<myOpk> * OpkHelper::ToOpkList(const std::string & path) {
             }
 
             /* Strip .desktop */
-            string metadata = name;
+            std::string metadata = name;
             TRACE("extracted metadata : %s", metadata.c_str());
             pos = metadata.rfind('.');
-            string platform = metadata.substr(0, pos);
+            std::string platform = metadata.substr(0, pos);
             pos = platform.rfind('.');
             platform = platform.substr(pos + 1);
 

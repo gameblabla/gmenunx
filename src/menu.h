@@ -63,7 +63,7 @@ public:
 
 	bool addActionLink(uint32_t section, const std::string &title, fastdelegate::FastDelegate0<> action, const std::string &description = "", const std::string &icon = "");
 	bool addLink(std::string path, std::string file, std::string section = "");
-	bool addSection(const string &sectionName);
+	bool addSection(const std::string &sectionName);
 	void deleteSelectedLink();
 	void deleteSelectedSection();
 

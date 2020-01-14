@@ -23,25 +23,29 @@
 #include "utilities.h"
 #include "debug.h"
 
-using std::string;
-using fastdelegate::MakeDelegate;
+MenuSettingFile::MenuSettingFile(	Esoteric *app, 
+									const std::string &title, 
+									const std::string &description, 
+									std::string *value, 
+									const std::string &filter, 
+									const std::string &startPath, 
+									const std::string &dialogTitle, 
+									const std::string &dialogIcon) 
+									: MenuSettingStringBase(app, title, description, value),
+									filter(filter), startPath(startPath),
+									dialogTitle(dialogTitle), dialogIcon(dialogIcon) {
 
-MenuSettingFile::MenuSettingFile(Esoteric *app, const string &title, const string &description, string *value, const string &filter, const string &startPath, const string &dialogTitle, const string &dialogIcon)
-	: MenuSettingStringBase(app, title, description, value),
-	filter(filter), startPath(startPath),
-	dialogTitle(dialogTitle), dialogIcon(dialogIcon)
-{
 	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Clear"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingFile::clear));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingFile::clear));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Select"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingFile::edit));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingFile::edit));
 	buttonBox.add(btn);
 }
 
 void MenuSettingFile::edit() {
-	string _value = value();
+	std::string _value = value();
 	if (_value.empty())
 		_value = startPath + "/";
 

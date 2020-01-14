@@ -22,25 +22,28 @@
 #include "browsedialog.h"
 #include "debug.h"
 
-using std::string;
-using fastdelegate::MakeDelegate;
+MenuSettingDir::MenuSettingDir(	Esoteric *app, 
+								const std::string &title, 
+								const std::string &description, 
+								std::string *value, 
+								const std::string &startPath, 
+								const std::string &dialogTitle, 
+								const std::string &dialogIcon)
+								: MenuSettingStringBase(app, title, description, value),
+								startPath(startPath),
+								dialogTitle(dialogTitle), dialogIcon(dialogIcon) {
 
-MenuSettingDir::MenuSettingDir(Esoteric *app, const string &title, const string &description, string *value, const std::string &startPath, const std::string &dialogTitle, const std::string &dialogIcon)
-	: MenuSettingStringBase(app, title, description, value),
-	startPath(startPath),
-	dialogTitle(dialogTitle), dialogIcon(dialogIcon)
-{
 	btn = new IconButton(app, "skin:imgs/buttons/select.png", app->tr["Clear"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingDir::clear));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDir::clear));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/a.png", app->tr["Select"]);
-	btn->setAction(MakeDelegate(this, &MenuSettingDir::edit));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingDir::edit));
 	buttonBox.add(btn);
 }
 
 void MenuSettingDir::edit() {
-	string _value = value();
+	std::string _value = value();
 	if (_value.empty())
 		_value = startPath + "/";
 

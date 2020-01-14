@@ -27,10 +27,7 @@
 
 // linkaction
 #include "FastDelegate.h"
-using namespace fastdelegate;
-typedef FastDelegate0<> LinkAction;
-
-using std::string;
+typedef fastdelegate::FastDelegate0<> LinkAction;
 
 class Esoteric;
 
@@ -47,24 +44,24 @@ private:
 protected:
 	Esoteric *app;
 	bool edited;
-	string title, description, icon, iconPath;
-	string displayTitle;
+	std::string title, description, icon, iconPath;
+	std::string displayTitle;
 
 public:
 	// linkaction
 	Link(Esoteric *app, LinkAction action);
 
 	virtual ~Link() {};
-	const string &getTitle();
-	const string &getDisplayTitle();
-	void setTitle(const string &title);
-	const string &getDescription();
-	void setDescription(const string &description);
-	const string &getIcon();
-	void setIcon(const string &icon);
-	virtual const string &searchIcon();
-	const string &getIconPath();
-	void setIconPath(const string &icon);
+	const std::string &getTitle();
+	const std::string &getDisplayTitle();
+	void setTitle(const std::string &title);
+	const std::string &getDescription();
+	void setDescription(const std::string &description);
+	const std::string &getIcon();
+	void setIcon(const std::string &icon);
+	virtual const std::string &searchIcon();
+	const std::string &getIconPath();
+	void setIconPath(const std::string &icon);
 
 	virtual void run();
 };
