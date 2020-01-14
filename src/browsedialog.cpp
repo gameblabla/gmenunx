@@ -13,9 +13,9 @@ BrowseDialog::BrowseDialog(Esoteric *app, const string &title, const string &des
 	
 	TRACE("enter");
 	string startPath = USER_HOME;
-	if (dirExists(app->config->launcherPath())) {
+	if (FileUtils::dirExists(app->config->launcherPath())) {
 		startPath = app->config->launcherPath();
-	} else if (dirExists(EXTERNAL_CARD_PATH)) {
+	} else if (FileUtils::dirExists(EXTERNAL_CARD_PATH)) {
 		startPath = EXTERNAL_CARD_PATH;
 	}
 	fl = new FileLister(startPath, true, false);
@@ -36,7 +36,7 @@ bool BrowseDialog::exec() {
 	Surface *iconFile = app->sc->skinRes("imgs/file.png");
 
 	string path = fl->getPath();
-	if (path.empty() || !dirExists(path)) {
+	if (path.empty() || !FileUtils::dirExists(path)) {
 		setPath(EXTERNAL_CARD_PATH);
 	}
 

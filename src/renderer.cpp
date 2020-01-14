@@ -85,7 +85,7 @@ void Renderer::quit() {
 }
 
 void Renderer::render() {
-	TRACE("render");
+	TRACE("enter");
 	if (this->locked_ || this->finished_) 
 		return;
 	this->locked_ = true;
@@ -100,14 +100,52 @@ void Renderer::render() {
     //TRACE("setting the clearing box");
 	app->screen->box(
 		(SDL_Rect){ 0, 0, screenX, screenY }, 
+		//app->skin->colours.background);
 		(RGBAColor){0, 0, 0, 255});
 
-	// do a background image or a background colour 
+	// do a background image or a background colour
+	//TRACE("background test");
 	if ((*app->sc)[currBackdrop]) {
-		(*app->sc)[currBackdrop]->blit(app->screen,0,0);
-	} else {
+
 		app->screen->box(
-			(SDL_Rect){ 0, 0, screenX, screenY }, 
+			app->linksRect, 
+			app->skin->colours.background);
+
+		int displayX = 0;
+		int displayY = 0;
+
+		int myW = (*app->sc)[currBackdrop]->raw->w;
+		int myH = (*app->sc)[currBackdrop]->raw->h;
+
+		if (app->linksRect.w != myW && app->linksRect.h != myH) {
+			// need to constrain it to fit
+			int margin = 5;
+			if (myW > (app->linksRect.w - margin) || myH > (app->linksRect.h - margin)) {
+				(*app->sc)[currBackdrop]->softStretch(
+						app->linksRect.w - margin, 
+						app->linksRect.h - margin, 
+						true);
+
+				myW = (*app->sc)[currBackdrop]->raw->w;
+				myH = (*app->sc)[currBackdrop]->raw->h;
+			}
+			myW /= 2;
+			myH /= 2;
+			// it's not a 1:1 with screen res, have to do something with it
+			int offset = 0;
+			if (app->skin->sectionBar == Skin::SB_LEFT || app->skin->sectionBar == Skin::SB_RIGHT) {
+				offset = (app->sectionBarRect.w / 2);
+			}
+			displayX = (screenX / 2) - myW + offset;
+			displayY = (screenY / 2) - myH;
+		}
+		(*app->sc)[currBackdrop]->blit(app->screen, displayX, displayY);
+
+	} else {
+		TRACE("no background");
+		app->screen->box(
+			app->linksRect, 
+			//(SDL_Rect){ 0, 0, screenX, screenY }, 
 			app->skin->colours.background);
 	}
 
@@ -115,7 +153,7 @@ void Renderer::render() {
 	//TRACE("infoBar test");
 	if (app->skin->sectionInfoBarVisible) {
 		if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
-			TRACE("infobar needs drawing");
+			//TRACE("infobar needs drawing");
 
 			SDL_Rect infoBarRect;
 			switch(app->skin->sectionBar) {
@@ -273,10 +311,15 @@ void Renderer::render() {
 			int padding = 36;
 			if (app->skin->linkDisplayMode == Skin::ICON_AND_TEXT || app->skin->linkDisplayMode == Skin::ICON) {
 				//TRACE("theme uses icons");
-				(*app->sc)[app->menu->sectionLinks()->at(i)->getIconPath()]->blit(
-					app->screen, 
-					{ix, iy, padding, app->linkHeight}, 
-					HAlignCenter | VAlignMiddle);
+				Surface * sfcIcon = (*app->sc)[app->menu->sectionLinks()->at(i)->getIconPath()];
+				if (NULL != sfcIcon) {
+					sfcIcon->blit(
+						app->screen, 
+						{ ix, iy, padding, app->linkHeight }, 
+						HAlignCenter | VAlignMiddle);
+				} else {
+					WARNING("couldn't load expected icon : '%s'", app->menu->sectionLinks()->at(i)->getIconPath().c_str());
+				}
 			} else {
 				padding = 4;
 			}
@@ -311,15 +354,15 @@ void Renderer::render() {
 			}
 		}
 	} else {
-		//TRACE("row mode : %i", app->menu->sectionLinks()->size());
+		TRACE("row mode : %zu", app->menu->sectionLinks()->size());
         int ix, iy = 0;
 		int padding = 2;
 		for (y = 0; y < app->skin->numLinkRows; y++) {
 			for (x = 0; x < app->skin->numLinkCols && i < app->menu->sectionLinks()->size(); x++, i++) {
 
-				// TRACE("getting title");
+				//TRACE("getting title");
 				string title = app->tr.translate(app->menu->sectionLinks()->at(i)->getDisplayTitle());
-				// TRACE("got title : %s for index %i", title.c_str(), i);
+				//TRACE("got title : %s for index %i", title.c_str(), i);
 
 				// calc cell x && y
 				// TRACE("calculating heights");
@@ -443,13 +486,13 @@ void Renderer::render() {
 
 	currBackdrop = app->skin->wallpaper;
 	if (app->menu->selLink() != NULL && app->menu->selLinkApp() != NULL && !app->menu->selLinkApp()->getBackdropPath().empty() && app->sc->addImage(app->menu->selLinkApp()->getBackdropPath()) != NULL) {
-		TRACE("setting currBackdrop to : %s", app->menu->selLinkApp()->getBackdropPath().c_str());
+		//TRACE("setting currBackdrop to : %s", app->menu->selLinkApp()->getBackdropPath().c_str());
 		currBackdrop = app->menu->selLinkApp()->getBackdropPath();
 	}
 
-	//Background has changed flip it and return out quickly
+	// background has changed
 	if (prevBackdrop != currBackdrop) {
-		INFO("New backdrop: %s", currBackdrop.c_str());
+		INFO("new backdrop: %s", currBackdrop.c_str());
 		app->sc->del(prevBackdrop);
 		prevBackdrop = currBackdrop;
 	}
@@ -522,14 +565,6 @@ void Renderer::render() {
 		helpers.clear();
 
 	} // app->skin->sectionBar
-
-	#if (LOG_LEVEL >= INFO_L)
-		if (this->polling_) {
-			app->screen->box(
-				{ 2, 2, 6, 6 }, 
-				{255, 0, 0, 255});
-		}
-	#endif
 
     //TRACE("flip"); 
 	app->screen->flip();

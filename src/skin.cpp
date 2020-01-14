@@ -40,7 +40,7 @@ vector<string> Skin::getSkins(string assetsPath) {
 	string skinPath = assetsPath + SKIN_FOLDER;
     vector<string> result;
 	TRACE("getSkins - searching for skins in : %s", skinPath.c_str());
-	if (dirExists(skinPath)) {
+	if (FileUtils::dirExists(skinPath)) {
 
 		DIR *dirp;
 		if ((dirp = opendir(skinPath.c_str())) == NULL) {
@@ -268,7 +268,7 @@ vector<string> Skin::getWallpapers() {
 
     vector<string> results;
 
-    if (!dirExists(path)) {
+    if (!FileUtils::dirExists(path)) {
         TRACE("wallpaper directory diesn't exist : %s", path.c_str());
         return results;
     }
@@ -321,13 +321,13 @@ string Skin::getSkinFilePath(const string &file) {
 	TRACE("prefix : %s, skin : %s", this->assetsPrefix.c_str(), this->name.c_str());
 	string result = "";
 
-	if (fileExists(this->currentSkinPath() + "/" + file)) {
+	if (FileUtils::fileExists(this->currentSkinPath() + "/" + file)) {
 		TRACE("found file in current skin");
 		result = this->currentSkinPath() + "/" + file;
-	} else if (fileExists(this->assetsPrefix + "skins/Default/" + file)) {
+	} else if (FileUtils::fileExists(this->assetsPrefix + "skins/Default/" + file)) {
 		TRACE("found file in default skin");
 		result = this->assetsPrefix + "skins/Default/" + file;
-	} else if (fileExists(this->assetsPrefix + "skins/" + file)) {
+	} else if (FileUtils::fileExists(this->assetsPrefix + "skins/" + file)) {
 		TRACE("found file in root skin folder");
 		result = this->assetsPrefix + "skins/" + file;
 	} else {
@@ -418,7 +418,7 @@ bool Skin::fromFile() {
     string fileName = skinPath + SKIN_FILE_NAME;
     TRACE("loading skin from : %s", fileName.c_str());
 
-	if (fileExists(fileName)) {
+	if (FileUtils::fileExists(fileName)) {
 		TRACE("skin file exists");
 		ifstream skinconf(fileName.c_str(), std::ios_base::in);
 		if (skinconf.is_open()) {
@@ -457,7 +457,7 @@ bool Skin::fromFile() {
                             sectionTitleBarSize = atoi(value.c_str());
                         } else if (name == "sectiontitlebarimage") {
                             sectionTitleBarImage = stripQuotes(value);
-                            if (!sectionTitleBarImage.empty() && sectionTitleBarImage == base_name(sectionTitleBarImage)) {
+                            if (!sectionTitleBarImage.empty() && sectionTitleBarImage == FileUtils::pathBaseName(sectionTitleBarImage)) {
                                 sectionTitleBarImage = skinPath + "imgs/" + sectionTitleBarImage;
                             }
                             sectionTitleBarImage = trim(sectionTitleBarImage);
@@ -465,7 +465,7 @@ bool Skin::fromFile() {
                             sectionInfoBarSize = atoi(value.c_str());
                         } else if (name == "sectioninfobarimage") {
                             sectionInfoBarImage = stripQuotes(value);
-                            if (!sectionInfoBarImage.empty() && sectionInfoBarImage == base_name(sectionInfoBarImage)) {
+                            if (!sectionInfoBarImage.empty() && sectionInfoBarImage == FileUtils::pathBaseName(sectionInfoBarImage)) {
                                 sectionInfoBarImage = skinPath + "imgs/" + sectionInfoBarImage;
                             }
                             sectionInfoBarImage = trim(sectionInfoBarImage);
@@ -477,7 +477,7 @@ bool Skin::fromFile() {
                             menuInfoBarHeight = atoi(value.c_str());
                         } else if (name == "menuinfobarimage") {
                             menuInfoBarImage = stripQuotes(value);
-                            if (!menuInfoBarImage.empty() && menuInfoBarImage == base_name(menuInfoBarImage)) {
+                            if (!menuInfoBarImage.empty() && menuInfoBarImage == FileUtils::pathBaseName(menuInfoBarImage)) {
                                 menuInfoBarImage = skinPath + "imgs/" + menuInfoBarImage;
                             }
                             menuInfoBarImage = trim(menuInfoBarImage);
@@ -485,7 +485,7 @@ bool Skin::fromFile() {
                             menuTitleBarHeight = atoi(value.c_str());
                         } else if (name == "menutitlebarimage") {
                             menuTitleBarImage = stripQuotes(value);
-                            if (!menuTitleBarImage.empty() && menuTitleBarImage == base_name(menuTitleBarImage)) {
+                            if (!menuTitleBarImage.empty() && menuTitleBarImage == FileUtils::pathBaseName(menuTitleBarImage)) {
                                 menuTitleBarImage = skinPath + "imgs/" + menuTitleBarImage;
                             }
                             menuTitleBarImage = trim(menuTitleBarImage);
@@ -507,7 +507,7 @@ bool Skin::fromFile() {
                             sectionBar = (SectionBar)atoi(value.c_str());
                         } else if (name == "wallpaper") {
                             wallpaper = stripQuotes(value);
-                            if (!wallpaper.empty() && wallpaper == base_name(wallpaper)) {
+                            if (!wallpaper.empty() && wallpaper == FileUtils::pathBaseName(wallpaper)) {
                                 wallpaper = skinPath + "wallpapers/" + wallpaper;
                             }
                         } else if (name == "background") {

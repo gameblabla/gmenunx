@@ -28,153 +28,155 @@
 #include "esoteric.h"
 #include "debug.h"
 
-using namespace std;
-
-FileLister::FileLister(const string &startPath, bool showDirectories, bool showFiles)
+FileLister::FileLister(const std::string &startPath, bool showDirectories, bool showFiles)
 	: showDirectories(showDirectories), showFiles(showFiles) {
-	setPath(startPath, false);
+
+	this->setPath(startPath, false);
 }
 
-const string &FileLister::getPath() {
+const std::string &FileLister::getPath() {
 	return path;
 }
-void FileLister::setPath(const string &path, bool doBrowse) {
+void FileLister::setPath(const std::string &path, bool doBrowse) {
 	TRACE("enter - path : %s, browse : %i", path.c_str(), doBrowse);
-	this->path = real_path(path);
+	this->path = FileUtils::resolvePath(path);
 	if (doBrowse)
-		browse();
+		this->browse();
 }
 
-const string &FileLister::getFilter() {
-	return filter;
+const std::string &FileLister::getFilter() {
+	return this->filter;
 }
-void FileLister::setFilter(const string &filter) {
-	TRACE("%s", filter.c_str());
+void FileLister::setFilter(const std::string &filter) {
+	TRACE("%s", this->filter.c_str());
 	this->filter = trim(filter);
 }
 
 void FileLister::browse() {
 	TRACE("enter");
-	directories.clear();
-	files.clear();
 
-	if (showDirectories || showFiles) {
-		DIR *dirp;
-		if ((dirp = opendir(path.c_str())) == NULL) {
-			ERROR("Error: opendir(%s)", path.c_str());
-			return;
-		}
+	this->directories.clear();
+	this->files.clear();
 
-		vector<string> vfilter;
-		split(vfilter, this->getFilter(), ",");
-
-		string filepath, file;
-		struct stat st;
-		struct dirent *dptr;
-		bool anyExcludes = excludes.empty();
-
-		while ((dptr = readdir(dirp))) {
-			file = dptr->d_name;
-			TRACE("raw result : %s", file.c_str());
-			// skip self and hidden dirs
-			if (file[0] == '.') continue;
-			// checked supressed list
-			if (anyExcludes) {
-				if (find(excludes.begin(), excludes.end(), file) != excludes.end())
-					continue;
-			}
-
-			//TRACE("raw result : %s - post excludes", file.c_str());
-			filepath = path + "/" + file;
-			int statRet = stat(filepath.c_str(), &st);
-			if (statRet == -1) {
-				ERROR("Stat failed on '%s' with error '%s'", filepath.c_str(), strerror(errno));
-				continue;
-			}
-			//TRACE("raw result : %s - post stat", file.c_str());
-
-			if (S_ISDIR(st.st_mode)) {
-				if (!showDirectories) continue;
-				//TRACE("adding directory : %s", file.c_str());
-				directories.push_back(file);
+	if (this->showDirectories || this->showFiles) {
+		TRACE("we have some work to do because of flags");
+		if (FileUtils::dirExists(this->path)) {
+			DIR *dirp;
+			if ((dirp = opendir(this->path.c_str())) == NULL) {
+				ERROR("Error: opendir(%s)", this->path.c_str());
 			} else {
-				if (!showFiles) continue;
-				if (vfilter.empty()) {
-					//TRACE("no filters, so adding file : %s", file.c_str());
-					files.push_back(file);
-					continue;
-				} else {
-					//loop through each filter and check the end of the file for a match
-					//TRACE("raw result : %s - checking filters", file.c_str());
-					for (vector<string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
-						// skip any empty filters...
-						//TRACE("itterator is : %s", (*it).c_str());
-						int filterLength = (*it).length();
-						//TRACE("itterator length test : %i", filterLength);
-						if (0 == filterLength) continue;
-						// skip testing any files shorter than the filter size
-						//TRACE("file length test : %i < %i", file.length(), filterLength);
-						if (file.length() < filterLength) continue;
+				std::vector<std::string> vfilter;
+				split(vfilter, this->getFilter(), ",");
+				TRACE("we have : %zu filters to deal with", vfilter.size());
+				std::string filepath, file;
+				struct stat st;
+				struct dirent *dptr;
+				bool anyExcludes = this->excludes.empty();
 
-						//TRACE("ends with test");
-						// the real test, does the end match our filter
-						if (file.compare(file.length() - filterLength, filterLength, *it) == 0) {
-							//TRACE("adding file : %s", file.c_str());
-							files.push_back(file);
-							break;
+				while ((dptr = readdir(dirp))) {
+					file = dptr->d_name;
+					TRACE("raw result : %s", file.c_str());
+					// skip self and hidden dirs
+					if (file[0] == '.') continue;
+					// checked supressed list
+					if (anyExcludes) {
+						if (find(this->excludes.begin(), this->excludes.end(), file) != this->excludes.end())
+							continue;
+					}
+
+					//TRACE("raw result : %s - post excludes", file.c_str());
+					filepath = this->path + "/" + file;
+					int statRet = stat(filepath.c_str(), &st);
+					if (statRet == -1) {
+						ERROR("Stat failed on '%s' with error '%s'", filepath.c_str(), strerror(errno));
+						continue;
+					}
+					//TRACE("raw result : %s - post stat", file.c_str());
+
+					if (S_ISDIR(st.st_mode)) {
+						if (!this->showDirectories) continue;
+						TRACE("adding directory : %s", file.c_str());
+						this->directories.push_back(file);
+					} else {
+						if (!this->showFiles) continue;
+						if (vfilter.empty()) {
+							TRACE("no filters, so adding file : %s", file.c_str());
+							this->files.push_back(file);
+							continue;
+						} else {
+							//loop through each filter and check the end of the file for a match
+							//TRACE("raw result : %s - checking filters", file.c_str());
+							for (std::vector<std::string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
+								// skip any empty filters...
+								//TRACE("itterator is : %s", (*it).c_str());
+								int filterLength = (*it).length();
+								//TRACE("itterator length test : %i", filterLength);
+								if (0 == filterLength) continue;
+								// skip testing any files shorter than the filter size
+								//TRACE("file length test : %i < %i", file.length(), filterLength);
+								if (file.length() < filterLength) continue;
+
+								//TRACE("ends with test");
+								// the real test, does the end match our filter
+								if (file.compare(file.length() - filterLength, filterLength, *it) == 0) {
+									TRACE("adding file : %s", file.c_str());
+									this->files.push_back(file);
+									break;
+								}
+							}
 						}
 					}
 				}
+
+				closedir(dirp);
+				std::sort(this->files.begin(), this->files.end(), case_less());
+				std::sort(this->directories.begin(), this->directories.end(), case_less());
 			}
 		}
-		closedir(dirp);
-		//TRACE("sort starts");
-		std::sort(files.begin(), files.end(), case_less());
-		std::sort(directories.begin(), directories.end(), case_less());
-		//TRACE("sort ended");
 		// add a dir up option at the front if not excluded
-		if (showDirectories && path != "/" && allowDirUp) 
-			directories.insert(directories.begin(), "..");
+		if (this->showDirectories && this->path != "/" && this->allowDirUp) {
+			TRACE("adding the .. nav option");
+			this->directories.insert(this->directories.begin(), "..");
+		}
 	}
-
 	TRACE("exit");
 }
 
 uint32_t FileLister::size() {
-	return files.size() + directories.size();
+	return this->files.size() + this->directories.size();
 }
 uint32_t FileLister::dirCount() {
-	return directories.size();
+	return this->directories.size();
 }
 uint32_t FileLister::fileCount() {
-	return files.size();
+	return this->files.size();
 }
 
-string FileLister::operator[](uint32_t x) {
-	return at(x);
+std::string FileLister::operator[](uint32_t x) {
+	return this->at(x);
 }
 
-string FileLister::at(uint32_t x) {
-	if (x >= size()) return "";
-	if (x < directories.size())
-		return directories[x];
+std::string FileLister::at(uint32_t x) {
+	if (x >= this->size()) return "";
+	if (x < this->directories.size())
+		return this->directories[x];
 	else
-		return files[x - directories.size()];
+		return this->files[x - this->directories.size()];
 }
 
 bool FileLister::isFile(uint32_t x) {
-	return x >= directories.size() && x < size();
+	return x >= this->directories.size() && x < size();
 }
 
 bool FileLister::isDirectory(uint32_t x) {
-	return x < directories.size();
+	return x < this->directories.size();
 }
 
-void FileLister::insertFile(const string &file) {
-	files.insert(files.begin(), file);
+void FileLister::insertFile(const std::string &file) {
+	this->files.insert(this->files.begin(), file);
 }
 
-void FileLister::addExclude(const string &exclude) {
-	if (exclude == "..") allowDirUp = false;
-	excludes.push_back(exclude);
+void FileLister::addExclude(const std::string &exclude) {
+	if (exclude == "..") this->allowDirUp = false;
+	this->excludes.push_back(exclude);
 }

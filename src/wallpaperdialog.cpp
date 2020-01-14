@@ -45,7 +45,7 @@ bool WallpaperDialog::exec()
 	std::vector<std::string> wallpapers;
 	wallpapers = app->skin->getWallpapers();
 	
-	wallpaper = base_name(wallpaper);
+	wallpaper = FileUtils::pathBaseName(wallpaper);
 	TRACE("wallpaper base name resolved : %s", wallpaper.c_str());
 
 	for (uint32_t i = 0; i < wallpapers.size(); i++) {

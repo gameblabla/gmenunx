@@ -127,7 +127,7 @@ void DesktopFile::parse(std::istream & instream) {
 bool DesktopFile::fromFile(const std::string & file) {
     TRACE("enter : %s", file.c_str());
     bool success = false;
-    if (fileExists(file)) {
+    if (FileUtils::fileExists(file)) {
         TRACE("found desktop file");
         this->path_ = file;
 
@@ -152,19 +152,19 @@ bool DesktopFile::fromFile(const std::string & file) {
 void DesktopFile::remove() {
     TRACE("enter");
     if (!this->manual().empty()) {
-        if (fileExists(this->manual())) {
+        if (FileUtils::fileExists(this->manual())) {
             TRACE("deleting file : %s", this->manual().c_str());
             unlink(this->manual().c_str());
         }
     }
     if (!this->selectorAlias().empty()) {
-        if (fileExists(this->selectorAlias())) {
+        if (FileUtils::fileExists(this->selectorAlias())) {
             TRACE("deleting file : %s", this->selectorAlias().c_str());
             unlink(this->selectorAlias().c_str());
         }
     }
     if (!this->path().empty()) {
-        if (fileExists(this->path())) {
+        if (FileUtils::fileExists(this->path())) {
             TRACE("deleting file : %s", this->path().c_str());
             unlink(this->path().c_str());
         }
@@ -176,7 +176,7 @@ bool DesktopFile::save(const std::string & path) {
     TRACE("enter : %s", path.c_str());
     if (this->isDirty_) {
         if (!path.empty()) {
-            if (fileExists(path)) {
+            if (FileUtils::fileExists(path)) {
                 unlink(path.c_str());
             }
             this->path_ = path;

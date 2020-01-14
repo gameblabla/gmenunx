@@ -188,7 +188,7 @@ void myOpk::needsJoystick(bool val) { this->needsJoystick_ = val; }
 std::list<myOpk> * OpkHelper::ToOpkList(const std::string & path) {
     TRACE("enter : %s", path.c_str());
 
-    if (!fileExists(path)) {
+    if (!FileUtils::fileExists(path)) {
         return NULL;
     }
 
@@ -233,7 +233,7 @@ std::list<myOpk> * OpkHelper::ToOpkList(const std::string & path) {
 
                 myOpk opkFile;
                 opkFile.metadata(metadata);
-                opkFile.fileName(base_name(path));
+                opkFile.fileName(FileUtils::pathBaseName(path));
                 opkFile.fullPath(path);
                 if (opkFile.load(opk)) {
                     results->push_back(opkFile);

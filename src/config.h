@@ -31,7 +31,7 @@ public:
     std::string externalAppPath() const { return this->externalAppPath_; }
     void externalAppPath(std::string val) { 
         if (val != this->externalAppPath_) {
-            if (dirExists(val)) {
+            if (FileUtils::dirExists(val)) {
                 if (!val.empty() && val[val.length() - 1] == '/') {
                     val = val.substr(0, val.length() -1);
                 }

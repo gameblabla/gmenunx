@@ -95,7 +95,7 @@ std::string HwFactory::readDeviceType() {
     }
 
     // is it retro fw?
-    if (fileExists("/etc/hostname")) {
+    if (FileUtils::fileExists("/etc/hostname")) {
         std::string host = fileReader("/etc/hostname");
         host = toLower(full_trim(host));
         TRACE("hostname : '%s'", host.c_str());
@@ -105,7 +105,7 @@ std::string HwFactory::readDeviceType() {
     }
 
     // ok, is it open dingux?
-    if (fileExists("/etc/issue")) {
+    if (FileUtils::fileExists("/etc/issue")) {
         std::string issue = fileReader("/etc/issue");
         TRACE("issue : '%s'", issue.c_str());
         bool isDingux = false;

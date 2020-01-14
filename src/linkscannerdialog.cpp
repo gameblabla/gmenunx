@@ -200,7 +200,7 @@ void LinkScannerDialog::scanPath(std::string path, std::vector<std::string> *fil
 			this->notify("Scanning : " + dirItem);
 			scanPath(filepath, files);
 		} else if (statRet != -1) {
-			ext = fileExtension(dirItem);
+			ext = FileUtils::fileExtension(dirItem);
 			//TRACE("got file extension %s for file : %s", ext.c_str(), dirItem.c_str());
 			if (ext.empty()) 
 				continue;

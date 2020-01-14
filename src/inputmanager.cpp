@@ -132,7 +132,7 @@ bool InputManager::readConfFile(const string &conffile) {
 	TRACE("enter : %s", conffile.c_str());
 	setActionsCount(NOOP + 1); // track the highest in the enum
 
-	if (!fileExists(conffile)) {
+	if (!FileUtils::fileExists(conffile)) {
 		ERROR("File not found: %s", conffile.c_str());
 		return false;
 	}

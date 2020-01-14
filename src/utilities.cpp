@@ -39,48 +39,46 @@
 #include "utilities.h"
 #include "debug.h"
 
-using namespace std;
-
 #ifndef PATH_MAX
 #define PATH_MAX 2048
 #endif
 
-bool case_less::operator()(const string &left, const string &right) const {
+bool case_less::operator()(const std::string &left, const std::string &right) const {
 	return strcasecmp(left.c_str(), right.c_str()) < 0;
 }
 
-string& ltrim(string& str, const string& chars) {
+std::string& ltrim(std::string& str, const std::string& chars) {
     str.erase(0, str.find_first_not_of(chars));
     return str;
 }
  
-string& rtrim(string& str, const string& chars) {
+std::string& rtrim(std::string& str, const std::string& chars) {
     str.erase(str.find_last_not_of(chars) + 1);
     return str;
 }
 
-string& full_trim(string& str, const string& chars) {
+std::string& full_trim(std::string& str, const std::string& chars) {
     return ltrim(rtrim(str, chars), chars);
 }
 
 // General tool to strip spaces from both ends:
-string trim(const string &s) {
+std::string trim(const std::string &s) {
   if (s.length() == 0)
     return s;
   std::size_t b = s.find_first_not_of(" \t\r");
   std::size_t e = s.find_last_not_of(" \t\r");
   if (b == -1) // No non-spaces
     return "";
-  return string(s, b, e - b + 1);
+  return std::string(s, b, e - b + 1);
 }
 
 
-void string_copy(const string &s, char **cs) {
+void string_copy(const std::string &s, char **cs) {
 	*cs = (char*)malloc(s.length());
 	strcpy(*cs, s.c_str());
 }
 
-char *string_copy(const string &s) {
+char *string_copy(const std::string &s) {
 	char *cs = NULL;
 	string_copy(s, &cs);
 	return cs;
@@ -91,50 +89,6 @@ std::string to_string( const T& value ) {
   std::ostringstream ss;
   ss << value;
   return ss.str();
-}
-
-bool dirExists(const string &path) {
-	TRACE("dirExists - enter : %s", path.c_str());
-	struct stat s;
-	bool result = (stat(path.c_str(), &s) == 0 && s.st_mode & S_IFDIR); // exists and is dir
-	TRACE("dirExists - result : %i", result);
-	return result;
-}
-
-bool fileExists(const string &path) {
-	struct stat s;
-	// check both that it exists and is a file or a link
-	bool result = ( (lstat(path.c_str(), &s) == 0) && (S_ISREG(s.st_mode) || S_ISLNK(s.st_mode)) );
-	TRACE("file '%s' exists : %i", path.c_str(), result);
-	return result;
-}
-
-bool rmtree(string path) {
-	DIR *dirp;
-	struct stat st;
-	struct dirent *dptr;
-	string filepath;
-
-	TRACE("RMTREE: '%s'", path.c_str());
-
-	if ((dirp = opendir(path.c_str())) == NULL) return false;
-	if (path[path.length()-1]!='/') path += "/";
-
-	while ((dptr = readdir(dirp))) {
-		filepath = dptr->d_name;
-		if (filepath=="." || filepath=="..") continue;
-		filepath = path+filepath;
-		int statRet = stat(filepath.c_str(), &st);
-		if (statRet == -1) continue;
-		if (S_ISDIR(st.st_mode)) {
-			if (!rmtree(filepath)) return false;
-		} else {
-			if (unlink(filepath.c_str())!=0) return false;
-		}
-	}
-
-	closedir(dirp);
-	return rmdir(path.c_str())==0;
 }
 
 int max(int a, int b) {
@@ -174,16 +128,16 @@ int evalIntConf(int *val, int def, int imin, int imax) {
 	return *val;
 }
 
-const string &evalStrConf(const string &val, const string &def) {
+const std::string &evalStrConf(const std::string &val, const std::string &def) {
 	return val.empty() ? def : val;
 }
 
-const string &evalStrConf(string *val, const string &def) {
+const std::string &evalStrConf(std::string *val, const std::string &def) {
 	*val = evalStrConf(*val, def);
 	return *val;
 }
 
-bool split(vector<string> &vec, const string &str, const string &delim, bool destructive) {
+bool split(std::vector<std::string> &vec, const std::string &str, const std::string &delim, bool destructive) {
 	vec.clear();
 
 	if (str.empty())
@@ -199,7 +153,7 @@ bool split(vector<string> &vec, const string &str, const string &delim, bool des
 
 	while(1) {
 		j = str.find(delim,i);
-		if ( j== std::string::npos) {
+		if (j == std::string::npos) {
 			vec.push_back(str.substr(i));
 			break;
 		}
@@ -221,27 +175,28 @@ bool split(vector<string> &vec, const string &str, const string &delim, bool des
 	return true;
 }
 
-string strreplace(string orig, const string &search, const string &replace) {
+std::string strreplace(std::string orig, const std::string &search, const std::string &replace) {
 	if (0 == search.compare(replace)) return orig;
-	string::size_type pos = orig.find( search, 0 );
-	while (pos != string::npos) {
+	std::string::size_type pos = orig.find( search, 0 );
+	while (pos != std::string::npos) {
 		orig.replace(pos, search.length(), replace);
 		pos = orig.find( search, pos + replace.length() );
 	}
 	return orig;
 }
 
-string cmdclean(string cmdline) {
+std::string cmdclean(std::string cmdline) {
 	TRACE("cmdclean - enter : %s", cmdline.c_str());
-	string spchars = "\\`$();|{}&'\"*?<>[]!^~-#\n\r ";
+	std::string spchars = "\\`$();|{}&'\"*?<>[]!^~-#\n\r ";
 	for (uint32_t i = 0; i < spchars.length(); i++) {
-		string curchar = spchars.substr(i, 1);
+		std::string curchar = spchars.substr(i, 1);
 		cmdline = strreplace(cmdline, curchar, "\\" + curchar);
 	}
 	TRACE("cmdclean - exit : %s", cmdline.c_str());
 	return cmdline;
 }
 
+// TODO :: move to static in ui
 int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t tickNow) {
 	if (tickNow < 0) tickNow = SDL_GetTicks();
 	float elapsed = (float)(tickNow-tickStart)/duration;
@@ -249,22 +204,9 @@ int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t
 	return min((int)round(elapsed * (to - from)), (int)max(from, to));
 }
 
-bool copyFile(string from, string to) {
-	if (!fileExists(from)) {
-		ERROR("Copy file : Source doesn't exist : %s", from.c_str());
-		return false;
-	}
-	if (fileExists(to)) {
-		unlink(to.c_str());
-	}
-	std::ifstream  src(from, std::ios::binary);
-    std::ofstream  dst(to,   std::ios::binary);
-    dst << src.rdbuf();
-	sync();
-	return fileExists(to);
-}
 
-string exec(const char* cmd) {
+
+std::string exec(const char* cmd) {
 	TRACE("exec - enter : %s", cmd);
 	FILE* pipe = popen(cmd, "r");
 	if (!pipe) {
@@ -272,7 +214,7 @@ string exec(const char* cmd) {
 		return "";
 	}
 	char buffer[128];
-	string result = "";
+	std::string result = "";
 	while (!feof(pipe)) {
 		if(fgets(buffer, sizeof buffer, pipe) != NULL) {
 			//TRACE("exec - buffer : %s", buffer);
@@ -285,52 +227,15 @@ string exec(const char* cmd) {
 	return result;
 }
 
-string execute(const char* cmd) { 
+std::string execute(const char* cmd) { 
 	return exec(cmd); 
 }
 
-string real_path(const string &path) {
-	char real_path[PATH_MAX];
-	string outpath;
-	realpath(path.c_str(), real_path);
-	if (errno == ENOENT) return path;
-	outpath = (string)real_path;
-	return outpath;
-}
-
-string dir_name(const string &path) {
-	string::size_type p = path.rfind("/");
-	if (p == path.size() - 1) p = path.rfind("/", p - 1);
-	return real_path("/" + path.substr(0, p));
-}
-
-string base_name(const string &path) {
-	string::size_type p = path.rfind("/");
-	if (p == path.size() - 1) p = path.rfind("/", p - 1);
-	return path.substr(p + 1, path.length());
-}
-
-string fileBaseName(const string & filename) {
-	string::size_type i = filename.rfind(".");
-	if (i != string::npos) {
-		return filename.substr(0,i);
-	}
-	return filename;
-}
-
-string fileExtension(const string & filename) {
-	string::size_type i = filename.rfind(".");
-	if (i != string::npos) {
-		return filename.substr(i, filename.length());
-	}
-	return "";
-}
-
-bool procWriter(string path, string value) {
+bool procWriter(std::string path, std::string value) {
 	TRACE("%s - %s", path.c_str(), value.c_str());
-	if (fileExists(path)) {
+	if (FileUtils::fileExists(path)) {
 		TRACE("file exists");
-		ofstream str(path);
+		std::ofstream str(path);
 		str << value;
 		str.close();
 		TRACE("success");
@@ -339,22 +244,22 @@ bool procWriter(string path, string value) {
 	return false;
 }
 
-bool procWriter(string path, int value) {
-	stringstream ss;
-	string strVal;
+bool procWriter(std::string path, int value) {
+	std::stringstream ss;
+	std::string strVal;
 	ss << value;
 	std::getline(ss, strVal);
 	return procWriter(path, strVal);
 }
 
-string fileReader(string path) {
-	ifstream str(path);
-	stringstream buf;
+std::string fileReader(std::string path) {
+	std::ifstream str(path);
+	std::stringstream buf;
 	buf << str.rdbuf();
 	return buf.str();
 }
 
-string splitInLines(string source, size_t max_width, string whitespace) {
+std::string splitInLines(std::string source, size_t max_width, std::string whitespace) {
     size_t  currIndex = max_width - 1;
     size_t  sizeToElim;
     while ( currIndex < source.length() ) {
@@ -371,7 +276,7 @@ string splitInLines(string source, size_t max_width, string whitespace) {
     return source;
 }
 
-string string_format(const std::string fmt_str, ...) {
+std::string string_format(const std::string fmt_str, ...) {
     int final_n, n = ((int)fmt_str.size()) * 2;
     std::unique_ptr<char[]> formatted;
     va_list ap;
@@ -390,7 +295,7 @@ string string_format(const std::string fmt_str, ...) {
 }
 
 std::string stripQuotes(std::string const &input) {
-    string result = input;
+    std::string result = input;
     if (input.at(0) == '"' && input.at(input.length() - 1) == '"') {
         result = input.substr(1, input.length() - 2);
     }
@@ -398,7 +303,7 @@ std::string stripQuotes(std::string const &input) {
 }
 
 std::string toLower(const std::string & input) {
-	string copy = input;
+	std::string copy = input;
 	transform(copy.begin(), copy.end(), copy.begin(), (int(*)(int)) tolower);
 	return copy;
 }
@@ -419,7 +324,7 @@ std::string getOpkPath() {
 	if (pid.length() == 0)
 		return "";
 	cmd = "/proc/" + pid + "/cmdline";
-	if (!fileExists(cmd)) {
+	if (!FileUtils::fileExists(cmd)) {
 		TRACE("no proc file for pid : %s", pid.c_str());
 		return "";
 	}
@@ -433,11 +338,11 @@ std::string getOpkPath() {
 	}
 	int nbytesread = read(fd, buffer, BUFSIZE);
 	unsigned char *end = buffer + nbytesread;
-	string opk = "";
-	string search = ".opk";
+	std::string opk = "";
+	std::string search = ".opk";
 	for (unsigned char *p = buffer; p < end; ) { 
 		TRACE("proc read : %s", p);
-		string token = reinterpret_cast<char*>(p);
+		std::string token = reinterpret_cast<char*>(p);
 		if (token.length() > search.length()) {
 			TRACE("%s is longer that : %s", token.c_str(), search.c_str());
 			std::string::size_type pos = token.find(search);
@@ -451,7 +356,7 @@ std::string getOpkPath() {
 	close(fd);
 	if (opk.length() == 0)
 		return "";
-	if (!fileExists(opk)) {
+	if (!FileUtils::fileExists(opk)) {
 		ERROR("Opk '%s' doesn't exist", response.c_str());
 		return "";
 	}

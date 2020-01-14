@@ -166,19 +166,19 @@ const std::string &LinkApp::searchManual() {
 	if (pos != std::string::npos) filename = exec.substr(0, pos);
 	filename += ".man.txt";
 
-	std::string dname = dir_name(exec) + "/";
+	std::string dname = FileUtils::dirName(exec) + "/";
 
-	std::string dirtitle = dname + base_name(dir_name(exec)) + ".man.txt";
-	std::string linktitle = base_name(this->file);
+	std::string dirtitle = dname + FileUtils::pathBaseName(FileUtils::dirName(exec)) + ".man.txt";
+	std::string linktitle = FileUtils::pathBaseName(this->file);
 	pos = linktitle.rfind(".");
 	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle = dname + linktitle + ".man.txt";
 
-	if (fileExists(linktitle))
+	if (FileUtils::fileExists(linktitle))
 		manualPath = linktitle;
-	else if (fileExists(filename))
+	else if (FileUtils::fileExists(filename))
 		manualPath = filename;
-	else if (fileExists(dirtitle))
+	else if (FileUtils::fileExists(dirtitle))
 		manualPath = dirtitle;
 
 	return manualPath;
@@ -191,9 +191,9 @@ const std::string &LinkApp::searchBackdrop() {
 	std::string execicon = exec;
 	std::string::size_type pos = exec.rfind(".");
 	if (pos != std::string::npos) execicon = exec.substr(0, pos);
-	std::string exectitle = base_name(execicon);
-	std::string dirtitle = base_name(dir_name(exec));
-	std::string linktitle = base_name(file);
+	std::string exectitle = FileUtils::pathBaseName(execicon);
+	std::string dirtitle = FileUtils::pathBaseName(FileUtils::dirName(exec));
+	std::string linktitle = FileUtils::pathBaseName(file);
 	pos = linktitle.rfind(".");
 	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 
@@ -226,9 +226,9 @@ const string &LinkApp::searchIcon(std::string path, bool fallBack) {
 	std::string::size_type pos = path.rfind(".");
 	if (pos != string::npos) execicon = path.substr(0, pos);
 	execicon += ".png";
-	std::string exectitle = base_name(execicon);
-	std::string dirtitle = base_name(dir_name(path)) + ".png";
-	std::string linktitle = base_name(file);
+	std::string exectitle = FileUtils::pathBaseName(execicon);
+	std::string dirtitle = FileUtils::pathBaseName(FileUtils::dirName(path)) + ".png";
+	std::string linktitle = FileUtils::pathBaseName(file);
 	pos = linktitle.rfind(".");
 	if (pos != std::string::npos) linktitle = linktitle.substr(0, pos);
 	linktitle += ".png";
@@ -239,7 +239,7 @@ const string &LinkApp::searchIcon(std::string path, bool fallBack) {
 		iconPath = app->skin->getSkinFilePath("icons/" + exectitle);
 	else if (!app->skin->getSkinFilePath("icons/" + dirtitle).empty())
 		iconPath = app->skin->getSkinFilePath("icons/" + dirtitle);
-	else if (fileExists(execicon))
+	else if (FileUtils::fileExists(execicon))
 		iconPath = execicon;
 	else if (fallBack) {
 		iconPath = app->skin->getSkinFilePath("icons/generic.png");
@@ -273,12 +273,18 @@ void LinkApp::setBackdrop(const std::string selectedFile) {
 }
 
 bool LinkApp::targetExists() {
+
+	// TODO :: get rid of me
+	#if (LOG_LEVEL >= INFO_L)
+	return true;
+	#endif
+
 	std::string target = exec;
 	if (!exec.empty() && exec[0] != '/' && !workdir.empty())
 		target = workdir + "/" + exec;
 
 	TRACE("looking for : %s", target.c_str());
-	return fileExists(target);
+	return FileUtils::fileExists(target);
 }
 
 bool LinkApp::save() {
@@ -309,7 +315,7 @@ bool LinkApp::save() {
 	}
 }
 
-void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
+void LinkApp::favourite(std::string launchArgs, std::string supportingFile, std::string backdrop) {
 	TRACE("enter - launchArgs : %s, supportingFile : %s", 
 		launchArgs.c_str(), 
 		supportingFile.c_str());
@@ -326,13 +332,13 @@ void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
 	std::string cleanTitle = this->title;
 	std::string desc = this->description;
 	if (!supportingFile.empty()) {
-		cleanTitle = fileBaseName(base_name(supportingFile));
+		cleanTitle = FileUtils::fileBaseName(FileUtils::pathBaseName(supportingFile));
 		desc = this->description + " - " + cleanTitle;
 	}
 	std::string favePath = path + "/" + this->title + "-" + cleanTitle + ".desktop";
 
 	uint32_t x = 1;
-	while (fileExists(favePath)) {
+	while (FileUtils::fileExists(favePath)) {
 		std::string id = "";
 		std::stringstream ss; ss << x; ss >> id;
 		favePath = path + "/" + this->title + "-" + cleanTitle + "." + id + ".desktop";
@@ -351,10 +357,11 @@ void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
 	fave->setDescription(desc);
 	fave->setManual(this->manual);
 	fave->setConsoleApp(this->consoleapp);
-
-	TRACE("saving a normal favourite to : %s", favePath.c_str());
-	TRACE("normal exec path : %s", this->exec.c_str());
-	TRACE("normal params : %s", launchArgs.c_str());
+	fave->setBackdrop(backdrop);
+	TRACE("saving a favourite to : %s", favePath.c_str());
+	TRACE("favourite exec path : %s", this->exec.c_str());
+	TRACE("favourite params : %s", launchArgs.c_str());
+	TRACE("favourite backdrop : %s", backdrop.c_str());
 	fave->setExec(this->exec);
 	fave->setParams(launchArgs);
 
@@ -374,10 +381,10 @@ void LinkApp::favourite(std::string launchArgs, std::string supportingFile) {
 	TRACE("exit");
 }
 
-void LinkApp::makeFavourite(std::string dir, std::string file) {
-	TRACE("enter");
+void LinkApp::makeFavourite(std::string dir, std::string file, std::string backdrop) {
+	TRACE("enter : '%s' - '%s' : '%s'", dir.c_str(), file.c_str(), backdrop.c_str());
 	std::string launchArgs = this->resolveArgs(file, dir);
-	this->favourite(launchArgs, file);
+	this->favourite(launchArgs, file, backdrop);
 }
 
 void LinkApp::makeFavourite() {
@@ -433,6 +440,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 		this->app->writeTmp(selection, sel.getDir());
 		launch(launchArgs);
 	}
+	TRACE("exit");
 }
 
 string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &selectedDir) {
@@ -447,8 +455,8 @@ string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &
 		std::string selectedFileName;
 		std::string dir;
 
-		selectedFileExtension = fileExtension(selectedFile);
-		selectedFileName = fileBaseName(selectedFile);
+		selectedFileExtension = FileUtils::fileExtension(selectedFile);
+		selectedFileName = FileUtils::fileBaseName(selectedFile);
 
 		TRACE("name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
 		if (selectedDir.empty())
@@ -606,7 +614,7 @@ const string &LinkApp::getSelectorDir() { return selectordir; }
 void LinkApp::setSelectorDir(const std::string &selectordir) {
 	this->selectordir = selectordir;
 	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
-	if (!this->selectordir.empty()) this->selectordir = real_path(this->selectordir);
+	if (!this->selectordir.empty()) this->selectordir = FileUtils::resolvePath(this->selectordir);
 	edited = true;
 }
 
@@ -642,7 +650,7 @@ void LinkApp::setSelectorScreens(const std::string &selectorscreens) {
 
 const string &LinkApp::getAliasFile() { return aliasfile; }
 void LinkApp::setAliasFile(const std::string &aliasfile) {
-	if (fileExists(aliasfile)) {
+	if (FileUtils::fileExists(aliasfile)) {
 		this->aliasfile = aliasfile;
 		edited = true;
 	}

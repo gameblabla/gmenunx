@@ -24,7 +24,7 @@ Loader::~Loader() {
 }
 
 bool Loader::isFirstRun() {
-    return !fileExists(LOADER_MARKER_FILE);
+    return !FileUtils::fileExists(LOADER_MARKER_FILE);
 }
 
 void Loader::setFirstRunMarker() {
@@ -40,7 +40,7 @@ bool Loader::fromFile() {
     string confFile = loaderPath + "/" + LOADER_CONFIG_FILE;
     
     TRACE("enter : %s", confFile.c_str());
-    if (fileExists(confFile)) {
+    if (FileUtils::fileExists(confFile)) {
         TRACE("config exists");
         string tempImages;
 		ifstream loaderConf(confFile.c_str(), std::ios_base::in);
@@ -89,7 +89,7 @@ bool Loader::fromFile() {
                 string name = *it;
                 string imagePath = loaderPath + "/" + name;
                 TRACE("checking image exists : %s", imagePath.c_str());
-                if (fileExists(imagePath)) {
+                if (FileUtils::fileExists(imagePath)) {
                     TRACE("image exists");
                     this->app->sc->addIcon(imagePath);
                     this->images.push_back(imagePath);
@@ -100,7 +100,7 @@ bool Loader::fromFile() {
         if (!this->soundFile.empty()) {
             string tempSoundFile = loaderPath + "/" + this->soundFile;
             TRACE("checking sound file : %s", tempSoundFile.c_str());
-            if (fileExists(tempSoundFile)) {
+            if (FileUtils::fileExists(tempSoundFile)) {
                 TRACE("found sound file at : %s", this->soundFile.c_str());
                 this->soundFile = tempSoundFile;
             } else {

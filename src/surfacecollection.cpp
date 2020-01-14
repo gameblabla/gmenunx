@@ -101,7 +101,7 @@ Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool graySc
 			TRACE("couldn't resolve file from skin : %s", path.c_str());
 			return NULL;
 		}
-	} else if (!fileExists(filePath)) {
+	} else if (!FileUtils::fileExists(filePath)) {
 		TRACE("file doesn't exist");
 		return NULL;
 	}

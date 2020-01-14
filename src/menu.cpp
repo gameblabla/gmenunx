@@ -138,12 +138,12 @@ void Menu::loadIcons() {
 			TRACE("link : testing for skin icon vs real icon");
 			if (linkIcon.substr(0,5) == "skin:") {
 				linkIcon = app->skin->getSkinFilePath(linkIcon.substr(5, linkIcon.length()));
-				if (linkapp != NULL && !fileExists(linkIcon))
+				if (linkapp != NULL && !FileUtils::fileExists(linkIcon))
 					linkapp->searchIcon();
 				else
 					sectionLinks(i)->at(x)->setIconPath(linkIcon);
 
-			} else if (!fileExists(linkIcon)) {
+			} else if (!FileUtils::fileExists(linkIcon)) {
 				if (linkapp != NULL) 
 					linkapp->searchIcon();
 			}
@@ -228,7 +228,7 @@ bool Menu::addActionLink(uint32_t section, const std::string &title, fastdelegat
 	Link *linkact = new Link(app, action);
 	linkact->setTitle(title);
 	linkact->setDescription(description);
-	if (app->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !app->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || fileExists(icon)) {
+	if (app->sc->exists(icon) || (icon.substr(0,5) == "skin:" && !app->skin->getSkinFilePath(icon.substr(5, icon.length())).empty()) || FileUtils::fileExists(icon)) {
 		linkact->setIcon(icon);
 	}
 
@@ -250,11 +250,11 @@ bool Menu::addLink(std::string path, std::string file, std::string section) {
 	// bool wrapper = true;
 
 	// strip the extension from the filename
-	std::string title = fileBaseName(file);
+	std::string title = FileUtils::fileBaseName(file);
 
 	std::string linkpath = app->getWriteablePath() + "sections/" + section + "/" + title;
 	int x = 2;
-	while (fileExists(linkpath)) {
+	while (FileUtils::fileExists(linkpath)) {
 		std::stringstream ss;
 		linkpath = "";
 		ss << x;
@@ -318,6 +318,7 @@ bool Menu::addSection(const std::string &sectionName) {
 		return true;
 	} else if (errno == EEXIST ) {
 		TRACE("skipping dir already exists : %s", sectiondir.c_str());
+		errno = 0;
 	} else TRACE("failed to mkdir");
 	return false;
 }

@@ -244,7 +244,7 @@ Esoteric::Esoteric() {
 
 	TRACE("inputManager");
 	std::string inputFile = this->getWriteablePath() + "input.conf";
-	if (!fileExists(inputFile)) {
+	if (!FileUtils::fileExists(inputFile)) {
 		inputFile = this->getReadablePath() + "input/" + this->hw->inputFile();
 	}
 	this->inputManager = new InputManager((*screenManager), (*powerManager));
@@ -375,7 +375,7 @@ void Esoteric::main() {
 	bool showGreeting = false;
 	std::string title = "Please wait, loading...";
 	if (this->needsInstalling) {
-		if (dirExists(this->getWriteablePath())) {
+		if (FileUtils::dirExists(this->getWriteablePath())) {
 			title = "Please wait, upgrading your installation";
 			this->doUpgrade();
 		} else {
@@ -548,6 +548,7 @@ void Esoteric::main() {
 		}
 	}
 
+	TRACE("quitApp has been set");
 	if (renderer) {
 		renderer->stopPolling();
 		delete renderer;
@@ -694,7 +695,7 @@ void Esoteric::initFont() {
 	string fontPath = this->skin->getSkinFilePath("font.ttf");
 	TRACE("font path: %s", fontPath.c_str());
 
-	if (fileExists(fontPath)) {
+	if (FileUtils::fileExists(fontPath)) {
 		TRACE("font file exists");
 		if (font != NULL) {
 			TRACE("delete font");
@@ -775,7 +776,7 @@ void Esoteric::initMenu() {
 							"skin:icons/install.png");
 	}
 
-	if (fileExists(getWriteablePath() + "log.txt"))
+	if (FileUtils::fileExists(getWriteablePath() + "log.txt"))
 		menu->addActionLink(
 						i, 
 						tr["Log Viewer"], 
@@ -1104,7 +1105,7 @@ void Esoteric::skinMenu() {
 	bool currentImageGray = skin->imagesToGrayscale;
 
 	do {
-		std::string wpPrev = base_name(skin->wallpaper);
+		std::string wpPrev = FileUtils::pathBaseName(skin->wallpaper);
 		std::string wpCurrent = wpPrev;
 
 		SettingsDialog sd(this, ts, tr["Skin"], "skin:icons/skin.png");
@@ -1462,7 +1463,7 @@ void Esoteric::cpuSettings() {
 void Esoteric::readTmp() {
 	TRACE("enter");
 	lastSelectorElement = -1;
-	if (!fileExists(TEMP_FILE)) return;
+	if (!FileUtils::fileExists(TEMP_FILE)) return;
 	ifstream inf(TEMP_FILE, ios_base::in);
 	if (!inf.is_open()) return;
 	string line, name, value;
@@ -1636,7 +1637,7 @@ void Esoteric::about() {
 
 void Esoteric::viewLog() {
 	std::string logfile = getWriteablePath() + "log.txt";
-	if (!fileExists(logfile)) return;
+	if (!FileUtils::fileExists(logfile)) return;
 
 	TextDialog td(this, tr["Log Viewer"], tr["Last launched program's output"], "skin:icons/ebook.png");
 	td.appendFile(getWriteablePath() + "log.txt");
@@ -1689,7 +1690,7 @@ void Esoteric::showManual() {
 	std::string linkBackdrop = menu->selLinkApp()->getBackdropPath();
 
 	TRACE("looking for a manual at : %s", linkManual.c_str());
-	if (linkManual.empty() || !fileExists(linkManual)) return;
+	if (linkManual.empty() || !FileUtils::fileExists(linkManual)) return;
 
 	std::string ext = linkManual.substr(linkManual.size() - 4, 4);
 	if (ext == ".png" || ext == ".bmp" || ext == ".jpg" || ext == "jpeg") {
@@ -2212,7 +2213,7 @@ void Esoteric::editLink() {
 		tr["Select a custom icon for the link"], 
 		&linkIcon, 
 		".png,.bmp,.jpg,.jpeg,.gif", 
-		dir_name(linkIcon), 
+		FileUtils::dirName(linkIcon), 
 		dialogTitle, 
 		dialogIcon, 
 		skin->name));
@@ -2308,14 +2309,14 @@ void Esoteric::editLink() {
 			tr["Select a Manual or Readme file"], 
 			&linkManual, 
 			".man,.png,.txt,.me", 
-			dir_name(linkManual), 
+			FileUtils::dirName(linkManual), 
 			dialogTitle, 
 			dialogIcon));
 
 	if (sd.exec() && sd.edited() && sd.save) {
 		this->hw->ledOn();
 
-		if (!linkExec.empty() && fileExists(linkExec)) {
+		if (!linkExec.empty() && FileUtils::fileExists(linkExec)) {
 			menu->selLinkApp()->setExec(linkExec);
 		}
 		menu->selLinkApp()->setTitle(linkTitle);
@@ -2348,7 +2349,7 @@ void Esoteric::editLink() {
 			}
 			std::string newFileName = "sections/" + newSection + "/" + linkTitle;
 			uint32_t x = 2;
-			while (fileExists(newFileName)) {
+			while (FileUtils::fileExists(newFileName)) {
 				std::string id = "";
 				std::stringstream ss; ss << x; ss >> id;
 				newFileName = "sections/" + newSection + "/" + linkTitle + id;
@@ -2439,7 +2440,7 @@ void Esoteric::renameSection() {
 					newicon = oldicon;
 					newicon.replace(newicon.find(oldpng), oldpng.length(), newpng);
 
-					if (!fileExists(newicon)) {
+					if (!FileUtils::fileExists(newicon)) {
 						rename(oldicon.c_str(), "tmpsectionicon");
 						rename("tmpsectionicon", newicon.c_str());
 						this->sc->move("skin:" + oldpng, "skin:" + newpng);
@@ -2459,7 +2460,7 @@ void Esoteric::deleteSection() {
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
 		this->hw->ledOn();
-		if (rmtree(getWriteablePath() + "sections/" + menu->selSection())) {
+		if (FileUtils::rmTree(getWriteablePath() + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}

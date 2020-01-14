@@ -17,8 +17,8 @@ HwGkd350h::HwGkd350h() : IHardware() {
 
     this->clock_ = new RTC();
     this->soundcard_ = new AlsaSoundcard("default", "Master");
-    this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
-    this->pollBacklight = fileExists(BACKLIGHT_PATH);
+    this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
+    this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();

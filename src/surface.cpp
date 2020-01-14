@@ -53,16 +53,16 @@ Surface::Surface(const string &img, bool alpha, const string &skin) {
 	this->raw = NULL;
 	this->dblbuffer = NULL;
 	load(img, alpha, skin);
-	halfW = raw->w/2;
-	halfH = raw->h/2;
+	halfW = raw->w / 2;
+	halfH = raw->h / 2;
 }
 
 Surface::Surface(const string &img, const string &skin, bool alpha) {
 	this->raw = NULL;
 	this->dblbuffer = NULL;
 	load(img, alpha, skin);
-	halfW = raw->w/2;
-	halfH = raw->h/2;
+	halfW = raw->w / 2;
+	halfH = raw->h / 2;
 }
 
 Surface::Surface(SDL_Surface *s, SDL_PixelFormat *fmt, uint32_t flags) {
@@ -79,7 +79,7 @@ Surface::Surface(SDL_Surface *s, SDL_PixelFormat *fmt, uint32_t flags) {
 Surface::Surface(Surface *s) {
 	this->raw = NULL;
 	this->dblbuffer = NULL;
-	this->operator =(s->raw);
+	this->operator = (s->raw);
 }
 
 Surface::Surface(int w, int h, uint32_t flags) {
@@ -138,7 +138,7 @@ void Surface::load(const string &img, bool alpha, const string &skin) {
 	string skinpath;
 	if (!skin.empty() && !img.empty() && img[0]!='/') {
 		skinpath = "skins/"+skin+"/"+img;
-		if (!fileExists(skinpath))
+		if (!FileUtils::fileExists(skinpath))
 			skinpath = "skins/Default/"+img;
 	} else {
 		skinpath = img;

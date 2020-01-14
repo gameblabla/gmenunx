@@ -56,7 +56,9 @@ int Selector::exec(int startSelection) {
 
 	TRACE("starting selector");
 	FileLister fl(dir, link->getSelectorBrowser());
-
+	if (!this->link->getSelectorBrowser()) {
+		fl.addExclude("..");
+	}
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
 	this->screendir = link->getSelectorScreens();
@@ -79,7 +81,7 @@ int Selector::exec(int startSelection) {
 	app->ui->drawButton(this->bg, "b", app->tr["Exit"], 
 	app->ui->drawButton(this->bg, "x", app->tr["Favourite"])));
 
-	prepare(&fl, &screens, &titles);
+	this->prepare(&fl, &screens, &titles);
 	int selected = constrain(startSelection, 0, fl.size() - 1);
 
 	// moved surfaces out to prevent reloading on loop
@@ -300,7 +302,9 @@ int Selector::exec(int startSelection) {
 					file = fl[selected];
 					close = true;
 				} else {
-					this->dir = real_path(dir + "/" + fl[selected]);
+					std::string localPath = this->dir + fl[selected];
+					TRACE("local path is now set to : '%s'", localPath.c_str());
+					this->dir = FileUtils::resolvePath(localPath);
 					selected = 0;
 					this->firstElement = 0;
 					prepare(&fl, &screens, &titles);
@@ -308,9 +312,14 @@ int Selector::exec(int startSelection) {
 			} else if ( (*app->inputManager)[INC] ) {
 				// favourite
 				if (fl.isFile(selected)) {
-					TRACE("Favourite : %s", fl[selected].c_str());
 					file = fl[selected];
-					this->link->makeFavourite(this->dir, file);
+					TRACE("making favourite : %s", file.c_str());
+					std::string backdrop;
+					if (!screens[selected - 1].empty()) {
+						TRACE("adding screen : '%s'", screens.at(selected - 1).c_str());
+						backdrop = screens.at(selected - 1);
+					}
+					this->link->makeFavourite(this->dir, file, backdrop);
 				}
 			}
 		} while (!inputAction);
@@ -327,9 +336,20 @@ int Selector::exec(int startSelection) {
 void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::vector<std::string> *titles) {
 	TRACE("enter");
 
+	if (!FileUtils::dirExists(this->dir)) {
+		if (this->link->getSelectorBrowser()) {
+			this->dir = FileUtils::firstFirstExistingDir(this->dir);
+		} else {
+			// we have problems,
+			// it's not a real dir and we can't browse dirs
+
+		}
+	}
 	if (this->dir.length() > 0) {
-		if (0 != this->dir.compare(dir.length() -1, 1, "/")) 
+		// force a trailing slash
+		if (0 != this->dir.compare(dir.length() -1, 1, "/")) {
 			this->dir += "/";
+		}
 	} else this->dir = "/";
 	fl->setPath(this->dir, false);
 
@@ -344,19 +364,24 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 	TRACE("found %i files and dirs", fl->size());
 	this->numDirs = fl->dirCount();
 	this->numFiles = fl->fileCount();
+	TRACE("number of files: %i", this->numFiles);
+	TRACE("number of dirs: %i", this->numDirs);
 
 	screens->resize(fl->getFiles().size());
 	titles->resize(fl->dirCount() + fl->getFiles().size());
 
 	std::string fname, noext, realdir;
 	std::string::size_type pos;
-	std::string realPath = real_path(fl->getPath());
+	std::string realPath = FileUtils::resolvePath(fl->getPath());
 	if (realPath.length() > 0) {
-		if (0 != realPath.compare(realPath.length() -1, 1, "/")) 
+		if (0 != realPath.compare(realPath.length() -1, 1, "/")) {
 			realPath += "/";
+		}
 	} else realPath = "/";
-	bool previewsDirExists = dirExists(realPath + PREVIEWS_DIR);
-	TRACE("realPath : %s, exists : %i", realPath.c_str(), previewsDirExists);
+	TRACE("realPath: '%s'", realPath.c_str());
+
+	bool previewsDirExists = FileUtils::dirExists(realPath + PREVIEWS_DIR);
+	TRACE("previews folder exists: %i",  previewsDirExists);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < fl->dirCount(); i++) {
@@ -378,21 +403,21 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 			if (screendir[0] == '.') {
 				// allow "." as "current directory", therefore, relative paths
 				realdir = realPath + screendir + "/";
-			} else realdir = real_path(screendir) + "/";
+			} else realdir = FileUtils::resolvePath(screendir) + "/";
 
 			// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
-			if (fileExists(realdir + noext + ".jpg")) {
+			if (FileUtils::fileExists(realdir + noext + ".jpg")) {
 				screens->at(i) = realdir + noext + ".jpg";
-			} else if (fileExists(realdir + noext + ".png")){
+			} else if (FileUtils::fileExists(realdir + noext + ".png")){
 				screens->at(i) = realdir + noext + ".png";
 			}
 		}
 		if (screens->at(i).empty()) {
 			// fallback - always search for filename.png and jpg in a .previews folder inside the current path
 			if (previewsDirExists && 0 != app->skin->previewWidth) {
-				if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
+				if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
 					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
-				else if (fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
+				else if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
 					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
 			}
 		}
@@ -414,7 +439,7 @@ void Selector::loadAliases() {
 	TRACE("enter");
 	aliases.clear();
 	std::string aliasFile = link->getAliasFile();
-	if (!aliasFile.empty() && fileExists(aliasFile)) {
+	if (!aliasFile.empty() && FileUtils::fileExists(aliasFile)) {
 		TRACE("alias file found at : %s", aliasFile.c_str());
 		std::string line;
 		std::ifstream infile (aliasFile.c_str(), std::ios_base::in);

@@ -179,7 +179,7 @@ void TextDialog::appendText(const std::string &text) {
 
 void TextDialog::appendFile(const std::string &file) {
 	TRACE("enter");
-	if (fileExists(file)) {
+	if (FileUtils::fileExists(file)) {
 		std::ifstream t;
 		t.open (file, std::ifstream::in);
 		if (t.is_open()) {
@@ -195,7 +195,7 @@ void TextDialog::appendFile(const std::string &file) {
 
 void TextDialog::appendCommand(const std::string &executable, const std::string &args) {
 	TRACE("enter : running %s %s", executable.c_str(), args.c_str());
-	if (fileExists(executable)) {
+	if (FileUtils::fileExists(executable)) {
 		TRACE("executable exists");
 
 		std::string final = executable;

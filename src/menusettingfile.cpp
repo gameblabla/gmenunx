@@ -45,7 +45,7 @@ void MenuSettingFile::edit() {
 	if (_value.empty())
 		_value = startPath + "/";
 
-	_value = dir_name(_value);
+	_value = FileUtils::dirName(_value);
 
 	BrowseDialog fd(app, dialogTitle, description, dialogIcon);
 	fd.showDirectories = true;
@@ -54,5 +54,5 @@ void MenuSettingFile::edit() {
 	fd.setPath(_value);
 
 	if (fd.exec())
-		setValue(real_path(fd.getPath() + "/" + fd.getFile()));
+		setValue(FileUtils::resolvePath(fd.getPath() + "/" + fd.getFile()));
 }

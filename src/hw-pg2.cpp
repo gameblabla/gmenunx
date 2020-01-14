@@ -22,15 +22,15 @@ HwPG2::HwPG2() : IHardware() {
     this->clock_ = new RTC();
     this->soundcard_ = new AlsaSoundcard("default", "PCM");
 
-    this->ledMaxBrightness_ = fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
+    this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
     this->performanceModes_.insert({"ondemand", "On demand"});
     this->performanceModes_.insert({"performance", "Performance"});
 
-    this->pollBacklight = fileExists(BACKLIGHT_PATH);
-    this->pollBatteries = fileExists(BATTERY_CHARGING_PATH) && fileExists(BATTERY_LEVEL_PATH);
+    this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
+    this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
 
-    this->supportsOverclocking_ = fileExists(SYSFS_CPUFREQ_SET);
-    this->supportsPowerGovernors_ = fileExists(SYSFS_CPU_SCALING_GOVERNOR);
+    this->supportsOverclocking_ = FileUtils::fileExists(SYSFS_CPUFREQ_SET);
+    this->supportsPowerGovernors_ = FileUtils::fileExists(SYSFS_CPU_SCALING_GOVERNOR);
     this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
@@ -251,7 +251,7 @@ int HwPG2::setBacklightLevel(int val) {
 
 bool HwPG2::getKeepAspectRatio() {
     TRACE("enter");
-    if (fileExists(ASPECT_RATIO_PATH)) {
+    if (FileUtils::fileExists(ASPECT_RATIO_PATH)) {
         std::string result = fileReader(ASPECT_RATIO_PATH);
         TRACE("raw result : '%s'", result.c_str());
         if (result.length() > 0) {
@@ -286,7 +286,7 @@ bool HwPG2::setScreenState(const bool &enable) {
 
 std::string HwPG2::systemInfo() {
     TRACE("append - command /usr/bin/system_info");
-    if (fileExists("/usr/bin/system_info")) {
+    if (FileUtils::fileExists("/usr/bin/system_info")) {
         return execute("/usr/bin/system_info") + "\n";
     }
     return IHardware::systemInfo();

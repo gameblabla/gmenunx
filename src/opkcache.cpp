@@ -63,7 +63,7 @@ void OpkCache::startMonitors() {
     TRACE("adding directory watchers");
     for(std::vector<std::string>::iterator it = this->opkDirs_.begin(); it != this->opkDirs_.end(); it++) {
         std::string dir = (*it);
-        if (!dirExists(dir))
+        if (!FileUtils::dirExists(dir))
             continue;
 
         TRACE("adding monitor for : %s", dir.c_str());
@@ -147,7 +147,7 @@ bool OpkCache::ensureCacheDirs() {
     TRACE("enter");
 
     this->notifyProgress("Checking root directory exists");
-    if (!dirExists(this->rootDir_)) {
+    if (!FileUtils::dirExists(this->rootDir_)) {
         if (mkdir(this->rootDir_.c_str(), 0777) == 0) {
             TRACE("created dir : %s", this->rootDir_.c_str());
         } else {
@@ -156,7 +156,7 @@ bool OpkCache::ensureCacheDirs() {
         }
     }
     this->notifyProgress("Checking sections directory exists");
-    if (!dirExists(this->sectionDir_)) {
+    if (!FileUtils::dirExists(this->sectionDir_)) {
         if (mkdir(this->sectionDir_.c_str(), 0777) == 0) {
             TRACE("created dir : %s", this->sectionDir_.c_str());
         } else {
@@ -165,7 +165,7 @@ bool OpkCache::ensureCacheDirs() {
         }
     }
     this->notifyProgress("Checking cache directory exists");
-    if (!dirExists(this->cacheDir_)) {
+    if (!FileUtils::dirExists(this->cacheDir_)) {
         if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
             TRACE("created dir : %s", this->cacheDir_.c_str());
         } else {
@@ -175,7 +175,7 @@ bool OpkCache::ensureCacheDirs() {
     }
     this->notifyProgress("Checking image cache directory exists");
     std::string imageDir = this->imagesCachePath();
-    if (!dirExists(imageDir)) {
+    if (!FileUtils::dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", imageDir.c_str());
         } else {
@@ -186,7 +186,7 @@ bool OpkCache::ensureCacheDirs() {
 
     this->notifyProgress("Checking manuals cache directory exists");
     std::string manualsDir = this->manualsCachePath();
-    if (!dirExists(manualsDir)) {
+    if (!FileUtils::dirExists(manualsDir)) {
         if (mkdir(manualsDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", manualsDir.c_str());
         } else {
@@ -197,7 +197,7 @@ bool OpkCache::ensureCacheDirs() {
 
     this->notifyProgress("Checking alias cache directory exists");
     std::string aliasDir = this->aliasCachePath();
-    if (!dirExists(aliasDir)) {
+    if (!FileUtils::dirExists(aliasDir)) {
         if (mkdir(aliasDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", aliasDir.c_str());
         } else {
@@ -231,7 +231,7 @@ bool OpkCache::loadCache() {
     assert(this->sectionCache);
 
     bool success = false;
-    if (dirExists(this->sectionDir_)) {
+    if (FileUtils::dirExists(this->sectionDir_)) {
     
         DIR *dirp;
         struct stat st;
@@ -379,7 +379,7 @@ bool OpkCache::createMissingOpkDesktopFiles() {
     for (std::vector<string>::iterator opkDir = this->opkDirs_.begin(); opkDir != this->opkDirs_.end(); opkDir++) {
         std::string dir = (*opkDir);
         TRACE("checking opk directory : %s", dir.c_str());
-        if (!dirExists(dir)) {
+        if (!FileUtils::dirExists(dir)) {
             TRACE("skipping non-existing directory : %s", dir.c_str());
             continue;
         }
@@ -433,10 +433,10 @@ bool OpkCache::createMissingOpkDesktopFiles() {
 
 std::string OpkCache::savePng(myOpk const & theOpk) {
     
-    std::string imageDir = this->imagesCachePath() + "/" +  fileBaseName(theOpk.fileName());
+    std::string imageDir = this->imagesCachePath() + "/" +  FileUtils::fileBaseName(theOpk.fileName());
 
     TRACE("extracting image to : %s", imageDir.c_str());
-    if (!dirExists(imageDir)) {
+    if (!FileUtils::dirExists(imageDir)) {
         if (mkdir(imageDir.c_str(), 0777) == 0) {
             TRACE("created dir : %s", imageDir.c_str());
         } else {
@@ -448,7 +448,7 @@ std::string OpkCache::savePng(myOpk const & theOpk) {
     // extract the image and save it
     std::string shortIconName = theOpk.icon() + ".png";
     std::string opkIconName = theOpk.fullPath() + "#" + shortIconName;
-    std::string outFile = imageDir + "/" + base_name(shortIconName);
+    std::string outFile = imageDir + "/" + FileUtils::pathBaseName(shortIconName);
     std::string result = "";
 
     SDL_Surface *tmpIcon = loadPNG(opkIconName, true);
@@ -491,10 +491,10 @@ bool OpkCache::removeUnlinkedDesktopFiles() {
 
             // let's not remove anything if the whole dir is missing
             // because it probably means we're external card && unmounted
-            if (!dirExists(dir_name(provider)))
+            if (!FileUtils::dirExists(FileUtils::dirName(provider)))
                 continue;
 
-            if (!fileExists(provider)) {
+            if (!FileUtils::fileExists(provider)) {
                 TRACE("adding '%s' to action list, because provider doesn't exist", 
                     file.title().c_str());
 
@@ -590,7 +590,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
 
             // now create desktop file paths 
             std::string sectionPath = this->sectionDir_ + "/" + sectionName;
-            std::string desktopFilePath = sectionPath + "/" + theOpk.metadata() + "-" + fileBaseName(theOpk.fileName()) + ".desktop";
+            std::string desktopFilePath = sectionPath + "/" + theOpk.metadata() + "-" + FileUtils::fileBaseName(theOpk.fileName()) + ".desktop";
             DesktopFile *finalFile;
 
             // first extract the image and get the saved path
@@ -603,9 +603,9 @@ void OpkCache::handleNewOpk(const std::string & path) {
             std::string manualPath = "";
             if (!theOpk.manual().empty()) {
 
-                std::string manualDir = this->manualsCachePath() + "/" +  fileBaseName(theOpk.fileName());
+                std::string manualDir = this->manualsCachePath() + "/" +  FileUtils::fileBaseName(theOpk.fileName());
                 TRACE("extracting manual to : %s", manualDir.c_str());
-                if (!dirExists(manualDir)) {
+                if (!FileUtils::dirExists(manualDir)) {
                     if (mkdir(manualDir.c_str(), 0777) == 0) {
                         TRACE("created dir : %s", manualDir.c_str());
                     } else {
@@ -613,7 +613,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
                         continue;
                     }
                 }
-                manualPath = manualDir + "/" + base_name(theOpk.manual());
+                manualPath = manualDir + "/" + FileUtils::pathBaseName(theOpk.manual());
                 void *buffer = NULL;
                 std::size_t size = 0;
                 std::string path = theOpk.fullPath() + "#" + theOpk.manual();
@@ -628,9 +628,9 @@ void OpkCache::handleNewOpk(const std::string & path) {
             std::string aliasPath = "";
             if (!theOpk.selectorAlias().empty()) {
 
-                std::string aliasDir = this->aliasCachePath() + "/" +  fileBaseName(theOpk.fileName());
+                std::string aliasDir = this->aliasCachePath() + "/" +  FileUtils::fileBaseName(theOpk.fileName());
                 TRACE("extracting alias file to : %s", aliasDir.c_str());
-                if (!dirExists(aliasDir)) {
+                if (!FileUtils::dirExists(aliasDir)) {
                     if (mkdir(aliasDir.c_str(), 0777) == 0) {
                         TRACE("created dir : %s", aliasDir.c_str());
                     } else {
@@ -638,7 +638,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
                         continue;
                     }
                 }
-                aliasPath = aliasDir + "/" + base_name(theOpk.selectorAlias());
+                aliasPath = aliasDir + "/" + FileUtils::pathBaseName(theOpk.selectorAlias());
                 void *buffer = NULL;
                 std::size_t size = 0;
                 std::string path = theOpk.fullPath() + "#" + theOpk.selectorAlias();
@@ -654,7 +654,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
             DesktopFile * previous = findMatchingProvider(sectionName, theOpk);
             if (nullptr != previous) {
                 TRACE("found another version");
-                if (!fileExists(previous->provider())) {
+                if (!FileUtils::fileExists(previous->provider())) {
                     // do an upgrade to preserve selector filters, dir etc
                     TRACE("upgrading the provider from : %s to : %s", 
                         previous->provider().c_str(), 
@@ -675,7 +675,7 @@ void OpkCache::handleNewOpk(const std::string & path) {
             TRACE("need to create desktop file for : %s", theOpk.name().c_str());
 
             TRACE("saving desktop file to : %s", desktopFilePath.c_str());
-            if (!dirExists(sectionPath)) {
+            if (!FileUtils::dirExists(sectionPath)) {
                 if (mkdir(sectionPath.c_str(), 0777) == 0) {
                     TRACE("created dir : %s", sectionPath.c_str());
                 } else {

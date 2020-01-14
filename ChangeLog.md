@@ -2,12 +2,20 @@
 
 **1.0.8** (*Codename: *)
 * Added
+	* Initial rom preview image to background image on favouriting
+
 
 * Fixed
 	* Save last selection
+	* Potential crash after making a favourite if no icon was created
+	* Empty directory handling in browser
 
 * Improved
 	* Stay in rom browser after making a favourite
+	* Add custom value in ui for preview width if it doesn't match a step of 5
+	* Background image scaling and placing
+	* File handlimg routines and path resolvers
+	* Includes and ifdef's
 
 **1.0.7** (*Codename: Meet the family*)
 * Added

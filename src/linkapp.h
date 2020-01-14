@@ -47,7 +47,7 @@ private:
 
 	void launch(std::string launchArgs = "");
 	string resolveArgs(const std::string &selectedFile = "", const std::string &selectedDir = "");
-	void favourite(std::string launchArgs, std::string supportingFile = "");
+	void favourite(std::string launchArgs, std::string supportingFile = "", std::string backdrop = "");
 
 public:
 
@@ -95,16 +95,16 @@ public:
 	bool save();
 	void run();
 	void makeFavourite();
-	void makeFavourite(std::string dir, std::string file);
+	void makeFavourite(std::string dir, std::string file, std::string backdrop = "");
 
 	// void showManual();
-	void selector(int startSelection=0, const std::string &selectorDir="");
+	void selector(int startSelection=0, const std::string &selectorDir = "");
 	bool targetExists();
 
 	const std::string &getFile() { return file; }
 	const std::string &getBackdrop() { return backdrop; }
 	const std::string &getBackdropPath() { return backdropPath; }
-	void setBackdrop(const std::string selectedFile="");
+	void setBackdrop(const std::string selectedFile = "");
 
 	void renameFile(const std::string &name);
 	bool isDeletable() { return deletable; }

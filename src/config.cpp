@@ -117,7 +117,7 @@ void Config::reset() {
     this->lang_ = "";
     this->sectionFilter_ = "";
 
-    if (dirExists(EXTERNAL_LAUNCHER_PATH)) {
+    if (FileUtils::dirExists(EXTERNAL_LAUNCHER_PATH)) {
         this->launcherPath(EXTERNAL_LAUNCHER_PATH);
     } else this->launcherPath(HOME_DIR);
 
@@ -183,10 +183,10 @@ void Config::constrain() {
 		this->performance("On demand");
 	if (this->tvOutMode() != "PAL") 
 		this->tvOutMode("NTSC");
-    if (!dirExists(this->launcherPath())) {
+    if (!FileUtils::dirExists(this->launcherPath())) {
         this->launcherPath(HOME_DIR);
     }
-	if (!dirExists(this->prefix + "skins/" + this->skin())) {
+	if (!FileUtils::dirExists(this->prefix + "skins/" + this->skin())) {
 		this->skin("Default");
 	}
 }
@@ -194,7 +194,7 @@ void Config::constrain() {
 bool Config::configExistsUnderPath(const std::string & path) {
     std::string filePath = path + CONFIG_FILE_NAME;
     TRACE("checking for config under : %s", filePath.c_str());
-    return fileExists(path + CONFIG_FILE_NAME);
+    return FileUtils::fileExists(path + CONFIG_FILE_NAME);
 }
 
 bool Config::remove() {
@@ -208,7 +208,7 @@ bool Config::fromFile() {
     std::string fileName = this->configFile();
     TRACE("loading config file from : %s", fileName.c_str());
 
-	if (fileExists(fileName)) {
+	if (FileUtils::fileExists(fileName)) {
 		TRACE("config file exists");
 		std::ifstream confstream(fileName.c_str(), std::ios_base::in);
 		if (confstream.is_open()) {

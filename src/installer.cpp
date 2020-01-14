@@ -30,7 +30,7 @@ Installer::~Installer() {
 bool Installer::install(IHardware * hw) {
     TRACE("enter");
     bool result = false;
-    if (!dirExists(this->destinationRootPath)) {
+    if (!FileUtils::dirExists(this->destinationRootPath)) {
         if (mkdir(this->destinationRootPath.c_str(),0777) != 0) {
             ERROR("Couldn't create install root dir : %s", this->destinationRootPath.c_str());
             return false;
@@ -48,7 +48,7 @@ bool Installer::install(IHardware * hw) {
     this->notify("file: " + fileName);
     std::string source = this->sourceRootPath + "input/" + fileName;
     std::string destination = this->destinationRootPath + "input.conf";
-    if (!copyFile(source, destination)) 
+    if (!FileUtils::copyFile(source, destination)) 
         return false;
 	
     TRACE("exit : %i", result);
@@ -93,7 +93,7 @@ bool Installer::copyFiles() {
         std::string destination = this->destinationRootPath + fileName;
         TRACE("copying file from : %s to %s", source.c_str(), destination.c_str());
         this->notify("file: " + fileName);
-        if (!copyFile(source, destination)) 
+        if (!FileUtils::copyFile(source, destination)) 
             return false;
     }
     return true;
@@ -108,8 +108,8 @@ bool Installer::copyDirs(bool force) {
         std::string source = this->sourceRootPath + directory;
         std::string destination = this->destinationRootPath;// + directory;
         TRACE("copying dir from : %s to %s", source.c_str(), destination.c_str());
-        this->notify("directory: " + dir_name(directory));
-        if (!dirExists(source)) {
+        this->notify("directory: " + FileUtils::dirName(directory));
+        if (!FileUtils::dirExists(source)) {
             ERROR("Source directory doesn't exist : %s", source.c_str());
             return false;
         }
@@ -131,7 +131,7 @@ void Installer::notify(std::string message) {
 }
 
 const bool Installer::removeLauncher() {
-    if (fileExists(Installer::LAUNCHER_PATH))
+    if (FileUtils::fileExists(Installer::LAUNCHER_PATH))
         return 0 == unlink(Installer::LAUNCHER_PATH.c_str());
     return true;
 }
@@ -141,7 +141,7 @@ const bool Installer::deployLauncher() {
     std::string binary = this->destinationRootPath + BINARY_NAME;
 
     TRACE("checking binary exists : %s", binary.c_str());
-    if (!fileExists(binary)) {
+    if (!FileUtils::fileExists(binary)) {
         TRACE("can't risk an install of launcher");
         TRACE("binary not found at : %s", binary.c_str());
         this->notify("Couldn't find " + binary);
@@ -150,7 +150,7 @@ const bool Installer::deployLauncher() {
 
     TRACE("checking for pre-existing launcher");
     this->notify("Checking for pre-existing launcher");
-    if (fileExists(Installer::LAUNCHER_PATH)) {
+    if (FileUtils::fileExists(Installer::LAUNCHER_PATH)) {
         TRACE("removing pre-existing launcher");
         this->notify("Removing pre-existing launcher");
         if (0 != unlink(Installer::LAUNCHER_PATH.c_str())) {
@@ -247,7 +247,7 @@ const bool Installer::setBootMarker() {
 }
 
 const bool Installer::removeBootMarker() {
-    if (fileExists(Installer::INSTALLER_MARKER_FILE))
+    if (FileUtils::fileExists(Installer::INSTALLER_MARKER_FILE))
         return 0 == unlink(Installer::INSTALLER_MARKER_FILE.c_str());
     return true;
 }

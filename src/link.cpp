@@ -104,7 +104,7 @@ const string &Link::searchIcon() {
 	TRACE("enter");
 	if (this->iconPath.empty()) {
 		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
-	} else if (!fileExists(this->iconPath)) {
+	} else if (!FileUtils::fileExists(this->iconPath)) {
 		this->iconPath = app->skin->getSkinFilePath("icons/generic.png");
 	} else if (!app->skin->getSkinFilePath(this->iconPath).empty()) {
 		this->iconPath = app->skin->getSkinFilePath(this->iconPath);
@@ -120,7 +120,7 @@ const string &Link::getIconPath() {
 }
 
 void Link::setIconPath(const string &icon) {
-	if (fileExists(icon))
+	if (FileUtils::fileExists(icon))
 		iconPath = icon;
 	else
 		iconPath = app->skin->getSkinFilePath("icons/generic.png");
