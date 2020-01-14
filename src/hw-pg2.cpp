@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "constants.h"
+#include "fileutils.h"
 #include "debug.h"
 #include "hw-pg2.h"
 #include "rtc.h"

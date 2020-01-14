@@ -5,6 +5,7 @@
 #include "opkhelper.h"
 #include "desktopfile.h"
 #include "utilities.h"
+#include "fileutils.h"
 #include "debug.h"
 #include "constants.h"
 

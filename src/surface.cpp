@@ -18,11 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 #include <SDL_image.h>
+#include <cassert>
+
 #include "surface.h"
 #include "fonthelper.h"
 #include "utilities.h"
+#include "fileutils.h"
 #include "debug.h"
-#include <cassert>
 
 RGBAColor strtorgba(const string &strColor) {
 	const int s = (strColor.at(0) == '#') ? 1 : 0;

@@ -12,6 +12,7 @@
 #include "debug.h"
 #include "skin.h"
 #include "utilities.h"
+#include "fileutils.h"
 #include "constants.h"
 
 #define sync() sync(); system("sync");

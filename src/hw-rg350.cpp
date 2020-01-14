@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "constants.h"
+#include "fileutils.h"
 #include "debug.h"
 #include "hw-rg350.h"
 #include "rtc.h"

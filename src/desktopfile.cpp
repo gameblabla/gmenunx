@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "desktopfile.h"
 #include "utilities.h"
+#include "fileutils.h"
 #include <vector>
 #include <unistd.h>
 #include <fstream>

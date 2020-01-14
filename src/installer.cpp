@@ -9,7 +9,8 @@
 
 #include "installer.h"
 #include "debug.h"
-#include "utilities.h"
+//#include "utilities.h"
+#include "fileutils.h"
 #include "constants.h"
 
 #define sync() sync(); system("sync");

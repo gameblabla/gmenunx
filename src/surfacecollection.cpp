@@ -20,7 +20,8 @@
 
 #include "surfacecollection.h"
 #include "surface.h"
-#include "utilities.h"
+//#include "utilities.h"
+#include "fileutils.h"
 #include "skin.h"
 #include "debug.h"
 

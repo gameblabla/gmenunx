@@ -73,14 +73,14 @@
 	
 */
 
+#include <iostream>
+#include <fstream>
+
 #include "debug.h"
 #include "inputmanager.h"
 #include "managers/screenmanager.h"
 #include "managers/powermanager.h"
-#include "utilities.h"
-
-#include <iostream>
-#include <fstream>
+#include "fileutils.h"
 
 using namespace std;
 

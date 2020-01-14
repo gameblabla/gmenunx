@@ -37,6 +37,7 @@
 #include <SDL.h>
 
 #include "utilities.h"
+#include "fileutils.h"
 #include "debug.h"
 
 #ifndef PATH_MAX
@@ -203,8 +204,6 @@ int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t
 	//                    elapsed                 increments
 	return min((int)round(elapsed * (to - from)), (int)max(from, to));
 }
-
-
 
 std::string exec(const char* cmd) {
 	TRACE("exec - enter : %s", cmd);

@@ -3,7 +3,9 @@
 
 #include <string>
 #include <vector>
-#include "utilities.h"
+
+//#include "utilities.h"
+#include "fileutils.h"
 #include "constants.h"
 
 static const std::string CONFIG_FILE_NAME = BINARY_NAME + ".conf";

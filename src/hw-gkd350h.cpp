@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "hw-gkd350h.h"
 #include "sysclock.h"
+#include "fileutils.h"
 
 HwGkd350h::HwGkd350h() : IHardware() {
     TRACE("enter");
