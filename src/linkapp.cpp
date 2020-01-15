@@ -273,12 +273,6 @@ void LinkApp::setBackdrop(const std::string selectedFile) {
 }
 
 bool LinkApp::targetExists() {
-
-	// TODO :: get rid of me
-	#if (LOG_LEVEL >= INFO_L)
-	return true;
-	#endif
-
 	std::string target = exec;
 	if (!exec.empty() && exec[0] != '/' && !workdir.empty())
 		target = workdir + "/" + exec;

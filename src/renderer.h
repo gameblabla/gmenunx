@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "esoteric.h"
+#include "surfacecollection.h"
 
 class Renderer {
 
@@ -17,9 +18,6 @@ private:
     
     Esoteric *app;
 
-	std::string prevBackdrop;
-	std::string currBackdrop;
-
     int8_t brightnessIcon;
     Surface *iconBrightness[6];
     int8_t batteryIcon;
@@ -32,6 +30,8 @@ private:
     Surface *highlighter;
 
     std::vector<Surface*> helpers;
+    SurfaceCollection *backgrounds;
+
     uint8_t currentVolumeMode;
 
 	void layoutHelperIcons(std::vector<Surface*> icons, int rootXPos, int rootYPos);

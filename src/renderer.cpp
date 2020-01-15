@@ -30,8 +30,8 @@ Renderer::Renderer(Esoteric *app) :
 	this->finished_ = false;
 	this->app = app;
 
-	this->prevBackdrop = app->skin->wallpaper;
-	this->currBackdrop = prevBackdrop;
+	//this->prevBackdrop = app->skin->wallpaper;
+	//this->currBackdrop = prevBackdrop;
 
 	this->iconSD = app->sc->skinRes("imgs/sd1.png");
 	this->iconManual = app->sc->skinRes("imgs/manual.png");
@@ -47,6 +47,7 @@ Renderer::Renderer(Esoteric *app) :
 	this->locked_ = false;
 
 	this->helpers.clear();
+	this->backgrounds = new SurfaceCollection(this->app->skin, true);
 	this->pollHW();
 
 }
@@ -80,7 +81,17 @@ void Renderer::quit() {
 	TRACE("enter");
 	this->finished_ = true;
 	this->stopPolling();
+
+	std::vector<Surface *>::iterator helperIt = this->helpers.begin();
+	while (helperIt != this->helpers.end()) {
+        helperIt = this->helpers.erase(helperIt);
+        TRACE("remaining helper collection size : %zu", this->helpers.size());
+	}
 	this->helpers.clear();
+
+	if (nullptr != this->backgrounds)
+		delete this->backgrounds;
+
 	TRACE("exit");
 }
 
@@ -97,56 +108,64 @@ void Renderer::render() {
 	int screenX = this->app->getScreenWidth();
 	int screenY = this->app->getScreenHeight();
 
-    //TRACE("setting the clearing box");
-	app->screen->box(
-		(SDL_Rect){ 0, 0, screenX, screenY }, 
-		//app->skin->colours.background);
-		(RGBAColor){0, 0, 0, 255});
-
-	// do a background image or a background colour
-	//TRACE("background test");
-	if ((*app->sc)[currBackdrop]) {
-
-		app->screen->box(
-			app->linksRect, 
-			app->skin->colours.background);
-
-		int displayX = 0;
-		int displayY = 0;
-
-		int myW = (*app->sc)[currBackdrop]->raw->w;
-		int myH = (*app->sc)[currBackdrop]->raw->h;
-
-		if (app->linksRect.w != myW && app->linksRect.h != myH) {
-			// need to constrain it to fit
-			int margin = 5;
-			if (myW > (app->linksRect.w - margin) || myH > (app->linksRect.h - margin)) {
-				(*app->sc)[currBackdrop]->softStretch(
-						app->linksRect.w - margin, 
-						app->linksRect.h - margin, 
-						true);
-
-				myW = (*app->sc)[currBackdrop]->raw->w;
-				myH = (*app->sc)[currBackdrop]->raw->h;
-			}
-			myW /= 2;
-			myH /= 2;
-			// it's not a 1:1 with screen res, have to do something with it
-			int offset = 0;
-			if (app->skin->sectionBar == Skin::SB_LEFT || app->skin->sectionBar == Skin::SB_RIGHT) {
-				offset = (app->sectionBarRect.w / 2);
-			}
-			displayX = (screenX / 2) - myW + offset;
-			displayY = (screenY / 2) - myH;
-		}
-		(*app->sc)[currBackdrop]->blit(app->screen, displayX, displayY);
-
+	if (!app->skin->wallpaper.empty()) {
+		// blit the bg
+		(*app->sc)[app->skin->wallpaper]->blit(app->screen, 0, 0);
 	} else {
-		TRACE("no background");
+		// colour only
 		app->screen->box(
-			app->linksRect, 
-			//(SDL_Rect){ 0, 0, screenX, screenY }, 
+			SDL_Rect { 0, 0, screenX, screenY },
 			app->skin->colours.background);
+	}
+
+	// now check for an override
+	// if it's fullscreen just blit it
+	// but clip to links rect, so colour is preserved
+	// else scale it once and put it back in the sc
+	// we can't use the app sc as we're messing with previews already loaded
+
+	if (this->app->skin->skinBackdrops) {
+		if (app->menu->selLinkApp() != NULL) {
+			std::string backdropKey = app->menu->selLinkApp()->getBackdropPath();
+			if (!backdropKey.empty()) {
+				if (NULL != (*this->backgrounds)[backdropKey]) {
+					TRACE("adding background : '%s'", backdropKey.c_str());
+					// good to scale and blit
+					int displayX = 0;
+					int displayY = 0;
+					int myW = (*this->backgrounds)[backdropKey]->raw->w;
+					int myH = (*this->backgrounds)[backdropKey]->raw->h;
+
+					// test for non fullscreen fit
+					if (myW != screenX && myH != screenY) {
+						// it's not a fullscreen image, so we want to make it best fit in the link rect
+						// but we only want to stretch it once, at most
+						int margin = 5;
+						
+						if (myW > (app->linksRect.w - margin) || myH > (app->linksRect.h - margin)) {
+							(*this->backgrounds)[backdropKey]->softStretch(
+									app->linksRect.w - margin, 
+									app->linksRect.h - margin, 
+									true);
+
+							myW = (*this->backgrounds)[backdropKey]->raw->w;
+							myH = (*this->backgrounds)[backdropKey]->raw->h;
+						}
+						myW /= 2;
+						myH /= 2;
+						int offset = 0;
+						if (app->skin->sectionBar == Skin::SB_LEFT || app->skin->sectionBar == Skin::SB_RIGHT) {
+							offset = (app->sectionBarRect.w / 2);
+						}
+						displayX = (screenX / 2) - myW + offset;
+						displayY = (screenY / 2) - myH;
+
+					}
+					// and finally blit it
+					(*this->backgrounds)[backdropKey]->blit(app->screen, displayX, displayY);
+				}
+			}
+		}
 	}
 
 	// info bar
@@ -484,18 +503,6 @@ void Renderer::render() {
 			app->linksRect);
 	}
 
-	currBackdrop = app->skin->wallpaper;
-	if (app->menu->selLink() != NULL && app->menu->selLinkApp() != NULL && !app->menu->selLinkApp()->getBackdropPath().empty() && app->sc->addImage(app->menu->selLinkApp()->getBackdropPath()) != NULL) {
-		//TRACE("setting currBackdrop to : %s", app->menu->selLinkApp()->getBackdropPath().c_str());
-		currBackdrop = app->menu->selLinkApp()->getBackdropPath();
-	}
-
-	// background has changed
-	if (prevBackdrop != currBackdrop) {
-		INFO("new backdrop: %s", currBackdrop.c_str());
-		app->sc->del(prevBackdrop);
-		prevBackdrop = currBackdrop;
-	}
 
 	/* 
 	 *
@@ -564,7 +571,7 @@ void Renderer::render() {
 		//TRACE("helpers.clear()");
 		helpers.clear();
 
-	} // app->skin->sectionBar
+	}
 
     //TRACE("flip"); 
 	app->screen->flip();

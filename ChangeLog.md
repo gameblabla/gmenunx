@@ -1,9 +1,11 @@
-## Changelog
+# 350teric Changelog
 
-**1.0.8** (*Codename: *)
+**1.0.8** (*Codename: Don't worry, it's just a background check*)
+
 * Added
-	* Initial rom preview image to background image on favouriting
-
+	* Backgrounds for favourites
+    	* Fullscreen or
+    	* Best fit in the link view space
 
 * Fixed
 	* Save last selection
