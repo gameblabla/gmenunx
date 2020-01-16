@@ -438,15 +438,13 @@ void Esoteric::main() {
 
 	// readTmp has to come after initMenu, because of section hiding etc
 	this->readTmp();
-	if (this->lastSelectorElement >- 1 && \
-		this->menu->selLinkApp() != NULL && \
-		(!this->menu->selLinkApp()->getSelectorDir().empty() || \
-		!this->lastSelectorDir.empty())) {
-
-		TRACE("recoverSession happening");
-		this->menu->selLinkApp()->selector(
-			this->lastSelectorElement, 
-			this->lastSelectorDir);
+	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
+		if (FileUtils::dirExists(this->lastSelectorDir)) {
+			TRACE("recoverSession happening");
+			this->menu->selLinkApp()->selector(
+				this->lastSelectorElement, 
+				this->lastSelectorDir);
+		}
 	} else if (this->config->saveSelection()) {
 		this->menu->setSectionIndex(this->config->section());
 		this->menu->setLinkIndex(this->config->link());
@@ -1460,6 +1458,9 @@ void Esoteric::cpuSettings() {
 	TRACE("exit");
 }
 
+// reads the temp file back in, 
+// sets the section and selected link up
+// and the tv out mode
 void Esoteric::readTmp() {
 	TRACE("enter");
 	lastSelectorElement = -1;
@@ -1488,8 +1489,8 @@ void Esoteric::writeTmp(int selelem, const std::string &selectordir) {
 	if (inf.is_open()) {
 		inf << "section=" << menu->selSectionIndex() << std::endl;
 		inf << "link=" << menu->selLinkIndex() << std::endl;
-		if (selelem >- 1) inf << "selectorelem=" << selelem << std::endl;
-		if (selectordir != "") inf << "selectordir=" << selectordir << std::endl;
+		if (selelem > -1) inf << "selectorelem=" << selelem << std::endl;
+		if (!selectordir.empty()) inf << "selectordir=" << selectordir << std::endl;
 		//inf << "tvOutPrev=" << tvOutPrev << std::endl;
 		inf << "TVOut=" << this->hw->getTVOutMode() << std::endl;
 		inf.close();

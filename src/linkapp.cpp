@@ -428,7 +428,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	Selector sel(app, this, myDir);
 	int selection = sel.exec(startSelection);
 	// we got a file
-	if (selection != -1) {
+	if (selection > -1) {
 		std::string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
 		this->app->config->launcherPath(sel.getDir());
 		this->app->writeTmp(selection, sel.getDir());
