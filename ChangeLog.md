@@ -1,5 +1,16 @@
 # 350teric Changelog
 
+**1.0.9** (*Codename: *)
+
+* Added
+
+
+* Fixed
+
+
+* Improved
+  * Cleaner session restore
+
 **1.0.8** (*Codename: Don't worry, it's just a background check*)
 
 * Added

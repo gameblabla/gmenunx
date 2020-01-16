@@ -446,8 +446,10 @@ void Esoteric::main() {
 				this->lastSelectorDir);
 		}
 	} else if (this->config->saveSelection()) {
-		this->menu->setSectionIndex(this->config->section());
-		this->menu->setLinkIndex(this->config->link());
+		if (this->config->section() > 0)
+			this->menu->setSectionIndex(this->config->section());
+		if (this->config->link() > 0)
+			this->menu->setLinkIndex(this->config->link());
 	}
 
 	this->screenManager->resetTimer();
