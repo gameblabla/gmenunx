@@ -293,6 +293,9 @@ void Esoteric::quit() {
 	if (this->config)
 		this->writeConfig();
 
+	TRACE("removing the boot marker");
+	Installer::removeBootMarker();
+
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -432,9 +435,6 @@ void Esoteric::main() {
 
 	TRACE("new renderer");
 	Renderer *renderer = new Renderer(this);
-
-	TRACE("removing the boot marker");
-	Installer::removeBootMarker();
 
 	// readTmp has to come after initMenu, because of section hiding etc
 	this->readTmp();
@@ -1941,6 +1941,7 @@ void Esoteric::poweroffDialog() {
 	mb.setButton(CANCEL,  tr["Cancel"]);
 	int response = mb.exec();
 	if (response == CONFIRM) {
+		this->quitApp = true;
 		ProgressBar pbShutdown(this, "Shutting down", "skin:icons/device.png", 100);
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
@@ -1948,6 +1949,7 @@ void Esoteric::poweroffDialog() {
 		pbShutdown.finished(1000);
 	}
 	else if (response == SECTION_NEXT) {
+		this->quitApp = true;
 		ProgressBar pbReboot(this, " Rebooting ", "skin:icons/device.png", 80);
 		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
