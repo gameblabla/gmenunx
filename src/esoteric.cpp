@@ -554,6 +554,7 @@ void Esoteric::main() {
 		delete renderer;
 	}
 	if (uiControlledQuit) {
+		this->quit();
 		quit_all(0);
 	}
 
@@ -1946,6 +1947,7 @@ void Esoteric::poweroffDialog() {
 		pbShutdown.updateDetail     ("   ~ now ~   ");
 		pbShutdown.exec();
 		this->hw->powerOff();
+		this->quit();
 		pbShutdown.finished(1000);
 	}
 	else if (response == SECTION_NEXT) {
@@ -1954,6 +1956,7 @@ void Esoteric::poweroffDialog() {
 		pbReboot.updateDetail     ("  ~ now ~  ");
 		pbReboot.exec();
 		this->hw->reboot();
+		this->quit();
 		pbReboot.finished(1000);
 	}
 }
