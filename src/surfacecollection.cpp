@@ -99,7 +99,7 @@ Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool graySc
 			return NULL;
 		}
 	} else if (!FileUtils::fileExists(filePath)) {
-		TRACE("file doesn't exist");
+		TRACE("file '%s' doesn't exist", filePath.c_str());
 		return NULL;
 	}
 

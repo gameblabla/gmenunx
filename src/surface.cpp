@@ -137,30 +137,39 @@ SDL_PixelFormat *Surface::format() {
 
 void Surface::load(const std::string &img, bool alpha, const std::string &skin) {
 	free();
-	std::string skinpath;
-	if (!skin.empty() && !img.empty() && img[0]!='/') {
-		skinpath = "skins/"+skin+"/"+img;
-		if (!FileUtils::fileExists(skinpath))
-			skinpath = "skins/Default/"+img;
-	} else {
-		skinpath = img;
+	if (img.empty()) {
+		ERROR("no image to load");
+		return;
 	}
 
-	SDL_Surface* loadedImage = IMG_Load(skinpath.c_str());
-	if (loadedImage != NULL) {
-		if (alpha)
-			this->raw = SDL_DisplayFormatAlpha( loadedImage );
-		else
-			this->raw = SDL_DisplayFormat( loadedImage );
-
-		if (this->raw == NULL) {
-			ERROR("Couldn't optimise surface '%s'", img.c_str());
-		}
-		//Free the old image
-		SDL_FreeSurface( loadedImage );
-		loadedImage = NULL;
+	std::string imgPath;
+	if (!skin.empty() && !img.empty() && img[0] != '/') {
+		imgPath = "skins/" + skin + "/" + img;
+		if (!FileUtils::fileExists(imgPath))
+			imgPath = "skins/Default/" + img;
 	} else {
-		ERROR("Couldn't load surface '%s'", img.c_str());
+		imgPath = img;
+	}
+
+	if (!FileUtils::fileExists(imgPath)) {
+		ERROR("File '%s' doesn't exist", imgPath.c_str());
+	} else {
+		SDL_Surface* loadedImage = IMG_Load(imgPath.c_str());
+		if (loadedImage != NULL) {
+			if (alpha)
+				this->raw = SDL_DisplayFormatAlpha( loadedImage );
+			else
+				this->raw = SDL_DisplayFormat( loadedImage );
+
+			if (this->raw == NULL) {
+				ERROR("Couldn't optimise surface '%s'", img.c_str());
+			}
+			//Free the old image
+			SDL_FreeSurface( loadedImage );
+			loadedImage = NULL;
+		} else {
+			ERROR("Couldn't load surface '%s'", img.c_str());
+		}
 	}
 }
 
@@ -202,7 +211,7 @@ void Surface::putPixel(int x, int y, uint32_t color) {
 
 RGBAColor Surface::pixelColor(int x, int y) {
 	RGBAColor color;
-	uint32_t col = pixel(x,y);
+	uint32_t col = pixel(x, y);
 	SDL_GetRGBA( col, raw->format, &color.r, &color.g, &color.b, &color.a );
 	return color;
 }
@@ -216,7 +225,7 @@ uint32_t Surface::pixel(int x, int y) {
 	pPosition += ( raw->format->BytesPerPixel * x ) ;
 	//copy pixel data
 	uint32_t col = 0;
-	memcpy ( &col , pPosition , raw->format->BytesPerPixel ) ;
+	memcpy ( &col, pPosition, raw->format->BytesPerPixel ) ;
 	return col;
 }
 
@@ -280,6 +289,7 @@ void Surface::box(SDL_Rect re, RGBAColor c) {
 		fillRectAlpha(re, c);
 	}
 }
+
 void Surface::applyClipRect(SDL_Rect& rect) {
 	SDL_Rect clip;
 	SDL_GetClipRect(raw, &clip);
@@ -302,6 +312,7 @@ void Surface::applyClipRect(SDL_Rect& rect) {
 		rect.h = max(clip.y + clip.h - rect.y, 0);
 	}
 }
+
 static inline uint32_t mult8x4(uint32_t c, uint8_t a) {
 	return ((((c >> 8) & 0x00FF00FF) * a) & 0xFF00FF00) | ((((c & 0x00FF00FF) * a) & 0xFF00FF00) >> 8);
 }

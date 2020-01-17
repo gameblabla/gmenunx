@@ -47,7 +47,7 @@ Renderer::Renderer(Esoteric *app) :
 	this->locked_ = false;
 
 	this->helpers.clear();
-	this->backgrounds = new SurfaceCollection(this->app->skin, true);
+	this->backgrounds = new SurfaceCollection(this->app->skin, false);
 	this->pollHW();
 
 }
