@@ -109,7 +109,7 @@ bool Installer::copyDirs(bool force) {
         std::string source = this->sourceRootPath + directory;
         std::string destination = this->destinationRootPath;// + directory;
         TRACE("copying dir from : %s to %s", source.c_str(), destination.c_str());
-        this->notify("directory: " + FileUtils::dirName(directory));
+        this->notify("directory: " + directory);
         if (!FileUtils::dirExists(source)) {
             ERROR("Source directory doesn't exist : %s", source.c_str());
             return false;
