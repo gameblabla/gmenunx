@@ -502,12 +502,6 @@ void LinkApp::launch(std::string launchArgs) {
 		chdir(wd.c_str());
 	}
 
-	if (app->config->saveSelection()) {
-		TRACE("updating selections");
-		app->config->section(app->menu->selSectionIndex());
-		app->config->link(app->menu->selLinkIndex());
-	}
-
 	// Check to see if permissions are desirable
 	struct stat fstat;
 	if ( stat( this->exec.c_str(), &fstat ) == 0 ) {
@@ -530,7 +524,7 @@ void LinkApp::launch(std::string launchArgs) {
 	commandLine.push_back(execute);
 
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
-	if (toLaunch) {
+	if (nullptr != toLaunch) {
 
 		if (this->app->hw->supportsOverClocking()) {
 			if (this->clock() > 0) {

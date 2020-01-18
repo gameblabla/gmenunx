@@ -4,10 +4,11 @@
 
 * Added
 	* Support for key combo's in input handler
+    	* Can be set via input.conf for any action
+    	* format is : action=combo,key_code_1,key_code_2,key_code_n
 
 * Fixed
   * Directory copy installer notification
-
 
 * Improved
   * Cleaner session restore
