@@ -427,7 +427,6 @@ void Esoteric::main() {
 
 	TRACE("set hardware to real settings");
 	this->screenManager->setTimeout(config->backlightTimeout());
-	this->inputManager->setWakeUpInterval(1000);
 	this->hw->ledOff();
 
 	pbLoading->finished();
@@ -456,6 +455,9 @@ void Esoteric::main() {
 	this->powerManager->resetTimer();
 	bool uiControlledQuit= false;
 	renderer->startPolling();
+
+	std::vector<int> powerCombo = { SECTION_PREV, SECTION_NEXT };
+
 	while (!this->quitApp) {
 		try {
 			//TRACE("loop");
@@ -492,6 +494,9 @@ void Esoteric::main() {
 				INFO("We got a quit request");
 				this->quitApp = true;
 				uiControlledQuit = true;
+				continue;
+			} else if (this->inputManager->isKeyCombo(powerCombo)) {
+				this->poweroffDialog();
 				continue;
 			} else if ((*this->inputManager)[POWER] && this->inputManager->isOnlyActive(POWER)) {
 				this->poweroffDialog();
@@ -2077,7 +2082,6 @@ void Esoteric::contextMenu() {
 	TRACE("box - x: %i, y: %i, w: %i, h: %i", box.x, box.y, box.w, box.h);
 
 	uint32_t tickStart = SDL_GetTicks();
-	this->inputManager->setWakeUpInterval(1000);
 	while (!close) {
 		bg.blit(screen, 0, 0);
 

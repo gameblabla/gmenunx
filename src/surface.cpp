@@ -156,10 +156,14 @@ void Surface::load(const std::string &img, bool alpha, const std::string &skin) 
 	} else {
 		SDL_Surface* loadedImage = IMG_Load(imgPath.c_str());
 		if (loadedImage != NULL) {
-			if (alpha)
+			TRACE("loaded the image successfully");
+			if (alpha) {
+				TRACE("display format alpha");
 				this->raw = SDL_DisplayFormatAlpha( loadedImage );
-			else
+			} else {
+				TRACE("display format normal");
 				this->raw = SDL_DisplayFormat( loadedImage );
+			}
 
 			if (this->raw == NULL) {
 				ERROR("Couldn't optimise surface '%s'", img.c_str());

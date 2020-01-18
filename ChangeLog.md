@@ -3,13 +3,17 @@
 **1.0.9** (*Codename: *)
 
 * Added
-
+	* Support for key combo's in input handler
 
 * Fixed
+  * Directory copy installer notification
 
 
 * Improved
   * Cleaner session restore
+  * More defensive 'save last selection' restore
+  * Surface collection error checking
+  * Only remove boot marker on clean exit
 
 **1.0.8** (*Codename: Don't worry, it's just a background check*)
 

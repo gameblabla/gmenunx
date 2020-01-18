@@ -135,7 +135,7 @@ int Selector::exec(int startSelection) {
 						255);
 				}
 			}
-			//Draw files & Directories
+			// draw files & Directories
 			iY = app->listRect.y + 1;
 			for (i = firstElement; i < fl.size() && i <= firstElement + numRows; i++, iY += rowHeight) {
 				if (i == selected) {
@@ -210,7 +210,6 @@ int Selector::exec(int startSelection) {
 					if (animation < app->skin->previewWidth) {
 						animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
 						app->screen->flip();
-						app->inputManager->setWakeUpInterval(45);
 						continue;
 					}
 
@@ -227,12 +226,10 @@ int Selector::exec(int startSelection) {
 			
 						animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
 						app->screen->flip();
-						app->inputManager->setWakeUpInterval(45);
 						continue;
 					}
 				}
 			}
-			app->inputManager->setWakeUpInterval(1000);
 			app->screen->clearClipRect();
 			app->ui->drawScrollBar(numRows, fl.size(), firstElement, app->listRect);
 			app->screen->flip();

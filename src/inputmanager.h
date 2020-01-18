@@ -24,6 +24,7 @@
 #include <SDL_image.h>
 #include <vector>
 #include <string>
+#include <list>
 
 #include "managers/screenmanager.h"
 #include "managers/powermanager.h"
@@ -83,11 +84,10 @@ private:
 
 	std::vector <SDL_Joystick*> joysticks;
 	std::vector <InputManagerAction> actions;
+	std::list <int> allMappedKeys;
 
 	ScreenManager& screenManager;
 	PowerManager& powerManager;
-
-	static uint32_t wakeUp(uint32_t interval, void *_data);
 
 public:
 	static const int MAPPING_TYPE_UNDEFINED = -1;
@@ -111,10 +111,10 @@ public:
 	int count();
 	void setActionsCount(int count);
 	void setInterval(int ms, int action = -1);
-	void setWakeUpInterval(int ms);
 	void noop();
 	bool &operator[](int action);
 	bool isActive(int action);
+	bool isKeyCombo(const std::vector<int> & comboActions);
 	bool isOnlyActive(int action);
 
 	void setButtonRepeat(const int &repeatRate);

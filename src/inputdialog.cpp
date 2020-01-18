@@ -133,7 +133,6 @@ bool InputDialog::exec() {
 	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
 	while (!close) {
-		app->inputManager->setWakeUpInterval(500);
 
 		this->bg->blit(app->screen, 0, 0);
 
@@ -252,8 +251,6 @@ bool InputDialog::exec() {
 				break;
 		}
 	}
-	// app->input.setWakeUpInterval(0);
-
 	return ok;
 }
 

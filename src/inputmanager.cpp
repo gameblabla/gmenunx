@@ -199,7 +199,6 @@ bool InputManager::readStream(std::istream & input) {
 
 		split(values, value, ",");
 		if (values.size() >= 2) {
-
 			if (values[0] == "joystickbutton" && values.size() == 3) {
 				InputMap map;
 				map.type = InputManager::MAPPING_TYPE_BUTTON;
@@ -219,6 +218,7 @@ bool InputManager::readStream(std::istream & input) {
 				map.type = InputManager::MAPPING_TYPE_KEYPRESS;
 				map.value = atoi(values[1].c_str());
 				this->actions[action].maplist.push_back(map);
+				this->allMappedKeys.push_back(map.value);
 			} else {
 				ERROR("%d Invalid syntax or unsupported mapping type '%s'.", linenum, value.c_str());
 				return false;
@@ -229,7 +229,7 @@ bool InputManager::readStream(std::istream & input) {
 			return false;
 		}
 	}
-
+	this->allMappedKeys.unique();
 	return true;
 }
 
@@ -367,11 +367,12 @@ bool InputManager::update(bool wait) {
 			TRACE("WAIT QUIT");
 			actions[QUIT].active = true;
 			return true;
-		} else if (event.type == SDL_KEYDOWN) {//SDL_KEYUP) {
+		} else if (event.type == SDL_KEYDOWN) {
 			if (SDLK_UNKNOWN == event.key.keysym.sym) {
+				TRACE("unknown key down");
 				return false;
 			}
-			TRACE("WAIT KEYUP : %i", event.key.keysym.sym);
+			TRACE("WAIT SDL_KEYDOWN : %i", event.key.keysym.sym);
 			anyactions = true;
 			SDL_Event evcopy = event;
 		} else if (event.type == SDL_NOOPEVENT) {
@@ -381,6 +382,15 @@ bool InputManager::update(bool wait) {
 			// so that we don't keep the screen awake
 			// but if it is awake, we redraw it for hardware changes
 			return true;
+		} else if (event.type == SDL_KEYUP) {
+			MappingList::iterator it;
+			for (it = this->actions[POWER].maplist.begin(); it != this->actions[POWER].maplist.end(); it++) {
+				if ((*it).value == event.key.keysym.sym) {
+					anyactions = true;
+					SDL_Event evcopy = event;
+					break;
+				}
+			}
 		} else {
 			/*
 			TRACE("non special event type : %i", event.type);
@@ -479,10 +489,8 @@ bool InputManager::update(bool wait) {
                         TRACE("event.type test - I don't know what this event is!\n");
                   };
 			*/
-
-		
 		}
-	} 
+	}
 
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_KEYUP) {
@@ -495,16 +503,20 @@ bool InputManager::update(bool wait) {
 	for (uint32_t x = 0; x < actions.size(); x++) {
 		actions[x].active = isActive(x);
 		if (actions[x].active) {
+			/*
 			if (actions[x].timer == NULL) {
 				actions[x].timer = SDL_AddTimer(actions[x].interval, wakeUp, NULL);
 			}
+			*/
 			anyactions = true;
 			actions[x].last = SDL_GetTicks();
 		} else {
+			/*
 			if (actions[x].timer != NULL) {
 				SDL_RemoveTimer(actions[x].timer);
 				actions[x].timer = NULL;
 			}
+			*/
 			actions[x].last = 0;
 		}
 	}
@@ -539,23 +551,6 @@ void InputManager::setInterval(int ms, int action) {
 		actions[action].interval = ms;
 }
 
-void InputManager::setWakeUpInterval(int ms) {
-	//TRACE("enter - %i", ms);
-	if (this->wakeUpTimer != NULL)
-		SDL_RemoveTimer(this->wakeUpTimer);
-
-	if (ms > 0)
-		this->wakeUpTimer = SDL_AddTimer(ms, wakeUp, NULL);
-}
-
-uint32_t InputManager::wakeUp(uint32_t interval, void *_data) {
-	TRACE("enter");
-	SDL_Event event;
-	event.type = SDL_WAKEUPEVENT;
-	SDL_PushEvent( &event );
-	return interval;
-}
-
 void InputManager::noop() {
 	TRACE("enter");
 	SDL_Event event;
@@ -577,16 +572,10 @@ bool InputManager::isActive(int action) {
 		return false;
 	}
 
-	// is it too soon since last press??
-	if (actions[action].last + actions[action].interval > SDL_GetTicks()) {
-		//TRACE("too soo for : %i", action);
-		return false;
-	}
-
 	MappingList mapList = actions[action].maplist;
+	//TRACE("we have got to check %zu mappings for action %i", mapList.size(), action);
 	for (MappingList::const_iterator it = mapList.begin(); it != mapList.end(); ++it) {
 		InputMap map = *it;
-
 		switch (map.type) {
 			case InputManager::MAPPING_TYPE_BUTTON:
 				if (map.num < joysticks.size() && SDL_JoystickGetButton(joysticks[map.num], map.value))
@@ -601,11 +590,74 @@ bool InputManager::isActive(int action) {
 			break;
 			case InputManager::MAPPING_TYPE_KEYPRESS:
 				uint8_t *keystate = SDL_GetKeyState(NULL);
-				return keystate[map.value];
+				//TRACE("testing key : %i", map.value);
+				if (keystate[map.value]) {
+					//TRACE("it's on");
+					return true;
+				}
+				//TRACE("it's off");
 			break;
 		}
 	}
 	return false;
+}
+
+bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
+	TRACE("enter  - looking for %zu combo sdl keys", comboActions.size());
+
+	std::vector<int> sdlComboKeys;
+	std::vector<int>::const_iterator sdlIt;
+	
+	for (sdlIt = comboActions.begin(); sdlIt != comboActions.end(); sdlIt++) {
+		int action = (*sdlIt);
+		MappingList mapList = actions[action].maplist;
+		for (MappingList::const_iterator it = mapList.begin(); it != mapList.end(); ++it) {
+			InputMap map = *it;
+			if (map.type == InputManager::MAPPING_TYPE_KEYPRESS) {
+				sdlComboKeys.push_back(map.value);
+			}
+		}
+	}
+
+	#if (LOG_LEVEL >= INFO_L)
+	std::stringstream ss;
+	for (std::vector<int>::const_iterator it = sdlComboKeys.begin(); it != sdlComboKeys.end(); it++) {
+		ss << (*it) << ", ";
+	}
+	std::string search = ss.str();
+	TRACE("we're looking for : '%s'", search.c_str());
+	#endif
+
+	uint8_t *keystate = SDL_GetKeyState(NULL);
+	bool isComboKey;
+	std::list<int>::iterator mappedIt;
+	for (mappedIt = this->allMappedKeys.begin(); mappedIt != this->allMappedKeys.end(); mappedIt++) {
+		int keyCode = (*mappedIt);
+		std::vector<int>::const_iterator comboIt;
+		isComboKey = false;
+		for (comboIt = sdlComboKeys.begin(); comboIt != sdlComboKeys.end(); comboIt++) {
+			if (keyCode  == (*comboIt) ) {
+				//TRACE("combo key match '%i'....checking state", keyCode);
+				if (!keystate[keyCode]) {
+					//TRACE("combo key %i not active, giving up", keyCode);
+					return false;
+				}
+				//TRACE("combo key %i active, carrying on", keyCode);
+				isComboKey = true;
+				break;
+			}
+		}
+		if (!isComboKey) {
+			//TRACE("combo key miss '%i'....checking state", x);
+			if (keystate[keyCode]) {
+				//TRACE("non combo key %i active, giving up", keyCode);
+				return false;
+			}
+			//TRACE("non combo key %i not active, carrying on", keyCode);
+		}
+	}
+	TRACE("exit");
+	return true;
 }
 
 bool InputManager::isOnlyActive(int action) {
@@ -615,7 +667,7 @@ bool InputManager::isOnlyActive(int action) {
 			// skip a NOOP, they are never active
 			continue;
 		} else if (action == x) {
-			// skip oursleves, as a short press might be over by now
+			// skip ourselves, as a short press might be over by now
 			continue;
 		} else if (isActive(x)) {
 			TRACE("also active : %i", x);

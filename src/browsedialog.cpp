@@ -98,7 +98,6 @@ bool BrowseDialog::exec() {
 			if (animation < app->skin->previewWidth) {
 				animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
 				app->screen->flip();
-				app->inputManager->setWakeUpInterval(45);
 				continue;
 			}
 		} else {
@@ -106,11 +105,9 @@ bool BrowseDialog::exec() {
 				app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
 				animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
 				app->screen->flip();
-				app->inputManager->setWakeUpInterval(45);
 				continue;
 			}
 		}
-		app->inputManager->setWakeUpInterval(1000);
 		app->ui->drawScrollBar(numRows, fl->size(), firstElement, app->listRect);
 		app->screen->flip();
 
