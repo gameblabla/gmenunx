@@ -495,10 +495,7 @@ void Esoteric::main() {
 				this->quitApp = true;
 				uiControlledQuit = true;
 				continue;
-			} else if (this->inputManager->isKeyCombo(powerCombo)) {
-				this->poweroffDialog();
-				continue;
-			} else if ((*this->inputManager)[POWER] && this->inputManager->isOnlyActive(POWER)) {
+			} else if ((*this->inputManager)[POWER]) {
 				this->poweroffDialog();
 				continue;
 			}

@@ -219,11 +219,20 @@ bool InputManager::readStream(std::istream & input) {
 				map.value = atoi(values[1].c_str());
 				this->actions[action].maplist.push_back(map);
 				this->allMappedKeys.push_back(map.value);
+			} else if (values[0] == "combo") {
+				TRACE("got a combo :: '%s'", value.c_str());
+				InputMap map;
+				map.type = InputManager::MAPPING_TYPE_KEYCOMBO;
+				for (int x = 1; x < values.size(); x++) {
+					int keyCode = atoi(values[x].c_str());
+					TRACE("adding combo key value : %i", keyCode);
+					map.combo.push_back(keyCode);
+				}
+				this->actions[action].maplist.push_back(map);
 			} else {
 				ERROR("%d Invalid syntax or unsupported mapping type '%s'.", linenum, value.c_str());
 				return false;
 			}
-
 		} else {
 			ERROR("%d Every definition must have at least 2 values (%s).", linenum, value.c_str());
 			return false;
@@ -580,48 +589,38 @@ bool InputManager::isActive(int action) {
 			case InputManager::MAPPING_TYPE_BUTTON:
 				if (map.num < joysticks.size() && SDL_JoystickGetButton(joysticks[map.num], map.value))
 					return true;
-			break;
+				break;
 			case InputManager::MAPPING_TYPE_AXIS:
 				if (map.num < joysticks.size()) {
 					int axyspos = SDL_JoystickGetAxis(joysticks[map.num], map.value);
 					if (map.treshold < 0 && axyspos < map.treshold) return true;
 					if (map.treshold > 0 && axyspos > map.treshold) return true;
 				}
-			break;
-			case InputManager::MAPPING_TYPE_KEYPRESS:
-				uint8_t *keystate = SDL_GetKeyState(NULL);
-				//TRACE("testing key : %i", map.value);
-				if (keystate[map.value]) {
-					//TRACE("it's on");
+				break;
+			case InputManager::MAPPING_TYPE_KEYCOMBO:
+				TRACE("key combo test");
+				if (this->isKeyCombo(map.combo)) {
+					TRACE("combo hit for action %i", action);
 					return true;
 				}
-				//TRACE("it's off");
-			break;
+				break;
+			case InputManager::MAPPING_TYPE_KEYPRESS:
+				uint8_t *keystate = SDL_GetKeyState(NULL);
+				if (keystate[map.value]) {
+					return true;
+				}
+				break;
 		}
 	}
 	return false;
 }
 
 bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
-	TRACE("enter  - looking for %zu combo sdl keys", comboActions.size());
-
-	std::vector<int> sdlComboKeys;
-	std::vector<int>::const_iterator sdlIt;
-	
-	for (sdlIt = comboActions.begin(); sdlIt != comboActions.end(); sdlIt++) {
-		int action = (*sdlIt);
-		MappingList mapList = actions[action].maplist;
-		for (MappingList::const_iterator it = mapList.begin(); it != mapList.end(); ++it) {
-			InputMap map = *it;
-			if (map.type == InputManager::MAPPING_TYPE_KEYPRESS) {
-				sdlComboKeys.push_back(map.value);
-			}
-		}
-	}
+	//TRACE("enter  - looking for %zu combo keys", comboActions.size());
 
 	#if (LOG_LEVEL >= INFO_L)
 	std::stringstream ss;
-	for (std::vector<int>::const_iterator it = sdlComboKeys.begin(); it != sdlComboKeys.end(); it++) {
+	for (std::vector<int>::const_iterator it = comboActions.begin(); it != comboActions.end(); it++) {
 		ss << (*it) << ", ";
 	}
 	std::string search = ss.str();
@@ -635,7 +634,7 @@ bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
 		int keyCode = (*mappedIt);
 		std::vector<int>::const_iterator comboIt;
 		isComboKey = false;
-		for (comboIt = sdlComboKeys.begin(); comboIt != sdlComboKeys.end(); comboIt++) {
+		for (comboIt = comboActions.begin(); comboIt != comboActions.end(); comboIt++) {
 			if (keyCode  == (*comboIt) ) {
 				//TRACE("combo key match '%i'....checking state", keyCode);
 				if (!keystate[keyCode]) {
@@ -656,7 +655,7 @@ bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
 			//TRACE("non combo key %i not active, carrying on", keyCode);
 		}
 	}
-	TRACE("exit");
+	//TRACE("exit");
 	return true;
 }
 

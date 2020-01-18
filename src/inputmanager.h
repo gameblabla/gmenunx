@@ -59,6 +59,7 @@ typedef struct {
 	uint32_t num;
 	int value;
 	int treshold;
+	std::vector<int> combo;
 } InputMap;
 
 typedef std::vector<InputMap> MappingList;
@@ -94,6 +95,8 @@ public:
 	static const int MAPPING_TYPE_BUTTON = 0;
 	static const int MAPPING_TYPE_AXIS = 1;
 	static const int MAPPING_TYPE_KEYPRESS = 2;
+	static const int MAPPING_TYPE_KEYCOMBO = 3;
+
 	static const int INPUT_KEY_REPEAT_DELAY = 250;
 
 	static const int SDL_WAKEUPEVENT = SDL_USEREVENT + 1;
