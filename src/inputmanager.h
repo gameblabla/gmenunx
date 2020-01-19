@@ -79,6 +79,7 @@ Manages all input peripherals
 class InputManager {
 private:
 
+	bool powerSet_;
 	bool readStream(std::istream & input);
 	InputMap getInputMapping(int action);
 	SDL_TimerID wakeUpTimer;
@@ -117,6 +118,7 @@ public:
 	void noop();
 	bool &operator[](int action);
 	bool isActive(int action);
+	bool isActionKey(int action, int key);
 	bool isKeyCombo(const std::vector<int> & comboActions);
 	bool isOnlyActive(int action);
 
