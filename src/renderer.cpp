@@ -560,7 +560,7 @@ void Renderer::render() {
 					// Manual indicator
 					helpers.push_back(iconManual);
 				}
-				if (app->menu->selLinkApp()->clock() > 0 && app->menu->selLinkApp()->clock() != app->config->cpuMenu()) {
+				if (!app->menu->selLinkApp()->getClock().empty()) {
 					// CPU indicator
 					helpers.push_back(iconCPU);
 				}

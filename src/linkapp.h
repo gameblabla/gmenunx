@@ -36,8 +36,7 @@ private:
 
 	static const std::string FAVOURITE_FOLDER;
 
-	int iclock = 0;
-
+	std::string clock;
 	std::string exec, params, workdir, manual, manualPath;
 	std::string selectordir, selectorfilter, selectorscreens, backdrop, backdropPath;
 	std::string provider, providerMetadata;
@@ -89,8 +88,8 @@ public:
 	const std::string &getAliasFile();
 	void setAliasFile(const std::string &aliasfile);
 
-	int clock();
-	void setCPU(int mhz = 0);
+	std::string getClock();
+	void setClock(std::string val = "");
 
 	bool save();
 	void run();

@@ -42,13 +42,6 @@ public:
             }
         }
      }
-    std::string performance() const { return this->performance_; }
-    void performance(std::string val) {
-        if (val != this->performance_) {
-            this->performance_ = val;
-            this->isDirty = true;
-        }
-    }
     std::string tvOutMode() const { return this->tvOutMode_; }
     void tvOutMode(std::string val) {
         if (val != this->tvOutMode_) {
@@ -134,8 +127,11 @@ public:
             this->isDirty = true;
         }
     }
-    int cpuMenu() const { return this->cpuMenu_; }
-    void cpuMenu(int val) {
+    std::string cpuMenu() const { return this->cpuMenu_; }
+    void cpuMenu(std::string val) {
+        //TRACE("setting cpu to : %s", val.c_str());
+        if (val == "0")
+            val = "";
         if (val != this->cpuMenu_) {
             this->cpuMenu_ = val;
             this->isDirty = true;
@@ -228,11 +224,11 @@ private:
 
     std::string externalAppPath_;// = APP_EXTERNAL_PATH;
     std::string skin_; //="Default"
-    std::string performance_; //="On demand"
     std::string tvOutMode_; //="NTSC"
     std::string lang_; //=""
     std::string sectionFilter_; //="applications,foo"
     std::string launcherPath_; //="/media/sdcard/ROMS"
+    std::string cpuMenu_; //=600 || On demand
 
     int buttonRepeatRate_; //=10
     int resolutionX_; //=320
@@ -242,7 +238,6 @@ private:
     int maxBattery_; //=5
     int backlightTimeout_; //=30
     int videoBpp_; //=32
-    int cpuMenu_; //=600
     int globalVolume_; //=60
     int aspectRatio_;
     int link_; //=1

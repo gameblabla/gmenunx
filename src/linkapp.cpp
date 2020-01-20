@@ -46,7 +46,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 	TRACE("ctor - handling file :%s", linkfile);
 
 	TRACE("ctor - set default CPU speed");
-	setCPU(app->hw->getCpuDefaultSpeed());
+	this->setClock(app->hw->Cpu()->getDefaultValue());
 
 	this->file = linkfile;
 	this->manual = "";
@@ -88,7 +88,7 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 
 				try {
 					if (name == "clock") {
-						this->setCPU( atoi(value.c_str()) );
+						this->setClock(value);
 					} else if (name == "selectordir") {
 						this->setSelectorDir( value );
 					} else if (name == "selectorbrowser") {
@@ -249,22 +249,16 @@ const std::string &LinkApp::searchIcon(std::string path, bool fallBack) {
 	return iconPath;
 }
 
-int LinkApp::clock() {
-	return iclock;
+std::string LinkApp::getClock() {
+	return this->clock;
 }
 
-void LinkApp::setCPU(int mhz) {
-	TRACE("enter : %i", mhz);
-	iclock = mhz;
-	if (iclock > 0 && this->app->hw->cpuSpeeds().size() > 0) {
-		TRACE("constraining mhz");
-		int min = this->app->hw->cpuSpeeds().front();
-		int max = this->app->hw->cpuSpeeds().at(this->app->hw->cpuSpeeds().size() - 1);
-		TRACE("constraining %i between %i and %i", mhz, min, max);
-		iclock = constrain(iclock, min, max);
-		TRACE("final mhz : %i", iclock);
+void LinkApp::setClock(std::string val) {
+	TRACE("enter : %s", val.c_str());
+	if (val != this->clock) {
+		this->clock = val;
+		edited = true;
 	}
-	edited = true;
 }
 
 void LinkApp::setBackdrop(const std::string selectedFile) {
@@ -526,11 +520,11 @@ void LinkApp::launch(std::string launchArgs) {
 	Launcher *toLaunch = new Launcher(commandLine, this->consoleapp);
 	if (nullptr != toLaunch) {
 
-		if (this->app->hw->supportsOverClocking()) {
-			if (this->clock() > 0) {
-				this->app->hw->setCPUSpeed(this->clock());
+		if (this->app->hw->Cpu()->overclockingSupported()) {
+			if (!this->getClock().empty()) {
+				this->app->hw->Cpu()->setValue(this->getClock());
 			} else {
-				this->app->hw->setCPUSpeed(this->app->hw->getCpuDefaultSpeed());
+				this->app->hw->Cpu()->setDefault();
 			}
 		}
 		unsetenv("SDL_FBCON_DONT_CLEAR");
@@ -677,7 +671,7 @@ std::string LinkApp::toString() {
 		if (!providerMetadata.empty() ) out << "X-ProviderMetadata=" << providerMetadata << std::endl;
 		if (!aliasfile.empty()        ) out << "selectoralias="      << aliasfile        << std::endl;
 		if (!backdrop.empty()         ) out << "backdrop="           << backdrop         << std::endl;
-		if (iclock != 0               ) out << "clock="              << iclock           << std::endl;
+		if (!getClock().empty()       ) out << "clock="              << this->getClock() << std::endl;
 		if (!selectordir.empty()      ) out << "selectordir="        << selectordir      << std::endl;
 		if (!selectorbrowser          ) out << "selectorbrowser=false"                   << std::endl;
 	}

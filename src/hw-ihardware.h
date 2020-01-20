@@ -25,6 +25,7 @@
 #include "utilities.h"
 #include "iclock.h"
 #include "hw-soundcard.h"
+#include "hw-cpu.h"
 
 class IHardware {
 
@@ -33,12 +34,6 @@ class IHardware {
         std::string kernelVersion_;
 
     protected:
-/*
-        int volumeLevel_ = 0;
-        bool pollVolume = true;
-        const std::string GET_VOLUME_PATH = "/dev/mixer";
-        const std::string SET_VOLUME_PATH = "/dev/mixer";
-*/
 
         std::vector<uint32_t> cpuSpeeds_;
         int16_t curMMCStatus;
@@ -72,33 +67,15 @@ class IHardware {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
 
-        IHardware() {
-            /*
-            this->volumeLevel_ = 0;
-            this->pollVolume = fileExists(GET_VOLUME_PATH);
-            */
-        }
+        IHardware() {  }
 
         virtual IClock * Clock() = 0;
         virtual ISoundcard * Soundcard() = 0;
+        virtual ICpu * Cpu() = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(std::string mode) = 0;
         virtual std::string getTVOutMode() = 0;
-
-        virtual bool supportsPowerGovernors() = 0;
-        virtual void setPerformanceMode(std::string alias = "") = 0;
-        virtual std::string getPerformanceMode() = 0;
-        virtual std::vector<std::string>getPerformanceModes() = 0;
-
-        virtual bool supportsOverClocking() = 0;
-        virtual bool setCPUSpeed(uint32_t mhz) = 0;
-        virtual uint32_t getCPUSpeed() = 0;
-        
-        const std::vector<uint32_t> & cpuSpeeds() { 
-            return this->cpuSpeeds_;
-        };
-        virtual uint32_t getCpuDefaultSpeed() = 0;
 
         virtual void ledOn(int flashSpeed = 250) = 0;
         virtual void ledOff() = 0;
@@ -120,56 +97,6 @@ class IHardware {
         */
         virtual int getBatteryLevel() = 0;
 
-        /*!
-        Gets or sets the devices volume level, scale 0 - 100
-        */
-/*
-        virtual int getVolumeLevel() {
-            TRACE("enter");
-
-            if (this->pollVolume) {
-                int volume = -1;
-                long soundDev = open(GET_VOLUME_PATH.c_str(), O_RDONLY);
-                if (soundDev) {
-                    TRACE("opened file handle successfully");
-                    ioctl (soundDev, SOUND_MIXER_READ_VOLUME, & volume);
-                    close (soundDev);
-                    if (volume != -1) {
-                        // return only left channel value
-                        this->volumeLevel_ = ((volume) & 0xff);
-                    } else {
-                        TRACE("couldn't read value");
-                    }
-                } else {
-                    TRACE("couldn't open : '%s' for read only access", GET_VOLUME_PATH.c_str());
-                }
-            }
-
-            TRACE("exit : %i", this->volumeLevel_);
-            return this->volumeLevel_;
-        };
-        virtual int setVolumeLevel(int val) {
-            TRACE("enter : %i", val);
-            if (val < 0) val = 0;
-            if (val > 100) val = 100;
-            if (val == this->volumeLevel_)
-                return val;
-            long soundDev = open(SET_VOLUME_PATH.c_str(), O_RDWR | O_NONBLOCK);
-            if (soundDev) {
-                // balance left and right channels to same value
-                int volume = val | (val << 8);
-                TRACE("writing ioctl value %i to '%s'", volume, SET_VOLUME_PATH.c_str());
-                ioctl (soundDev, SOUND_MIXER_WRITE_VOLUME, &volume);
-                close (soundDev);
-                TRACE("new sound level written to ioctl");
-                this->volumeLevel_ = val;
-            } else {
-                TRACE("couldn't open handle to '%s'", SET_VOLUME_PATH.c_str());
-            }
-            TRACE("exit : %i", this->volumeLevel_);
-            return this->volumeLevel_;
-        };
-*/
         /*!
         Gets or sets the devices backlight level, scale 0 - 100
         */

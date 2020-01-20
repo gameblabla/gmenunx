@@ -6,6 +6,7 @@
 	* Support for key combo's in input handler
     	* Can be set via input.conf for any action
     	* format is : action=combo,key_code_1,key_code_2,key_code_n
+  	* Power button brings up power off / restart dialog
 
 * Fixed
   * Directory copy installer notification
@@ -14,7 +15,8 @@
   * Cleaner session restore
   * More defensive 'save last selection' restore
   * Surface collection error checking
-  * Only remove boot marker on clean exit
+  * Only remove boot marker on clean exit from esoteric
+  * Refactored Cpu code, added factory for determining JZ4770O capabilities
 
 **1.0.8** (*Codename: Don't worry, it's just a background check*)
 

@@ -160,18 +160,17 @@ Esoteric::Esoteric() {
 		this->hw->setBacklightLevel(config->backlightLevel());
 		this->hw->Soundcard()->setVolume(this->config->globalVolume());
 		this->hw->setKeepAspectRatio(this->config->aspectRatio());
-		this->hw->setPerformanceMode(this->config->performance());
 	}
 	if (!this->needsInstalling) {
-		TRACE("setting default clock speed back");
-		this->hw->setCPUSpeed(this->config->cpuMenu());
+		TRACE("restoring default clock on cpu type : '%s'", this->hw->Cpu()->getType().c_str());
+		std::string defaultSpeed = this->config->cpuMenu(); 
+		TRACE("default is : '%s'", defaultSpeed.c_str());
+		this->hw->Cpu()->setValue(defaultSpeed);
 	}
 
-	//Screen
-	TRACE("setEnv");
+	// screen
 	setenv("SDL_NOMOUSE", "1", 1);
 	setenv("SDL_FBCON_DONT_CLEAR", "1", 0);
-
 	TRACE("sdl_init");
 	int sdlResult = SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_JOYSTICK|SDL_INIT_AUDIO);
 	if (sdlResult < 0 ) {
@@ -410,8 +409,7 @@ void Esoteric::main() {
 	pbLoading->exec();
 	Loader::setFirstRunMarker();
 	pbLoading->updateDetail("Initialising hardware");
-	this->hw->setPerformanceMode(this->config->performance());
-	this->hw->setCPUSpeed(this->config->cpuMenu());
+	this->hw->Cpu()->setValue(this->config->cpuMenu());
 
 	if (thread_cache != nullptr) {
 		// we need to re-join before building the menu
@@ -869,14 +867,8 @@ void Esoteric::deviceMenu() {
 	int powerTimeout = config->powerTimeout();
 	bool enablePowerTimeout = (0 != powerTimeout);
 
-	std::string performanceMode = this->hw->getPerformanceMode();
-	std::vector<std::string> performanceModes = this->hw->getPerformanceModes();
-	std::vector<std::string> cpuSpeeds;
-	std::stringstream ss;
-	ss << this->config->cpuMenu();
-	std::string strMenuCpu;
-	ss >> strMenuCpu;
-	ss.clear();
+	std::vector<std::string> cpuSpeeds = this->hw->Cpu()->getValues();
+	std::string strMenuCpu = this->config->cpuMenu();
 
 	do {
 
@@ -914,31 +906,9 @@ void Esoteric::deviceMenu() {
 			tr["Adjust your volume level"], 
 			&volumeLevel, 70, 0, 100));
 
-		if (this->hw->supportsPowerGovernors()) {
-			if (performanceModes.size() > 1 && !this->hw->supportsOverClocking()) {
-				sd.addSetting(new MenuSettingMultiString(
-					this, 
-					tr["Performance mode"], 
-					tr["Set the performance mode"], 
-					&performanceMode, 
-					&performanceModes));
-			}
-		}
-
-		if (this->hw->supportsOverClocking()) {
+		if (this->hw->Cpu()->overclockingSupported()) {
 			TRACE("over clocking supported");
 			
-			cpuSpeeds.push_back("Default");
-			std::vector<uint32_t>speeds = this->hw->cpuSpeeds();
-
-			for (std::size_t i = 0; i < speeds.size(); ++i) {
-				ss.clear();
-				ss << speeds[i];
-				std::string speed;
-				ss >> speed;
-				TRACE("adding clock speed : %s", speed.c_str());
-				cpuSpeeds.push_back(speed);
-			}
 			sd.addSetting(new MenuSettingMultiString(
 				this, 
 				tr[APP_NAME + " cpu frequency"], 
@@ -988,24 +958,10 @@ void Esoteric::deviceMenu() {
 			this->screenManager->setTimeout(backlightTimeout);
 		}
 
-		if (this->hw->supportsPowerGovernors()) {
-			if (performanceMode != this->hw->getPerformanceMode()) {
-				this->config->performance(performanceMode);
-				this->hw->setPerformanceMode(performanceMode);
-			}
-		}
-
-		if (this->hw->supportsOverClocking()) {
-			if (0 == strMenuCpu.compare("Default")) {
-				TRACE("setting cpu : 0");
-				this->config->cpuMenu(0);
-				this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
-			} else {
-				int cpuSpeed = atoi(strMenuCpu.c_str());
-				TRACE("setting cpu : %i", cpuSpeed);
-				this->config->cpuMenu(cpuSpeed);
-				this->hw->setCPUSpeed(cpuSpeed);
-			}
+		if (this->hw->Cpu()->overclockingSupported()) {
+			TRACE("setting cpu : %s", strMenuCpu.c_str());
+				this->config->cpuMenu(strMenuCpu);
+				this->hw->Cpu()->setValue(strMenuCpu);
 		}
 
 		if (volumeLevel != this->hw->Soundcard()->getVolume()) {
@@ -1428,7 +1384,7 @@ void Esoteric::resetSettings() {
 				bool islink = menu->selLinkApp() != NULL;
 				// WARNING("APP: %d %d %d %s", s, l, islink, menu->sectionLinks(s)->at(l)->getTitle().c_str());
 				if (!islink) continue;
-				if (reset_cpu)			menu->selLinkApp()->setCPU();
+				if (reset_cpu)			menu->selLinkApp()->setClock("");
 				if (reset_icon)			menu->selLinkApp()->setIcon("");
 				if (reset_manual)		menu->selLinkApp()->setManual("");
 				if (reset_parameter) 	menu->selLinkApp()->setParams("");
@@ -1453,12 +1409,22 @@ void Esoteric::resetSettings() {
 void Esoteric::cpuSettings() {
 	TRACE("enter");
 	SettingsDialog sd(this, ts, tr["CPU settings"], "skin:icons/configure.png");
-	int cpuMenu = config->cpuMenu();
-	sd.addSetting(new MenuSettingInt(this, tr["Default CPU clock"], tr["Set the default working CPU frequency"], &cpuMenu, 528, 528, 600, 6));
+	std::string cpuValue = config->cpuMenu();
+	std::vector<std::string> cpuValues = this->hw->Cpu()->getValues();
+	sd.addSetting(
+		new MenuSettingMultiString(
+			this, 
+			tr["Default CPU clock"], 
+			tr["Set the default working CPU frequency"], 
+			&cpuValue, 
+			&cpuValues
+		)
+	);
+
 	if (sd.exec() && sd.edited() && sd.save) {
-		config->cpuMenu(cpuMenu);
-		this-hw->setCPUSpeed(config->cpuMenu());
-		writeConfig();
+		config->cpuMenu(cpuValue);
+		this-hw->Cpu()->setValue(cpuValue);
+		this->writeConfig();
 	}
 	TRACE("exit");
 }
@@ -1575,23 +1541,8 @@ void Esoteric::about() {
 		appPath = this->getExePath() + BINARY_NAME;
 	}
 
-	std::string cpuFreq;
-	if (this->hw->supportsOverClocking()) {
-		TRACE("getting a live cpu freq");
-		std::stringstream ss;
-		ss << this->hw->getCPUSpeed();
-		ss >> cpuFreq;
-		cpuFreq += " mhz";
-	} else if (this->hw->supportsPowerGovernors()) {
-		TRACE("getting live cpu governor");
-		cpuFreq = this->hw->getPerformanceMode() + " mode";
-	} else {
-		TRACE("getting default cpu");
-		std::stringstream ss;
-		ss << this->hw->getCpuDefaultSpeed();
-		ss >> cpuFreq;
-		cpuFreq += " mhz";
-	}
+	std::string cpuFreq = this->hw->Cpu()->getDisplayValue();
+	std::string cpuType = this->hw->Cpu()->getType();
 
 	std::string volume;
 	std::stringstream ss;
@@ -1607,7 +1558,8 @@ void Esoteric::about() {
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + ((battLevel == IHardware::BATTERY_CHARGING) ? tr["Charging"] : batt) + "\n";
-	temp += tr["CPU: "] + cpuFreq + "\n";
+	temp += tr["CPU speed: "] + cpuFreq + "\n";
+	temp += tr["CPU type: "] + cpuType + "\n";
 	temp += tr["Volume: "] + volume + "\n";
 	temp += tr["Internal storage size: "] + this->hw->getDiskSize(this->hw->getInternalMountDevice()) + "\n";
 	temp += tr["Internal storage free: "] + this->hw->getDiskFree("/media/data") + "\n";
@@ -1734,7 +1686,7 @@ void Esoteric::explorer() {
 			loop = false;
 			std::string command = cmdclean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
-			this->hw->setCPUSpeed(this->hw->getCpuDefaultSpeed());
+			this->hw->Cpu()->setDefault();
 			this->quit();
 			execlp("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
 			Esoteric::quit_all(0);
@@ -2162,21 +2114,10 @@ void Esoteric::editLink() {
 	std::string linkSelAlias = menu->selLinkApp()->getAliasFile();
 	std::string linkBackdrop = menu->selLinkApp()->getBackdrop();
 
-	TRACE("cpu starts");
-	std::vector<std::string> cpuSpeeds;
-	std::stringstream ss;
-	ss.clear();
-	int defaultCpu = this->hw->getCpuDefaultSpeed();
-	int cpuSpeed = menu->selLinkApp()->clock();
-	TRACE("default = %i, current = %i", defaultCpu, cpuSpeed);
-	if (cpuSpeed > 0) {
-		ss << cpuSpeed;
-	} else {
-		ss << defaultCpu;
-	}
-	std::string strMenuCpu;
-	ss >> strMenuCpu;
-	TRACE("current cpu : %s", strMenuCpu.c_str());
+	std::vector<std::string> cpuSpeeds = this->hw->Cpu()->getValues();
+	std::string defaultCpu = this->hw->Cpu()->getDefaultValue();
+	std::string strMenuCpu = menu->selLinkApp()->getClock();
+	TRACE("default = %s, current = %s, num = %zu", defaultCpu.c_str(), strMenuCpu.c_str(), cpuSpeeds.size());
 
 	std::string dialogTitle = tr.translate("Edit $1", linkTitle.c_str(), NULL);
 	std::string dialogIcon = menu->selLinkApp()->getIconPath();
@@ -2227,20 +2168,8 @@ void Esoteric::editLink() {
 		dialogIcon, 
 		skin->name));
 
-	if (this->hw->supportsOverClocking()) {
+	if (this->hw->Cpu()->overclockingSupported()) {
 		TRACE("over clocking supported");
-		
-		cpuSpeeds.push_back("Default");
-		std::vector<uint32_t>speeds = this->hw->cpuSpeeds();
-
-		for(std::size_t i = 0; i < speeds.size(); ++i) {
-			ss.clear();
-			ss << speeds[i];
-			std::string speed;
-			ss >> speed;
-			TRACE("adding clock speed : %s", speed.c_str());
-			cpuSpeeds.push_back(speed);
-		}
 
 		sd.addSetting(new MenuSettingMultiString(			
 			this, 
@@ -2340,15 +2269,12 @@ void Esoteric::editLink() {
 		//menu->selLinkApp()->setSelectorScreens(linkSelScreens);
 		menu->selLinkApp()->setAliasFile(linkSelAlias);
 		menu->selLinkApp()->setBackdrop(linkBackdrop);
-		if (0 == strMenuCpu.compare("Default")) {
-			TRACE("setting cpu : 0");
-			menu->selLinkApp()->setCPU(0);
+		if (0 == strMenuCpu.compare(this->hw->Cpu()->getDefaultValue())) {
+			menu->selLinkApp()->setClock("");
 		} else {
-			int cpuSpeed = atoi(strMenuCpu.c_str());
-			TRACE("setting cpu : %i", cpuSpeed);
-			menu->selLinkApp()->setCPU(cpuSpeed);
+			menu->selLinkApp()->setClock(strMenuCpu);
 		}
-
+		
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
 			std::vector<std::string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);

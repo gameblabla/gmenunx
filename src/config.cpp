@@ -36,12 +36,12 @@ std::string Config::toString() {
 
     // strings
     vec.push_back(string_format("skin=\"%s\"", this->skin().c_str()));
-    vec.push_back(string_format("performance=\"%s\"", this->performance().c_str()));
     vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode().c_str()));
     vec.push_back(string_format("lang=\"%s\"", this->lang().c_str()));
     vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
     vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
     vec.push_back(string_format("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
+    vec.push_back(string_format("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
 
     // ints
     vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate()));
@@ -55,8 +55,6 @@ std::string Config::toString() {
 
     vec.push_back(string_format("minBattery=%i", this->minBattery()));
     vec.push_back(string_format("maxBattery=%i", this->maxBattery()));
-
-    vec.push_back(string_format("cpuMenu=%i", this->cpuMenu()));
 
     vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
     vec.push_back(string_format("aspectRatio=%i", this->aspectRatio()));
@@ -112,10 +110,10 @@ void Config::reset() {
      //strings
     this->externalAppPath_ = APP_EXTERNAL_PATH;
     this->skin_ = "Default";
-    this->performance_ = "On demand";
     this->tvOutMode_ = "NTSC";
     this->lang_ = "";
     this->sectionFilter_ = "";
+    this->cpuMenu_ = "";
 
     if (FileUtils::dirExists(EXTERNAL_LAUNCHER_PATH)) {
         this->launcherPath(EXTERNAL_LAUNCHER_PATH);
@@ -133,8 +131,6 @@ void Config::reset() {
 
     this->minBattery_ = 0;
     this->maxBattery_ = 5;
-
-    this->cpuMenu_ = 0;
 
     this->globalVolume_ = 60;
     this->aspectRatio_ = 1;
@@ -179,8 +175,6 @@ void Config::constrain() {
     if (this->powerTimeout_ > 0 && this->powerTimeout_ < 5) {
         this->powerTimeout_ = 5;
     }
-	if (this->performance() != "Performance") 
-		this->performance("On demand");
 	if (this->tvOutMode() != "PAL") 
 		this->tvOutMode("NTSC");
     if (!FileUtils::dirExists(this->launcherPath())) {
@@ -235,8 +229,6 @@ bool Config::fromFile() {
                             this->externalAppPath(stripQuotes(value));
                         } else if (name == "skin") {
                             this->skin(stripQuotes(value));
-                        } else if (name == "performance") {
-                            this->performance(stripQuotes(value));
                         } else if (name == "tvoutmode") {
                             this->tvOutMode(stripQuotes(value));
                         } else if (name == "lang") {
@@ -245,7 +237,9 @@ bool Config::fromFile() {
                             this->sectionFilter(stripQuotes(value));
                         } else if (name == "launcherpath") {
                             this->launcherPath(stripQuotes(value));
-                        } 
+                        } else if (name == "cpumenu") {
+                            this->cpuMenu(stripQuotes(value));
+                        }
 
                         // ints
                         else if (name == "buttonrepeatrate") {
@@ -266,8 +260,6 @@ bool Config::fromFile() {
                             this->minBattery(atoi(value.c_str()));
                         } else if (name == "maxbattery") {
                             this->maxBattery(atoi(value.c_str()));
-                        } else if (name == "cpumenu") {
-                            this->cpuMenu(atoi(value.c_str()));
                         } else if (name == "globalvolume") {
                             this->globalVolume(atoi(value.c_str()));
                         } else if (name == "aspectratio") {

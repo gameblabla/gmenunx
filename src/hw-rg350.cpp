@@ -11,6 +11,7 @@
 #include "fileutils.h"
 #include "debug.h"
 #include "hw-rg350.h"
+#include "hw-cpu.h"
 #include "rtc.h"
 
 HwRg350::HwRg350() : IHardware() {
@@ -21,19 +22,13 @@ HwRg350::HwRg350() : IHardware() {
     this->EXTERNAL_MOUNT_FORMAT = "auto";
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
-    this->clock_ = new RTC();
-    this->soundcard_ = new AlsaSoundcard("default", "PCM");
+    this->clock_ = (IClock *)new RTC();
+    this->soundcard_ = (ISoundcard *)new AlsaSoundcard("default", "PCM");
+    this->cpu_ = JZ4770Factory::getCpu();
 
     this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
-    this->performanceModes_.insert({"ondemand", "On demand"});
-    this->performanceModes_.insert({"performance", "Performance"});
-
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
     this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
-
-    this->supportsOverclocking_ = FileUtils::fileExists(SYSFS_CPUFREQ_SET);
-    this->supportsPowerGovernors_ = FileUtils::fileExists(SYSFS_CPU_SCALING_GOVERNOR);
-    this->cpuSpeeds_ = { 360, 1080 };
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();
@@ -46,15 +41,9 @@ HwRg350::HwRg350() : IHardware() {
 }
 HwRg350::~HwRg350() {
     delete this->clock_;
+    delete this->cpu_;
     delete this->soundcard_;
     this->ledOff();
-}
-
-IClock *HwRg350::Clock() {
-    return (IClock *)this->clock_;
-}
-ISoundcard *HwRg350::Soundcard() {
-    return (ISoundcard *)this->soundcard_;
 }
 
 bool HwRg350::getTVOutStatus() { return 0; };
@@ -62,106 +51,6 @@ std::string HwRg350::getTVOutMode() { return "OFF"; }
 void HwRg350::setTVOutMode(std::string mode) {
     std::string val = mode;
     if (val != "NTSC" && val != "PAL") val = "OFF";
-}
-
-bool HwRg350::supportsPowerGovernors() { return this->supportsPowerGovernors_; }
-
-std::string HwRg350::getPerformanceMode() {
-    TRACE("enter");
-    this->performanceMode_ = "ondemand";
-    if (this->supportsPowerGovernors_) {
-        std::string rawValue = fileReader(SYSFS_CPU_SCALING_GOVERNOR);
-        this->performanceMode_ = full_trim(rawValue);
-
-    TRACE("read - %s", this->performanceMode_.c_str());
-    }
-    return this->performanceModeMap(this->performanceMode_);
-}
-void HwRg350::setPerformanceMode(std::string alias) {
-    TRACE("raw desired : %s", alias.c_str());
-    if (!this->supportsPowerGovernors_)
-        return;
-
-    std::string mode = this->defaultPerformanceMode;
-    if (!alias.empty()) {
-        std::unordered_map<std::string, std::string>::iterator it;
-        for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
-            TRACE("checking '%s' aginst <%s, %s>", alias.c_str(), it->first.c_str(), it->second.c_str());
-            if (alias == it->second) {
-                TRACE("matched it as : %s", it->first.c_str());
-                mode = it->first;
-                break;
-            }
-        }
-    }
-    TRACE("internal desired : %s", mode.c_str());
-    if (mode != this->performanceMode_) {
-        TRACE("update needed : current '%s' vs. desired '%s'", this->performanceMode_.c_str(), mode.c_str());
-        procWriter(SYSFS_CPU_SCALING_GOVERNOR, mode);
-        this->performanceMode_ = mode;
-    } else {
-        TRACE("nothing to do");
-    }
-    TRACE("exit");
-}
-std::vector<std::string> HwRg350::getPerformanceModes() {
-    std::vector<std::string> results;
-    if (this->supportsPowerGovernors_) {
-        std::unordered_map<std::string, std::string>::iterator it;
-        for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
-            results.push_back(it->second);
-        }
-    }
-    return results;
-}
-
-bool HwRg350::supportsOverClocking() {
-    return this->supportsOverclocking_;
-}
-
-bool HwRg350::setCPUSpeed(uint32_t mhz) {
-    TRACE("enter : %i", mhz);
-    if (!this->supportsOverClocking())
-        return false;
-
-    std::vector<uint32_t>::const_iterator it;
-    bool found = false;
-    for (it = this->cpuSpeeds().begin(); it != this->cpuSpeeds().end(); ++it) {
-        int val = (*it);
-        TRACE("comparing %i to %i", mhz, val);
-        if (val == mhz) {
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
-        TRACE("couldn't find speed : %i", mhz);
-        return false;
-    }
-
-    int finalFreq = mhz * 1000;
-    TRACE("finalFreq : %i", finalFreq);
-    std::stringstream ss;
-    ss << finalFreq;
-    std::string value;
-    ss >> value;
-    if (this->writeValueToFile(SYSFS_CPUFREQ_MAX, value.c_str())) {
-        return this->writeValueToFile(SYSFS_CPUFREQ_SET, value.c_str());
-    }
-    return false;
-}
-uint32_t HwRg350::getCPUSpeed() {
-    if (!this->supportsOverClocking())
-        return 0;
-
-    std::string rawCpu = fileReader(SYSFS_CPUFREQ_GET);
-    int result = atoi(rawCpu.c_str()) / 1000;
-    TRACE("exit : %i",  result);
-    return result;
-}
-
-uint32_t HwRg350::getCpuDefaultSpeed() { 
-    return this->supportsOverClocking() ? 1080 : 1000; 
 }
 
 void HwRg350::ledOn(int flashSpeed) {
@@ -290,17 +179,6 @@ std::string HwRg350::systemInfo() {
         return execute("/usr/bin/system_info") + "\n";
     }
     return IHardware::systemInfo();
-}
-
-std::string HwRg350::performanceModeMap(std::string fromInternal) {
-    std::unordered_map<std::string, std::string>::iterator it;
-    for (it = this->performanceModes_.begin(); it != this->performanceModes_.end(); it++) {
-        if (fromInternal == it->first) {
-            return it->second;
-            ;
-        }
-    }
-    return "On demand";
 }
 
 std::string HwRg350::triggerToString(LedAllowedTriggers t) {

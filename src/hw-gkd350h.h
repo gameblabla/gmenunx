@@ -16,6 +16,7 @@ class HwGkd350h : IHardware {
 
         RTC * clock_;
         AlsaSoundcard * soundcard_;
+        DefaultCpu * cpu_;
 
         int backlightLevel_ = 0;
 
@@ -34,13 +35,16 @@ class HwGkd350h : IHardware {
 
         HwGkd350h();
         ~HwGkd350h();
-        IClock * Clock();
-        ISoundcard * Soundcard();
+
+        IClock * Clock() { return (IClock *)this->clock_; }
+        ISoundcard * Soundcard() { return (ISoundcard *)this->soundcard_; }
+        ICpu * Cpu() { return (ICpu *)this->cpu_; }
 
         bool getTVOutStatus();
         void setTVOutMode(std::string mode);
         std::string getTVOutMode();
 
+        /*
         bool supportsPowerGovernors();
         void setPerformanceMode(std::string alias);
         std::string getPerformanceMode();
@@ -50,7 +54,8 @@ class HwGkd350h : IHardware {
         uint32_t getCPUSpeed();
         bool setCPUSpeed(uint32_t mhz);
         uint32_t getCpuDefaultSpeed();
-
+        */
+       
         void ledOn(int flashSpeed);
         void ledOff();
 

@@ -18,6 +18,8 @@ HwGkd350h::HwGkd350h() : IHardware() {
 
     this->clock_ = new RTC();
     this->soundcard_ = new AlsaSoundcard("default", "Master");
+    this->cpu_ = new DefaultCpu();
+
     this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
@@ -34,14 +36,8 @@ HwGkd350h::HwGkd350h() : IHardware() {
 
 HwGkd350h::~HwGkd350h() {
     delete this->clock_;
+    delete this->cpu_;
     delete this->soundcard_;
-}
-
-IClock *HwGkd350h::Clock() {
-    return (IClock *)this->clock_; 
-}
-ISoundcard *HwGkd350h::Soundcard() {
-    return (ISoundcard *)this->soundcard_;
 }
 
 bool HwGkd350h::getTVOutStatus() { return false; }
@@ -50,6 +46,7 @@ void HwGkd350h::setTVOutMode(std::string mode) { return; }
 
 std::string HwGkd350h::getTVOutMode() { return ""; }
 
+/*
 bool HwGkd350h::supportsPowerGovernors() { return false; }
 
 void HwGkd350h::setPerformanceMode(std::string alias) { return; }
@@ -70,6 +67,7 @@ uint32_t HwGkd350h::getCPUSpeed() {
 bool HwGkd350h::setCPUSpeed(uint32_t mhz) { return true; }
 
 uint32_t HwGkd350h::getCpuDefaultSpeed() { return 1500; }
+*/
 
 void HwGkd350h::ledOn(int flashSpeed) { return; }
 

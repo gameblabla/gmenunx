@@ -13,34 +13,21 @@
 class HwGeneric : IHardware {
     private:
 
-        std::string performanceModeMap(std::string fromInternal);
-    
-        std::unordered_map<std::string, std::string> performanceModes_;
-        std::string performanceMode_ = "ondemand";
-        const std::string defaultPerformanceMode = "ondemand";
         SysClock * clock_;
         DummySoundcard * soundcard_;
+        DefaultCpu * cpu_;
 
     public:
         HwGeneric();
         ~HwGeneric();
 
-        IClock * Clock();
-        ISoundcard * Soundcard();
+        IClock * Clock() { return (IClock *)this->clock_; }
+        ISoundcard * Soundcard() { return (ISoundcard *)this->soundcard_; }
+        ICpu * Cpu() { return (ICpu *)this->cpu_; }
 
         bool getTVOutStatus();
         std::string getTVOutMode();
         void setTVOutMode(std::string mode);
-
-        bool supportsPowerGovernors();
-        std::string getPerformanceMode();
-        void setPerformanceMode(std::string alias = "");
-        std::vector<std::string> getPerformanceModes();
-        
-        bool supportsOverClocking();
-        uint32_t getCPUSpeed();
-        bool setCPUSpeed(uint32_t mhz);
-        uint32_t getCpuDefaultSpeed();
 
         void ledOn(int flashSpeed = 250);
         void ledOff();
