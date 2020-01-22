@@ -401,16 +401,21 @@ void Esoteric::main() {
 		this, 
 		[&](std::string message){ return pbLoading->updateDetail(message); });
 
+	TRACE("checking if we have a loader");
 	if (this->skin->showLoader && Loader::isFirstRun()) {
 		Loader loader(this);
 		loader.run();
 	}
 
+	TRACE("exec on pbLoading");
 	pbLoading->exec();
+	TRACE("setting first run marker");
 	Loader::setFirstRunMarker();
 	pbLoading->updateDetail("Initialising hardware");
+	TRACE("setting cpu speeed for me");
 	this->hw->Cpu()->setValue(this->config->cpuMenu());
 
+	TRACE("checking if we have a thread");
 	if (thread_cache != nullptr) {
 		// we need to re-join before building the menu
 		TRACE("waiting to re-join thread");

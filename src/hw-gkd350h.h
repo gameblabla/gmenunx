@@ -14,9 +14,9 @@ class HwGkd350h : IHardware {
 
         void resetKeymap();
 
-        RTC * clock_;
-        AlsaSoundcard * soundcard_;
-        DefaultCpu * cpu_;
+        IClock * clock_;
+        ISoundcard * soundcard_;
+        ICpu * cpu_;
 
         int backlightLevel_ = 0;
 
@@ -36,9 +36,9 @@ class HwGkd350h : IHardware {
         HwGkd350h();
         ~HwGkd350h();
 
-        IClock * Clock() { return (IClock *)this->clock_; }
-        ISoundcard * Soundcard() { return (ISoundcard *)this->soundcard_; }
-        ICpu * Cpu() { return (ICpu *)this->cpu_; }
+        IClock * Clock() { return this->clock_; }
+        ISoundcard * Soundcard() { return this->soundcard_; }
+        ICpu * Cpu() { return this->cpu_; }
 
         bool getTVOutStatus();
         void setTVOutMode(std::string mode);

@@ -10,9 +10,9 @@
 
 HwLinux::HwLinux() : IHardware() {
 
-    this->clock_ = new SysClock();
-    this->soundcard_ = new AlsaSoundcard("default", "Master");
-    this->cpu_ = new DefaultCpu();
+    this->clock_ = (IClock *) new SysClock();
+    this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
+    this->cpu_ = (ICpu *) new X1830Cpu();
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();

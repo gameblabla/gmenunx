@@ -4,6 +4,7 @@
 
 #include "constants.h"
 #include "hw-gkd350h.h"
+#include "hw-cpu.h"
 #include "sysclock.h"
 #include "fileutils.h"
 
@@ -16,9 +17,9 @@ HwGkd350h::HwGkd350h() : IHardware() {
     this->EXTERNAL_MOUNT_FORMAT = "auto";
     this->EXTERNAL_MOUNT_POINT = EXTERNAL_CARD_PATH;
 
-    this->clock_ = new RTC();
-    this->soundcard_ = new AlsaSoundcard("default", "Master");
-    this->cpu_ = new DefaultCpu();
+    this->clock_ = (IClock *) new RTC();
+    this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
+    this->cpu_ = (ICpu *) new X1830Cpu();
 
     this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);

@@ -13,17 +13,17 @@ class HwLinux : IHardware {
 
     private:
 
-        SysClock * clock_;
-        AlsaSoundcard * soundcard_;
-        DefaultCpu * cpu_;
+        IClock * clock_;
+        ISoundcard * soundcard_;
+        ICpu * cpu_;
 
     public:
         HwLinux();
         ~HwLinux();
 
-        IClock * Clock() { return (IClock *)this->clock_; }
-        ISoundcard * Soundcard() { return (ISoundcard *)this->soundcard_; }
-        ICpu * Cpu() { return (ICpu *)this->cpu_; }
+        IClock * Clock() { return this->clock_; }
+        ISoundcard * Soundcard() { return this->soundcard_; }
+        ICpu * Cpu() { return this->cpu_; }
 
         bool getTVOutStatus();
         std::string getTVOutMode();
