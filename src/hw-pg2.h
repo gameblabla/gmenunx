@@ -79,6 +79,7 @@ class HwPG2 : IHardware {
         std::string systemInfo();
 
         std::string inputFile() { return "pg2.input.conf"; };
+        std::string packageManager() { return "opkrun"; };
 };
 
 #endif

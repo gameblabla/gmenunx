@@ -530,7 +530,7 @@ void LinkApp::launch(std::string launchArgs) {
 				TRACE("setting cpu based on config file : '%s'", this->app->config->defaultCpuSpeed().c_str());
 				this->app->hw->Cpu()->setValue(this->app->config->defaultCpuSpeed());
 			} else {
-				TRACE("setting cpu based on hardware : '%s'", this->app->hw->Cpu()->getDefaultValue());
+				TRACE("setting cpu based on hardware : '%s'", this->app->hw->Cpu()->getDefaultValue().c_str());
 				this->app->hw->Cpu()->setDefault();
 			}
 		}

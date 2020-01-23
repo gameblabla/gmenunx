@@ -51,6 +51,7 @@ class HwLinux : IHardware {
         bool setScreenState(const bool &enable);
 
         std::string inputFile() { return "linux.input.conf"; };
+        std::string packageManager() { return "init"; };
 };
 
 #endif

@@ -85,6 +85,7 @@ class HwGkd350h : IHardware {
         }
 
         std::string inputFile() { return "gkd350h.input.conf"; };
+        std::string packageManager() { return "opkrun"; };
 
 };
 

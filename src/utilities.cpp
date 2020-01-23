@@ -309,55 +309,54 @@ std::string toLower(const std::string & input) {
 
 std::string getOpkPath() {
 	TRACE("enter");
-	// this is sucky, but we need to grep the pid
-	// because of 52 char width on the term, 
-	// and then read /proc/pid/cmdline
-	// and parse that
-	std::string cmd = "/bin/ps | /bin/grep opkrun";
-	std::string response = exec(cmd.c_str());
-	TRACE("response : %s", response.c_str());
-	std::istringstream stm(response);
-	std::string pid = "";
-	stm >> pid;
-	TRACE("got pid : %s", pid.c_str());
-	if (pid.length() == 0)
-		return "";
-	cmd = "/proc/" + pid + "/cmdline";
-	if (!FileUtils::fileExists(cmd)) {
-		TRACE("no proc file for pid : %s", pid.c_str());
-		return "";
-	}
 
-	const int BUFSIZE = 4096;
-	unsigned char buffer[BUFSIZE]; 
-	int fd = open(cmd.c_str(), O_RDONLY);
-	if (0 == fd) {
-		TRACE("couldn't open : %s", cmd.c_str());
-		return "";
-	}
-	int nbytesread = read(fd, buffer, BUFSIZE);
-	unsigned char *end = buffer + nbytesread;
-	std::string opk = "";
-	std::string search = ".opk";
-	for (unsigned char *p = buffer; p < end; ) { 
-		TRACE("proc read : %s", p);
-		std::string token = reinterpret_cast<char*>(p);
-		if (token.length() > search.length()) {
-			TRACE("%s is longer that : %s", token.c_str(), search.c_str());
-			std::string::size_type pos = token.find(search);
-			if (pos == (token.length() - search.length())) {
-				opk = token;
-				break;
+	std::string result;
+	int pid = FileUtils::processPid("opkrun");
+	TRACE("got pid : %i", pid);
+	if (pid > 0) {
+
+		std::stringstream ss;
+		ss << "/proc/" << pid << "/cmdline";
+		std::string cmd = ss.str();
+
+		if (!FileUtils::fileExists(cmd)) {
+			TRACE("no proc file for pid : %i", pid);
+			return result;
+		}
+
+		const int BUFSIZE = 4096;
+		unsigned char buffer[BUFSIZE]; 
+		int fd = open(cmd.c_str(), O_RDONLY);
+		if (0 == fd) {
+			TRACE("couldn't open : %s", cmd.c_str());
+			return result;
+		}
+		int nbytesread = read(fd, buffer, BUFSIZE);
+		unsigned char *end = buffer + nbytesread;
+		std::string opk;
+		std::string search = ".opk";
+		for (unsigned char *p = buffer; p < end; ) { 
+			TRACE("proc read : %s", p);
+			std::string token = reinterpret_cast<char*>(p);
+			if (token.length() > search.length()) {
+				TRACE("%s is longer that : %s", token.c_str(), search.c_str());
+				std::string::size_type pos = token.find(search);
+				if (pos == (token.length() - search.length())) {
+					opk = token;
+					break;
+				}
+			}
+			while (*p++);
+		}
+		close(fd);
+		if (opk.length() > 0) {
+			if (!FileUtils::fileExists(opk)) {
+				ERROR("Opk '%s' doesn't exist", opk.c_str());
+			} else {
+				result = opk;
 			}
 		}
-		while (*p++);
+
 	}
-	close(fd);
-	if (opk.length() == 0)
-		return "";
-	if (!FileUtils::fileExists(opk)) {
-		ERROR("Opk '%s' doesn't exist", response.c_str());
-		return "";
-	}
-	return opk;
+	return result;
 }

@@ -206,6 +206,7 @@ class X1830Cpu : public ICpu {
                 result = this->setRegister(target, finalValue);
             }
             TRACE("exit : %i", result);
+            return result;
         };
 
     public:
@@ -336,15 +337,18 @@ class JZ4770GuvernorCpu : public JZ4770BasicCpu {
             if (!val.empty()) {
                 mode = this->mapDisplayToMode(val);
             }
+            bool result = false;
             TRACE("internal desired : %s", mode.c_str());
             if (mode != this->currentValue_) {
                 TRACE("update needed : current '%s' vs. desired '%s'", this->currentValue_.c_str(), mode.c_str());
                 procWriter(this->guvernorPath_, mode);
                 this->currentValue_ = mode;
+                result = true;
             } else {
                 TRACE("nothing to do");
             }
-            TRACE("exit");
+            TRACE("exit : %i", result);
+            return result;
         }
 
         const std::string getType() { return "JZ4770 Guvernor Cpu"; };

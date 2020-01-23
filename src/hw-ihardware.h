@@ -289,6 +289,8 @@ class IHardware {
         };
 
         virtual std::string inputFile() { return "generic.input.conf"; };
+        virtual std::string packageManager() { return ""; };
+
 };
 
 #endif

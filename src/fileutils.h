@@ -32,6 +32,8 @@ class FileUtils {
 
 		static std::string firstFirstExistingDir(const std::string & path);
 
+		static const int processPid(const std::string name);
+
 };
 
 

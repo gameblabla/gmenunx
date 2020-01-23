@@ -78,6 +78,7 @@ class HwRg350 : IHardware {
 
         std::string systemInfo();
         std::string inputFile() { return "rg350.input.conf"; };
+        std::string packageManager() { return "opkrun"; };
 };
 
 #endif

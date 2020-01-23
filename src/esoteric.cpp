@@ -836,7 +836,10 @@ void Esoteric::initMenu() {
 							"skin:icons/install.png");
 	}
 
-	if (this->config->version() < APP_MIN_CONFIG_VERSION || !getOpkPath().empty() || this->isDebugMode) {
+	bool showUpgrade = 	this->config->version() < APP_MIN_CONFIG_VERSION || 
+						FileUtils::processPid(this->hw->packageManager()) > 0;
+
+	if (showUpgrade) { 
 		menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
