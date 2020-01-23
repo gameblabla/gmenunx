@@ -42,6 +42,7 @@ std::string Config::toString() {
     vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
     vec.push_back(string_format("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
     vec.push_back(string_format("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
+    vec.push_back(string_format("defaultCpuSpeed=\"%s\"", this->defaultCpuSpeed().c_str()));
 
     // ints
     vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate()));
@@ -114,6 +115,7 @@ void Config::reset() {
     this->lang_ = "";
     this->sectionFilter_ = "";
     this->cpuMenu_ = "";
+    this->defaultCpuSpeed_ = "";
 
     if (FileUtils::dirExists(EXTERNAL_LAUNCHER_PATH)) {
         this->launcherPath(EXTERNAL_LAUNCHER_PATH);
@@ -239,6 +241,8 @@ bool Config::fromFile() {
                             this->launcherPath(stripQuotes(value));
                         } else if (name == "cpumenu") {
                             this->cpuMenu(stripQuotes(value));
+                        } else if (name == "defaultcpuspeed") {
+                            this->defaultCpuSpeed(stripQuotes(value));
                         }
 
                         // ints

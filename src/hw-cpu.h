@@ -90,8 +90,6 @@ class ICpu {
                     *(virt_addr) = value;
                     unsigned long read_result = *((unsigned long *) virt_addr);
 
-//unsigned long read_result = value;
-
                     result = (value == read_result);
                     TRACE("read and write values match : %i", result);
 

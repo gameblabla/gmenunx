@@ -137,6 +137,16 @@ public:
             this->isDirty = true;
         }
     }
+    std::string defaultCpuSpeed() const { return this->defaultCpuSpeed_; }
+    void defaultCpuSpeed(std::string val) {
+        //TRACE("setting default cpu to : %s", val.c_str());
+        if (val == "0")
+            val = "";
+        if (val != this->defaultCpuSpeed_) {
+            this->defaultCpuSpeed_ = val;
+            this->isDirty = true;
+        }
+    }
     int globalVolume() const { return this->globalVolume_; }
     void globalVolume(int val) {
         if (val != this->globalVolume_) {
@@ -229,6 +239,7 @@ private:
     std::string sectionFilter_; //="applications,foo"
     std::string launcherPath_; //="/media/sdcard/ROMS"
     std::string cpuMenu_; //=600 || On demand
+    std::string defaultCpuSpeed_; //= 1000 || Performance
 
     int buttonRepeatRate_; //=10
     int resolutionX_; //=320

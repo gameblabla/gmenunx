@@ -7,6 +7,7 @@
     	* Can be set via input.conf for any action
     	* format is : action=combo,key_code_1,key_code_2,key_code_n
   	* Power button brings up power off / restart dialog
+  	* New Device setting, Default CPU speed to launch apps at if nothing in the desktop file
 
 * Fixed
   * Directory copy installer notification
