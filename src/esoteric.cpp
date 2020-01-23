@@ -874,6 +874,7 @@ void Esoteric::deviceMenu() {
 
 	std::vector<std::string> cpuSpeeds = this->hw->Cpu()->getValues();
 	std::string strMenuCpu = this->config->cpuMenu();
+	std::string strDefaultCpuMenu = this->config->defaultCpuSpeed();
 
 	do {
 
@@ -919,7 +920,16 @@ void Esoteric::deviceMenu() {
 				tr[APP_NAME + " cpu frequency"], 
 				tr["Set the cpu frequency for your launcher"], 
 				&strMenuCpu, 
-				&cpuSpeeds));
+				&cpuSpeeds)
+			);
+
+			sd.addSetting(new MenuSettingMultiString(
+				this, 
+				tr["Default cpu Frequency"], 
+				tr["Cpu frequency to launch apps at if not specified"], 
+				&strDefaultCpuMenu, 
+				&cpuSpeeds)
+			);
 		}
 
 		sd.addSetting(new MenuSettingBool(
@@ -966,6 +976,7 @@ void Esoteric::deviceMenu() {
 		if (this->hw->Cpu()->overclockingSupported()) {
 			TRACE("setting cpu : %s", strMenuCpu.c_str());
 				this->config->cpuMenu(strMenuCpu);
+				this->config->defaultCpuSpeed(strDefaultCpuMenu);
 				this->hw->Cpu()->setValue(strMenuCpu);
 		}
 
