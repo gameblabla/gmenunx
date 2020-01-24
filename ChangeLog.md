@@ -1,16 +1,19 @@
 # 350teric Changelog
 
-**1.0.9** (*Codename: *)
+**1.0.9** (*Codename: The smell of dissapointment*)
 
 * Added
 	* Support for key combo's in input handler
     	* Can be set via input.conf for any action
     	* format is : action=combo,key_code_1,key_code_2,key_code_n
-  	* Power button brings up power off / restart dialog
+		* eg. power=combo,9,308 (this is for GKD350h)
+  	* Power button brings up power off / restart dialog on RG350, PG2
+	* L1 & B on GKD350h brings up power off / restart dialog
   	* New Device setting, Default CPU speed to launch apps at if nothing in the desktop file
 
 * Fixed
   * Directory copy installer notification
+  * File browser filters for empty string and no extension
 
 * Improved
   * Cleaner session restore
@@ -18,6 +21,11 @@
   * Surface collection error checking
   * Only remove boot marker on clean exit from esoteric
   * Refactored Cpu code, added factory for determining JZ4770O capabilities
+  * About reports cpu info
+
+* Currently thwarted by....
+	* GKD350h overclock registers.... 
+	* closer but not happening still, and smells of closed source sadness
 
 **1.0.8** (*Codename: Don't worry, it's just a background check*)
 

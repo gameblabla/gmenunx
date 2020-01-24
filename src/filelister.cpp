@@ -80,8 +80,10 @@ void FileLister::browse() {
 					if (file[0] == '.') continue;
 					// checked supressed list
 					if (anyExcludes) {
-						if (find(this->excludes.begin(), this->excludes.end(), file) != this->excludes.end())
+						if (find(this->excludes.begin(), this->excludes.end(), file) != this->excludes.end()) {
+							TRACE("skipping beaused of exclusion");
 							continue;
+						}
 					}
 
 					//TRACE("raw result : %s - post excludes", file.c_str());
@@ -108,15 +110,25 @@ void FileLister::browse() {
 							//TRACE("raw result : %s - checking filters", file.c_str());
 							for (std::vector<std::string>::iterator it = vfilter.begin(); it != vfilter.end(); ++it) {
 								// skip any empty filters...
-								//TRACE("itterator is : %s", (*it).c_str());
+								//TRACE("iterator is : %s", (*it).c_str());
 								int filterLength = (*it).length();
-								//TRACE("itterator length test : %i", filterLength);
-								if (0 == filterLength) continue;
+								//TRACE("iterator length test : %i", filterLength);
+
 								// skip testing any files shorter than the filter size
 								//TRACE("file length test : %i < %i", file.length(), filterLength);
 								if (file.length() < filterLength) continue;
 
-								//TRACE("ends with test");
+								if (0 == filterLength) {
+									if (std::string::npos == file.find(".")) {
+										//TRACE("empty filter and no dot");
+										TRACE("adding file : %s", file.c_str());
+										this->files.push_back(file);
+										break;
+									} else {
+										TRACE("skipping : '%s' because of dot", file.c_str());
+										continue;
+									}
+								}
 								// the real test, does the end match our filter
 								if (file.compare(file.length() - filterLength, filterLength, *it) == 0) {
 									TRACE("adding file : %s", file.c_str());

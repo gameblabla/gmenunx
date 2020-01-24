@@ -139,8 +139,9 @@ const std::string &evalStrConf(std::string *val, const std::string &def) {
 }
 
 bool split(std::vector<std::string> &vec, const std::string &str, const std::string &delim, bool destructive) {
-	vec.clear();
 
+	TRACE("enter - string : '%s', delim : '%s'", str.c_str(), delim.c_str());
+	vec.clear();
 	if (str.empty())
 		return false;
 
@@ -153,8 +154,9 @@ bool split(std::vector<std::string> &vec, const std::string &str, const std::str
 	std::string::size_type j = 0;
 
 	while(1) {
-		j = str.find(delim,i);
+		j = str.find(delim, i);
 		if (j == std::string::npos) {
+			TRACE("adding : '%s'", str.substr(i).c_str());
 			vec.push_back(str.substr(i));
 			break;
 		}
@@ -162,17 +164,19 @@ bool split(std::vector<std::string> &vec, const std::string &str, const std::str
 		if (!destructive)
 			j += delim.size();
 
-		vec.push_back(str.substr(i,j-i));
+		TRACE("adding : '%s'", str.substr(i, j - i).c_str());
+		vec.push_back(str.substr(i, j - i));
 
 		if (destructive)
 			i = j + delim.size();
 
 		if (i == str.size()) {
+			TRACE("adding empty string"); 
 			vec.push_back(std::string());
 			break;
 		}
 	}
-
+	TRACE("exit");
 	return true;
 }
 
