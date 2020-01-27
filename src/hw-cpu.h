@@ -106,6 +106,7 @@ class ICpu {
         };
 
         static bool writeValueToFile(const std::string & path, const char *content) {
+            TRACE("enter : writing '%s' to '%s'", content, path.c_str());
             bool result = false;
             int fd = open(path.c_str(), O_RDWR);
             if (fd == -1) {
@@ -113,7 +114,7 @@ class ICpu {
             } else {
                 ssize_t written = write(fd, content, strlen(content));
                 if (written == -1) {
-                    WARNING("Error writing '%s': %s", path.c_str(), strerror(errno));
+                    WARNING("Error writing '%s' '%s': %s", path.c_str(), content, strerror(errno));
                 } else {
                     result = true;
                 }
@@ -135,7 +136,7 @@ class ICpu {
         std::string mapDisplayToMode(std::string fromDisplay) {
             std::map<std::string, std::string>::iterator it;
             for (it = this->modes_.begin(); it != this->modes_.end(); it++) {
-                TRACE("checking '%s' aginst <%s, %s>", fromDisplay.c_str(), it->first.c_str(), it->second.c_str());
+                TRACE("checking '%s' against <%s, %s>", fromDisplay.c_str(), it->first.c_str(), it->second.c_str());
                 if (fromDisplay == it->second) {
                     TRACE("matched it as : %s", it->first.c_str());
                     return it->first;

@@ -154,25 +154,29 @@ void Surface::load(const std::string &img, bool alpha, const std::string &skin) 
 	if (!FileUtils::fileExists(imgPath)) {
 		ERROR("File '%s' doesn't exist", imgPath.c_str());
 	} else {
-		SDL_Surface* loadedImage = IMG_Load(imgPath.c_str());
-		if (loadedImage != NULL) {
-			TRACE("loaded the image successfully");
-			if (alpha) {
-				TRACE("display format alpha");
-				this->raw = SDL_DisplayFormatAlpha( loadedImage );
-			} else {
-				TRACE("display format normal");
-				this->raw = SDL_DisplayFormat( loadedImage );
-			}
+		try {
+			SDL_Surface* loadedImage = IMG_Load(imgPath.c_str());
+			if (loadedImage != NULL) {
+				TRACE("loaded the image successfully");
+				if (alpha) {
+					TRACE("display format alpha");
+					this->raw = SDL_DisplayFormatAlpha( loadedImage );
+				} else {
+					TRACE("display format normal");
+					this->raw = SDL_DisplayFormat( loadedImage );
+				}
 
-			if (this->raw == NULL) {
-				ERROR("Couldn't optimise surface '%s'", img.c_str());
+				if (this->raw == NULL) {
+					ERROR("Couldn't optimise surface '%s'", img.c_str());
+				}
+				//Free the old image
+				SDL_FreeSurface( loadedImage );
+				loadedImage = NULL;
+			} else {
+				ERROR("Couldn't load surface '%s'", img.c_str());
 			}
-			//Free the old image
-			SDL_FreeSurface( loadedImage );
-			loadedImage = NULL;
-		} else {
-			ERROR("Couldn't load surface '%s'", img.c_str());
+		} catch (...) {
+			ERROR("Image corrupt");
 		}
 	}
 }

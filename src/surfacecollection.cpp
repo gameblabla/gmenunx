@@ -89,27 +89,33 @@ Surface *SurfaceCollection::add(const std::string &path, bool alpha, bool graySc
 	TRACE("path exists test");
 	if (exists(path)) return surfaces[path];
 
-	std::string filePath = path;
-	if (filePath.substr(0, 5) == "skin:") {
-		TRACE("matched on skin:");
-		filePath = this->skin->getSkinFilePath(filePath.substr(5, filePath.length()));
-		TRACE("filepath - %s", filePath.c_str());
-		if (filePath.empty()) {
-			TRACE("couldn't resolve file from skin : %s", path.c_str());
-			return NULL;
+	Surface *s = NULL;
+	try {
+		std::string filePath = path;
+		if (filePath.substr(0, 5) == "skin:") {
+			TRACE("matched on skin:");
+			filePath = this->skin->getSkinFilePath(filePath.substr(5, filePath.length()));
+			TRACE("filepath - %s", filePath.c_str());
+			if (filePath.empty()) {
+				TRACE("couldn't resolve file from skin : %s", path.c_str());
+				return s;
+			}
+		} else if (!FileUtils::fileExists(filePath)) {
+			TRACE("file '%s' doesn't exist", filePath.c_str());
+			return s;
 		}
-	} else if (!FileUtils::fileExists(filePath)) {
-		TRACE("file '%s' doesn't exist", filePath.c_str());
-		return NULL;
+
+		s = new Surface(filePath, alpha);
+		if (s != NULL) {
+			if (grayScale)
+				s->toGrayScale();
+			TRACE("adding surface to collection under key : %s", path.c_str());
+			surfaces[path] = s;
+		}
+	} catch (...) {
+		TRACE("silently catching error");
 	}
 
-	Surface *s = new Surface(filePath, alpha);
-	if (s != NULL) {
-		if (grayScale)
-			s->toGrayScale();
-		TRACE("adding surface to collection under key : %s", path.c_str());
-		surfaces[path] = s;
-	}
 	TRACE("exit");
 	return s;
 }

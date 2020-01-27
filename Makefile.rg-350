@@ -15,6 +15,7 @@ DEBUG ?= 2
 CFLAGS = \
 	-ggdb \
     -std=gnu++11 \
+	-shared-libgcc \
 	-DTARGET_$(TARGET) \
     -DLOG_LEVEL=$(DEBUG) \
     -DHAVE_LIBOPK \

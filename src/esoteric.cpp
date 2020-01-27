@@ -484,8 +484,8 @@ void Esoteric::main() {
 				showGreeting = false;
 			}
 
-		} catch (int e) {
-			ERROR("render - error : %i", e);
+		} catch (const std::exception& e) {
+			ERROR("render - error : %s", e.what());
 		}
 
 		bool inputAction = this->inputManager->update(true);
@@ -506,47 +506,53 @@ void Esoteric::main() {
 			// if we get here then we can block the renderer while we act on the command
 			renderer->stopPolling();
 
-			if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
-				TRACE("******************RUNNING THIS*******************");
-				if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
-					MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
-					mb.setAutoHide(500);
-					mb.exec();
+			try {
+				if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
+					TRACE("******************RUNNING THIS*******************");
+					if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
+						MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
+						mb.setAutoHide(500);
+						mb.exec();
+					}
+					TRACE("******************RUNNING THIS -- RUN*******************");
+					menu->selLink()->run();
+					TRACE("Run called");
+				} else if ((*this->inputManager)[INC]) {
+					TRACE("******************favouriting an app THIS*******************");
+					LinkApp * myApp = menu->selLinkApp();
+					if (nullptr != myApp)
+						myApp->makeFavourite();
+				} else if ((*this->inputManager)[SETTINGS]) {
+					settings();
+				} else if ((*this->inputManager)[MENU]) {
+					contextMenu();
+				} else if ((*this->inputManager)[LEFT] && this->skin->numLinkCols == 1) {
+					menu->pageUp();
+				} else if ((*this->inputManager)[RIGHT] && this->skin->numLinkCols == 1) {
+					menu->pageDown();
+				} else if ((*this->inputManager)[LEFT]) {
+					menu->linkLeft();
+				} else if ((*this->inputManager)[RIGHT]) {
+					menu->linkRight();
+				} else if ((*this->inputManager)[UP]) {
+					menu->linkUp();
+				} else if ((*this->inputManager)[DOWN]) {
+					menu->linkDown();
+				} else if ((*this->inputManager)[SECTION_PREV]) {
+					menu->decSectionIndex();
+				} else if ((*this->inputManager)[SECTION_NEXT]) {
+					menu->incSectionIndex();
+				} else if ((*this->inputManager)[PAGEUP]) {
+					menu->letterPrevious();
+				} else if ((*this->inputManager)[PAGEDOWN]) {
+					menu->letterNext();
+				} else if ((*this->inputManager)[MANUAL] && this->menu->selLinkApp() != NULL) {
+					showManual();
 				}
-				TRACE("******************RUNNING THIS -- RUN*******************");
-				menu->selLink()->run();
-				TRACE("Run called");
-			} else if ((*this->inputManager)[INC]) {
-				TRACE("******************favouriting an app THIS*******************");
-				LinkApp * myApp = menu->selLinkApp();
-				if (nullptr != myApp)
-					myApp->makeFavourite();
-			} else if ((*this->inputManager)[SETTINGS]) {
-				settings();
-			} else if ((*this->inputManager)[MENU]) {
-				contextMenu();
-			} else if ((*this->inputManager)[LEFT] && this->skin->numLinkCols == 1) {
-				menu->pageUp();
-			} else if ((*this->inputManager)[RIGHT] && this->skin->numLinkCols == 1) {
-				menu->pageDown();
-			} else if ((*this->inputManager)[LEFT]) {
-				menu->linkLeft();
-			} else if ((*this->inputManager)[RIGHT]) {
-				menu->linkRight();
-			} else if ((*this->inputManager)[UP]) {
-				menu->linkUp();
-			} else if ((*this->inputManager)[DOWN]) {
-				menu->linkDown();
-			} else if ((*this->inputManager)[SECTION_PREV]) {
-				menu->decSectionIndex();
-			} else if ((*this->inputManager)[SECTION_NEXT]) {
-				menu->incSectionIndex();
-			} else if ((*this->inputManager)[PAGEUP]) {
-				menu->letterPrevious();
-			} else if ((*this->inputManager)[PAGEDOWN]) {
-				menu->letterNext();
-			} else if ((*this->inputManager)[MANUAL] && this->menu->selLinkApp() != NULL) {
-				showManual();
+			} catch(const std::exception& e) {
+				ERROR("input - error : %s", e.what());
+			} catch (...) {
+				ERROR("generic input error");
 			}
 			// and start polling again now we're done
 			renderer->startPolling();

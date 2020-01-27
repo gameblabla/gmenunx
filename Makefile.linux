@@ -14,6 +14,7 @@ DEBUG ?= 2
 CFLAGS = -ggdb \
 	$(SDL_CFLAGS) \
     -I/usr/local/include/ \
+	-shared-libgcc \
     -std=gnu++11 \
 	-DTARGET_$(TARGET) \
     -DLOG_LEVEL=$(DEBUG) \

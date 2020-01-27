@@ -292,9 +292,9 @@ bool Config::fromFile() {
                     catch (char *param) { 
                         ERROR("char exception : %s from <%s, %s>", 
                             param, name.c_str(), value.c_str()); }
-                    catch (...) { 
-                            ERROR("unknown error reading value from <%s, %s>", 
-                                name.c_str(), value.c_str());
+                    catch (std::exception &e) { 
+                            ERROR("unknown error reading value from <%s, %s> : %s", 
+                                name.c_str(), value.c_str(), e.what());
                     }
                 } 
                 catch (...) {
