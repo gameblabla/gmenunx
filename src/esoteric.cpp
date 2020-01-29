@@ -1172,9 +1172,7 @@ void Esoteric::skinMenu() {
 		restartRequired = true;
 	} else if (currentImageGray != skin->imagesToGrayscale) {
 		restartRequired = true;
-	} else if (prevSkinBackdrops != skin->skinBackdrops) {
-		restartRequired = true;
-	}
+	} 
 	if (restartRequired) {
 		TRACE("restarting because backdrops or gray scale changed");
 		restartDialog(true);
