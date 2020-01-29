@@ -29,7 +29,8 @@ class PowerManager : public IManager {
                 this->timeout_startms_ = new_ticks;
                 return interval;
             }
-            if (IHardware::BATTERY_CHARGING == this->hw->getBatteryLevel()) {
+            this->hw->Power()->read();
+            if (IPower::PowerStates::CHARGING == this->hw->Power()->state()) {
                 TRACE("we're plugged in, not powering down");
                 return interval;
             }

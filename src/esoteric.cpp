@@ -1552,14 +1552,14 @@ void Esoteric::about() {
 	TRACE("enter");
 
 	std::string uptime = this->hw->uptime();
-	int battLevel = this->hw->getBatteryLevel();
-	TRACE("batt level : %i", battLevel);
-	int battPercent = (battLevel * 20);
-	TRACE("batt percent : %i", battPercent);
+	std::string battery;
 
-	char buffer[50];
-	int n = sprintf (buffer, "%i %%", battPercent);
-	std::string batt(buffer);
+	this->hw->Power()->read();
+	if (IPower::PowerStates::CHARGING == this->hw->Power()->state()) {
+		battery = tr["Charging"];
+	} else {
+		battery = this->hw->Power()->displayLevel();
+	}
 
 	std::string appPath = getOpkPath();
 	if (appPath.length() == 0) {
@@ -1582,7 +1582,7 @@ void Esoteric::about() {
 	temp += tr["Skin: "] + this->skin->name + "\n";
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
-	temp += tr["Battery: "] + ((battLevel == IHardware::BATTERY_CHARGING) ? tr["Charging"] : batt) + "\n";
+	temp += tr["Battery: "] + battery + "\n";
 	temp += tr["CPU speed: "] + cpuFreq + "\n";
 	temp += tr["CPU type: "] + cpuType + "\n";
 	temp += tr["Volume: "] + volume + "\n";

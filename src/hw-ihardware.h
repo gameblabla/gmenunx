@@ -26,6 +26,7 @@
 #include "iclock.h"
 #include "hw-soundcard.h"
 #include "hw-cpu.h"
+#include "hw-power.h"
 
 class IHardware {
 
@@ -62,7 +63,6 @@ class IHardware {
 
     public:
 
-        static const int BATTERY_CHARGING = 6;
         enum CARD_STATUS:int16_t {
             MMC_MOUNTED, MMC_UNMOUNTED, MMC_MISSING, MMC_ERROR
         };
@@ -72,6 +72,7 @@ class IHardware {
         virtual IClock * Clock() = 0;
         virtual ISoundcard * Soundcard() = 0;
         virtual ICpu * Cpu() = 0;
+        virtual IPower * Power() = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(std::string mode) = 0;
@@ -89,13 +90,6 @@ class IHardware {
             TRACE("exit - %s", this->kernelVersion_.c_str());
             return this->kernelVersion_;
         };
-
-        /*!
-        Reads the current battery state and returns a number representing it's level of charge
-        @return A number representing battery charge. 0 means fully discharged. 
-        5 means fully charged. 6 represents charging.
-        */
-        virtual int getBatteryLevel() = 0;
 
         /*!
         Gets or sets the devices backlight level, scale 0 - 100

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "hw-linux.h"
+#include "hw-power.h"
 #include "sysclock.h"
 
 HwLinux::HwLinux() : IHardware() {
@@ -13,6 +14,7 @@ HwLinux::HwLinux() : IHardware() {
     this->clock_ = (IClock *) new SysClock();
     this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
     this->cpu_ = (ICpu *) new X1830Cpu();
+    this->power_ = (IPower *)new GenericPower();
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();
@@ -26,6 +28,7 @@ HwLinux::~HwLinux() {
     delete this->clock_;
     delete this->cpu_;
     delete this->soundcard_;
+    delete this->power_;
 }
 
 bool HwLinux::getTVOutStatus() { return 0; }
@@ -37,8 +40,6 @@ void HwLinux::setTVOutMode(std::string mode) {
 
 void HwLinux::ledOn(int flashSpeed) { return; }
 void HwLinux::ledOff() { return; }
-
-int HwLinux::getBatteryLevel() { return 100; }
 
 int HwLinux::getBacklightLevel() { return 100; };
 int HwLinux::setBacklightLevel(int val) { return val; }

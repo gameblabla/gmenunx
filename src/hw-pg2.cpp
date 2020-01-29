@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "hw-pg2.h"
 #include "hw-cpu.h"
+#include "hw-power.h"
 #include "rtc.h"
 
 HwPG2::HwPG2() : IHardware() {
@@ -24,11 +25,11 @@ HwPG2::HwPG2() : IHardware() {
     this->clock_ = (IClock *)new RTC();
     this->soundcard_ = (ISoundcard *)new AlsaSoundcard("default", "PCM");
     this->cpu_ = JZ4770Factory::getCpu();
+    this->power_ = (IPower *)new JzPower();
 
     this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
 
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
-    this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();
@@ -43,6 +44,7 @@ HwPG2::~HwPG2() {
     delete this->clock_;
     delete this->cpu_;
     delete this->soundcard_;
+    delete this->power_;
     this->ledOff();
 }
 
@@ -71,35 +73,6 @@ void HwPG2::ledOff() {
     procWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
     TRACE("exit");
     return;
-}
-
-int HwPG2::getBatteryLevel() {
-    int online, result = 0;
-    if (!this->pollBatteries)
-        return result;
-
-    sscanf(fileReader(BATTERY_CHARGING_PATH).c_str(), "%i", &online);
-    if (online) {
-        result = IHardware::BATTERY_CHARGING;
-    } else {
-        int battery_level = 0;
-        sscanf(fileReader(BATTERY_LEVEL_PATH).c_str(), "%i", &battery_level);
-        TRACE("raw battery level - %i", battery_level);
-        if (battery_level >= 100)
-            result = 5;
-        else if (battery_level > 80)
-            result = 4;
-        else if (battery_level > 60)
-            result = 3;
-        else if (battery_level > 40)
-            result = 2;
-        else if (battery_level > 20)
-            result = 1;
-        else
-            result = 0;
-    }
-    TRACE("scaled battery level : %i", result);
-    return result;
 }
 
 int HwPG2::getBacklightLevel() {

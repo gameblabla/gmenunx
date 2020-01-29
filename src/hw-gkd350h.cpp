@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "hw-gkd350h.h"
 #include "hw-cpu.h"
+#include "hw-power.h"
 #include "sysclock.h"
 #include "fileutils.h"
 
@@ -20,8 +21,8 @@ HwGkd350h::HwGkd350h() : IHardware() {
     this->clock_ = (IClock *) new RTC();
     this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
     this->cpu_ = (ICpu *) new X1830Cpu();
+    this->power_ = (IPower *)new JzPower();
 
-    this->pollBatteries = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
     this->getBacklightLevel();
@@ -39,6 +40,7 @@ HwGkd350h::~HwGkd350h() {
     delete this->clock_;
     delete this->cpu_;
     delete this->soundcard_;
+    delete this->power_;
 }
 
 bool HwGkd350h::getTVOutStatus() { return false; }
@@ -47,61 +49,9 @@ void HwGkd350h::setTVOutMode(std::string mode) { return; }
 
 std::string HwGkd350h::getTVOutMode() { return ""; }
 
-/*
-bool HwGkd350h::supportsPowerGovernors() { return false; }
-
-void HwGkd350h::setPerformanceMode(std::string alias) { return; }
-
-std::string HwGkd350h::getPerformanceMode() { return ""; }
-
-std::vector<std::string> HwGkd350h::getPerformanceModes() {
-    std::vector<std::string> result;
-    return result;
-}
-
-bool HwGkd350h::supportsOverClocking() { return true; }
-
-uint32_t HwGkd350h::getCPUSpeed() { 
-    return this->getCpuDefaultSpeed(); 
-}
-
-bool HwGkd350h::setCPUSpeed(uint32_t mhz) { return true; }
-
-uint32_t HwGkd350h::getCpuDefaultSpeed() { return 1500; }
-*/
-
 void HwGkd350h::ledOn(int flashSpeed) { return; }
 
 void HwGkd350h::ledOff() { return; }
-
-int HwGkd350h::getBatteryLevel() {
-    int online, result = 0;
-    if (!this->pollBatteries)
-        return result;
-
-    sscanf(fileReader(BATTERY_CHARGING_PATH).c_str(), "%i", &online);
-    if (online) {
-        result = IHardware::BATTERY_CHARGING;
-    } else {
-        int battery_level = 0;
-        sscanf(fileReader(BATTERY_LEVEL_PATH).c_str(), "%i", &battery_level);
-        TRACE("raw battery level - %i", battery_level);
-        if (battery_level >= 100)
-            result = 5;
-        else if (battery_level > 80)
-            result = 4;
-        else if (battery_level > 60)
-            result = 3;
-        else if (battery_level > 40)
-            result = 2;
-        else if (battery_level > 20)
-            result = 1;
-        else
-            result = 0;
-    }
-    TRACE("scaled battery level : %i", result);
-    return result;
-}
 
 int HwGkd350h::getBacklightLevel() {
     TRACE("enter");

@@ -23,12 +23,12 @@ class HwPG2 : IHardware {
         IClock * clock_;
         ISoundcard * soundcard_;
         ICpu * cpu_;
+        IPower * power_;
 
 		std::string ledMaxBrightness_;
         int backlightLevel_ = 0;
         bool keepAspectRatio_ = false;
         bool pollBacklight = false;
-        bool pollBatteries = false;
 
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
@@ -39,8 +39,6 @@ class HwPG2 : IHardware {
 		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
         const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
-        const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
-        const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
         const std::string ALT_KEYMAP_FILE = "/sys/devices/platform/linkdev/alt_key_map";
 
 		std::string triggerToString(LedAllowedTriggers t);
@@ -54,6 +52,7 @@ class HwPG2 : IHardware {
         IClock * Clock() { return this->clock_; }
         ISoundcard * Soundcard() { return this->soundcard_; }
         ICpu * Cpu() { return this->cpu_; }
+        IPower * Power() { return this->power_; }
 
         bool getTVOutStatus();
         std::string getTVOutMode();
@@ -61,8 +60,6 @@ class HwPG2 : IHardware {
 
         void ledOn(int flashSpeed = 250);
         void ledOff();
-
-        int getBatteryLevel();
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

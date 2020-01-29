@@ -1,15 +1,26 @@
 # 350teric Changelog
 
+**1.0.10** (*Codename: *)
+
+* Added
+  * Accurate battery support
+  * Try / Catch support so no more crashes
+
+* Fixed
+
+* Improved
+  * HW abstraction extends to batteries now
+
 **1.0.9** (*Codename: The smell of dissapointment*)
 
 * Added
-	* Support for key combo's in input handler
-    	* Can be set via input.conf for any action
-    	* format is : action=combo,key_code_1,key_code_2,key_code_n
-		* eg. power=combo,9,308 (this is for GKD350h)
-  	* Power button brings up power off / restart dialog on RG350, PG2
-	* L1 & B on GKD350h brings up power off / restart dialog
-  	* New Device setting, Default CPU speed to launch apps at if nothing in the desktop file
+  * Support for key combo's in input handler
+    * Can be set via input.conf for any action
+    * format is : action=combo,key_code_1,key_code_2,key_code_n
+    * eg. power=combo,9,308 (this is for GKD350h)
+  * Power button brings up power off / restart dialog on RG350, PG2
+  * L1 & B on GKD350h brings up power off / restart dialog
+  * New Device setting, Default CPU speed to launch apps at if nothing in the desktop file
 
 * Fixed
   * Directory copy installer notification

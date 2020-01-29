@@ -13,17 +13,19 @@
 class HwGeneric : IHardware {
     private:
 
-        SysClock * clock_;
-        DummySoundcard * soundcard_;
-        DefaultCpu * cpu_;
+        IClock * clock_;
+        ISoundcard * soundcard_;
+        ICpu * cpu_;
+        IPower * power_;
 
     public:
         HwGeneric();
         ~HwGeneric();
 
-        IClock * Clock() { return (IClock *)this->clock_; }
-        ISoundcard * Soundcard() { return (ISoundcard *)this->soundcard_; }
-        ICpu * Cpu() { return (ICpu *)this->cpu_; }
+        IClock * Clock() { return this->clock_; }
+        ISoundcard * Soundcard() { return this->soundcard_; }
+        ICpu * Cpu() { return this->cpu_; }
+        IPower * Power() { return this->power_; }
 
         bool getTVOutStatus();
         std::string getTVOutMode();
@@ -31,8 +33,6 @@ class HwGeneric : IHardware {
 
         void ledOn(int flashSpeed = 250);
         void ledOff();
-
-        int getBatteryLevel();
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

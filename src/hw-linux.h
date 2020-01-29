@@ -16,6 +16,7 @@ class HwLinux : IHardware {
         IClock * clock_;
         ISoundcard * soundcard_;
         ICpu * cpu_;
+        IPower * power_;
 
     public:
         HwLinux();
@@ -24,6 +25,7 @@ class HwLinux : IHardware {
         IClock * Clock() { return this->clock_; }
         ISoundcard * Soundcard() { return this->soundcard_; }
         ICpu * Cpu() { return this->cpu_; }
+        IPower * Power() { return this->power_; }
 
         bool getTVOutStatus();
         std::string getTVOutMode();
@@ -31,8 +33,6 @@ class HwLinux : IHardware {
 
         void ledOn(int flashSpeed = 250);
         void ledOff();
-
-        int getBatteryLevel();
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

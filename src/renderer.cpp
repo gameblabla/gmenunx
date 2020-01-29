@@ -30,8 +30,8 @@ Renderer::Renderer(Esoteric *app) :
 	this->finished_ = false;
 	this->app = app;
 
-	//this->prevBackdrop = app->skin->wallpaper;
-	//this->currBackdrop = prevBackdrop;
+	// TODO :: Move to skin
+	this->showBatteryIcons_ = false;
 
 	this->iconSD = app->sc->skinRes("imgs/sd1.png");
 	this->iconManual = app->sc->skinRes("imgs/manual.png");
@@ -107,6 +107,9 @@ void Renderer::render() {
     int iy = 0;
 	int screenX = this->app->getScreenWidth();
 	int screenY = this->app->getScreenHeight();
+	// we only care about an info bar if the skin says it's on
+	// and we're in top or bottom mode
+	bool infoBarIsInPlay = app->skin->sectionInfoBarVisible && (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM);
 
 	if (!app->skin->wallpaper.empty()) {
 		// blit the bg
@@ -170,58 +173,62 @@ void Renderer::render() {
 
 	// info bar
 	//TRACE("infoBar test");
-	if (app->skin->sectionInfoBarVisible) {
-		if (app->skin->sectionBar == Skin::SB_TOP || app->skin->sectionBar == Skin::SB_BOTTOM) {
-			//TRACE("infobar needs drawing");
+	if (infoBarIsInPlay) 	{
+		SDL_Rect infoBarRect;
+		switch (app->skin->sectionBar) 		{
+		case Skin::SB_TOP:
+			infoBarRect = (SDL_Rect){
+				0,
+				screenY - app->skin->sectionInfoBarSize,
+				screenX,
+				app->skin->sectionInfoBarSize};
+			break;
+		case Skin::SB_BOTTOM:
+			infoBarRect = (SDL_Rect){
+				0,
+				0,
+				screenX,
+				app->skin->sectionInfoBarSize};
+			break;
+		default:
+			break;
+		};
 
-			SDL_Rect infoBarRect;
-			switch(app->skin->sectionBar) {
-				case Skin::SB_TOP:
-					infoBarRect = (SDL_Rect) { 
-						0, 
-						screenY - app->skin->sectionInfoBarSize, 
-						screenX, 
-						app->skin->sectionInfoBarSize 
-					};
-					break;
-				case Skin::SB_BOTTOM:
-					infoBarRect = (SDL_Rect) { 
-						0, 
-						0, 
-						screenX, 
-						app->skin->sectionInfoBarSize 
-					};
-					break;
-				default:
-					break;
-			};
-
-			// do we have an image
-			if (!app->skin->sectionInfoBarImage.empty() && NULL != (*app->sc)[app->skin->sectionInfoBarImage]) {
-				//TRACE("infoBar has an image : %s", app->skin->sectionInfoBarImage.c_str());
-				if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != screenX) {
-					//TRACE("infoBar image is being scaled");
-					(*app->sc)[app->skin->sectionInfoBarImage]->softStretch(
-						screenX, 
-						infoBarRect.h);
-				}
-				(*app->sc)[app->skin->sectionInfoBarImage]->blit(
-					app->screen, 
-					infoBarRect);
-			} else {
-				//TRACE("infoBar has no image, going for a simple box");
-				app->screen->box(
-					infoBarRect, 
-					app->skin->colours.infoBarBackground);
+		// do we have an image
+		if (!app->skin->sectionInfoBarImage.empty() && NULL != (*app->sc)[app->skin->sectionInfoBarImage]) {
+			//TRACE("infoBar has an image : %s", app->skin->sectionInfoBarImage.c_str());
+			if ((*app->sc)[app->skin->sectionInfoBarImage]->raw->h != infoBarRect.h || (*app->sc)[app->skin->sectionInfoBarImage]->raw->w != screenX) {
+				//TRACE("infoBar image is being scaled");
+				(*app->sc)[app->skin->sectionInfoBarImage]->softStretch(
+					screenX,
+					infoBarRect.h);
 			}
+			(*app->sc)[app->skin->sectionInfoBarImage]->blit(
+				app->screen,
+				infoBarRect);
+		} else {
+			//TRACE("infoBar has no image, going for a simple box");
+			app->screen->box(
+				infoBarRect,
+				app->skin->colours.infoBarBackground);
+		}
 
-			int btnX = 6;
-			int btnY = infoBarRect.y + (infoBarRect.h / 2);
-			btnX = app->ui->drawButton(app->screen, "select", app->tr["edit"], btnX, btnY);
-			btnX = app->ui->drawButton(app->screen, "start", app->tr["config"], btnX, btnY);
-			btnX = app->ui->drawButton(app->screen, "a", app->tr["run"], btnX, btnY);
-			btnX = app->ui->drawButton(app->screen, "x", app->tr["fave"], btnX, btnY);
+		int btnX = 6;
+		int btnY = infoBarRect.y + (infoBarRect.h / 2);
+		btnX = app->ui->drawButton(app->screen, "select", app->tr["edit"], btnX, btnY);
+		btnX = app->ui->drawButton(app->screen, "start", app->tr["config"], btnX, btnY);
+		btnX = app->ui->drawButton(app->screen, "a", app->tr["run"], btnX, btnY);
+		btnX = app->ui->drawButton(app->screen, "x", app->tr["fave"], btnX, btnY);
 
+		// show exact battery %
+		if (!this->showBatteryIcons_) {
+			std::string batteryLevel = app->hw->Power()->displayLevel();
+			app->screen->write(
+				app->font,
+				batteryLevel,
+				btnX + 4,
+				btnY,
+				HAlignLeft | VAlignMiddle);
 		}
 	}
 
@@ -297,7 +304,7 @@ void Renderer::render() {
                 //TRACE("icon mode - blit");
 				(*app->sc)[app->menu->getSectionIcon(i)]->blit(
 					app->screen, 
-					{x, y, app->skin->sectionTitleBarSize, app->skin->sectionTitleBarSize}, 
+					{ x, y, app->skin->sectionTitleBarSize, app->skin->sectionTitleBarSize }, 
 					HAlignCenter | VAlignMiddle);
 			}
 		}
@@ -546,10 +553,29 @@ void Renderer::render() {
 			}
 		}
 
+		// maybe battery?
+		//TRACE("testing if we we have a battery to show...");
+		if (!this->showBatteryIcons_ && !infoBarIsInPlay) {
+			// grab the new y offset and write the battery
+			//TRACE("we have a battery to show");
+			std::string batteryLevel = app->hw->Power()->displayLevel();
+			app->screen->write(
+				app->fontSectionTitle, 
+				batteryLevel, 
+				app->sectionBarRect.x + (app->sectionBarRect.w / 2), 
+				rootYPos,
+				HAlignCenter | VAlignTop);
+
+			// re-calc the y root pos
+			rootYPos -= (app->fontSectionTitle->getHeight() + 4);
+		}
+
 		// tray helper icons
 		//TRACE("hitting up the helpers");
 		helpers.push_back(iconVolume[currentVolumeMode]);
-		helpers.push_back(iconBattery[batteryIcon]);
+		if (this->showBatteryIcons_) {
+			helpers.push_back(iconBattery[batteryIcon]);
+		}
 		if (app->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
 			helpers.push_back(iconSD);
 		}
@@ -644,8 +670,23 @@ void Renderer::pollHW() {
 	if (this->app->skin->sectionBar) {
 		//TRACE("section bar exists in skin settings");
 		//TRACE("updating helper icon status");
-		this->batteryIcon = this->app->hw->getBatteryLevel();
-		if (this->batteryIcon > 5) this->batteryIcon = 6;
+		this->app->hw->Power()->read();
+		if (this->showBatteryIcons_) {
+			if (IPower::PowerStates::CHARGING == this->app->hw->Power()->state()) {
+				TRACE("battery is charging");
+				this->batteryIcon = 6;
+			} else {
+				int level = this->app->hw->Power()->rawLevel();
+				TRACE("got raw battery level : %i", level);
+				int scale = 6;
+				TRACE("battery scaling factor : %i", scale);
+				this->batteryIcon = (scale / (float)100) * level;
+				TRACE("unbounded battery level : %i", this->batteryIcon);
+				if (this->batteryIcon > this->app->config->maxBattery()) 
+					this->batteryIcon = this->app->config->maxBattery();
+				TRACE("final battery level : %i", this->batteryIcon);
+			}
+		}
 
 		this->brightnessIcon = this->app->hw->getBacklightLevel();
 		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
