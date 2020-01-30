@@ -1117,6 +1117,7 @@ void Esoteric::skinMenu() {
 		sd.addSetting(new MenuSettingBool(this, tr["Show section icons"], tr["Toggles Section Bar icons on/off in horizontal"], &skin->showSectionIcons));
 		sd.addSetting(new MenuSettingBool(this, tr["Show clock"], tr["Toggles the clock on/off"], &skin->showClock));
 		sd.addSetting(new MenuSettingBool(this, tr["Show loader"], tr["Show loader animation, if exists"], &skin->showLoader));
+		sd.addSetting(new MenuSettingBool(this, tr["Show battery icons"], tr["Show battery icons or percentage"], &skin->showBatteryIcons));
 		sd.addSetting(new MenuSettingMultiString(this, tr["Link display mode"], tr["Toggles link icons and text on/off"], &linkDisplayModeCurrent, &linkDisplayModesList));
 
 		sd.addSetting(new MenuSettingInt(this, tr["Menu columns"], tr["Number of columns of links in main menu"], &skin->numLinkCols, 1, 1, 8));
@@ -1168,13 +1169,8 @@ void Esoteric::skinMenu() {
 	writeSkinConfig();
 
 	TRACE("checking exit mode");
-	if (currentIconGray != skin->iconsToGrayscale) {
-		restartRequired = true;
-	} else if (currentImageGray != skin->imagesToGrayscale) {
-		restartRequired = true;
-	} 
-	if (restartRequired) {
-		TRACE("restarting because backdrops or gray scale changed");
+	if (currentIconGray != skin->iconsToGrayscale || currentImageGray != skin->imagesToGrayscale) {
+		TRACE("restarting because gray scale changed");
 		restartDialog(true);
 	} else {
 		initMenu();

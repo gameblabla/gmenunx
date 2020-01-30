@@ -5,6 +5,7 @@
 * Added
   * Accurate battery support
   * Try / Catch support so no more crashes
+  * Toggle battery icons or percentage in Skin Settings ui
 
 * Fixed
 
