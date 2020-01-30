@@ -54,9 +54,6 @@ std::string Config::toString() {
     vec.push_back(string_format("backlightTimeout=%i", this->backlightTimeout()));
     vec.push_back(string_format("powerTimeout=%i", this->powerTimeout()));
 
-    vec.push_back(string_format("minBattery=%i", this->minBattery()));
-    vec.push_back(string_format("maxBattery=%i", this->maxBattery()));
-
     vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
     vec.push_back(string_format("aspectRatio=%i", this->aspectRatio()));
     vec.push_back(string_format("outputLogs=%i", this->outputLogs()));
@@ -131,9 +128,6 @@ void Config::reset() {
     this->backlightTimeout_ = 30;
     this->backlightLevel_ = 70;
 
-    this->minBattery_ = 0;
-    this->maxBattery_ = 5;
-
     this->globalVolume_ = 60;
     this->aspectRatio_ = 1;
     this->outputLogs_ = 0;
@@ -160,8 +154,6 @@ void Config::constrain() {
 	evalIntConf( &this->globalVolume_, 60, 1, 100 );
     evalIntConf (&this->aspectRatio_, 1, 0, 1);
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );
-	evalIntConf( &this->minBattery_, 0, 0, 5);
-	evalIntConf( &this->maxBattery_, 5, 0, 5);
     evalIntConf( &this->respectHiddenLinks_, 1, 0, 1);
     evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
 	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
@@ -260,10 +252,6 @@ bool Config::fromFile() {
                             this->backlightTimeout(atoi(value.c_str()));
                         } else if (name == "powertimeout") {
                             this->powerTimeout(atoi(value.c_str()));
-                        } else if (name == "minbattery") {
-                            this->minBattery(atoi(value.c_str()));
-                        } else if (name == "maxbattery") {
-                            this->maxBattery(atoi(value.c_str()));
                         } else if (name == "globalvolume") {
                             this->globalVolume(atoi(value.c_str()));
                         } else if (name == "aspectratio") {

@@ -99,20 +99,6 @@ public:
             this->isDirty = true;
         }
     }
-    int minBattery() const { return this->minBattery_; }
-    void minBattery(int val) {
-        if (val != this->minBattery_) {
-            this->minBattery_ = val;
-            this->isDirty = true;
-        }
-    }
-    int maxBattery() const { return this->maxBattery_; }
-    void maxBattery(int val) {
-        if (val != this->maxBattery_) {
-            this->maxBattery_ = val;
-            this->isDirty = true;
-        }
-    }
     int backlightTimeout() const { return this->backlightTimeout_; }
     void backlightTimeout(int val) {
         if (val != this->backlightTimeout_) {
@@ -245,8 +231,6 @@ private:
     int resolutionX_; //=320
     int resolutionY_; //=240
     int backlightLevel_; //=70
-    int minBattery_; //=0
-    int maxBattery_; //=5
     int backlightTimeout_; //=30
     int videoBpp_; //=32
     int globalVolume_; //=60
