@@ -83,6 +83,7 @@ public:
     LinkDisplayModes linkDisplayMode;
 
     int showSectionIcons;
+    int showBatteryIcons;
     int showClock;
     int scaleableHighlightImage;
     int sectionInfoBarVisible;

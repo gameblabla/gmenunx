@@ -15,13 +15,12 @@
 #include "fileutils.h"
 #include "constants.h"
 
-//#define sync() sync(); system("sync");
-
 const int SKIN_VERSION = 1;
 
 Skin::Skin(std::string const &prefix, int const &maxX, int const &maxY) {
 
     TRACE("enter - prefix : %s, maxX : %i, maxY : %i", prefix.c_str(),  maxX, maxY);
+    this->reset();
     this->assetsPrefix = prefix;
     this->maxX = maxX;
     this->maxY = maxY;
@@ -168,6 +167,11 @@ std::string Skin::toString() {
     vec.push_back("# display the loader on first boot, if there is one");
     vec.push_back("");
     vec.push_back(string_format("showLoader=%i", showLoader));
+    vec.push_back("");
+
+    vec.push_back("# display the battery icon or percentage");
+    vec.push_back("");
+    vec.push_back(string_format("showBatteryIcons=%i", showBatteryIcons));
     vec.push_back("");
 
     vec.push_back("# display skin backgrounds for emulators etc");
@@ -357,6 +361,7 @@ void Skin::reset() {
     showClock = true;
     showLoader = false;
     skinBackdrops = false;
+    showBatteryIcons = true;
     scaleableHighlightImage = true;
     sectionBar = SB_LEFT;
     wallpaper = "";
@@ -398,6 +403,7 @@ void Skin::constrain() {
 	evalIntConf( &this->fontSizeTitle, 20, 6, 60);
     evalIntConf( &this->fontSizeSectionTitle, 30, 6, 60);
     evalIntConf( &this->showSectionIcons, 1, 0, 1);
+    evalIntConf( &this->showBatteryIcons, 1, 0, 1);
     evalIntConf( &this->sectionInfoBarVisible, 0, 0, 1);
     evalIntConf( &this->scaleableHighlightImage, 0, 0, 1);
     evalIntConf( &this->skinBackdrops, 0, 0, 1);
@@ -492,6 +498,8 @@ bool Skin::fromFile() {
                             linkDisplayMode = (LinkDisplayModes)atoi(value.c_str());
                         } else if (name == "showsectionicons") {
                             showSectionIcons = atoi(value.c_str());
+                        } else if (name == "showbatteryicons") {
+                            showBatteryIcons = atoi(value.c_str());
                         } else if (name == "showclock") {
                             showClock = atoi(value.c_str());
                         } else if (name == "showloader") {
