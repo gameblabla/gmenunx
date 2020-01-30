@@ -15,8 +15,6 @@ private:
     bool finished_;
     bool locked_;
     bool polling_;
-    // TODO :: Move to skin
-    bool showBatteryIcons_;
 
     Esoteric *app;
 

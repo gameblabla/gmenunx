@@ -30,9 +30,6 @@ Renderer::Renderer(Esoteric *app) :
 	this->finished_ = false;
 	this->app = app;
 
-	// TODO :: Move to skin
-	this->showBatteryIcons_ = false;
-
 	this->iconSD = app->sc->skinRes("imgs/sd1.png");
 	this->iconManual = app->sc->skinRes("imgs/manual.png");
 	this->iconCPU = app->sc->skinRes("imgs/cpu.png");
@@ -221,7 +218,7 @@ void Renderer::render() {
 		btnX = app->ui->drawButton(app->screen, "x", app->tr["fave"], btnX, btnY);
 
 		// show exact battery %
-		if (!this->showBatteryIcons_) {
+		if (!this->app->skin->showBatteryIcons) {
 			std::string batteryLevel = app->hw->Power()->displayLevel();
 			app->screen->write(
 				app->font,
@@ -555,7 +552,7 @@ void Renderer::render() {
 
 		// maybe battery?
 		//TRACE("testing if we we have a battery to show...");
-		if (!this->showBatteryIcons_ && !infoBarIsInPlay) {
+		if (!this->app->skin->showBatteryIcons && !infoBarIsInPlay) {
 			// grab the new y offset and write the battery
 			//TRACE("we have a battery to show");
 			std::string batteryLevel = app->hw->Power()->displayLevel();
@@ -573,7 +570,7 @@ void Renderer::render() {
 		// tray helper icons
 		//TRACE("hitting up the helpers");
 		helpers.push_back(iconVolume[currentVolumeMode]);
-		if (this->showBatteryIcons_) {
+		if (this->app->skin->showBatteryIcons) {
 			helpers.push_back(iconBattery[batteryIcon]);
 		}
 		if (app->hw->getCardStatus() == IHardware::MMC_MOUNTED) {
@@ -671,7 +668,7 @@ void Renderer::pollHW() {
 		//TRACE("section bar exists in skin settings");
 		//TRACE("updating helper icon status");
 		this->app->hw->Power()->read();
-		if (this->showBatteryIcons_) {
+		if (this->app->skin->showBatteryIcons) {
 			if (IPower::PowerStates::CHARGING == this->app->hw->Power()->state()) {
 				TRACE("battery is charging");
 				this->batteryIcon = 6;
