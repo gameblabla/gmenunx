@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fstream>
@@ -9,11 +9,10 @@
 
 #include "installer.h"
 #include "debug.h"
-//#include "utilities.h"
 #include "fileutils.h"
 #include "constants.h"
 
-#define sync() sync(); system("sync");
+#define sync() sync(); std::system("sync");
 
 const std::string Installer::LAUNCHER_PATH="/usr/local/sbin/frontend_start";
 const std::string Installer::INSTALLER_MARKER_FILE = "/tmp/" + BINARY_NAME + ".marker";
@@ -118,7 +117,7 @@ bool Installer::copyDirs(bool force) {
         ss << cp << " \"" << source << "\" " << "\"" << destination << "\"";
         std::string call = ss.str();
         TRACE("running command : %s", call.c_str());
-        system(call.c_str());
+        std::system(call.c_str());
         sync();
     }
     TRACE("exit");

@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <errno.h>
 #include <unistd.h>
 #include <sstream>
@@ -108,7 +108,7 @@ class IHardware {
             std::string command = "mount -t " + EXTERNAL_MOUNT_FORMAT + " " + EXTERNAL_MOUNT_DEVICE + " " + EXTERNAL_MOUNT_POINT + " 2>&1";
             std::string result = exec(command.c_str());
             TRACE("result : %s", result.c_str());
-            system("sleep 1");
+            std::system("sleep 1");
             this->checkUDC();
             return result;
         }
@@ -117,7 +117,7 @@ class IHardware {
             sync();
             std::string command = "umount -fl " + EXTERNAL_MOUNT_POINT + " 2>&1";
             std::string result = exec(command.c_str());
-            system("sleep 1");
+            std::system("sleep 1");
             this->checkUDC();
             return result;
         }
@@ -261,13 +261,13 @@ class IHardware {
         virtual void powerOff() {
             TRACE("enter");
             sync();
-            system("poweroff");
+            std::system("poweroff");
             TRACE("exit");
         }
 
         virtual void reboot() {
             sync();
-		    system("reboot");
+		    std::system("reboot");
         }
 
         virtual int defaultScreenWidth() { return 0; }

@@ -3,7 +3,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <fcntl.h> 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "debug.h"
 #include "utilities.h"

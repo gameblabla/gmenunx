@@ -8,7 +8,6 @@
 
 #include "desktopfile.h"
 
-
 class myOpk {
     public:
 

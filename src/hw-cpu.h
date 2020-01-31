@@ -6,7 +6,7 @@
 #include <vector>
 #include <sys/mman.h>
 #include <assert.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>

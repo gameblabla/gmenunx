@@ -5,7 +5,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "debug.h"

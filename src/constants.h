@@ -19,6 +19,11 @@ static const std::string USER_HOME = "~/";
 
 static const std::string USER_PREFIX = USER_HOME + ".esoteric/";
 
+#ifdef HAVE_LIBOPK
+static const std::string OPK_FOLDER_NAME = "apps";
+static const std::string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
+#endif
+
 enum vol_mode_t {
 	VOLUME_MODE_MUTE, VOLUME_MODE_PHONES, VOLUME_MODE_NORMAL
 };

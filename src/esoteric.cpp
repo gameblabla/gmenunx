@@ -67,9 +67,6 @@
 
 #ifdef HAVE_LIBOPK
 #include "opkcache.h"
-const std::string OPK_FOLDER_NAME = "apps";
-const std::string OPK_INTERNAL_PATH = "/media/data/" + OPK_FOLDER_NAME;
-const std::string OPK_PLATFORM = "gcw0";
 #endif
 
 #ifndef __BUILDTIME__

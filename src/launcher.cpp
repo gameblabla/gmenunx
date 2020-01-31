@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -85,7 +85,7 @@ void Launcher::exec() {
 		std::cerr.clear();
 		std::wcin.clear();
 		std::cin.clear();
-		system("reset");
+		std::system("reset");
 	}
 	execvp(commandLine[0].c_str(), (char* const*)&args[0]);
 	TRACE("exit");

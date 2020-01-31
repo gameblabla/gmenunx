@@ -289,7 +289,6 @@ int OpkHelper::extractFile(const std::string &path, void **buffer, std::size_t &
     return ret;
 }
 
-
 std::string OpkHelper::getOpkPath() {
 	TRACE("enter");
 

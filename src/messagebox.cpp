@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "messagebox.h"
 #include "debug.h"

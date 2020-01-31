@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <ctime>
@@ -14,7 +14,7 @@
 #include "config.h"
 #include "utilities.h"
 
-#define sync() sync(); system("sync");
+#define sync() sync(); std::system("sync");
 
 Config::Config(std::string const &prefix) {
     TRACE("enter - prefix : %s", prefix.c_str());

@@ -60,12 +60,12 @@ class HwGkd350h : IHardware {
 
         void powerOff() {
             sync();
-            system("/sbin/poweroff");
+            std::system("/sbin/poweroff");
         }
 
         virtual void reboot() {
             sync();
-		    system("/sbin/reboot");
+		    std::system("/sbin/reboot");
         }
 
         std::string inputFile() { return "gkd350h.input.conf"; };

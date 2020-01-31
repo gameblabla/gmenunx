@@ -1,7 +1,6 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdio.h>
 #include <unistd.h>
-//#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>

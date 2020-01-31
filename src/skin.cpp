@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>

@@ -8,9 +8,9 @@
 #include <fstream>
 #include <sstream>
 #include <istream>
-#include <stdlib.h>
+#include <cstdlib>
 
-#define sync() sync(); system("sync");
+#define sync() sync(); std::system("sync");
 
 DesktopFile::DesktopFile() {
     this->reset();

@@ -1,7 +1,7 @@
 #ifndef _IPOWER_
 #define _IPOWER_
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "debug.h"
 
 class IPower {
