@@ -79,6 +79,4 @@ std::string string_format(const std::string fmt_str, ...);
 std::string stripQuotes(std::string const &input);
 std::string toLower(const std::string & input);
 
-std::string getOpkPath();
-
 #endif

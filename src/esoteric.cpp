@@ -1555,7 +1555,10 @@ void Esoteric::about() {
 		battery = this->hw->Power()->displayLevel();
 	}
 
-	std::string appPath = getOpkPath();
+	std::string appPath;
+	#ifdef HAVE_LIBOPK
+	appPath = OpkHelper::getOpkPath();
+	#endif
 	if (appPath.length() == 0) {
 		appPath = this->getExePath() + BINARY_NAME;
 	}

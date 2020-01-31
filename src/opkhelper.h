@@ -122,6 +122,8 @@ class OpkHelper {
 
         static int extractFile(const std::string &path, void **buffer, std::size_t &length);
 
+        static std::string getOpkPath();
+
 };
 
 #endif
