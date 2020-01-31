@@ -48,26 +48,42 @@
 
 #include <string>
 #include <sstream>
+#include <time.h>
 
 class IClock {
 
     protected:
     
+        struct tm myTime;
         virtual void refresh() = 0;
 
     public:    
 
-        virtual int getYear() = 0;
-        virtual int getMonth() = 0;
-        virtual int getDay() = 0;
-        virtual int getHours() = 0;
-        virtual int getMinutes() = 0;
-        std::string getClockTime(bool is24hr = false);
-        std::string getDateTime();
-        virtual bool setTime(std::string datetime) = 0;
-
         static std::string getBuildDate();
 
+        int getYear() { return this->myTime.tm_year + 1900; };
+        int getMonth() { return this->myTime.tm_mon + 1; };
+        int getDay() { return this->myTime.tm_mday; };
+        int getHours() { return this->myTime.tm_hour + (this->myTime.tm_isdst ? 1 : 0); };
+        int getMinutes() { return this->myTime.tm_min; };
+        std::string getClockTime(bool is24hr = false);
+        std::string getDateTime();
+
+        virtual bool setTime(std::string datetime) = 0;
+};
+
+class RTC : IClock {
+    protected:
+        void refresh();
+    public:
+        bool setTime(std::string datetime);
+};
+
+class SysClock : IClock {
+    protected:
+        void refresh();
+    public:
+        bool setTime(std::string datetime);
 };
 
 #endif

@@ -12,7 +12,7 @@
 #include "hw-pg2.h"
 #include "hw-cpu.h"
 #include "hw-power.h"
-#include "rtc.h"
+#include "hw-clock.h"
 
 HwPG2::HwPG2() : IHardware() {
     TRACE("enter");

@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "hw-ihardware.h"
-#include "sysclock.h"
+#include "hw-clock.h"
 #include "constants.h"
 
 class HwLinux : IHardware {

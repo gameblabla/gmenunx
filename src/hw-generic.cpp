@@ -6,7 +6,7 @@
 #include "constants.h"
 #include "hw-generic.h"
 #include "hw-power.h"
-#include "sysclock.h"
+#include "hw-clock.h"
 
 HwGeneric::HwGeneric() : IHardware() {
 

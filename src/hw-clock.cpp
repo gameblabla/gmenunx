@@ -1,3 +1,10 @@
+// RTC includes
+#include <linux/rtc.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <fcntl.h> 
+#include <stdlib.h>
+
 #include "debug.h"
 #include "utilities.h"
 #include "hw-clock.h"
@@ -44,3 +51,48 @@ std::string IClock::getDateTime() {
     TRACE("exit : %s", result.c_str());
     return result;
 }
+
+// RTC section starts
+
+void RTC::refresh() {
+    TRACE("enter");
+    int fd;
+    fd = open("/dev/rtc", O_RDONLY);
+    if (fd) {
+        struct rtc_time rt;
+        ioctl(fd, RTC_RD_TIME, &rt);
+        close(fd);
+        TRACE("successful read");
+        this->myTime.tm_year = rt.tm_year;
+        this->myTime.tm_mon = rt.tm_mon;
+        this->myTime.tm_mday = rt.tm_mday;
+        this->myTime.tm_hour = rt.tm_hour;
+        this->myTime.tm_min = rt.tm_min;
+        this->myTime.tm_isdst = rt.tm_isdst;
+    }
+    TRACE("exit");
+}
+
+bool RTC::setTime(std::string datetime) {
+    std::string cmd = "/sbin/hwclock --set --localtime --epoch=1900 --date=\"" + datetime + "\";/sbin/hwclock --hctosys";
+    TRACE("running : %s", cmd.c_str());
+    std::system(cmd.c_str());
+    return true;
+}
+
+// RTC section ends
+
+// SysClock section starts
+
+void SysClock::refresh() {
+    TRACE("enter");
+    time_t theTime = time(NULL);
+    this->myTime = (*localtime(&theTime));
+    TRACE("exit");
+}
+
+bool SysClock::setTime(std::string datetime) {
+    return true;
+}
+
+// SysClock section ends

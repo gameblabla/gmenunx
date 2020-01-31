@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "hw-ihardware.h"
-#include "rtc.h"
+#include "hw-clock.h"
 #include "constants.h"
 
 class HwGkd350h : IHardware {

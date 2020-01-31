@@ -7,7 +7,7 @@
 
 #include "hw-linux.h"
 #include "hw-power.h"
-#include "sysclock.h"
+#include "hw-clock.h"
 
 HwLinux::HwLinux() : IHardware() {
 

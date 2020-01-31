@@ -6,7 +6,7 @@
 #include "hw-gkd350h.h"
 #include "hw-cpu.h"
 #include "hw-power.h"
-#include "sysclock.h"
+#include "hw-clock.h"
 #include "fileutils.h"
 
 HwGkd350h::HwGkd350h() : IHardware() {

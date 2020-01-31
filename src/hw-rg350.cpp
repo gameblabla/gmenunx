@@ -13,7 +13,7 @@
 #include "hw-rg350.h"
 #include "hw-cpu.h"
 #include "hw-power.h"
-#include "rtc.h"
+#include "hw-clock.h"
 
 HwRg350::HwRg350() : IHardware() {
     TRACE("enter");
