@@ -30,9 +30,11 @@ class FileUtils {
 		// or the last directory, essentially, anything after the last slash
 		static std::string pathBaseName(const std::string &path);
 
-		static std::string firstFirstExistingDir(const std::string & path);
+		static std::string firstExistingDir(const std::string & path);
 
 		static const int processPid(const std::string name);
+
+		static const std::string fileReader(std::string path);
 
 };
 

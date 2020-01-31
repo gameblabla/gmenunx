@@ -142,11 +142,3 @@ bool procWriter(std::string path, int value) {
 	std::getline(ss, strVal);
 	return procWriter(path, strVal);
 }
-
-std::string fileReader(std::string path) {
-	std::ifstream str(path);
-	std::stringstream buf;
-	buf << str.rdbuf();
-	return buf.str();
-}
-

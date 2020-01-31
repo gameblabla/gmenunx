@@ -49,7 +49,7 @@ std::string HwFactory::readDeviceType() {
 
     std::string result = "generic";
 
-    std::string cmdLine = fileReader("/proc/cmdline");
+    std::string cmdLine = FileUtils::fileReader("/proc/cmdline");
     TRACE("cmdLine : %s", cmdLine.c_str());
     std::vector<std::string> cmdParts;
     StringUtils::split(cmdParts, cmdLine, " ");
@@ -97,7 +97,7 @@ std::string HwFactory::readDeviceType() {
 
     // is it retro fw?
     if (FileUtils::fileExists("/etc/hostname")) {
-        std::string host = fileReader("/etc/hostname");
+        std::string host = FileUtils::fileReader("/etc/hostname");
         host = StringUtils::toLower(StringUtils::fullTrim(host));
         TRACE("hostname : '%s'", host.c_str());
         if (0 == host.compare("retrofw")) {
@@ -107,7 +107,7 @@ std::string HwFactory::readDeviceType() {
 
     // ok, is it open dingux?
     if (FileUtils::fileExists("/etc/issue")) {
-        std::string issue = fileReader("/etc/issue");
+        std::string issue = FileUtils::fileReader("/etc/issue");
         TRACE("issue : '%s'", issue.c_str());
         bool isDingux = false;
         if (!issue.empty()) {

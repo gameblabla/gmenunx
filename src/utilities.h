@@ -51,12 +51,10 @@ float max (float a, float b);
 float min (float a, float b);
 float constrain (float x, float imin, float imax);
 
-
 std::string exec(const char* cmd);
 std::string execute(const char* cmd);
 
 bool procWriter(std::string path, std::string value);
 bool procWriter(std::string path, int value);
-std::string fileReader(std::string path);
 
 #endif

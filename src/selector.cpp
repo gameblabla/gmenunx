@@ -336,7 +336,7 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 
 	if (!FileUtils::dirExists(this->dir)) {
 		if (this->link->getSelectorBrowser()) {
-			this->dir = FileUtils::firstFirstExistingDir(this->dir);
+			this->dir = FileUtils::firstExistingDir(this->dir);
 		} else {
 			// we have problems,
 			// it's not a real dir and we can't browse dirs

@@ -58,7 +58,7 @@ int HwGkd350h::getBacklightLevel() {
     if (this->pollBacklight) {
         int level = 0;
         //force  scale 0 - 100
-        std::string result = fileReader(BACKLIGHT_PATH);
+        std::string result = FileUtils::fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
             level = ceil(atoi(StringUtils::trim(result).c_str()));
         }

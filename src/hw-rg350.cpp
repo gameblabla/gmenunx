@@ -29,7 +29,7 @@ HwRg350::HwRg350() : IHardware() {
     this->cpu_ = JZ4770Factory::getCpu();
     this->power_ = (IPower *)new JzPower();
 
-    this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
+    this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? FileUtils::fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
     this->getBacklightLevel();
@@ -81,7 +81,7 @@ int HwRg350::getBacklightLevel() {
     if (this->pollBacklight) {
         int level = 0;
         //force  scale 0 - 100
-        std::string result = fileReader(BACKLIGHT_PATH);
+        std::string result = FileUtils::fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
             level = ceil(atoi(StringUtils::trim(result).c_str()) / 2.55);
         }
@@ -115,7 +115,7 @@ int HwRg350::setBacklightLevel(int val) {
 bool HwRg350::getKeepAspectRatio() {
     TRACE("enter");
     if (FileUtils::fileExists(ASPECT_RATIO_PATH)) {
-        std::string result = fileReader(ASPECT_RATIO_PATH);
+        std::string result = FileUtils::fileReader(ASPECT_RATIO_PATH);
         TRACE("raw result : '%s'", result.c_str());
         if (result.length() > 0) {
             result = result[0];

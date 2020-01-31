@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 #include <algorithm>
 
@@ -107,7 +108,7 @@ std::string FileUtils::resolvePath(const std::string &path) {
     if (errno == ENOENT) {
         TRACE("NOENT came back");
         errno = 0;
-        return FileUtils::firstFirstExistingDir(path);
+        return FileUtils::firstExistingDir(path);
         //return path;
     }
     return (std::string)max_path;
@@ -140,7 +141,7 @@ std::string FileUtils::pathBaseName(const std::string &path) {
     return path.substr(p + 1, path.length());
 }
 
-std::string FileUtils::firstFirstExistingDir(const std::string &path) {
+std::string FileUtils::firstExistingDir(const std::string &path) {
     TRACE("enter : '%s'", path.c_str());
     if (path.empty() || std::string::npos == path.find("/"))
         return "/";
@@ -152,7 +153,7 @@ std::string FileUtils::firstFirstExistingDir(const std::string &path) {
     }
     const std::string &nextPath = FileUtils::dirName(path);
     TRACE("next path : '%s'", nextPath.c_str());
-    return FileUtils::firstFirstExistingDir(nextPath);
+    return FileUtils::firstExistingDir(nextPath);
 }
 
 
@@ -197,4 +198,11 @@ const int FileUtils::processPid(const std::string name) {
     closedir(dp);
     TRACE("exit : %i", pid);
     return pid;
+}
+
+const std::string FileUtils::fileReader(std::string path) {
+	std::ifstream str(path);
+	std::stringstream buf;
+	buf << str.rdbuf();
+	return buf.str();
 }

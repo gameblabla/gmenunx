@@ -326,7 +326,7 @@ class JZ4770GuvernorCpu : public JZ4770BasicCpu {
         }
 
         std::string getValue() {
-            std::string rawValue = fileReader(this->guvernorPath_);
+            std::string rawValue = FileUtils::fileReader(this->guvernorPath_);
             this->currentValue_ = StringUtils::fullTrim(rawValue);
             return this->mapModeToDisplay(this->currentValue_);
         }
@@ -378,7 +378,7 @@ class JZ4770OverClockedCpu : public JZ4770BasicCpu {
         }
 
         std::string getValue() {
-            std::string rawCpu = fileReader(SYSFS_CPUFREQ_GET);
+            std::string rawCpu = FileUtils::fileReader(SYSFS_CPUFREQ_GET);
             int mhz = atoi(rawCpu.c_str()) / 1000;
             std::stringstream ss;
             ss << mhz;
