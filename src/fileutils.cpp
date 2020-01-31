@@ -10,6 +10,7 @@
 
 #include "debug.h"
 #include "fileutils.h"
+#include "utilities.h"
 
 // returns a filename minus the dot extension part
 std::string FileUtils::fileBaseName(const std::string &filename) {
@@ -25,8 +26,7 @@ std::string FileUtils::fileExtension(const std::string &filename) {
     std::string::size_type i = filename.rfind(".");
     if (i != std::string::npos) {
         std::string ext = filename.substr(i, filename.length());
-		std::transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower);
-        return ext;
+        return toLower(ext);
     }
     return "";
 }
