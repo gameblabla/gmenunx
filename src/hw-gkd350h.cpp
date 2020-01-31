@@ -60,7 +60,7 @@ int HwGkd350h::getBacklightLevel() {
         //force  scale 0 - 100
         std::string result = fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
-            level = ceil(atoi(trim(result).c_str()));
+            level = ceil(atoi(StringUtils::trim(result).c_str()));
         }
         this->backlightLevel_ = level;
     }

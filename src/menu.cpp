@@ -31,7 +31,7 @@
 #include "linkapp.h"
 #include "menu.h"
 #include "filelister.h"
-#include "utilities.h"
+#include "stringutils.h"
 #include "debug.h"
 
 Menu::Menu(Esoteric *app) {
@@ -45,7 +45,7 @@ Menu::Menu(Esoteric *app) {
 	std::string filepath;
 
 	std::vector<std::string> filter;
-	split(filter, this->app->config->sectionFilter(), ",");
+	StringUtils::split(filter, this->app->config->sectionFilter(), ",");
 	TRACE("got %zu filter sections", filter.size());
 
 	TRACE("opening sections");

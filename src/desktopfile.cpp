@@ -1,7 +1,7 @@
 #include "constants.h"
 #include "debug.h"
 #include "desktopfile.h"
-#include "utilities.h"
+#include "stringutils.h"
 #include "fileutils.h"
 #include <vector>
 #include <unistd.h>
@@ -41,19 +41,19 @@ std::string DesktopFile::toString() {
     vec.push_back("# lines starting with a # are ignored");
     vec.push_back("");
 
-    vec.push_back(string_format("title=%s", this->title().c_str()));
-    vec.push_back(string_format("description=%s", this->description().c_str()));
-    vec.push_back(string_format("icon=%s", this->icon().c_str()));
-    vec.push_back(string_format("exec=%s", this->exec().c_str()));
-    vec.push_back(string_format("params=%s", this->params().c_str()));
-    vec.push_back(string_format("selectorDir=%s", this->selectorDir().c_str()));
-    vec.push_back(string_format("selectorFilter=%s", this->selectorFilter().c_str()));
-    vec.push_back(string_format("selectorAlias=%s", this->selectorAlias().c_str()));
-    vec.push_back(string_format("manual=%s", this->manual().c_str()));
-    vec.push_back(string_format("workdir=%s", this->workdir().c_str()));
-    vec.push_back(string_format("X-Provider=%s", this->provider().c_str()));
-    vec.push_back(string_format("X-ProviderMetadata=%s", this->providerMetadata().c_str()));
-    vec.push_back(string_format("consoleapp=%s", this->consoleapp() ? "true" : "false"));
+    vec.push_back(StringUtils::stringFormat("title=%s", this->title().c_str()));
+    vec.push_back(StringUtils::stringFormat("description=%s", this->description().c_str()));
+    vec.push_back(StringUtils::stringFormat("icon=%s", this->icon().c_str()));
+    vec.push_back(StringUtils::stringFormat("exec=%s", this->exec().c_str()));
+    vec.push_back(StringUtils::stringFormat("params=%s", this->params().c_str()));
+    vec.push_back(StringUtils::stringFormat("selectorDir=%s", this->selectorDir().c_str()));
+    vec.push_back(StringUtils::stringFormat("selectorFilter=%s", this->selectorFilter().c_str()));
+    vec.push_back(StringUtils::stringFormat("selectorAlias=%s", this->selectorAlias().c_str()));
+    vec.push_back(StringUtils::stringFormat("manual=%s", this->manual().c_str()));
+    vec.push_back(StringUtils::stringFormat("workdir=%s", this->workdir().c_str()));
+    vec.push_back(StringUtils::stringFormat("X-Provider=%s", this->provider().c_str()));
+    vec.push_back(StringUtils::stringFormat("X-ProviderMetadata=%s", this->providerMetadata().c_str()));
+    vec.push_back(StringUtils::stringFormat("consoleapp=%s", this->consoleapp() ? "true" : "false"));
 
     std::string s;
     for (const auto &piece : vec) s += (piece + "\n");
@@ -65,49 +65,49 @@ void DesktopFile::parse(std::istream & instream) {
     TRACE("enter");
 	std::string line;
 	while (std::getline(instream, line, '\n')) {
-		line = trim(line);
+		line = StringUtils::trim(line);
         if (0 == line.length()) continue;
         if ('#' == line[0]) continue;
 		std::string::size_type pos = line.find("=");
         if (std::string::npos == pos) continue;
 
-		std::string name = trim(line.substr(0,pos));
-		std::string value = trim(line.substr(pos+1,line.length()));
+		std::string name = StringUtils::trim(line.substr(0,pos));
+		std::string value = StringUtils::trim(line.substr(pos+1,line.length()));
 
         if (0 == value.length()) continue;
-        name = toLower(name);
+        name = StringUtils::toLower(name);
         TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
             try {
             if (name == "title") {
-                this->title(stripQuotes(value));
+                this->title(StringUtils::stripQuotes(value));
             } else if (name == "description") {
-                this->description(stripQuotes(value));
+                this->description(StringUtils::stripQuotes(value));
             } else if (name == "icon") {
-                this->icon(stripQuotes(value));
+                this->icon(StringUtils::stripQuotes(value));
             } else if (name == "exec") {
-                this->exec(stripQuotes(value));
+                this->exec(StringUtils::stripQuotes(value));
             } else if (name == "params") {
-                this->params(stripQuotes(value));
+                this->params(StringUtils::stripQuotes(value));
             } else if (name == "selectordir") {
-                this->selectorDir(stripQuotes(value));
+                this->selectorDir(StringUtils::stripQuotes(value));
             } else if (name == "selectorfilter") {
-                this->selectorFilter(stripQuotes(value));
+                this->selectorFilter(StringUtils::stripQuotes(value));
             } else if (name == "selectoralias") {
-                this->selectorAlias(stripQuotes(value));
+                this->selectorAlias(StringUtils::stripQuotes(value));
             } else if (name == "x-provider") {
-                this->provider(stripQuotes(value));
+                this->provider(StringUtils::stripQuotes(value));
             } else if (name == "x-providermetadata") {
-                this->providerMetadata(stripQuotes(value));
+                this->providerMetadata(StringUtils::stripQuotes(value));
             } else if (name == "consoleapp") {
-                bool console = "false" == stripQuotes(value) ? false : true;
+                bool console = "false" == StringUtils::stripQuotes(value) ? false : true;
                 this->consoleapp(console);
             } else if (name == "selectorbrowser") {
                 // eat it
             } else if (name == "manual") {
-                this->manual(stripQuotes(value));
+                this->manual(StringUtils::stripQuotes(value));
             } else if (name == "workdir") {
-                this->workdir(stripQuotes(value));
+                this->workdir(StringUtils::stripQuotes(value));
             } else {
                 WARNING("unknown .desktop key : %s", name.c_str());
             }

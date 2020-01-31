@@ -21,6 +21,7 @@
 #include "textdialog.h"
 #include "messagebox.h"
 #include "utilities.h"
+#include "stringutils.h"
 #include "debug.h"
 #include <iostream>
 #include <stdexcept>
@@ -38,16 +39,16 @@ void TextDialog::preProcess() {
 	uint32_t i = 0;
 	std::string row;
 
-	split(text, rawText, "\n");
+	StringUtils::split(text, rawText, "\n");
 
 	while (i < text.size()) {
 		//clean this row
-		row = trim(text.at(i));
+		row = StringUtils::trim(text.at(i));
 
 		//check if this row is not too long
 		if (app->font->getTextWidth(row) > app->getScreenWidth() - 15) {
 			std::vector<std::string> words;
-			split(words, row, " ");
+			StringUtils::split(words, row, " ");
 
 			uint32_t numWords = words.size();
 			//find the maximum number of rows that can be printed on screen
@@ -56,7 +57,7 @@ void TextDialog::preProcess() {
 				row = "";
 				for (uint32_t x = 0; x < numWords; x++)
 					row += words[x] + " ";
-				row = trim(row);
+				row = StringUtils::trim(row);
 			}
 
 			//if numWords==0 then the string must be printed as-is, it cannot be split
@@ -68,12 +69,12 @@ void TextDialog::preProcess() {
 				row = "";
 				for (uint32_t x = numWords; x < words.size(); x++)
 					row += words[x] + " ";
-				row = trim(row);
+				row = StringUtils::trim(row);
 
 				if (!row.empty())
 					text.insert(text.begin() + i + 1, row);
 			} else {
-				text.at(i) = cmdclean(row);
+				text.at(i) = StringUtils::cmdClean(row);
 			}
 		}
 		i++;

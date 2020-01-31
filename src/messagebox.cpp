@@ -23,7 +23,7 @@
 
 #include "messagebox.h"
 #include "debug.h"
-#include "utilities.h"
+#include "stringutils.h"
 
 MessageBox::MessageBox(Esoteric *app, const std::string &text, const std::string &icon) {
 	this->app = app;
@@ -90,14 +90,14 @@ std::string MessageBox::formatText(int box_w_padding, int buttonWidth) {
 	std::vector<std::string> parts;
 	std::string wrappedText = "";
 	std::string localText = this->text;
-	split(parts, localText, "\n");
+	StringUtils::split(parts, localText, "\n");
 	for (std::vector<std::string>::iterator it = parts.begin(); it != parts.end(); it++) {
 		std::string line = (*it);
 		TRACE("measuring : '%s'", line.c_str());
 		int lineWidth = line.length();
 		if ( lineWidth > wrap_size) {
 			TRACE("splitting it in lines because %i > %i", lineWidth, wrap_size);
-			wrappedText += splitInLines(line, wrap_size);
+			wrappedText += StringUtils::splitInLines(line, wrap_size);
 		} else {
 			TRACE("taking it as it is");
 			wrappedText += line +  "\n";
@@ -178,7 +178,7 @@ int MessageBox::exec() {
 
 	// text
 	std::vector<std::string> lines;
-	split(lines, wrappedText, "\n");
+	StringUtils::split(lines, wrappedText, "\n");
 	int iY = box.y + 12;
 	for (std::vector<std::string>::iterator it = lines.begin(); it != lines.end(); it++) {
 		std::string line = (*it);

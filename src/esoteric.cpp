@@ -1458,8 +1458,8 @@ void Esoteric::readTmp() {
 
 	while (getline(inf, line, '\n')) {
 		std::string::size_type pos = line.find("=");
-		name = trim(line.substr(0,pos));
-		value = trim(line.substr(pos+1,line.length()));
+		name = StringUtils::trim(line.substr(0,pos));
+		value = StringUtils::trim(line.substr(pos+1,line.length()));
 		if (name == "section") menu->setSectionIndex(atoi(value.c_str()));
 		else if (name == "link") menu->setLinkIndex(atoi(value.c_str()));
 		else if (name == "selectorelem") lastSelectorElement = atoi(value.c_str());
@@ -1703,7 +1703,7 @@ void Esoteric::explorer() {
 				writeConfig();
 
 			loop = false;
-			std::string command = cmdclean(fd.getPath() + "/" + fd.getFile());
+			std::string command = StringUtils::cmdClean(fd.getPath() + "/" + fd.getFile());
 			chdir(fd.getPath().c_str());
 			this->hw->Cpu()->setDefault();
 			this->quit();
@@ -1742,7 +1742,7 @@ const std::string &Esoteric::getWriteablePath() {
 			homedir = getpwuid(getuid())->pw_dir;
 		}
 		TRACE("home dir is : %s", homedir);
-		result = strreplace(result, "~", homedir);
+		result = StringUtils::strReplace(result, "~", homedir);
 	}
 	this->writeable_path = result;
 	TRACE("exit : %s", this->writeable_path.c_str());
@@ -2114,8 +2114,8 @@ void Esoteric::editLink() {
 
 	// get the path in case we move sections
 	std::vector<std::string> pathV;
-	split(pathV, menu->selLinkApp()->getFile(), "/");
-	std::string oldSection = "";
+	StringUtils::split(pathV, menu->selLinkApp()->getFile(), "/");
+	std::string oldSection;
 	if (pathV.size() > 1) oldSection = pathV[pathV.size()-2];
 	std::string newSection = oldSection;
 

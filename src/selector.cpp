@@ -29,6 +29,7 @@
 #include "selector.h"
 #include "filelister.h"
 #include "debug.h"
+#include "stringutils.h"
 
 const std::string PREVIEWS_DIR = ".previews";
 
@@ -442,8 +443,8 @@ void Selector::loadAliases() {
 		std::ifstream infile (aliasFile.c_str(), std::ios_base::in);
 		while (getline(infile, line, '\n')) {
 			std::string::size_type position = line.find("=");
-			std::string name = trim(line.substr(0,position));
-			std::string value = trim(line.substr(position+1));
+			std::string name = StringUtils::trim(line.substr(0,position));
+			std::string value = StringUtils::trim(line.substr(position+1));
 			aliases[name] = value;
 		}
 		infile.close();

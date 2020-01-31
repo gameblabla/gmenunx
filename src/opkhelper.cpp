@@ -13,6 +13,7 @@
 #include "desktopfile.h"
 #include "utilities.h"
 #include "fileutils.h"
+#include "stringutils.h"
 #include "debug.h"
 #include "constants.h"
 
@@ -80,7 +81,7 @@ bool myOpk::load(OPK * opk) {
         char keyBuf[lkey + 1];
         sprintf(keyBuf, "%.*s", (int)lkey, key);
         const std::string & myKey = keyBuf;
-        std::string loweredKey = toLower(myKey);
+        std::string loweredKey = StringUtils::toLower(myKey);
 
         TRACE("extracted - raw key : %s - lowered key : %s - value : %s", keyBuf, loweredKey.c_str(), value.c_str());
 

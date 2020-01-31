@@ -13,6 +13,7 @@
 * Improved
   * HW abstraction extends to batteries now
   * Refactored UI transition code
+  * Refactored String Helper code
 
 **1.0.9** (*Codename: The smell of dissapointment*)
 

@@ -8,6 +8,7 @@
 
 #include "constants.h"
 #include "fileutils.h"
+#include "stringutils.h"
 #include "debug.h"
 #include "hw-pg2.h"
 #include "hw-cpu.h"
@@ -82,7 +83,7 @@ int HwPG2::getBacklightLevel() {
         //force  scale 0 - 100
         std::string result = fileReader(BACKLIGHT_PATH);
         if (result.length() > 0) {
-            level = ceil(atoi(trim(result).c_str()) / 2.55);
+            level = ceil(atoi(StringUtils::trim(result).c_str()) / 2.55);
             //level = (level * -1) + 100;
         }
         this->backlightLevel_ = level;
@@ -120,7 +121,7 @@ bool HwPG2::getKeepAspectRatio() {
         TRACE("raw result : '%s'", result.c_str());
         if (result.length() > 0) {
             result = result[0];
-            result = toLower(result);
+            result = StringUtils::toLower(result);
         }
         this->keepAspectRatio_ = ("y" == result);
     }

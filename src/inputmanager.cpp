@@ -81,6 +81,7 @@
 #include "managers/screenmanager.h"
 #include "managers/powermanager.h"
 #include "fileutils.h"
+#include "stringutils.h"
 
 InputManager::InputManager(ScreenManager& screenManager, PowerManager& powerManager) : 
 	screenManager(screenManager), 
@@ -158,7 +159,7 @@ bool InputManager::readStream(std::istream & input) {
 	while (std::getline(input, line, '\n')) {
 		TRACE("reading : %s", line.c_str());
 		linenum++;
-		line = full_trim(line);
+		line = StringUtils::fullTrim(line);
 		if (0 == line.length())
 			continue;
 		if ('#' == line[0])
@@ -168,8 +169,8 @@ bool InputManager::readStream(std::istream & input) {
 		if (std::string::npos == pos)
 			continue;
 
-		name = trim(line.substr(0,pos));
-		value = trim(line.substr(pos + 1,line.length()));
+		name = StringUtils::trim(line.substr(0,pos));
+		value = StringUtils::trim(line.substr(pos + 1,line.length()));
 
 		if (name == "up")                action = UP;
 		else if (name == "down")         action = DOWN;
@@ -198,7 +199,7 @@ bool InputManager::readStream(std::istream & input) {
 			continue;
 		}
 
-		split(values, value, ",");
+		StringUtils::split(values, value, ",");
 		if (values.size() >= 2) {
 			if (values[0] == "joystickbutton" && values.size() == 3) {
 				InputMap map;

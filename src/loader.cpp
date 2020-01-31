@@ -45,14 +45,14 @@ bool Loader::fromFile() {
 		if (loaderConf.is_open()) {
 			std::string line;
 			while (getline(loaderConf, line, '\n')) {
-				line = trim(line);
+				line = StringUtils::trim(line);
                 if (0 == line.length()) continue;
                 if ('#' == line[0]) continue;
 				std::string::size_type pos = line.find("=");
                 if (std::string::npos == pos) continue;
                 
-				std::string name = trim(line.substr(0,pos));
-				std::string value = trim(line.substr(pos+1,line.length()));
+				std::string name = StringUtils::trim(line.substr(0,pos));
+				std::string value = StringUtils::trim(line.substr(pos+1,line.length()));
 
                 if (0 == value.length()) continue;
                 TRACE("key : value - %s : %s", name.c_str(), value.c_str());
@@ -81,7 +81,7 @@ bool Loader::fromFile() {
         if (!tempImages.empty()) {
             TRACE("found images : %s", tempImages.c_str());
             std::vector<std::string> temp;
-            split(temp, tempImages, ",");
+            StringUtils::split(temp, tempImages, ",");
             // load images into sc
             for(std::vector<std::string>::iterator it = temp.begin(); it != temp.end(); ++it) {
                 std::string name = *it;

@@ -25,6 +25,7 @@
 
 #include "filelister.h"
 #include "utilities.h"
+#include "stringutils.h"
 #include "esoteric.h"
 #include "debug.h"
 
@@ -54,7 +55,7 @@ const std::string &FileLister::getFilter() {
 }
 void FileLister::setFilter(const std::string &filter) {
 	TRACE("%s", this->filter.c_str());
-	this->filter = trim(filter);
+	this->filter = StringUtils::trim(filter);
 }
 
 void FileLister::browse() {
@@ -71,7 +72,7 @@ void FileLister::browse() {
 				ERROR("Error: opendir(%s)", this->path.c_str());
 			} else {
 				std::vector<std::string> vfilter;
-				split(vfilter, this->getFilter(), ",");
+				StringUtils::split(vfilter, this->getFilter(), ",");
 				TRACE("we have : %zu filters to deal with", vfilter.size());
 				std::string filepath, file;
 				struct stat st;

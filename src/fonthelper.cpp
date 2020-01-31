@@ -2,6 +2,7 @@
 
 #include "fonthelper.h"
 #include "utilities.h"
+#include "stringutils.h"
 #include "debug.h"
 
 FontHelper::FontHelper(const std::string &fontName, int fontSize, RGBAColor textColor, RGBAColor outlineColor)
@@ -121,7 +122,7 @@ uint32_t FontHelper::getLineWidth(const std::string &text) {
 uint32_t FontHelper::getTextWidth(const std::string &text) {
 	if (text.find("\n", 0) != std::string::npos) {
 		std::vector<std::string> textArr;
-		split(textArr, text, "\n");
+		StringUtils::split(textArr, text, "\n");
 		return getTextWidth(&textArr);
 	} else
 		return getLineWidth(text);
@@ -136,7 +137,7 @@ uint32_t FontHelper::getTextWidth(std::vector<std::string> *text) {
 
 int FontHelper::getTextHeight(const std::string &text) {
 	std::vector<std::string> textArr;
-	split(textArr,text,"\n");
+	StringUtils::split(textArr,text,"\n");
 	return textArr.size();
 }
 
@@ -165,7 +166,7 @@ void FontHelper::write(Surface *surface, std::vector<std::string> *text, int x, 
 void FontHelper::write(Surface* surface, const std::string &text, int x, int y, const uint8_t align, RGBAColor fgColor, RGBAColor bgColor) {
 	if (text.find("\n", 0) != std::string::npos) {
 		std::vector<std::string> textArr;
-		split(textArr,text, "\n");
+		StringUtils::split(textArr,text, "\n");
 		write(surface, &textArr, x, y, align, fgColor, bgColor);
 		return;
 	}

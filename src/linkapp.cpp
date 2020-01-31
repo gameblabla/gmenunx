@@ -36,6 +36,7 @@
 #include "imageio.h"
 #include "debug.h"
 #include "constants.h"
+#include "stringutils.h"
 
 static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
@@ -78,13 +79,13 @@ LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
 			while (std::getline(infile, line, '\n')) {
 
 				TRACE("read raw line : %s", line.c_str());
-				line = trim(line);
+				line = StringUtils::trim(line);
 				if (line.empty()) continue;
 				if (line[0] == '#') continue;
 
 				std::size_t position = line.find("=");
-				std::string name = toLower(trim(line.substr(0,position)));
-				std::string value = trim(line.substr(position+1));
+				std::string name = StringUtils::toLower(StringUtils::trim(line.substr(0, position)));
+				std::string value = StringUtils::trim(line.substr(position + 1));
 
 				try {
 					if (name == "clock") {
@@ -464,10 +465,10 @@ std::string LinkApp::resolveArgs(const std::string &selectedFile, const std::str
 			TRACE("no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
 			TRACE("params need handling : %s", this->getParams().c_str());
-			launchArgs = strreplace(params, "[selFullPath]", cmdclean(dir + selectedFile));
-			launchArgs = strreplace(launchArgs, "[selPath]", cmdclean(dir));
-			launchArgs = strreplace(launchArgs, "[selFile]", cmdclean(selectedFileName));
-			launchArgs = strreplace(launchArgs, "[selExt]", cmdclean(selectedFileExtension));
+			launchArgs = StringUtils::strReplace(params, "[selFullPath]", StringUtils::cmdClean(dir + selectedFile));
+			launchArgs = StringUtils::strReplace(launchArgs, "[selPath]", StringUtils::cmdClean(dir));
+			launchArgs = StringUtils::strReplace(launchArgs, "[selFile]", StringUtils::cmdClean(selectedFileName));
+			launchArgs = StringUtils::strReplace(launchArgs, "[selExt]", StringUtils::cmdClean(selectedFileExtension));
 			// if this is true, then we've made no subs, so we still need to add the selected file
 			if (this->getParams() == launchArgs) {
 				launchArgs += " \"" + dir + selectedFile + "\"";
@@ -510,7 +511,7 @@ void LinkApp::launch(std::string launchArgs) {
 	TRACE("standard file cmd lime : %s",  execute.c_str());
 
 	if (app->config->outputLogs()) {
-		execute += " 2>&1 | tee " + cmdclean(app->getWriteablePath()) + "log.txt";
+		execute += " 2>&1 | tee " + StringUtils::cmdClean(app->getWriteablePath()) + "log.txt";
 		TRACE("adding logging");
 	}
 	TRACE("final command : %s", execute.c_str());

@@ -25,6 +25,7 @@
 
 #include "translator.h"
 #include "debug.h"
+#include "stringutils.h"
 
 Translator::Translator(const std::string &lang) {
 	_path = "";
@@ -55,13 +56,13 @@ void Translator::setLang(const std::string &lang) {
 	TRACE("opening - %s", path.c_str());
 	std::ifstream infile (path.c_str(), std::ios_base::in);
 	if (infile.is_open()) {
-		while (getline(infile, line, '\n')) {
-			line = trim(line);
+		while (std::getline(infile, line, '\n')) {
+			line = StringUtils::trim(line);
 			if (line.empty()) continue;
 			if (line[0]=='#') continue;
 
 			std::string::size_type position = line.find("=");
-			translations[ trim(line.substr(0,position)) ] = trim(line.substr(position+1));
+			translations[ StringUtils::trim(line.substr(0, position)) ] = StringUtils::trim(line.substr(position + 1));
 		}
 		infile.close();
 		TRACE("read completed");
@@ -88,7 +89,7 @@ std::string Translator::translate(const std::string &term,const char *replacestr
 	while (param!=NULL) {
 		std::string id;
 		std::stringstream ss; ss << argnum; ss >> id;
-		result = strreplace(result,"$" + id,param);
+		result = StringUtils::strReplace(result,"$" + id,param);
 
 		param = va_arg(arglist,const char*);
 		argnum++;

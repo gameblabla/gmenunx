@@ -6,7 +6,8 @@
 #include <cstdlib>
 
 #include "debug.h"
-#include "utilities.h"
+#include "stringutils.h"
+
 #include "hw-clock.h"
 
 std::string IClock::getBuildDate() {
@@ -40,7 +41,7 @@ std::string IClock::getClockTime(bool is24hr) {
 std::string IClock::getDateTime() {
     TRACE("enter");
     this->refresh();
-    std::string result = string_format(
+    std::string result = StringUtils::stringFormat(
         "%i-%i-%i %i:%i", 
         this->getYear(), 
         this->getMonth(), 

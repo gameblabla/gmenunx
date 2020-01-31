@@ -38,20 +38,6 @@ public:
 	bool operator()(const std::string &left, const std::string &right) const;
 };
 
-std::string& ltrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-std::string& rtrim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-std::string& full_trim(std::string& str, const std::string& chars = "\t\n\v\f\r ");
-
-std::string trim(const std::string& s);
-std::string strreplace (std::string orig, const std::string &search, const std::string &replace);
-std::string cmdclean (std::string cmdline);
-
-char *string_copy(const std::string &);
-void string_copy(const std::string &, char **);
-
-template <typename T>
-std::string to_string( const T& value );
-
 int max (int a, int b);
 int min (int a, int b);
 int constrain(int x, int imin, int imax);
@@ -65,7 +51,6 @@ float max (float a, float b);
 float min (float a, float b);
 float constrain (float x, float imin, float imax);
 
-bool split (std::vector<std::string> &vec, const std::string &str, const std::string &delim, bool destructive=true);
 
 std::string exec(const char* cmd);
 std::string execute(const char* cmd);
@@ -73,10 +58,5 @@ std::string execute(const char* cmd);
 bool procWriter(std::string path, std::string value);
 bool procWriter(std::string path, int value);
 std::string fileReader(std::string path);
-
-std::string splitInLines(std::string source, std::size_t max_width, std::string whitespace = " \t\r");
-std::string string_format(const std::string fmt_str, ...);
-std::string stripQuotes(std::string const &input);
-std::string toLower(const std::string & input);
 
 #endif

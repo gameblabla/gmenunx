@@ -15,6 +15,7 @@
 
 #include "debug.h"
 #include "fileutils.h"
+#include "stringutils.h"
 #include "utilities.h"
 
 class ICpu {
@@ -326,7 +327,7 @@ class JZ4770GuvernorCpu : public JZ4770BasicCpu {
 
         std::string getValue() {
             std::string rawValue = fileReader(this->guvernorPath_);
-            this->currentValue_ = full_trim(rawValue);
+            this->currentValue_ = StringUtils::fullTrim(rawValue);
             return this->mapModeToDisplay(this->currentValue_);
         }
 

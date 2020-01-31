@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "debug.h"
-//#include "utilities.h"
+#include "stringutils.h"
 #include "fileutils.h"
 
 #include "hwfactory.h"
@@ -52,14 +52,14 @@ std::string HwFactory::readDeviceType() {
     std::string cmdLine = fileReader("/proc/cmdline");
     TRACE("cmdLine : %s", cmdLine.c_str());
     std::vector<std::string> cmdParts;
-    split(cmdParts, cmdLine, " ");
+    StringUtils::split(cmdParts, cmdLine, " ");
     for (std::vector<std::string>::iterator it = cmdParts.begin(); it != cmdParts.end(); it++) {
         std::string cmdPart = (*it);
 
         std::string::size_type pos = cmdPart.find("=");
         if (std::string::npos == pos) continue;
-        std::string name = trim(cmdPart.substr(0, pos));
-        std::string value = trim(cmdPart.substr(pos + 1, cmdPart.length()));
+        std::string name = StringUtils::trim(cmdPart.substr(0, pos));
+        std::string value = StringUtils::trim(cmdPart.substr(pos + 1, cmdPart.length()));
         if (0 == value.length()) continue;
 
         if (name == "hwvariant") {
@@ -81,8 +81,8 @@ std::string HwFactory::readDeviceType() {
     if (cpuInput.is_open()) {
         bool found = false;
         for (std::string rawLine; std::getline(cpuInput, rawLine); ) {
-            std::string trimLine = full_trim(rawLine);
-            trimLine = toLower(trimLine);
+            std::string trimLine = StringUtils::fullTrim(rawLine);
+            trimLine = StringUtils::toLower(trimLine);
             TRACE("cpu info line : %s", trimLine.c_str());
             if (std::string::npos != trimLine.find("gkd350")) {
                 found = true;
@@ -98,7 +98,7 @@ std::string HwFactory::readDeviceType() {
     // is it retro fw?
     if (FileUtils::fileExists("/etc/hostname")) {
         std::string host = fileReader("/etc/hostname");
-        host = toLower(full_trim(host));
+        host = StringUtils::toLower(StringUtils::fullTrim(host));
         TRACE("hostname : '%s'", host.c_str());
         if (0 == host.compare("retrofw")) {
             return "retrofw";
@@ -111,9 +111,9 @@ std::string HwFactory::readDeviceType() {
         TRACE("issue : '%s'", issue.c_str());
         bool isDingux = false;
         if (!issue.empty()) {
-            std::string lowerIssue = toLower(issue);
+            std::string lowerIssue = StringUtils::toLower(issue);
             std::vector<std::string> issueParts;
-            split(issueParts, lowerIssue, " ");
+            StringUtils::split(issueParts, lowerIssue, " ");
             for (std::vector<std::string>::iterator it = issueParts.begin(); it != issueParts.end(); it++) {
                 TRACE("checking token : '%s'", (*it).c_str());
                 if (0 == (*it).compare("opendingux")) {

@@ -19,6 +19,7 @@
  ***************************************************************************/
 #include <fstream>
 #include <sstream>
+
 #include "link.h"
 #include "menu.h"
 #include "selector.h"
@@ -59,10 +60,10 @@ void Link::setTitle(const std::string &title) {
 		// TODO :: maybe move to a format function, called after loading in LinkApp
 		// and called again after skin column change etc
 		std::string temp = std::string(title);
-		temp = strreplace(temp, "-", " ");
+		temp = StringUtils::strReplace(temp, "-", " ");
 		std::string::size_type pos = temp.find( "  ", 0 );
 		while (pos != std::string::npos) {
-			temp = strreplace(temp, "  ", " ");
+			temp = StringUtils::strReplace(temp, "  ", " ");
 			pos = temp.find( "  ", 0 );
 		};
 		int maxWidth = (app->linkWidth);

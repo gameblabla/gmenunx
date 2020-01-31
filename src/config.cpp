@@ -13,6 +13,7 @@
 #include "debug.h"
 #include "config.h"
 #include "utilities.h"
+#include "stringutils.h"
 
 #define sync() sync(); std::system("sync");
 
@@ -35,37 +36,37 @@ std::string Config::toString() {
     vec.push_back("");
 
     // strings
-    vec.push_back(string_format("skin=\"%s\"", this->skin().c_str()));
-    vec.push_back(string_format("tvOutMode=\"%s\"", this->tvOutMode().c_str()));
-    vec.push_back(string_format("lang=\"%s\"", this->lang().c_str()));
-    vec.push_back(string_format("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
-    vec.push_back(string_format("launcherPath=\"%s\"", this->launcherPath().c_str()));
-    vec.push_back(string_format("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
-    vec.push_back(string_format("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
-    vec.push_back(string_format("defaultCpuSpeed=\"%s\"", this->defaultCpuSpeed().c_str()));
+    vec.push_back(StringUtils::stringFormat("skin=\"%s\"", this->skin().c_str()));
+    vec.push_back(StringUtils::stringFormat("tvOutMode=\"%s\"", this->tvOutMode().c_str()));
+    vec.push_back(StringUtils::stringFormat("lang=\"%s\"", this->lang().c_str()));
+    vec.push_back(StringUtils::stringFormat("sectionFilter=\"%s\"", this->sectionFilter().c_str()));
+    vec.push_back(StringUtils::stringFormat("launcherPath=\"%s\"", this->launcherPath().c_str()));
+    vec.push_back(StringUtils::stringFormat("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
+    vec.push_back(StringUtils::stringFormat("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
+    vec.push_back(StringUtils::stringFormat("defaultCpuSpeed=\"%s\"", this->defaultCpuSpeed().c_str()));
 
     // ints
-    vec.push_back(string_format("buttonRepeatRate=%i", this->buttonRepeatRate()));
-    vec.push_back(string_format("resolutionX=%i", this->resolutionX()));
-    vec.push_back(string_format("resolutionY=%i", this->resolutionY()));
-    vec.push_back(string_format("videoBpp=%i", this->videoBpp()));
+    vec.push_back(StringUtils::stringFormat("buttonRepeatRate=%i", this->buttonRepeatRate()));
+    vec.push_back(StringUtils::stringFormat("resolutionX=%i", this->resolutionX()));
+    vec.push_back(StringUtils::stringFormat("resolutionY=%i", this->resolutionY()));
+    vec.push_back(StringUtils::stringFormat("videoBpp=%i", this->videoBpp()));
 
-    vec.push_back(string_format("backlightLevel=%i", this->backlightLevel()));
-    vec.push_back(string_format("backlightTimeout=%i", this->backlightTimeout()));
-    vec.push_back(string_format("powerTimeout=%i", this->powerTimeout()));
+    vec.push_back(StringUtils::stringFormat("backlightLevel=%i", this->backlightLevel()));
+    vec.push_back(StringUtils::stringFormat("backlightTimeout=%i", this->backlightTimeout()));
+    vec.push_back(StringUtils::stringFormat("powerTimeout=%i", this->powerTimeout()));
 
-    vec.push_back(string_format("globalVolume=%i", this->globalVolume()));
-    vec.push_back(string_format("aspectRatio=%i", this->aspectRatio()));
-    vec.push_back(string_format("outputLogs=%i", this->outputLogs()));
+    vec.push_back(StringUtils::stringFormat("globalVolume=%i", this->globalVolume()));
+    vec.push_back(StringUtils::stringFormat("aspectRatio=%i", this->aspectRatio()));
+    vec.push_back(StringUtils::stringFormat("outputLogs=%i", this->outputLogs()));
 
-    vec.push_back(string_format("saveSelection=%i", this->saveSelection()));
-    vec.push_back(string_format("section=%i", this->section()));
-    vec.push_back(string_format("link=%i", this->link()));
+    vec.push_back(StringUtils::stringFormat("saveSelection=%i", this->saveSelection()));
+    vec.push_back(StringUtils::stringFormat("section=%i", this->section()));
+    vec.push_back(StringUtils::stringFormat("link=%i", this->link()));
 
-    vec.push_back(string_format("respectHiddenLinks=%i", this->respectHiddenLinks()));
-    vec.push_back(string_format("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
+    vec.push_back(StringUtils::stringFormat("respectHiddenLinks=%i", this->respectHiddenLinks()));
+    vec.push_back(StringUtils::stringFormat("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
 
-    vec.push_back(string_format("version=%i", this->version()));
+    vec.push_back(StringUtils::stringFormat("version=%i", this->version()));
     
     std::string s;
     for (const auto &piece : vec) s += (piece + "\n");
@@ -201,40 +202,40 @@ bool Config::fromFile() {
 		std::ifstream confstream(fileName.c_str(), std::ios_base::in);
 		if (confstream.is_open()) {
 			std::string line;
-			while (getline(confstream, line, '\n')) {
+			while (std::getline(confstream, line, '\n')) {
                 try {
-                    line = trim(line);
+                    line = StringUtils::trim(line);
                     if (0 == line.length()) continue;
                     if ('#' == line[0]) continue;
                     std::string::size_type pos = line.find("=");
                     if (std::string::npos == pos) continue;
                     
-                    std::string name = trim(line.substr(0,pos));
-                    std::string value = trim(line.substr(pos+1,line.length()));
+                    std::string name = StringUtils::trim(line.substr(0,pos));
+                    std::string value = StringUtils::trim(line.substr(pos + 1, line.length()));
 
                     if (0 == value.length()) continue;
-                    name = toLower(name);
+                    name = StringUtils::toLower(name);
 
                     TRACE("handling kvp - %s = %s", name.c_str(), value.c_str());
 
                     try {
                         // strings
                         if (name == "externalapppath") {
-                            this->externalAppPath(stripQuotes(value));
+                            this->externalAppPath(StringUtils::stripQuotes(value));
                         } else if (name == "skin") {
-                            this->skin(stripQuotes(value));
+                            this->skin(StringUtils::stripQuotes(value));
                         } else if (name == "tvoutmode") {
-                            this->tvOutMode(stripQuotes(value));
+                            this->tvOutMode(StringUtils::stripQuotes(value));
                         } else if (name == "lang") {
-                            this->lang(stripQuotes(value));
+                            this->lang(StringUtils::stripQuotes(value));
                         } else if (name == "sectionfilter") {
-                            this->sectionFilter(stripQuotes(value));
+                            this->sectionFilter(StringUtils::stripQuotes(value));
                         } else if (name == "launcherpath") {
-                            this->launcherPath(stripQuotes(value));
+                            this->launcherPath(StringUtils::stripQuotes(value));
                         } else if (name == "cpumenu") {
-                            this->cpuMenu(stripQuotes(value));
+                            this->cpuMenu(StringUtils::stripQuotes(value));
                         } else if (name == "defaultcpuspeed") {
-                            this->defaultCpuSpeed(stripQuotes(value));
+                            this->defaultCpuSpeed(StringUtils::stripQuotes(value));
                         }
 
                         // ints

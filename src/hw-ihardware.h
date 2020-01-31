@@ -23,6 +23,7 @@
 
 #include "debug.h"
 #include "utilities.h"
+#include "stringutils.h"
 #include "hw-clock.h"
 #include "hw-soundcard.h"
 #include "hw-cpu.h"
@@ -44,6 +45,7 @@ class IHardware {
         std::string EXTERNAL_MOUNT_POINT;
         std::string EXTERNAL_MOUNT_FORMAT;// = "auto";
 
+        //  TODO :: procWriter?
         bool writeValueToFile(const std::string & path, const char *content) {
             bool result = false;
             int fd = open(path.c_str(), O_RDWR);
@@ -85,7 +87,7 @@ class IHardware {
             TRACE("enter");
             if (this->kernelVersion_.empty()) {
                 std::string kernel = exec("/bin/uname -r");
-                this->kernelVersion_ = full_trim(kernel);
+                this->kernelVersion_ = StringUtils::fullTrim(kernel);
             }
             TRACE("exit - %s", this->kernelVersion_.c_str());
             return this->kernelVersion_;
