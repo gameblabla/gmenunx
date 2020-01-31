@@ -78,7 +78,7 @@ int HwGkd350h::setBacklightLevel(int val) {
     if (val == this->backlightLevel_)
         return val;
 
-    if (procWriter(BACKLIGHT_PATH, val)) {
+    if (FileUtils::fileWriter(BACKLIGHT_PATH, val)) {
         TRACE("success");
     } else {
         ERROR("Couldn't update backlight value to : %i", val);

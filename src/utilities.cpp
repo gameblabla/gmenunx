@@ -117,24 +117,3 @@ std::string exec(const char* cmd) {
 std::string execute(const char* cmd) { 
 	return exec(cmd); 
 }
-
-bool procWriter(std::string path, std::string value) {
-	TRACE("%s - %s", path.c_str(), value.c_str());
-	if (FileUtils::fileExists(path)) {
-		TRACE("file exists");
-		std::ofstream str(path);
-		str << value;
-		str.close();
-		TRACE("success");
-		return true;
-	}
-	return false;
-}
-
-bool procWriter(std::string path, int value) {
-	std::stringstream ss;
-	std::string strVal;
-	ss << value;
-	std::getline(ss, strVal);
-	return procWriter(path, strVal);
-}

@@ -35,19 +35,16 @@ int max (int a, int b);
 int min (int a, int b);
 int constrain(int x, int imin, int imax);
 
+float max (float a, float b);
+float min (float a, float b);
+float constrain (float x, float imin, float imax);
+
 int evalIntConf (int val, int def, int imin, int imax);
 int evalIntConf (int *val, int def, int imin, int imax);
 const std::string &evalStrConf (const std::string &val, const std::string &def);
 const std::string &evalStrConf (std::string *val, const std::string &def);
 
-float max (float a, float b);
-float min (float a, float b);
-float constrain (float x, float imin, float imax);
-
 std::string exec(const char* cmd);
 std::string execute(const char* cmd);
-
-bool procWriter(std::string path, std::string value);
-bool procWriter(std::string path, int value);
 
 #endif

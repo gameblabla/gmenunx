@@ -35,6 +35,8 @@ class FileUtils {
 		static const int processPid(const std::string name);
 
 		static const std::string fileReader(std::string path);
+		static bool fileWriter(std::string path, std::string value);
+		static bool fileWriter(std::string path, int value);
 
 };
 

@@ -206,3 +206,25 @@ const std::string FileUtils::fileReader(std::string path) {
 	buf << str.rdbuf();
 	return buf.str();
 }
+
+bool FileUtils::fileWriter(std::string path, std::string value) {
+	TRACE("%s - %s", path.c_str(), value.c_str());
+	if (FileUtils::fileExists(path)) {
+		TRACE("file exists");
+		std::ofstream str(path);
+		str << value;
+		str.close();
+		TRACE("success");
+		return true;
+	}
+	return false;
+}
+
+bool FileUtils::fileWriter(std::string path, int value) {
+	std::stringstream ss;
+	std::string strVal;
+	ss << value;
+	std::getline(ss, strVal);
+	return FileUtils::fileWriter(path, strVal);
+}
+

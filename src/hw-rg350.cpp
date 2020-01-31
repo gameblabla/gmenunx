@@ -61,17 +61,17 @@ void HwRg350::ledOn(int flashSpeed) {
     int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
     std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
     TRACE("mode : %s - for %i", trigger.c_str(), limited);
-    procWriter(LED_TRIGGER_PATH, trigger);
-    procWriter(LED_DELAY_ON_PATH, limited);
-    procWriter(LED_DELAY_OFF_PATH, limited);
+    FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
+    FileUtils::fileWriter(LED_DELAY_ON_PATH, limited);
+    FileUtils::fileWriter(LED_DELAY_OFF_PATH, limited);
     TRACE("exit");
 }
 void HwRg350::ledOff() {
     TRACE("enter");
     std::string trigger = triggerToString(LedAllowedTriggers::NONE);
     TRACE("mode : %s", trigger.c_str());
-    procWriter(LED_TRIGGER_PATH, trigger);
-    procWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
+    FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
+    FileUtils::fileWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
     TRACE("exit");
     return;
 }
@@ -103,7 +103,7 @@ int HwRg350::setBacklightLevel(int val) {
     int deviceVal = (int)(val * (255.0f / 100));
     TRACE("device value : %i", deviceVal);
 
-    if (procWriter(BACKLIGHT_PATH, deviceVal)) {
+    if (FileUtils::fileWriter(BACKLIGHT_PATH, deviceVal)) {
         TRACE("success");
     } else {
         ERROR("Couldn't update backlight value to : %i", deviceVal);
@@ -129,7 +129,7 @@ bool HwRg350::getKeepAspectRatio() {
 bool HwRg350::setKeepAspectRatio(bool val) {
     TRACE("enter - %i", val);
     std::string payload = val ? "Y" : "N";
-    if (procWriter(ASPECT_RATIO_PATH, payload)) {
+    if (FileUtils::fileWriter(ASPECT_RATIO_PATH, payload)) {
         TRACE("success");
     } else {
         ERROR("Couldn't update aspect ratio value to : '%s'", payload.c_str());

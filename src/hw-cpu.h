@@ -343,7 +343,7 @@ class JZ4770GuvernorCpu : public JZ4770BasicCpu {
             TRACE("internal desired : %s", mode.c_str());
             if (mode != this->currentValue_) {
                 TRACE("update needed : current '%s' vs. desired '%s'", this->currentValue_.c_str(), mode.c_str());
-                procWriter(this->guvernorPath_, mode);
+                FileUtils::fileWriter(this->guvernorPath_, mode);
                 this->currentValue_ = mode;
                 result = true;
             } else {
