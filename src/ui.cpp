@@ -1,3 +1,6 @@
+#include <math.h>
+#include <SDL_timer.h>
+
 #include "ui.h"
 
 int UI::drawButton(Button *btn, int x, int y) {
@@ -102,4 +105,11 @@ void UI::drawSlider(int val, int min, int max, Surface &icon, Surface &bg) {
 		progress.h - 2, 
 		this->app->skin->colours.msgBoxSelection);
 	this->app->screen->flip();
+}
+
+int UI::intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t tickNow) {
+	if (tickNow < 0) tickNow = SDL_GetTicks();
+	float elapsed = (float)(tickNow-tickStart)/duration;
+	//                    elapsed                 increments
+	return min((int)round(elapsed * (to - from)), (int)max(from, to));
 }

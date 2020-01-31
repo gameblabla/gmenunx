@@ -67,8 +67,6 @@ float constrain (float x, float imin, float imax);
 
 bool split (std::vector<std::string> &vec, const std::string &str, const std::string &delim, bool destructive=true);
 
-int intTransition(int from, int to, int32_t tickStart, int32_t duration = 500, int32_t tickNow = -1);
-
 std::string exec(const char* cmd);
 std::string execute(const char* cmd);
 

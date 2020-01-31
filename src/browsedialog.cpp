@@ -92,10 +92,12 @@ bool BrowseDialog::exec() {
 		}
 
 		// preview
-		std::string filename = this->fl->getPath() + "/" + getFile();
 		std::string ext = this->getExtensionToLower();
 
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
+
+			std::string filename = this->fl->getPath() + "/" + getFile();
+
 			app->screen->box(
 				320 - animation, 
 				app->listRect.y, 
@@ -121,7 +123,7 @@ bool BrowseDialog::exec() {
 				240);
 
 			if (animation < app->skin->previewWidth) {
-				animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
+				animation = UI::intTransition(0, app->skin->previewWidth, tickStart, 110);
 				app->screen->flip();
 				continue;
 			}
@@ -134,7 +136,7 @@ bool BrowseDialog::exec() {
 					app->listRect.h, 
 					app->skin->colours.titleBarBackground
 				);
-				animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
+				animation = app->skin->previewWidth - UI::intTransition(0, app->skin->previewWidth, tickStart, 80);
 				app->screen->flip();
 				continue;
 			}

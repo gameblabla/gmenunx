@@ -2072,7 +2072,7 @@ void Esoteric::contextMenu() {
 		screen->flip();
 
 		if (fadeAlpha < 200) {
-			fadeAlpha = intTransition(0, 200, tickStart, 200);
+			fadeAlpha = UI::intTransition(0, 200, tickStart, 200);
 			continue;
 		}
 		do {

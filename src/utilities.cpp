@@ -201,14 +201,6 @@ std::string cmdclean(std::string cmdline) {
 	return cmdline;
 }
 
-// TODO :: move to static in ui
-int intTransition(int from, int to, int32_t tickStart, int32_t duration, int32_t tickNow) {
-	if (tickNow < 0) tickNow = SDL_GetTicks();
-	float elapsed = (float)(tickNow-tickStart)/duration;
-	//                    elapsed                 increments
-	return min((int)round(elapsed * (to - from)), (int)max(from, to));
-}
-
 std::string exec(const char* cmd) {
 	TRACE("exec - enter : %s", cmd);
 	FILE* pipe = popen(cmd, "r");

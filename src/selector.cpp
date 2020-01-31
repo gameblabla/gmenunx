@@ -208,7 +208,7 @@ int Selector::exec(int startSelection) {
 						220);
 
 					if (animation < app->skin->previewWidth) {
-						animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
+						animation = UI::intTransition(0, app->skin->previewWidth, tickStart, 110);
 						app->screen->flip();
 						continue;
 					}
@@ -224,7 +224,7 @@ int Selector::exec(int startSelection) {
 							app->listRect.h, 
 							app->skin->colours.titleBarBackground);
 			
-						animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
+						animation = app->skin->previewWidth - UI::intTransition(0, app->skin->previewWidth, tickStart, 80);
 						app->screen->flip();
 						continue;
 					}
