@@ -64,7 +64,7 @@ std::vector<std::string> Skin::getSkins(std::string assetsPath) {
             }
         }
         closedir(dirp);
-        sort(result.begin(), result.end(), case_less());
+        sort(result.begin(), result.end(), caseLess());
     }
     return result;
 }
@@ -309,7 +309,7 @@ std::vector<std::string> Skin::getWallpapers() {
 		}
     }
 	closedir(dirp);
-	sort(results.begin(), results.end(), case_less());
+	sort(results.begin(), results.end(), caseLess());
     TRACE("exit - found %zu wallpapers for skin %s", results.size(), this->name.c_str());
     return results;
 }

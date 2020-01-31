@@ -154,8 +154,8 @@ void FileLister::browse() {
 				}
 
 				closedir(dirp);
-				std::sort(this->files.begin(), this->files.end(), case_less());
-				std::sort(this->directories.begin(), this->directories.end(), case_less());
+				std::sort(this->files.begin(), this->files.end(), caseLess());
+				std::sort(this->directories.begin(), this->directories.end(), caseLess());
 			}
 		}
 		// add a dir up option at the front if not excluded

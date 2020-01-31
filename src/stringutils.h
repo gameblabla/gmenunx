@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+class caseLess {
+    public:
+        bool operator()(const std::string &left, const std::string &right) const;
+};
+
 class StringUtils {
 
     public:

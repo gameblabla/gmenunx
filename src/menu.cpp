@@ -89,7 +89,7 @@ Menu::Menu(Esoteric *app) {
 	this->addSection("applications");
 
 	TRACE("sort sections");
-	std::sort(sections.begin(), sections.end(), case_less());
+	std::sort(sections.begin(), sections.end(), caseLess());
 	TRACE("set index 0");
 	this->setSectionIndex(0);
 	TRACE("read links");
@@ -520,7 +520,7 @@ void Menu::readLinks() {
 		}
 
 		TRACE("sorting links");
-		std::sort(linkfiles.begin(), linkfiles.end(), case_less());
+		std::sort(linkfiles.begin(), linkfiles.end(), caseLess());
 		TRACE("links sorted");
 
 		TRACE("validating %zu links exist", linkfiles.size());

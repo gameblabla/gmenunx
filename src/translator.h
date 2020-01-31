@@ -20,7 +20,8 @@
 #ifndef TRANSLATOR_H
 #define TRANSLATOR_H
 
-#include "utilities.h"
+#include <string>
+#include <tr1/unordered_map>
 
 /**
 Hash Map of translation strings.
@@ -41,7 +42,7 @@ public:
 	void setLang(const std::string &lang);
 	void setPath(const std::string &path);
 	bool exists(const std::string &term);
-	std::string translate(const std::string &term,const char *replacestr=NULL,...);
+	std::string translate(const std::string &term,const char *replacestr = NULL,...);
 	std::string operator[](const std::string &term);
 };
 

@@ -22,8 +22,6 @@
 #define UTILITIES_H
 
 #include <string>
-#include <vector>
-#include <tr1/unordered_map>
 
 #ifndef NULL
 #ifdef __cplusplus
@@ -32,11 +30,6 @@
 #define NULL ((void *)0)
 #endif
 #endif /* NULL */
-
-class case_less {
-public:
-	bool operator()(const std::string &left, const std::string &right) const;
-};
 
 int max (int a, int b);
 int min (int a, int b);

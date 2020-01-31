@@ -46,10 +46,6 @@
 #define PATH_MAX 2048
 #endif
 
-bool case_less::operator()(const std::string &left, const std::string &right) const {
-	return strcasecmp(left.c_str(), right.c_str()) < 0;
-}
-
 int max(int a, int b) {
 	return a > b ? a : b;
 }

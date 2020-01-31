@@ -7,6 +7,10 @@
 #include "stringutils.h"
 #include "debug.h"
 
+bool caseLess::operator()(const std::string &left, const std::string &right) const {
+	return strcasecmp(left.c_str(), right.c_str()) < 0;
+}
+
 std::string& StringUtils::lTrim(std::string& str, const std::string& chars) {
     str.erase(0, str.find_first_not_of(chars));
     return str;
