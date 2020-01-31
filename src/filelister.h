@@ -28,9 +28,11 @@ class FileLister {
 private:
 	std::string path, filter;
 	std::vector<std::string> directories, files, excludes;
+	bool showHidden;
 
 public:
 	bool showDirectories, showFiles, allowDirUp = true;
+
 	FileLister(const std::string &startPath = "/media/", bool showDirectories = true, bool showFiles = true);
 	void browse();
 
@@ -51,6 +53,8 @@ public:
 	const std::vector<std::string> &getFiles() { return files; }
 	void insertFile(const std::string &file);
 	void addExclude(const std::string &exclude);
+
+	void toggleHidden();
 };
 
 #endif /*FILELISTER_H_*/

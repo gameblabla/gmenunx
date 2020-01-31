@@ -31,7 +31,12 @@
 FileLister::FileLister(const std::string &startPath, bool showDirectories, bool showFiles)
 	: showDirectories(showDirectories), showFiles(showFiles) {
 
+	this->showHidden = false;
 	this->setPath(startPath, false);
+}
+
+void FileLister::toggleHidden() {
+	this->showHidden = !this->showHidden;
 }
 
 const std::string &FileLister::getPath() {
@@ -76,8 +81,15 @@ void FileLister::browse() {
 				while ((dptr = readdir(dirp))) {
 					file = dptr->d_name;
 					TRACE("raw result : %s", file.c_str());
-					// skip self and hidden dirs
-					if (file[0] == '.') continue;
+
+					if (file[0] == '.') {
+						// test and maybe skip hidden dirs
+						if (!this->showHidden) continue;
+						// always skip self and up, which might get injected later
+						if (0 == file.compare(".")) continue;
+						if (0 == file.compare("..")) continue;
+					}
+
 					// checked supressed list
 					if (anyExcludes) {
 						if (find(this->excludes.begin(), this->excludes.end(), file) != this->excludes.end()) {

@@ -523,9 +523,9 @@ bool InputManager::isActive(int action) {
 				}
 				break;
 			case InputManager::MAPPING_TYPE_KEYCOMBO:
-				TRACE("key combo test for action %i", action);
+				//TRACE("key combo test for action %i", action);
 				if (this->isKeyCombo(map.combo)) {
-					TRACE("combo hit for action %i", action);
+					//TRACE("combo hit for action %i", action);
 					return true;
 				}
 				break;

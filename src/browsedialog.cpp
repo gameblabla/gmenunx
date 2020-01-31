@@ -3,8 +3,6 @@
 #include "debug.h"
 #include "constants.h"
 
-#include <algorithm>
-
 BrowseDialog::BrowseDialog(Esoteric *app, const std::string &title, const std::string &description, const std::string &icon)
 : Dialog(app), title(title), description(description), icon(icon) {
 	
@@ -19,81 +17,108 @@ BrowseDialog::BrowseDialog(Esoteric *app, const std::string &title, const std::s
 }
 
 BrowseDialog::~BrowseDialog() {
-	delete fl;
+	delete this->fl;
 }
 
 bool BrowseDialog::exec() {
 	TRACE("enter");
-	if (!fl) return false;
+	if (!this->fl) return false;
 
-	this->bg = new Surface(app->bg); // needed to redraw on child screen return
+	this->bg = new Surface(this->app->bg); // needed to redraw on child screen return
 
-	Surface *iconGoUp = app->sc->skinRes("imgs/go-up.png");
-	Surface *iconFolder = app->sc->skinRes("imgs/folder.png");
-	Surface *iconFile = app->sc->skinRes("imgs/file.png");
+	Surface *iconGoUp = this->app->sc->skinRes("imgs/go-up.png");
+	Surface *iconFolder = this->app->sc->skinRes("imgs/folder.png");
+	Surface *iconFile = this->app->sc->skinRes("imgs/file.png");
 
-	std::string path = fl->getPath();
+	std::string path = this->fl->getPath();
 	if (path.empty() || !FileUtils::dirExists(path)) {
 		setPath(EXTERNAL_CARD_PATH);
 	}
 
-	fl->browse();
+	this->fl->browse();
 
-	selected = 0;
-	close = false;
+	this->selected = 0;
+	this->close = false;
 	bool inputAction = false;
 
 	uint32_t i, iY, firstElement = 0, animation = 0, padding = 6;
-	uint32_t rowHeight = app->font->getHeight() + 1;
-	uint32_t numRows = (app->listRect.h - 2)/rowHeight - 1;
+	uint32_t rowHeight = this->app->font->getHeight() + 1;
+	uint32_t numRows = (this->app->listRect.h - 2) / rowHeight - 1;
 
-	drawTopBar(this->bg, title, description, icon);
-	drawBottomBar(this->bg);
-	this->bg->box(app->listRect, app->skin->colours.listBackground);
+	this->drawTopBar(this->bg, this->title, this->description, this->icon);
+	this->drawBottomBar(this->bg);
+	this->bg->box(this->app->listRect, this->app->skin->colours.listBackground);
 
-	if (!showFiles && allowSelectDirectory) {
-		app->ui->drawButton(this->bg, "start", app->tr["Select"]);
+	if (!this->showFiles && this->allowSelectDirectory) {
+		this->app->ui->drawButton(this->bg, "start", app->tr["Select"]);
 	} else {
-		app->ui->drawButton(
-			this->bg, "start", app->tr["Exit"],
-			app->ui->drawButton(this->bg, "b", app->tr["Up"], 
-			app->ui->drawButton(this->bg, "a", app->tr["Select"]))
+		this->app->ui->drawButton(this->bg, "start", app->tr["Exit"],
+			this->app->ui->drawButton(this->bg, "x", app->tr["Hidden"], 
+			this->app->ui->drawButton(this->bg, "b", app->tr["Up"], 
+			this->app->ui->drawButton(this->bg, "a", app->tr["Select"])))
 		);
 	}
-
+	
 	uint32_t tickStart = SDL_GetTicks();
-	while (!close) {
-		this->bg->blit(app->screen,0,0);
+	while (!this->close) {
+		this->bg->blit(this->app->screen,0,0);
 		// buttonBox.paint(5);
 
 		//Selection
-		if (selected >= firstElement + numRows) firstElement = selected - numRows;
-		if (selected < firstElement) firstElement = selected;
+		if (this->selected >= firstElement + numRows) firstElement = this->selected - numRows;
+		if (this->selected < firstElement) firstElement = this->selected;
 
 		//Files & Directories
-		iY = app->listRect.y + 1;
-		for (i = firstElement; i < fl->size() && i <= firstElement + numRows; i++, iY += rowHeight) {
-			if (i == selected) app->screen->box(app->listRect.x, iY, app->listRect.w, rowHeight, app->skin->colours.selectionBackground);
-			if (fl->isDirectory(i)) {
-				if ((*fl)[i] == "..")
-					iconGoUp->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
-				else
-					iconFolder->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
-			} else {
-				iconFile->blit(app->screen, app->listRect.x + 10, iY + rowHeight/2, HAlignCenter | VAlignMiddle);
+		iY = this->app->listRect.y + 1;
+		for (i = firstElement; i < this->fl->size() && i <= firstElement + numRows; i++, iY += rowHeight) {
+			if (i == this->selected) {
+				this->app->screen->box(
+					this->app->listRect.x, 
+					iY, 
+					this->app->listRect.w, 
+					rowHeight, 
+					this->app->skin->colours.selectionBackground);
 			}
-			app->screen->write(app->font, (*fl)[i], app->listRect.x + 21, iY + rowHeight/2, VAlignMiddle);
+
+			if (this->fl->isDirectory(i)) {
+				if ((*this->fl)[i] == "..")
+					iconGoUp->blit(this->app->screen, this->app->listRect.x + 10, iY + rowHeight / 2, HAlignCenter | VAlignMiddle);
+				else
+					iconFolder->blit(this->app->screen, this->app->listRect.x + 10, iY + rowHeight / 2, HAlignCenter | VAlignMiddle);
+			} else {
+				iconFile->blit(this->app->screen, this->app->listRect.x + 10, iY + rowHeight / 2, HAlignCenter | VAlignMiddle);
+			}
+			this->app->screen->write(this->app->font, (*this->fl)[i], this->app->listRect.x + 21, iY + rowHeight / 2, VAlignMiddle);
 		}
 
 		// preview
-		std::string filename = fl->getPath() + "/" + getFile();
-		std::string ext = getExt();
+		std::string filename = this->fl->getPath() + "/" + getFile();
+		std::string ext = this->getExtensionToLower();
 
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
-			app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
+			app->screen->box(
+				320 - animation, 
+				app->listRect.y, 
+				app->skin->previewWidth, 
+				app->listRect.h, 
+				app->skin->colours.titleBarBackground);
 
-			(*app->sc)[filename]->softStretch(app->skin->previewWidth - 2 * padding, app->listRect.h - 2 * padding, true, false);
-			(*app->sc)[filename]->blit(app->screen, {320 - animation + padding, app->listRect.y + padding, app->skin->previewWidth - 2 * padding, app->listRect.h - 2 * padding}, HAlignCenter | VAlignMiddle, 240);
+			(*app->sc)[filename]->softStretch(
+				app->skin->previewWidth - 2 * padding, 
+				app->listRect.h - 2 * padding, 
+				true, 
+				false);
+
+			(*app->sc)[filename]->blit(
+				app->screen, 
+				{ 
+					320 - animation + padding, 
+					app->listRect.y + padding, 
+					app->skin->previewWidth - 2 * padding, 
+					app->listRect.h - 2 * padding 
+				}, 
+				HAlignCenter | VAlignMiddle, 
+				240);
 
 			if (animation < app->skin->previewWidth) {
 				animation = intTransition(0, app->skin->previewWidth, tickStart, 110);
@@ -102,30 +127,38 @@ bool BrowseDialog::exec() {
 			}
 		} else {
 			if (animation > 0) {
-				app->screen->box(320 - animation, app->listRect.y, app->skin->previewWidth, app->listRect.h, app->skin->colours.titleBarBackground);
+				app->screen->box(
+					320 - animation, 
+					app->listRect.y, 
+					app->skin->previewWidth, 
+					app->listRect.h, 
+					app->skin->colours.titleBarBackground
+				);
 				animation = app->skin->previewWidth - intTransition(0, app->skin->previewWidth, tickStart, 80);
 				app->screen->flip();
 				continue;
 			}
 		}
-		app->ui->drawScrollBar(numRows, fl->size(), firstElement, app->listRect);
-		app->screen->flip();
+		
+		this->app->ui->drawScrollBar(numRows, fl->size(), firstElement, app->listRect);
+		this->app->screen->flip();
 
 		do {
-			inputAction = app->inputManager->update();
+			inputAction = this->app->inputManager->update();
 			if (inputAction) tickStart = SDL_GetTicks();
 
-			uint32_t action = getAction();
+			uint32_t action = this->getAction();
 
 		// if (action == BD_ACTION_SELECT && (*fl)[selected] == "..")
 			// action = BD_ACTION_GOUP;
 			switch (action) {
 				case BD_ACTION_CANCEL:
-					cancel();
+					this->cancel();
 					break;
 				case BD_ACTION_CLOSE:
-					if (allowSelectDirectory && fl->isDirectory(selected)) confirm();
-					else cancel();
+					if (this->allowSelectDirectory && this->fl->isDirectory(selected)) 
+						this->confirm();
+					else this->cancel();
 					break;
 				case BD_ACTION_UP:
 					selected -= 1;
@@ -139,34 +172,36 @@ bool BrowseDialog::exec() {
 					selected -= numRows;
 					if (selected < 0) selected = 0;
 					break;
+				case BD_ACTION_TOGGLE_HIDDEN:
+					this->toggleHidden();
+					break;
 				case BD_ACTION_PAGEDOWN:
 					selected += numRows;
 					if (selected >= fl->size()) selected = fl->size() - 1;
 					break;
 				case BD_ACTION_GOUP:
-					directoryUp();
+					this->directoryUp();
 					break;
 				case BD_ACTION_SELECT:
-					if (fl->isDirectory(selected)) {
-						directoryEnter();
+					if (this->fl->isDirectory(selected)) {
+						this->directoryEnter();
 						break;
 					}
-			/* Falltrough */
+				// fall-through
 				case BD_ACTION_CONFIRM:
-					confirm();
+					this->confirm();
 					break;
 				default:
 					break;
 			}
 		} while (!inputAction);
-	}
+	};
 	return result;
 }
 
 uint32_t BrowseDialog::getAction() {
 	TRACE("enter");
 	uint32_t action = BD_NO_ACTION;
-
 	if ((*app->inputManager)[SETTINGS]) action = BD_ACTION_CLOSE;
 	else if ((*app->inputManager)[UP]) action = BD_ACTION_UP;
 	else if ((*app->inputManager)[PAGEUP] || (*app->inputManager)[LEFT]) action = BD_ACTION_PAGEUP;
@@ -175,57 +210,55 @@ uint32_t BrowseDialog::getAction() {
 	else if ((*app->inputManager)[CANCEL]) action = BD_ACTION_GOUP;
 	else if ((*app->inputManager)[CONFIRM]) action = BD_ACTION_SELECT;
 	else if ((*app->inputManager)[CANCEL] || (*app->inputManager)[MENU]) action = BD_ACTION_CANCEL;
+	else if ((*app->inputManager)[DEC]) action = BD_ACTION_TOGGLE_HIDDEN;
 	return action;
 }
 
 void BrowseDialog::directoryUp() {
-	std::string path = fl->getPath();
+	std::string path = this->fl->getPath();
 	std::string::size_type p = path.rfind("/");
 	if (p == path.size() - 1) p = path.rfind("/", p - 1);
-	selected = 0;
-	setPath("/" + path.substr(0, p));
+	this->selected = 0;
+	this->setPath("/" + path.substr(0, p));
+}
+
+void BrowseDialog::toggleHidden() {
+	this->fl->toggleHidden();
+	this->fl->browse();
 }
 
 void BrowseDialog::directoryEnter() {
 	std::string path = fl->getPath();
-	setPath(path + "/" + fl->at(selected));
-	selected = 0;
+	this->setPath(path + "/" + this->fl->at(this->selected));
+	this->selected = 0;
 }
 
 void BrowseDialog::confirm() {
-	result = true;
-	close = true;
+	this->result = true;
+	this->close = true;
 }
 
 void BrowseDialog::cancel() {
-	result = false;
-	close = true;
+	this->result = false;
+	this->close = true;
 }
 
-const std::string BrowseDialog::getExt() {
-	std::string filename = (*fl)[selected];
-	std::string ext = "";
-	std::string::size_type pos = filename.rfind(".");
-	if (pos != std::string::npos && pos > 0) {
-		ext = filename.substr(pos, filename.length());
-		transform(ext.begin(), ext.end(), ext.begin(), (int(*)(int)) tolower);
-	}
-	return ext;
+const std::string BrowseDialog::getExtensionToLower() {
+	return FileUtils::fileExtension((*this->fl)[this->selected]);
 }
 
 void BrowseDialog::setPath(const std::string &path) {
-	fl->showDirectories = showDirectories;
-	fl->showFiles = showFiles;
-	fl->setPath(path, true);
-	onChangeDir();
+	this->fl->showDirectories = showDirectories;
+	this->fl->showFiles = showFiles;
+	this->fl->setPath(path, true);
+	this->onChangeDir();
 }
-
 const std::string &BrowseDialog::getPath() {
-	return fl->getPath();
+	return this->fl->getPath();
 }
 std::string BrowseDialog::getFile() {
-	return (*fl)[selected];
+	return (*this->fl)[selected];
 }
 void BrowseDialog::setFilter(const std::string &filter) {
-	fl->setFilter(filter);
+	this->fl->setFilter(filter);
 }

@@ -1689,7 +1689,7 @@ void Esoteric::explorer() {
 
 	bool loop = true;
 	while (fd.exec() && loop) {
-		std::string ext = fd.getExt();
+		std::string ext = fd.getExtensionToLower();
 		if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif") {
 			ImageViewerDialog im(this, tr["Image viewer"], fd.getFile(), "icons/explorer.png", fd.getPath() + "/" + fd.getFile());
 			im.exec();

@@ -45,6 +45,7 @@ private:
 		BD_ACTION_DOWN,
 		BD_ACTION_PAGEUP,
 		BD_ACTION_PAGEDOWN,
+		BD_ACTION_TOGGLE_HIDDEN, 
 		BD_ACTION_GOUP,
 		BD_ACTION_CONFIRM,
 		BD_ACTION_CANCEL,
@@ -54,6 +55,7 @@ private:
 	std::string title, description, icon;
 
 	uint32_t getAction();
+	void toggleHidden();
 	void directoryUp();
 	void directoryEnter();
 	void confirm();
@@ -68,7 +70,7 @@ public:
 	const std::string &getPath();
 	std::string getFile();
 
-	const std::string getExt();
+	const std::string getExtensionToLower();
 
 	void setFilter(const std::string &filter);
 
