@@ -44,7 +44,4 @@ int evalIntConf (int *val, int def, int imin, int imax);
 const std::string &evalStrConf (const std::string &val, const std::string &def);
 const std::string &evalStrConf (std::string *val, const std::string &def);
 
-std::string exec(const char* cmd);
-std::string execute(const char* cmd);
-
 #endif

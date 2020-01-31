@@ -203,7 +203,7 @@ void TextDialog::appendCommand(const std::string &executable, const std::string 
 		if (args.length() > 0) {
 			final += " " + args;
 		}
-		this->rawText += execute(final.c_str());
+		this->rawText += FileUtils::execute(final.c_str());
 	}
 	TRACE("exit");
 }

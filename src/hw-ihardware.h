@@ -86,7 +86,7 @@ class IHardware {
         virtual std::string getKernelVersion() {
             TRACE("enter");
             if (this->kernelVersion_.empty()) {
-                std::string kernel = exec("/bin/uname -r");
+                std::string kernel = FileUtils::execute("/bin/uname -r");
                 this->kernelVersion_ = StringUtils::fullTrim(kernel);
             }
             TRACE("exit - %s", this->kernelVersion_.c_str());
@@ -108,7 +108,7 @@ class IHardware {
         std::string mountSd() {
             TRACE("enter");
             std::string command = "mount -t " + EXTERNAL_MOUNT_FORMAT + " " + EXTERNAL_MOUNT_DEVICE + " " + EXTERNAL_MOUNT_POINT + " 2>&1";
-            std::string result = exec(command.c_str());
+            std::string result = FileUtils::execute(command.c_str());
             TRACE("result : %s", result.c_str());
             std::system("sleep 1");
             this->checkUDC();
@@ -118,7 +118,7 @@ class IHardware {
         std::string umountSd() {
             sync();
             std::string command = "umount -fl " + EXTERNAL_MOUNT_POINT + " 2>&1";
-            std::string result = exec(command.c_str());
+            std::string result = FileUtils::execute(command.c_str());
             std::system("sleep 1");
             this->checkUDC();
             return result;
@@ -279,8 +279,8 @@ class IHardware {
         virtual bool setScreenState(const bool &enable) = 0;
 
         virtual std::string systemInfo() {
-            std::string result = execute("/usr/bin/uname -a");
-            result += execute("/usr/bin/lshw -short 2>/dev/null");
+            std::string result = FileUtils::execute("/usr/bin/uname -a");
+            result += FileUtils::execute("/usr/bin/lshw -short 2>/dev/null");
             return result;
         };
 

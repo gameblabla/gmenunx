@@ -14,6 +14,10 @@
 #include "stringutils.h"
 #include "utilities.h"
 
+#ifndef PATH_MAX
+#define PATH_MAX 2048
+#endif
+
 // returns a filename minus the dot extension part
 std::string FileUtils::fileBaseName(const std::string &filename) {
     std::string::size_type i = filename.rfind(".");
@@ -228,3 +232,22 @@ bool FileUtils::fileWriter(std::string path, int value) {
 	return FileUtils::fileWriter(path, strVal);
 }
 
+std::string FileUtils::execute(const char* cmd) { 
+	TRACE("enter : %s", cmd);
+	FILE* pipe = popen(cmd, "r");
+	if (!pipe) {
+		TRACE("couldn't get a pipe");
+		return "";
+	}
+	char buffer[128];
+	std::string result = "";
+	while (!feof(pipe)) {
+		if (fgets(buffer, sizeof buffer, pipe) != NULL) {
+			result += buffer;
+		}
+	}
+	pclose(pipe);
+	result = StringUtils::fullTrim(result);
+	TRACE("exit : %s", result.c_str());
+	return result;
+}

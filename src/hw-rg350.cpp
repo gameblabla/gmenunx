@@ -150,7 +150,7 @@ bool HwRg350::setScreenState(const bool &enable) {
 std::string HwRg350::systemInfo() {
     TRACE("append - command /usr/bin/system_info");
     if (FileUtils::fileExists("/usr/bin/system_info")) {
-        return execute("/usr/bin/system_info") + "\n";
+        return FileUtils::execute("/usr/bin/system_info") + "\n";
     }
     return IHardware::systemInfo();
 }

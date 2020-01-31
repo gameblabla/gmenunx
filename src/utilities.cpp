@@ -18,33 +18,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//for browsing the filesystem
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <errno.h>
-#include <memory>
-#include <algorithm>
-
-#include <SDL.h>
+#include <string>
 
 #include "utilities.h"
-#include "fileutils.h"
-#include "stringutils.h"
-
-#include "debug.h"
-
-#ifndef PATH_MAX
-#define PATH_MAX 2048
-#endif
 
 int max(int a, int b) {
 	return a > b ? a : b;
@@ -90,30 +66,4 @@ const std::string &evalStrConf(const std::string &val, const std::string &def) {
 const std::string &evalStrConf(std::string *val, const std::string &def) {
 	*val = evalStrConf(*val, def);
 	return *val;
-}
-
-
-std::string exec(const char* cmd) {
-	TRACE("exec - enter : %s", cmd);
-	FILE* pipe = popen(cmd, "r");
-	if (!pipe) {
-		TRACE("couldn't get a pipe");
-		return "";
-	}
-	char buffer[128];
-	std::string result = "";
-	while (!feof(pipe)) {
-		if(fgets(buffer, sizeof buffer, pipe) != NULL) {
-			//TRACE("exec - buffer : %s", buffer);
-			result += buffer;
-		}
-	}
-	pclose(pipe);
-	result = StringUtils::fullTrim(result);
-	TRACE("exec - exit : %s", result.c_str());
-	return result;
-}
-
-std::string execute(const char* cmd) { 
-	return exec(cmd); 
 }

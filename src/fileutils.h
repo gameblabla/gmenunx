@@ -38,6 +38,8 @@ class FileUtils {
 		static bool fileWriter(std::string path, std::string value);
 		static bool fileWriter(std::string path, int value);
 
+		static std::string execute(const char* cmd);
+
 };
 
 
