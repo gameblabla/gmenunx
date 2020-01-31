@@ -23,7 +23,7 @@
 
 #include "debug.h"
 #include "utilities.h"
-#include "iclock.h"
+#include "hw-clock.h"
 #include "hw-soundcard.h"
 #include "hw-cpu.h"
 #include "hw-power.h"

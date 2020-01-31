@@ -4,7 +4,7 @@
 #include <linux/rtc.h>
 #include <string>
 
-#include "iclock.h"
+#include "hw-clock.h"
 
 class RTC : IClock {
 

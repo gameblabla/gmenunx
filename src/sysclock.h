@@ -4,7 +4,7 @@
 #include <string>
 #include <time.h>
 
-#include "iclock.h"
+#include "hw-clock.h"
 
 class SysClock : IClock {
 

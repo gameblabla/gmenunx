@@ -51,6 +51,10 @@
 
 class IClock {
 
+    protected:
+    
+        virtual void refresh() = 0;
+
     public:    
 
         virtual int getYear() = 0;
@@ -58,24 +62,11 @@ class IClock {
         virtual int getDay() = 0;
         virtual int getHours() = 0;
         virtual int getMinutes() = 0;
-        virtual std::string getClockTime(bool is24hr = false) = 0;
-        virtual std::string getDateTime() = 0;
+        std::string getClockTime(bool is24hr = false);
+        std::string getDateTime();
         virtual bool setTime(std::string datetime) = 0;
 
-        static std::string getBuildDate() {
-            char buildBits[] = {
-                BUILD_YEAR_CH0, BUILD_YEAR_CH1, BUILD_YEAR_CH2, BUILD_YEAR_CH3,
-                '-',
-                BUILD_MONTH_CH0, BUILD_MONTH_CH1,
-                '-',
-                BUILD_DAY_CH0, BUILD_DAY_CH1
-            };
-            std::stringstream ss;
-            ss << buildBits << " 0:0";
-            std::string result;
-            ss >> result;
-            return result;
-        };
+        static std::string getBuildDate();
 
 };
 

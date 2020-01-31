@@ -64,14 +64,14 @@ class AlsaSoundcard : ISoundcard {
                     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
                     if (NULL != elem) {
-                        TRACE("we're good to make the read");
+                        //TRACE("we're good to make the read");
                         snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
-                        TRACE("min : %lu, max : %lu", min, max);
+                        //TRACE("min : %lu, max : %lu", min, max);
                         long unscaled = -1;
                         snd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &unscaled);
-                        TRACE("raw result : %lu", unscaled);
+                        //TRACE("raw result : %lu", unscaled);
                         result = (int) ((unscaled * 100) / max);
-                        TRACE("scaled result : %i", result);
+                        //TRACE("scaled result : %i", result);
                     } else {
                         TRACE("couldn't find channel : '%s'", selem_name);
                     }
@@ -108,7 +108,7 @@ class AlsaSoundcard : ISoundcard {
                     snd_mixer_elem_t* elem = snd_mixer_find_selem(handle, sid);
 
                     if (NULL != elem) {
-                        TRACE("we're good to make the write");
+                        //TRACE("we're good to make the write");
                         snd_mixer_selem_get_playback_volume_range(elem, &min, &max);
                         TRACE("min : %lu, max : %lu", min, max);
                         snd_mixer_selem_set_playback_volume_all(elem, val * max / 100);
