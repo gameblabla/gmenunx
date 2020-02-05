@@ -208,7 +208,8 @@ const std::string FileUtils::fileReader(std::string path) {
 	std::ifstream str(path);
 	std::stringstream buf;
 	buf << str.rdbuf();
-	return buf.str();
+	std::string rawval = buf.str();
+    return StringUtils::fullTrim(rawval);
 }
 
 bool FileUtils::fileWriter(std::string path, std::string value) {

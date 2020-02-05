@@ -37,7 +37,6 @@ class JzPower : IPower {
         bool pollBatteries_ = false;
         const std::string BATTERY_CHARGING_PATH = "/sys/class/power_supply/usb/online";
         const std::string BATTERY_LEVEL_PATH = "/sys/class/power_supply/battery/capacity";
-        const std::string BATTERY_LEVEL_RAW_PATH = "/proc/jz/battery";
         bool readLevel();
         bool readState();
 

@@ -10,6 +10,7 @@
 
 #include "hw-power.h"
 #include "fileutils.h"
+#include "stringutils.h"
 
 IPower::IPower() {
     this->state_ = PowerStates::UNKNOWN;
@@ -17,8 +18,10 @@ IPower::IPower() {
 }
 
 JzPower::JzPower () : IPower() {
-    this->pollBatteries_ = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_RAW_PATH);
+    TRACE("enter");
+    this->pollBatteries_ = FileUtils::fileExists(BATTERY_CHARGING_PATH) && FileUtils::fileExists(BATTERY_LEVEL_PATH);
     this->read();
+    TRACE("exit : %i", this->pollBatteries_);
 };
 bool JzPower::read() {
     if (!this->pollBatteries_) 
@@ -31,27 +34,31 @@ bool JzPower::read() {
 
 bool JzPower::readState() {
     TRACE("enter");
-    bool result = false;
     int online = false;
 
-	std::ifstream str(BATTERY_CHARGING_PATH);
-	std::stringstream buf;
-	buf << str.rdbuf();
-    std::sscanf(buf.str().c_str(), "%i", &online);
-
+	std::string strval = FileUtils::fileReader(BATTERY_CHARGING_PATH);
+    TRACE("raw string value : '%s'", strval.c_str());
+    if (strval.length() == 1) {
+        std::sscanf(strval.c_str(), "%i", &online);
+    }
+    TRACE("online : %i", online);
     this->state_ = online ? IPower::PowerStates::CHARGING : IPower::PowerStates::DRAINING;
 
     TRACE("exit - state : %i,", this->state_);
-    return result; 
+    return true; 
 }
 
 bool JzPower::readLevel() {
     TRACE("enter");
     bool result = false;
 
+    std::string strval = FileUtils::fileReader(this->BATTERY_LEVEL_PATH);
+    this->level_ = atoi(strval.c_str());
+    result = true;
+/*
     FILE* devbatt_;
 
-    devbatt_ = fopen(this->BATTERY_LEVEL_RAW_PATH.c_str(), "r");
+    devbatt_ = fopen(this->BATTERY_LEVEL_PATH.c_str(), "r");
     if (NULL != devbatt_) {
         std::size_t n = 4;
         std::size_t t = sizeof(char);
@@ -62,22 +69,22 @@ bool JzPower::readLevel() {
                 unsigned short currentval = atoi(strval);
 
                 // force fit to jz raw range
-                if (currentval > 4000) {
-                    currentval = 4000;
-                } else if (currentval < 3000) {
-                    currentval = 3000;
+                if (currentval > 100) {
+                    currentval = 100;
+                } else if (currentval < 0) {
+                    currentval = 0;
                 }
 
-                // scale to 100
-                this->level_ = ((currentval - 3000) / 10);
+                this->level_ = currentval;
                 result = true;
             }
         }
         std::fclose(devbatt_);
         
     } else {
-        ERROR("couldn't open battery device : '%s'", this->BATTERY_LEVEL_RAW_PATH.c_str());
+        ERROR("couldn't open battery device : '%s'", this->BATTERY_LEVEL_PATH.c_str());
     }
+*/
 
     TRACE("exit - level : %i,", this->level_);
     return result; 
