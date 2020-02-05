@@ -53,7 +53,7 @@ bool BrowseDialog::exec() {
 		this->app->ui->drawButton(this->bg, "start", app->tr["Select"]);
 	} else {
 		this->app->ui->drawButton(this->bg, "start", app->tr["Exit"],
-			this->app->ui->drawButton(this->bg, "x", app->tr["Hidden"], 
+			this->app->ui->drawButton(this->bg, "y", app->tr["Hidden"], 
 			this->app->ui->drawButton(this->bg, "b", app->tr["Up"], 
 			this->app->ui->drawButton(this->bg, "a", app->tr["Select"])))
 		);
