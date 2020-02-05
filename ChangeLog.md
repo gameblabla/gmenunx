@@ -1,10 +1,10 @@
 # 350teric Changelog
 
-**1.0.10** (*Codename: *)
+**1.0.10** (*Codename: I can't believe it's not battery*)
 
 * Added
   * Accurate battery support
-  * Try / Catch support so no more crashes
+  * Try / Catch support
   * Toggle battery icons or percentage in Skin Settings ui
   * Hidden files and folders toggle for explorer
 
