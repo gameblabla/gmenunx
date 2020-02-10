@@ -168,6 +168,13 @@ public:
             this->isDirty = true;
         }
     }
+    int quickStartGame() const { return this->quickStartGame_; }
+    void quickStartGame(int val) {
+        if (val != this->quickStartGame_) {
+            this->quickStartGame_ = val;
+            this->isDirty = true;
+        }
+    }
     int powerTimeout() const { return this->powerTimeout_; }
     void powerTimeout(int val) {
         if (val != this->powerTimeout_) {
@@ -189,6 +196,7 @@ public:
             this->isDirty = true;
         }
     }
+
     int respectHiddenLinks() const { return this->respectHiddenLinks_; }
     void setRespectHiddenLinks(int val) {
         if (val != this->respectHiddenLinks_) {
@@ -238,6 +246,7 @@ private:
     int link_; //=1
     int section_; //=1
     int saveSelection_; //=1
+    int quickStartGame_; // = 0
     int powerTimeout_; //=10
     int outputLogs_; //=1
     int setHwLevelsOnBoot_; // = 0

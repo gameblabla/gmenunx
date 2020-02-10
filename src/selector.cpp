@@ -45,6 +45,19 @@ Selector::Selector(Esoteric *app, LinkApp *link, const std::string &selectorDir)
 
 }
 
+void Selector::resolve(int selection) {
+	TRACE("enter - selection : %i", selection);
+
+	// just set up the file by id and bail back
+	FileLister fl(dir, link->getSelectorBrowser());
+	if (!this->link->getSelectorBrowser()) {
+		fl.addExclude("..");
+	}
+	file = fl[selection];
+
+	TRACE("exit - file : '%s'", file.c_str());
+}
+
 int Selector::exec(int startSelection) {
 	TRACE("enter - startSelection : %i", startSelection);
 
@@ -60,6 +73,7 @@ int Selector::exec(int startSelection) {
 	if (!this->link->getSelectorBrowser()) {
 		fl.addExclude("..");
 	}
+
 	// do we have screen shots?
 	// if we do, they will live under this path, or this dir/screenshots
 	this->screendir = link->getSelectorScreens();

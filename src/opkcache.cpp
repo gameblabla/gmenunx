@@ -108,7 +108,7 @@ int OpkCache::size() {
     return result;
 }
 
-bool OpkCache::update(std::function<void(std::string)> progressCallback) {
+bool OpkCache::update(std::function<void(std::string)> progressCallback, bool readOnly) {
     TRACE("enter");
     this->progressCallback = progressCallback;
     this->dirty_ = false;
@@ -121,10 +121,13 @@ bool OpkCache::update(std::function<void(std::string)> progressCallback) {
         TRACE("we need to load the cache");
         if (!loadCache()) return false;
     }
-    // add any new ones first, so we can run the upgrade logic on any unlinked ones
-    if (!createMissingOpkDesktopFiles()) return false;
-    if (!removeUnlinkedDesktopFiles()) return false;
-    sync();
+    if (!readOnly) {
+        TRACE("detecting cache changes");
+        // add any new ones first, so we can run the upgrade logic on any unlinked ones
+        if (!createMissingOpkDesktopFiles()) return false;
+        if (!removeUnlinkedDesktopFiles()) return false;
+        sync();
+    }
     this->startMonitors();
     this->notifyProgress("Cache updated");
     this->progressCallback = nullptr;

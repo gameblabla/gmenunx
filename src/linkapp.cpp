@@ -381,6 +381,7 @@ void LinkApp::makeFavourite() {
 	std::string launchArgs = this->resolveArgs();
 	this->favourite(launchArgs);
 }
+
 /*
  * entry point for running
  * checks to see if we want a supporting file arg
@@ -403,7 +404,7 @@ void LinkApp::run() {
 /*
  * lauches a supporting file selector if needed
  */
-void LinkApp::selector(int startSelection, const std::string &selectorDir) {
+void LinkApp::selector(int startSelection, const std::string &selectorDir, const bool &choose) {
 	TRACE("enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
 
 	// Run selector interface - this is the order of dir specificity
@@ -412,6 +413,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	// - system wide last launch path
 	// - default :: EXTERNAL_CARD_PATH
 	std::string myDir = selectorDir;
+	int selection = startSelection;
 	if (myDir.empty()) {
 		if (0 != this->selectordir.compare(EXTERNAL_CARD_PATH) && !this->selectordir.empty()) {
 			myDir = this->selectordir;
@@ -421,13 +423,20 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir) {
 	}
 
 	Selector sel(app, this, myDir);
-	int selection = sel.exec(startSelection);
+	if (!choose) {
+		// we just want to get the file from dir and index
+		sel.resolve(selection);
+	} else {
+		// we are doing a full resolve
+		selection = sel.exec(selection);
+	}
+
 	// we got a file
 	if (selection > -1) {
-		std::string launchArgs = resolveArgs(sel.getFile(), sel.getDir());
+		std::string launchArgs = this->resolveArgs(sel.getFile(), sel.getDir());
 		this->app->config->launcherPath(sel.getDir());
 		this->app->writeTmp(selection, sel.getDir());
-		launch(launchArgs);
+		this->launch(launchArgs);
 	}
 	TRACE("exit");
 }

@@ -15,13 +15,7 @@ static const std::string OPK_CACHE_DIR = "cache";
 static const std::string OPK_CACHE_IMAGES_DIR = "images";
 static const std::string OPK_CACHE_MANUALS_DIR = "manuals";
 static const std::string OPK_CACHE_ALIAS_DIR = "alias";
-
-#ifdef TARGET_RG350
 static const std::string OPK_EXEC = "/usr/bin/opkrun";
-#else
-// just for testing, make sure the target test resolves
-static const std::string OPK_EXEC = "/bin/false";
-#endif
 
 class OpkCache {
     private:
@@ -75,7 +69,7 @@ class OpkCache {
 
         OpkCache(std::vector<std::string> opkDirs, const std::string & sectionsDir, std::function<void(DesktopFile, bool)> changeCallback = nullptr);
         ~OpkCache();
-        bool update(std::function<void(std::string)> progressCallback = nullptr);
+        bool update(std::function<void(std::string)> progressCallback = nullptr, bool readOnly = false);
         int size();
         /*  returns the cache state, 
             AND resets the flag, 

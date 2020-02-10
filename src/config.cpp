@@ -60,6 +60,7 @@ std::string Config::toString() {
     vec.push_back(StringUtils::stringFormat("outputLogs=%i", this->outputLogs()));
 
     vec.push_back(StringUtils::stringFormat("saveSelection=%i", this->saveSelection()));
+    vec.push_back(StringUtils::stringFormat("quickStartGame=%i", this->quickStartGame()));
     vec.push_back(StringUtils::stringFormat("section=%i", this->section()));
     vec.push_back(StringUtils::stringFormat("link=%i", this->link()));
 
@@ -134,6 +135,7 @@ void Config::reset() {
     this->outputLogs_ = 0;
 
     this->saveSelection_ = 1;
+    this->quickStartGame_ = 0;
     this->section_ = 1;
     this->link_ = 1;
 
@@ -157,6 +159,8 @@ void Config::constrain() {
 	evalIntConf( &this->videoBpp_, 16, 8, 32 );
     evalIntConf( &this->respectHiddenLinks_, 1, 0, 1);
     evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
+    evalIntConf( &this->saveSelection_, 1, 0, 1);
+    evalIntConf( &this->quickStartGame_, 0, 0, 1);
 	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
 
     if (!this->saveSelection()) {
@@ -261,6 +265,8 @@ bool Config::fromFile() {
                             this->outputLogs(atoi(value.c_str()));
                         } else if (name == "saveselection") {
                             this->saveSelection(atoi(value.c_str()));
+                        } else if (name == "quickstartgame") {
+                            this->quickStartGame(atoi(value.c_str()));
                         } else if (name == "section") {
                             this->section(atoi(value.c_str()));
                         } else if (name == "link") {

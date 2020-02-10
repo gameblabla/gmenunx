@@ -1,5 +1,21 @@
 # 350teric Changelog
 
+**1.0.11** (*Codename: *)
+
+* Added
+  * Quick launch the last game on 1st boot
+    * Press 'a' to bypass
+    * Toggle on / off in Settings menu
+  * Fast cache load option
+    * Doesn't take the delta, just loads current state
+    * Used automatically when in a quick launch mode
+
+* Fixed
+  * TODO :: LED lower power boot loop
+
+* Improved
+  * NADA, yet
+
 **1.0.10** (*Codename: I can't believe it's not battery*)
 
 * Added

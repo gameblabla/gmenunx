@@ -138,7 +138,7 @@ Esoteric::Esoteric() {
 	this->needsInstalling = !Config::configExistsUnderPath(this->getWriteablePath());
 
 	std::string localAssetsPath = this->getReadablePath();
-	TRACE("needs deploying : %i, localAssetsPath : %s", 
+	TRACE("needs installing : %i, localAssetsPath : %s", 
 		this->needsInstalling, 
 		localAssetsPath.c_str());
 
@@ -371,6 +371,7 @@ void Esoteric::main() {
 	// has to come before the app cache thread kicks off
 	TRACE("checking sd card");
 	this->hw->checkUDC();
+
 	bool showGreeting = false;
 	std::string title = "Please wait, loading...";
 	if (this->needsInstalling) {
@@ -439,10 +440,31 @@ void Esoteric::main() {
 	this->readTmp();
 	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
 		if (FileUtils::dirExists(this->lastSelectorDir)) {
-			TRACE("recoverSession happening");
-			this->menu->selLinkApp()->selector(
-				this->lastSelectorElement, 
-				this->lastSelectorDir);
+
+			if (this->config->quickStartGame()) {
+				TRACE("potential quickStartGame scenario");
+				this->inputManager->update(false);
+				// don't do anything if we have the a button down
+				if (!(*this->inputManager)[CONFIRM]) {
+					TRACE("a quickStartGame is happening");
+					this->menu->selLinkApp()->selector(
+						this->lastSelectorElement, 
+						this->lastSelectorDir, 
+						false);
+					this->quit();
+					quit_all(0);
+					return;
+				} else {
+					TRACE("quickStartGame bypassed by button over ride");
+				}
+			} else {
+				TRACE("recoverSession happening");
+				this->menu->selLinkApp()->selector(
+					this->lastSelectorElement, 
+					this->lastSelectorDir, 
+					true);
+			}
+
 		}
 	} else if (this->config->saveSelection()) {
 		if (this->config->section() > 0)
@@ -594,8 +616,13 @@ void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
 		this->cache->setMonitorDirs(opkDirs);
 	}
 	assert(this->cache);
-	this->cache->update(callback);
-	sync();
+
+	bool readOnly = Loader::isFirstRun() && 
+					this->config->quickStartGame() && 
+					this->menu->selLinkApp() != NULL && 
+					this->lastSelectorElement >- 1;
+	readOnly = true;
+	this->cache->update(callback, readOnly);
 
 	#endif
 	TRACE("exit");
@@ -1191,6 +1218,7 @@ void Esoteric::settings() {
 	std::string appsPath = config->externalAppPath();
 
 	int saveSelection = config->saveSelection();
+	int quickStartGame = config->quickStartGame();
 	int setHwOnBoot = config->setHwLevelsOnBoot();
 	int outputLogs = config->outputLogs();
 	int showHiddenLinks = !config->respectHiddenLinks();
@@ -1243,7 +1271,13 @@ void Esoteric::settings() {
 		tr["Save last selection"], 
 		tr["Save the last selected link and section on exit"], 
 		&saveSelection));
-	
+
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Re-start last game"], 
+		tr["Re-start the last played game on 1st boot"], 
+		&quickStartGame));
+
 	if (!config->sectionFilter().empty()) {
 		sd.addSetting(new MenuSettingBool(
 			this, 
@@ -1314,6 +1348,7 @@ void Esoteric::settings() {
 
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
+		this->config->quickStartGame(quickStartGame);
 		this->config->outputLogs(outputLogs);
 		this->config->setHwLevelsOnBoot(setHwOnBoot);
 		if (showHiddenLinks == this->config->respectHiddenLinks()) {
@@ -1447,7 +1482,8 @@ void Esoteric::cpuSettings() {
 
 // reads the temp file back in, 
 // sets the section and selected link up
-// and the tv out mode
+// and the tv out mode. 
+// Must be called after initMenu
 void Esoteric::readTmp() {
 	TRACE("enter");
 	lastSelectorElement = -1;
@@ -1458,8 +1494,8 @@ void Esoteric::readTmp() {
 
 	while (getline(inf, line, '\n')) {
 		std::string::size_type pos = line.find("=");
-		name = StringUtils::trim(line.substr(0,pos));
-		value = StringUtils::trim(line.substr(pos+1,line.length()));
+		name = StringUtils::trim(line.substr(0, pos));
+		value = StringUtils::trim(line.substr(pos + 1, line.length()));
 		if (name == "section") menu->setSectionIndex(atoi(value.c_str()));
 		else if (name == "link") menu->setLinkIndex(atoi(value.c_str()));
 		else if (name == "selectorelem") lastSelectorElement = atoi(value.c_str());
