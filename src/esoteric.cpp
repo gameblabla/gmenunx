@@ -645,7 +645,7 @@ void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
 					this->config->quickStartGame() && 
 					this->menu->selLinkApp() != NULL && 
 					this->lastSelectorElement >- 1;
-	readOnly = true;
+
 	this->cache->update(callback, readOnly);
 
 	#endif
