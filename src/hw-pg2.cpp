@@ -28,7 +28,7 @@ HwPG2::HwPG2() : IHardware() {
     this->cpu_ = JZ4770Factory::getCpu();
     this->power_ = (IPower *)new JzPower();
 
-    this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? FileUtils::fileReader(LED_MAX_BRIGHTNESS_PATH) : 0;
+    this->ledMaxBrightness_ = FileUtils::fileExists(LED_MAX_BRIGHTNESS_PATH) ? FileUtils::fileReader(LED_MAX_BRIGHTNESS_PATH) : "0";
 
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
@@ -58,20 +58,32 @@ void HwPG2::setTVOutMode(std::string mode) {
 
 void HwPG2::ledOn(int flashSpeed) {
     TRACE("enter");
-    int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
-    std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
-    TRACE("mode : %s - for %i", trigger.c_str(), limited);
-    FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
-    FileUtils::fileWriter(LED_DELAY_ON_PATH, limited);
-    FileUtils::fileWriter(LED_DELAY_OFF_PATH, limited);
+    try {
+        int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
+        std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
+        TRACE("mode : %s - for %i", trigger.c_str(), limited);
+        FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
+        FileUtils::fileWriter(LED_DELAY_ON_PATH, limited);
+        FileUtils::fileWriter(LED_DELAY_OFF_PATH, limited);
+    } catch (std::exception e) {
+        ERROR("LED error : '%s'", e.what());
+    } catch (...) {
+        ERROR("Unknown error");
+    }
     TRACE("exit");
 }
 void HwPG2::ledOff() {
     TRACE("enter");
-    std::string trigger = triggerToString(LedAllowedTriggers::NONE);
-    TRACE("mode : %s", trigger.c_str());
-    FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
-    FileUtils::fileWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
+    try {
+        std::string trigger = triggerToString(LedAllowedTriggers::NONE);
+        TRACE("mode : %s", trigger.c_str());
+        FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
+        FileUtils::fileWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);
+    } catch (std::exception e) {
+        ERROR("LED error : '%s'", e.what());
+    } catch (...) {
+        ERROR("Unknown error");
+    }
     TRACE("exit");
     return;
 }

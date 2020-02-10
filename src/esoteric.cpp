@@ -436,49 +436,14 @@ void Esoteric::main() {
 	TRACE("new renderer");
 	Renderer *renderer = new Renderer(this);
 
-	// readTmp has to come after initMenu, because of section hiding etc
-	this->readTmp();
-	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
-		if (FileUtils::dirExists(this->lastSelectorDir)) {
-
-			if (this->config->quickStartGame()) {
-				TRACE("potential quickStartGame scenario");
-				this->inputManager->update(false);
-				// don't do anything if we have the a button down
-				if (!(*this->inputManager)[CONFIRM]) {
-					TRACE("a quickStartGame is happening");
-					this->menu->selLinkApp()->selector(
-						this->lastSelectorElement, 
-						this->lastSelectorDir, 
-						false);
-					this->quit();
-					quit_all(0);
-					return;
-				} else {
-					TRACE("quickStartGame bypassed by button over ride");
-				}
-			} else {
-				TRACE("recoverSession happening");
-				this->menu->selLinkApp()->selector(
-					this->lastSelectorElement, 
-					this->lastSelectorDir, 
-					true);
-			}
-
-		}
-	} else if (this->config->saveSelection()) {
-		if (this->config->section() > 0)
-			this->menu->setSectionIndex(this->config->section());
-		if (this->config->link() > 0)
-			this->menu->setLinkIndex(this->config->link());
-	}
+	// has to come after initMenu
+	TRACE("restoring state");
+	this->restoreState();
 
 	this->screenManager->resetTimer();
 	this->powerManager->resetTimer();
 	bool uiControlledQuit= false;
 	renderer->startPolling();
-
-	std::vector<int> powerCombo = { SECTION_PREV, SECTION_NEXT };
 
 	while (!this->quitApp) {
 		try {
@@ -589,6 +554,46 @@ void Esoteric::main() {
 	}
 
 	TRACE("exit");
+}
+
+void Esoteric::restoreState() {
+
+	// readTmp has to come after initMenu, because of section hiding etc
+	this->readTmp();
+	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
+		if (FileUtils::dirExists(this->lastSelectorDir)) {
+
+			if (this->config->quickStartGame()) {
+				TRACE("potential quickStartGame scenario");
+				this->inputManager->update(false);
+				// don't do anything if we have the a button down
+				if (!(*this->inputManager)[CONFIRM]) {
+					TRACE("a quickStartGame is happening");
+					this->menu->selLinkApp()->selector(
+						this->lastSelectorElement, 
+						this->lastSelectorDir, 
+						false);
+					this->quit();
+					quit_all(0);
+					return;
+				} else {
+					TRACE("quickStartGame bypassed by button over ride");
+				}
+			} else {
+				TRACE("recoverSession happening");
+				this->menu->selLinkApp()->selector(
+					this->lastSelectorElement, 
+					this->lastSelectorDir, 
+					true);
+			}
+
+		}
+	} else if (this->config->saveSelection()) {
+		if (this->config->section() > 0)
+			this->menu->setSectionIndex(this->config->section());
+		if (this->config->link() > 0)
+			this->menu->setLinkIndex(this->config->link());
+	}
 }
 
 void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {

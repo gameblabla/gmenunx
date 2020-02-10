@@ -95,6 +95,7 @@ private:
 	std::string lastSelectorDir;
 	int lastSelectorElement;
 	void readTmp();
+	void restoreState();
 
 	void initFont();
 	void showManual();
