@@ -14,7 +14,7 @@
   * LED lower power boot loop
 
 * Improved
-  * NADA, yet
+  * Setup wrapped in crash handler and dialog
 
 **1.0.10** (*Codename: I can't believe it's not battery*)
 

@@ -368,108 +368,127 @@ void Esoteric::releaseScreen() {
 void Esoteric::main() {
 	TRACE("enter");
 
-	// has to come before the app cache thread kicks off
-	TRACE("checking sd card");
-	this->hw->checkUDC();
-
 	bool showGreeting = false;
-	std::string title = "Please wait, loading...";
-	if (this->needsInstalling) {
-		if (FileUtils::dirExists(this->getWriteablePath())) {
-			title = "Please wait, upgrading your installation";
-			this->doUpgrade();
-		} else {
-			title = "Please wait, building application cache";
-			showGreeting = this->doInitialSetup();
+	bool uiControlledQuit = false;
+
+	try {
+		// has to come before the app cache thread kicks off
+		TRACE("checking sd card");
+		this->hw->checkUDC();
+
+		std::string title = "Please wait, loading...";
+		if (this->needsInstalling) {
+			if (FileUtils::dirExists(this->getWriteablePath())) {
+				title = "Please wait, upgrading your installation";
+				this->doUpgrade();
+			} else {
+				title = "Please wait, building application cache";
+				showGreeting = this->doInitialSetup();
+			}
+		} 
+
+		// create this early so we can give it to the thread, but don't exec it yet
+		ProgressBar pbLoading(this, title, "skin:icons/device.png", -30);
+		pbLoading.updateDetail("Checking for new apps...");
+		TRACE("kicking off our app cache thread");
+		std::thread * thread_cache = new std::thread(
+			&Esoteric::updateAppCache, 
+			this, 
+			[&](std::string message){ return pbLoading.updateDetail(message); });
+
+		TRACE("checking if we have a loader");
+		if (this->skin->showLoader && Loader::isFirstRun()) {
+			Loader loader(this);
+			loader.run();
 		}
-	} 
 
-	// create this early so we can give it to the thread, but don't exec it yet
-	ProgressBar * pbLoading = new ProgressBar(
-		this, 
-		title, 
-		"skin:icons/device.png", 
-		-30);
+		TRACE("exec on pbLoading");
+		pbLoading.exec();
+		TRACE("setting first run marker");
+		Loader::setFirstRunMarker();
+		pbLoading.updateDetail("Initialising hardware");
+		TRACE("setting cpu speeed for me");
+		this->hw->Cpu()->setValue(this->config->cpuMenu());
 
+		TRACE("checking if we have a thread");
+		if (thread_cache != nullptr) {
+			// we need to re-join before building the menu
+			TRACE("waiting to re-join thread");
+			thread_cache->join();
+			delete thread_cache;
+			TRACE("app cache thread has finished");
+		}
 
-	pbLoading->updateDetail("Checking for new apps...");
-	TRACE("kicking off our app cache thread");
-	std::thread * thread_cache = new std::thread(
-		&Esoteric::updateAppCache, 
-		this, 
-		[&](std::string message){ return pbLoading->updateDetail(message); });
+		// initMenu needs to come after cache thread has joined
+		pbLoading.updateDetail("Building the menu");
+		initMenu();
+		setWallpaper(this->skin->wallpaper);
 
-	TRACE("checking if we have a loader");
-	if (this->skin->showLoader && Loader::isFirstRun()) {
-		Loader loader(this);
-		loader.run();
+		TRACE("set hardware to real settings");
+		this->screenManager->setTimeout(config->backlightTimeout());
+		this->hw->ledOff();
+
+		pbLoading.finished();
+
+		// has to come after initMenu
+		if (!this->restoreState()) {
+			return;
+		}
+
+		this->screenManager->resetTimer();
+		this->powerManager->resetTimer();
+
+	} catch(std::exception e) {
+		std::string errMsg = 	"Error initialising " + 
+								APP_NAME + " : " + 
+								e.what();
+		MessageBox mbError(
+			this, 
+			errMsg, 
+			"skin:icons/device.png");
+		mbError.setButton(actions::CONFIRM, "ok");
+		mbError.exec();
+	} catch (...) {
+		std::string errMsg = 	"Error initialising " + APP_NAME + 
+								" : Please delete your installation folder at " + 
+								this->getWriteablePath();
+		MessageBox mbError(
+			this, 
+			errMsg, 
+			"skin:icons/device.png");
+		mbError.setButton(actions::CONFIRM, "ok");
+		mbError.exec();
 	}
 
-	TRACE("exec on pbLoading");
-	pbLoading->exec();
-	TRACE("setting first run marker");
-	Loader::setFirstRunMarker();
-	pbLoading->updateDetail("Initialising hardware");
-	TRACE("setting cpu speeed for me");
-	this->hw->Cpu()->setValue(this->config->cpuMenu());
-
-	TRACE("checking if we have a thread");
-	if (thread_cache != nullptr) {
-		// we need to re-join before building the menu
-		TRACE("waiting to re-join thread");
-		thread_cache->join();
-		delete thread_cache;
-		TRACE("app cache thread has finished");
-	}
-
-	// initMenu needs to come after cache thread has joined
-	initMenu();
-	setWallpaper(this->skin->wallpaper);
-
-	TRACE("set hardware to real settings");
-	this->screenManager->setTimeout(config->backlightTimeout());
-	this->hw->ledOff();
-
-	pbLoading->finished();
-	delete pbLoading;
-
-	TRACE("new renderer");
-	Renderer *renderer = new Renderer(this);
-
-	// has to come after initMenu
-	TRACE("restoring state");
-	this->restoreState();
-
-	this->screenManager->resetTimer();
-	this->powerManager->resetTimer();
-	bool uiControlledQuit= false;
-	renderer->startPolling();
+	Renderer renderer(this);
+	renderer.startPolling();
 
 	while (!this->quitApp) {
 		try {
 			//TRACE("loop");
-			renderer->render();
+			renderer.render();
 
 			if (showGreeting) {
 				// double flip for a nice screen
-				renderer->render();
+				renderer.render();
 
 				std::string message = "         ~< Welcome to " + APP_NAME + " >~\n\n";
 				message += "You can set me as your default launcher\n";
 				message += "    if you want by running 'install me'\n";
 				message += "          from the settings menu";
-				MessageBox *mbWelcome = new MessageBox(
+				MessageBox mbWelcome(
 					this, 
 					message, 
 					"skin:icons/device.png");
-				mbWelcome->setButton(actions::CONFIRM, "ok");
-				mbWelcome->exec();
-				delete mbWelcome;
+				mbWelcome.setButton(actions::CONFIRM, "ok");
+				mbWelcome.exec();
 				showGreeting = false;
 			}
 
 		} catch (const std::exception& e) {
-			ERROR("render - error : %s", e.what());
+			ERROR("'%s'", e.what());
+		} catch (...) {
+			ERROR("Un trappable error");
 		}
 
 		bool inputAction = this->inputManager->update(true);
@@ -488,7 +507,7 @@ void Esoteric::main() {
 			}
 
 			// if we get here then we can block the renderer while we act on the command
-			renderer->stopPolling();
+			renderer.stopPolling();
 
 			try {
 				if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
@@ -539,15 +558,12 @@ void Esoteric::main() {
 				ERROR("generic input error");
 			}
 			// and start polling again now we're done
-			renderer->startPolling();
+			renderer.startPolling();
 		}
 	}
 
-	TRACE("quitApp has been set");
-	if (renderer) {
-		renderer->stopPolling();
-		delete renderer;
-	}
+	renderer.stopPolling();
+
 	if (uiControlledQuit) {
 		this->quit();
 		quit_all(0);
@@ -556,8 +572,9 @@ void Esoteric::main() {
 	TRACE("exit");
 }
 
-void Esoteric::restoreState() {
-
+// returns true if we don't go straight into launching something
+bool Esoteric::restoreState() {
+	TRACE("enter");
 	// readTmp has to come after initMenu, because of section hiding etc
 	this->readTmp();
 	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
@@ -575,7 +592,7 @@ void Esoteric::restoreState() {
 						false);
 					this->quit();
 					quit_all(0);
-					return;
+					return false;
 				} else {
 					TRACE("quickStartGame bypassed by button over ride");
 				}
@@ -594,6 +611,8 @@ void Esoteric::restoreState() {
 		if (this->config->link() > 0)
 			this->menu->setLinkIndex(this->config->link());
 	}
+	TRACE("exit");
+	return true;
 }
 
 void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
