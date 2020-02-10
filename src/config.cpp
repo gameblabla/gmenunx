@@ -137,6 +137,7 @@ void Config::reset() {
 
     this->saveSelection_ = 1;
     this->quickStartGame_ = 0;
+    this->fastCache_ = 0;
     this->section_ = 1;
     this->link_ = 1;
 
