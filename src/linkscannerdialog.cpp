@@ -50,7 +50,7 @@ void LinkScannerDialog::exec() {
 	ss >> str;
 	this->notify("Current cache size : " + str);
 
-	app->updateAppCache([&](std::string message){ return this->notify(message); });
+	app->updateAppCache([&](std::string message){ return this->notify(message); }, false);
 
 	int postSize = app->cache->size();
 	ss.clear();

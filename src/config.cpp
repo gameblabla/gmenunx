@@ -61,6 +61,7 @@ std::string Config::toString() {
 
     vec.push_back(StringUtils::stringFormat("saveSelection=%i", this->saveSelection()));
     vec.push_back(StringUtils::stringFormat("quickStartGame=%i", this->quickStartGame()));
+    vec.push_back(StringUtils::stringFormat("fastCache=%i", this->fastCache()));
     vec.push_back(StringUtils::stringFormat("section=%i", this->section()));
     vec.push_back(StringUtils::stringFormat("link=%i", this->link()));
 
@@ -161,6 +162,7 @@ void Config::constrain() {
     evalIntConf( &this->setHwLevelsOnBoot_, 0, 0, 1);
     evalIntConf( &this->saveSelection_, 1, 0, 1);
     evalIntConf( &this->quickStartGame_, 0, 0, 1);
+    evalIntConf( &this->fastCache_, 0, 0, 1);
 	evalIntConf( &this->version_, CONFIG_CURRENT_VERSION, 1, 999);
 
     if (!this->saveSelection()) {
@@ -267,6 +269,8 @@ bool Config::fromFile() {
                             this->saveSelection(atoi(value.c_str()));
                         } else if (name == "quickstartgame") {
                             this->quickStartGame(atoi(value.c_str()));
+                        } else if (name == "fastcache") {
+                            this->fastCache(atoi(value.c_str()));
                         } else if (name == "section") {
                             this->section(atoi(value.c_str()));
                         } else if (name == "link") {

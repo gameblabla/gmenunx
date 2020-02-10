@@ -391,10 +391,19 @@ void Esoteric::main() {
 		ProgressBar pbLoading(this, title, "skin:icons/device.png", -30);
 		pbLoading.updateDetail("Checking for new apps...");
 		TRACE("kicking off our app cache thread");
+		bool readOnly = this->config->fastCache() || 
+					(
+						Loader::isFirstRun() && 
+						this->config->quickStartGame() && 
+						this->menu->selLinkApp() != NULL && 
+						this->lastSelectorElement >- 1
+					);
+
 		std::thread * thread_cache = new std::thread(
 			&Esoteric::updateAppCache, 
 			this, 
-			[&](std::string message){ return pbLoading.updateDetail(message); });
+			[&](std::string message){ return pbLoading.updateDetail(message); }, readOnly
+		);
 
 		TRACE("checking if we have a loader");
 		if (this->skin->showLoader && Loader::isFirstRun()) {
@@ -622,8 +631,8 @@ void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
 	TRACE("exit");
 }
 
-void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
-	TRACE("enter");
+void Esoteric::updateAppCache(std::function<void(std::string)> callback, bool readOnly) {
+	TRACE("enter - readOnly : %i", readOnly);
 	#ifdef HAVE_LIBOPK
 
 	std::string externalPath = this->config->externalAppPath();
@@ -640,11 +649,6 @@ void Esoteric::updateAppCache(std::function<void(std::string)> callback) {
 		this->cache->setMonitorDirs(opkDirs);
 	}
 	assert(this->cache);
-
-	bool readOnly = Loader::isFirstRun() && 
-					this->config->quickStartGame() && 
-					this->menu->selLinkApp() != NULL && 
-					this->lastSelectorElement >- 1;
 
 	this->cache->update(callback, readOnly);
 
@@ -1243,6 +1247,7 @@ void Esoteric::settings() {
 
 	int saveSelection = config->saveSelection();
 	int quickStartGame = config->quickStartGame();
+	int fastCache = config->fastCache();
 	int setHwOnBoot = config->setHwLevelsOnBoot();
 	int outputLogs = config->outputLogs();
 	int showHiddenLinks = !config->respectHiddenLinks();
@@ -1301,6 +1306,12 @@ void Esoteric::settings() {
 		tr["Re-start last game"], 
 		tr["Re-start the last played game on 1st boot"], 
 		&quickStartGame));
+
+	sd.addSetting(new MenuSettingBool(
+		this, 
+		tr["Disable cache updates"], 
+		tr["Maintain the cache using the app scanner"], 
+		&fastCache));
 
 	if (!config->sectionFilter().empty()) {
 		sd.addSetting(new MenuSettingBool(
@@ -1373,6 +1384,7 @@ void Esoteric::settings() {
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
 		this->config->quickStartGame(quickStartGame);
+		this->config->fastCache(fastCache);
 		this->config->outputLogs(outputLogs);
 		this->config->setHwLevelsOnBoot(setHwOnBoot);
 		if (showHiddenLinks == this->config->respectHiddenLinks()) {

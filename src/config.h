@@ -175,6 +175,13 @@ public:
             this->isDirty = true;
         }
     }
+    int fastCache() const { return this->fastCache_; }
+    void fastCache(int val) {
+        if (val != this->fastCache_) {
+            this->fastCache_ = val;
+            this->isDirty = true;
+        }
+    }
     int powerTimeout() const { return this->powerTimeout_; }
     void powerTimeout(int val) {
         if (val != this->powerTimeout_) {
@@ -247,6 +254,7 @@ private:
     int section_; //=1
     int saveSelection_; //=1
     int quickStartGame_; // = 0
+    int fastCache_; // = 0
     int powerTimeout_; //=10
     int outputLogs_; //=1
     int setHwLevelsOnBoot_; // = 0

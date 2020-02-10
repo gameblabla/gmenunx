@@ -1,17 +1,20 @@
 # 350teric Changelog
 
-**1.0.11** (*Codename: *)
+**1.0.11** (*Codename: SpeedRun*)
 
 * Added
   * Quick launch the last game on 1st boot
     * Hold 'a' to bypass
     * Toggle on / off in Settings menu
   * Fast cache load option
-    * Doesn't take the delta, just loads current state
-    * Used automatically when in a quick launch mode
+    * Doesn't validate the cache and look for new or missing apps, just loads current state
+    * This is used automatically when in quick launch mode
+    * Toggleable in Settings menu
+      * If enabled, use the built in app scanner to manually update on demand
+    * Live monitoring for new opk's is always enabled
 
 * Fixed
-  * LED lower power boot loop
+  * LED low power boot loop
 
 * Improved
   * Setup wrapped in crash handler and dialog

@@ -175,7 +175,7 @@ public:
 
 
 	void setWallpaper(const std::string &wallpaper = "");
-	void updateAppCache(std::function<void(std::string)> callback = nullptr);
+	void updateAppCache(std::function<void(std::string)> callback = nullptr, bool readOnly = false);
 	void cacheChanged(const DesktopFile &file, const bool &added);
 
 	int getScreenWidth() { return this->screen->raw->w; };
