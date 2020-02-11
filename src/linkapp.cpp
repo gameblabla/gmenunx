@@ -435,6 +435,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir, const
 	if (selection > -1) {
 		std::string launchArgs = this->resolveArgs(sel.getFile(), sel.getDir());
 		this->app->config->launcherPath(sel.getDir());
+		this->app->config->selectedRom(selection);
 		this->app->writeTmp(selection, sel.getDir());
 		this->launch(launchArgs);
 	}

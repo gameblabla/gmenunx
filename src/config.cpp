@@ -64,6 +64,7 @@ std::string Config::toString() {
     vec.push_back(StringUtils::stringFormat("fastCache=%i", this->fastCache()));
     vec.push_back(StringUtils::stringFormat("section=%i", this->section()));
     vec.push_back(StringUtils::stringFormat("link=%i", this->link()));
+    vec.push_back(StringUtils::stringFormat("selectedRom=%i", this->selectedRom()));
 
     vec.push_back(StringUtils::stringFormat("respectHiddenLinks=%i", this->respectHiddenLinks()));
     vec.push_back(StringUtils::stringFormat("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
@@ -140,6 +141,7 @@ void Config::reset() {
     this->fastCache_ = 0;
     this->section_ = 1;
     this->link_ = 1;
+    this->selectedRom_ = -1;
 
     this->setHwLevelsOnBoot_ = 0;
     this->respectHiddenLinks_ = true;
@@ -276,6 +278,8 @@ bool Config::fromFile() {
                             this->section(atoi(value.c_str()));
                         } else if (name == "link") {
                             this->link(atoi(value.c_str()));
+                        } else if (name == "selectedrom") {
+                            this->selectedRom(atoi(value.c_str()));
                         } else if (name == "sethwlevelsonboot") {
                             this->setHwLevelsOnBoot(atoi(value.c_str()));
                         } else if (name == "respecthiddenlinks") {

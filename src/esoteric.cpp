@@ -292,6 +292,9 @@ void Esoteric::quit() {
 	TRACE("removing the boot marker");
 	Installer::removeBootMarker();
 
+	TRACE("setting first run marker");
+	Loader::setFirstRunMarker();
+
 	#ifdef HAVE_LIBOPK
 	if (this->cache) {
 		TRACE("delete - cache");
@@ -413,8 +416,7 @@ void Esoteric::main() {
 
 		TRACE("exec on pbLoading");
 		pbLoading.exec();
-		TRACE("setting first run marker");
-		Loader::setFirstRunMarker();
+
 		pbLoading.updateDetail("Initialising hardware");
 		TRACE("setting cpu speeed for me");
 		this->hw->Cpu()->setValue(this->config->cpuMenu());
@@ -588,38 +590,55 @@ bool Esoteric::restoreState() {
 	this->readTmp();
 	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
 		if (FileUtils::dirExists(this->lastSelectorDir)) {
+			TRACE("recoverSession happening");
+			this->menu->selLinkApp()->selector(
+				this->lastSelectorElement, 
+				this->lastSelectorDir, 
+				true);
+		}
+	} else if (this->config->saveSelection()) {
+		TRACE("save selection is set");
+		if (this->config->section() > 0) {
+			TRACE("restore section : %i", this->config->section());
+			this->menu->setSectionIndex(this->config->section());
+		}
+		if (this->config->link() > 0) {
+			TRACE("restore link : %i", this->config->link());
+			this->menu->setLinkIndex(this->config->link());
+		}
+		TRACE("quickStartGame : %i", this->config->quickStartGame());
+		TRACE("first run : %i", Loader::isFirstRun());
 
-			if (this->config->quickStartGame()) {
+		if (Loader::isFirstRun() && this->config->quickStartGame()) {
+			TRACE("first run and quickStartGame tests have passed");
+			std::string launchDir = this->config->launcherPath();
+			TRACE("launcherPath : '%s'", launchDir.c_str());
+			int selection = this->config->selectedRom();
+			TRACE("selectedRom : %i", selection);
+			if (selection >= 0 and FileUtils::dirExists(launchDir)) {
 				TRACE("potential quickStartGame scenario");
-				this->inputManager->update(false);
-				// don't do anything if we have the a button down
-				if (!(*this->inputManager)[CONFIRM]) {
+
+				// don't do anything if we have the left dpad down
+				if (!(*this->inputManager)[LEFT]) {
+					
 					TRACE("a quickStartGame is happening");
 					this->menu->selLinkApp()->selector(
-						this->lastSelectorElement, 
-						this->lastSelectorDir, 
+						selection,
+						launchDir,
 						false);
 					this->quit();
 					quit_all(0);
 					return false;
+
 				} else {
 					TRACE("quickStartGame bypassed by button over ride");
 				}
 			} else {
-				TRACE("recoverSession happening");
-				this->menu->selLinkApp()->selector(
-					this->lastSelectorElement, 
-					this->lastSelectorDir, 
-					true);
+				TRACE("quickStartGame skipped for <= 0 index value or missing dir");
 			}
-
 		}
-	} else if (this->config->saveSelection()) {
-		if (this->config->section() > 0)
-			this->menu->setSectionIndex(this->config->section());
-		if (this->config->link() > 0)
-			this->menu->setLinkIndex(this->config->link());
 	}
+	this->config->selectedRom(-1);
 	TRACE("exit");
 	return true;
 }
@@ -1379,6 +1398,10 @@ void Esoteric::settings() {
 			this->cache->setMonitorDirs(opkDirs);
 			#endif
 			refreshNeeded = true;
+		}
+
+		if (quickStartGame) {
+			saveSelection = true;
 		}
 
 		this->config->skin(skin);

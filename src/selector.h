@@ -48,9 +48,9 @@ private:
 	std::unordered_map<std::string, std::string> aliases;
 	void loadAliases();
 	std::string getAlias(const std::string &key, const std::string &fname);
-	void prepare(FileLister *fl, std::vector<std::string> *screens, std::vector<std::string> *titles);
+	void prepare(FileLister *fl, std::vector<std::string> *titles, std::vector<std::string> *screens = NULL);
 	void freeScreenshots(std::vector<std::string> *screens);
-	
+
 public:
 	Selector(Esoteric *app, LinkApp *link, const std::string &selectorDir = "");
 	

@@ -53,7 +53,10 @@ void Selector::resolve(int selection) {
 	if (!this->link->getSelectorBrowser()) {
 		fl.addExclude("..");
 	}
-	file = fl[selection];
+	std::vector<std::string> titles;
+	this->prepare(&fl, &titles);
+	int selected = constrain(selection, 0, fl.size() - 1);
+	file = fl[selected];
 
 	TRACE("exit - file : '%s'", file.c_str());
 }
@@ -96,7 +99,7 @@ int Selector::exec(int startSelection) {
 	app->ui->drawButton(this->bg, "b", app->tr["Exit"], 
 	app->ui->drawButton(this->bg, "x", app->tr["Favourite"])));
 
-	this->prepare(&fl, &screens, &titles);
+	this->prepare(&fl, &titles, &screens);
 	int selected = constrain(startSelection, 0, fl.size() - 1);
 
 	// moved surfaces out to prevent reloading on loop
@@ -307,11 +310,11 @@ int Selector::exec(int startSelection) {
 				this->dir = this->dir.substr(0, p + 1);
 				selected = 0;
 				this->firstElement = 0;
-				prepare(&fl, &screens, &titles);
+				this->prepare(&fl, &titles, &screens);
 			} else if ( (*app->inputManager)[CONFIRM] ) {
 				// file selected or dir selected
 				if (fl.isFile(selected)) {
-					file = fl[selected];
+					this->file = fl[selected];
 					close = true;
 				} else {
 					std::string localPath = this->dir + fl[selected];
@@ -319,7 +322,7 @@ int Selector::exec(int startSelection) {
 					this->dir = FileUtils::resolvePath(localPath);
 					selected = 0;
 					this->firstElement = 0;
-					prepare(&fl, &screens, &titles);
+					this->prepare(&fl, &titles, &screens);
 				}
 			} else if ( (*app->inputManager)[INC] ) {
 				// favourite
@@ -337,15 +340,15 @@ int Selector::exec(int startSelection) {
 		} while (!inputAction);
 	}
 
-	app->sc->defaultAlpha = true;
-	freeScreenshots(&screens);
+	this->app->sc->defaultAlpha = true;
+	this->freeScreenshots(&screens);
 
 	TRACE("exit : %i", result ? (int)selected : -1);
 	return result ? (int)selected : -1;
 }
 
 // checks for screen shots etc
-void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::vector<std::string> *titles) {
+void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::vector<std::string> *screens) {
 	TRACE("enter");
 
 	if (!FileUtils::dirExists(this->dir)) {
@@ -354,9 +357,11 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 		} else {
 			// we have problems,
 			// it's not a real dir and we can't browse dirs
-
+			ERROR("Directory doesn't exist : '%s'", this->dir.c_str());
+			return;
 		}
 	}
+
 	if (this->dir.length() > 0) {
 		// force a trailing slash
 		if (0 != this->dir.compare(dir.length() -1, 1, "/")) {
@@ -372,14 +377,17 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 
 	TRACE("calling browse");
 	fl->browse();
-	freeScreenshots(screens);
+
 	TRACE("found %i files and dirs", fl->size());
 	this->numDirs = fl->dirCount();
 	this->numFiles = fl->fileCount();
 	TRACE("number of files: %i", this->numFiles);
 	TRACE("number of dirs: %i", this->numDirs);
 
-	screens->resize(fl->getFiles().size());
+	if (NULL != screens) {
+		freeScreenshots(screens);
+		screens->resize(fl->getFiles().size());
+	}
 	titles->resize(fl->dirCount() + fl->getFiles().size());
 
 	std::string fname, noext, realdir;
@@ -403,41 +411,43 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *screens, std::v
 	// then loop thru all the files
 	for (uint32_t i = 0; i < fl->getFiles().size(); i++) {
 		fname = fl->getFiles()[i];
-		pos = fname.rfind(".");
-		// cache a version of fname without extension
-		if (pos != std::string::npos && pos > 0) 
-			noext = fname.substr(0, pos);
-		// and push into titles
+		noext = FileUtils::fileBaseName(fname);
+		// and push into titles, via alias lookup
 		titles->at(fl->dirCount() + i) = getAlias(noext, fname);
 
-		// are we looking for screen shots
-		if (!screendir.empty() && 0 != app->skin->previewWidth) {
-			if (screendir[0] == '.') {
-				// allow "." as "current directory", therefore, relative paths
-				realdir = realPath + screendir + "/";
-			} else realdir = FileUtils::resolvePath(screendir) + "/";
+		if (NULL != screens) {
+			// are we looking for screen shots
+			if (!screendir.empty() && 0 != app->skin->previewWidth) {
+				if (screendir[0] == '.') {
+					// allow "." as "current directory", therefore, relative paths
+					realdir = realPath + screendir + "/";
+				} else realdir = FileUtils::resolvePath(screendir) + "/";
 
-			// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
-			if (FileUtils::fileExists(realdir + noext + ".jpg")) {
-				screens->at(i) = realdir + noext + ".jpg";
-			} else if (FileUtils::fileExists(realdir + noext + ".png")){
-				screens->at(i) = realdir + noext + ".png";
+				// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
+				if (FileUtils::fileExists(realdir + noext + ".jpg")) {
+					screens->at(i) = realdir + noext + ".jpg";
+				} else if (FileUtils::fileExists(realdir + noext + ".png")){
+					screens->at(i) = realdir + noext + ".png";
+				}
 			}
-		}
-		if (screens->at(i).empty()) {
-			// fallback - always search for filename.png and jpg in a .previews folder inside the current path
-			if (previewsDirExists && 0 != app->skin->previewWidth) {
-				if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
-					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
-				else if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
-					screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
+			if (screens->at(i).empty()) {
+				// fallback - always search for filename.png and jpg in a .previews folder inside the current path
+				if (previewsDirExists && 0 != app->skin->previewWidth) {
+					if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
+						screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
+					else if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
+						screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
+				}
 			}
-		}
-		if (!screens->at(i).empty()) {
-			TRACE("adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+			if (!screens->at(i).empty()) {
+				TRACE("adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
+			}
 		}
 	}
-	TRACE("exit - loaded %zu screens", screens->size());
+	if (NULL != screens) {
+		TRACE("loaded %zu screens", screens->size());
+	}
+	TRACE("exit");
 }
 
 void Selector::freeScreenshots(std::vector<std::string> *screens) {

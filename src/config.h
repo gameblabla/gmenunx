@@ -147,6 +147,13 @@ public:
             this->isDirty = true;
         }
     }
+    int section() const { return this->section_; }
+    void section(int val) {
+        if (val != this->section_) {
+            this->section_ = val;
+            this->isDirty = true;
+        }
+    }
     int link() const { return this->link_; }
     void link(int val) {
         if (val != this->link_) {
@@ -154,10 +161,10 @@ public:
             this->isDirty = true;
         }
     }
-    int section() const { return this->section_; }
-    void section(int val) {
-        if (val != this->section_) {
-            this->section_ = val;
+    int selectedRom() const { return this->selectedRom_; }
+    void selectedRom(int val) {
+        if (val != this->selectedRom_) {
+            this->selectedRom_ = val;
             this->isDirty = true;
         }
     }
@@ -234,32 +241,33 @@ private:
     bool isDirty;
 
     std::string externalAppPath_;// = APP_EXTERNAL_PATH;
-    std::string skin_; //="Default"
-    std::string tvOutMode_; //="NTSC"
-    std::string lang_; //=""
-    std::string sectionFilter_; //="applications,foo"
-    std::string launcherPath_; //="/media/sdcard/ROMS"
-    std::string cpuMenu_; //=600 || On demand
-    std::string defaultCpuSpeed_; //= 1000 || Performance
+    std::string skin_; // = "Default"
+    std::string tvOutMode_; // = "NTSC"
+    std::string lang_; // = ""
+    std::string sectionFilter_; // = "applications,foo"
+    std::string launcherPath_; // = "/media/sdcard/ROMS"
+    std::string cpuMenu_; // =600 || On demand
+    std::string defaultCpuSpeed_; // = 1000 || Performance
 
-    int buttonRepeatRate_; //=10
-    int resolutionX_; //=320
-    int resolutionY_; //=240
-    int backlightLevel_; //=70
-    int backlightTimeout_; //=30
-    int videoBpp_; //=32
-    int globalVolume_; //=60
+    int buttonRepeatRate_; // = 10
+    int resolutionX_; // = 320
+    int resolutionY_; // = 240
+    int backlightLevel_; // = 70
+    int backlightTimeout_; // = 30
+    int videoBpp_; // = 32
+    int globalVolume_; // = 60
     int aspectRatio_;
-    int link_; //=1
-    int section_; //=1
-    int saveSelection_; //=1
+    int link_; // = 1
+    int section_; // = 1
+    int selectedRom_; // = -1
+    int saveSelection_; // = 1
     int quickStartGame_; // = 0
     int fastCache_; // = 0
     int powerTimeout_; //=10
     int outputLogs_; //=1
     int setHwLevelsOnBoot_; // = 0
     int respectHiddenLinks_; // = 1
-    int version_; //=1
+    int version_; // = 1
 
     void reset();
     bool fromFile();

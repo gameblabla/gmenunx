@@ -4,13 +4,13 @@
 
 * Added
   * Quick launch the last game on 1st boot
-    * Hold 'a' to bypass
+    * Hold left on the dpad down to bypass
     * Toggle on / off in Settings menu
   * Fast cache load option
     * Doesn't validate the cache and look for new or missing apps, just loads current state
     * This is used automatically when in quick launch mode
     * Toggleable in Settings menu
-      * If enabled, use the built in app scanner to manually update on demand
+      * If enabled, use the built in App Scanner (via select button) to manually update on demand
     * Live monitoring for new opk's is always enabled
 
 * Fixed

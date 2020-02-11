@@ -27,10 +27,12 @@ bool Loader::isFirstRun() {
 
 void Loader::setFirstRunMarker() {
     TRACE("no marker, so setting file : %s", LOADER_MARKER_FILE.c_str());
-    std::fstream fs;
-    fs.open(LOADER_MARKER_FILE, std::ios::out);
-    fs.close();
-    sync();
+    if (!FileUtils::fileExists(LOADER_MARKER_FILE)) {
+        std::fstream fs;
+        fs.open(LOADER_MARKER_FILE, std::ios::out);
+        fs.close();
+        sync();
+    }
 }
 
 bool Loader::fromFile() {
