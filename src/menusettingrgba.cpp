@@ -42,11 +42,11 @@ MenuSettingRGBA::MenuSettingRGBA(Esoteric *app, const std::string &title, const 
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/y.png", app->tr["Decrease"]);
-	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::dec));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::stepDown));
 	buttonBox.add(btn);
 
 	btn = new IconButton(app, "skin:imgs/buttons/x.png", app->tr["Increase"]);
-	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::inc));
+	btn->setAction(fastdelegate::MakeDelegate(this, &MenuSettingRGBA::stepUp));
 	buttonBox.add(btn);
 }
 
@@ -74,27 +74,35 @@ void MenuSettingRGBA::handleTS() {
 }
 
 uint32_t MenuSettingRGBA::manageInput() {
-	if ((*app->inputManager)[INC]) inc();
-	if ((*app->inputManager)[DEC]) dec();
+	if ((*app->inputManager)[INC]) inc(1);
+	if ((*app->inputManager)[DEC]) dec(1);
+	if ((*app->inputManager)[SECTION_NEXT]) inc(10);
+	if ((*app->inputManager)[SECTION_PREV]) dec(10);
 	if ((*app->inputManager)[LEFT]) leftComponent();
 	if ((*app->inputManager)[RIGHT]) rightComponent();
 	return 0; // SD_NO_ACTION
 }
 
-void MenuSettingRGBA::dec() {
-	setSelPart(constrain(getSelPart()-1,0,255));
+void MenuSettingRGBA::stepDown() {
+	this->dec(1);
+}
+void MenuSettingRGBA::stepUp() {
+	this->inc(1);
+}
+void MenuSettingRGBA::dec(int step) {
+	setSelPart(constrain(getSelPart() - step, 0, 255));
 }
 
-void MenuSettingRGBA::inc() {
-	setSelPart(constrain(getSelPart()+1,0,255));
+void MenuSettingRGBA::inc(int step) {
+	setSelPart(constrain(getSelPart() + step, 0, 255));
 }
 
 void MenuSettingRGBA::leftComponent() {
-	selPart = constrain(selPart-1,0,3);
+	selPart = constrain(selPart - 1, 0, 3);
 }
 
 void MenuSettingRGBA::rightComponent() {
-	selPart = constrain(selPart+1,0,3);
+	selPart = constrain(selPart + 1, 0, 3);
 }
 
 void MenuSettingRGBA::setR(uint16_t r) {
@@ -163,10 +171,13 @@ void MenuSettingRGBA::drawSelected(int y) {
 		default: color = app->skin->colours.selectionBackground; break;
 	}
 	app->screen->box( x, y, 36, app->font->getHeight() + 1, color );
-	app->screen->rectangle( x, y, 36, app->font->getHeight() + 1, 0,0,0,255 );
+	app->screen->rectangle( x, y, 36, app->font->getHeight() + 1, 0, 0, 0, 255 );
 	MenuSetting::drawSelected(y);
 }
 
 bool MenuSettingRGBA::edited() {
-	return originalValue.r != value().r || originalValue.g != value().g || originalValue.b != value().b || originalValue.a != value().a;
+	return 	originalValue.r != value().r || 
+			originalValue.g != value().g || 
+			originalValue.b != value().b || 
+			originalValue.a != value().a;
 }

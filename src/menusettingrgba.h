@@ -33,8 +33,10 @@ private:
 	RGBAColor originalValue;
 	RGBAColor *_value;
 
-	void dec();
-	void inc();
+	void stepDown();
+	void stepUp();
+	void dec(int step);
+	void inc(int step);
 	void leftComponent();
 	void rightComponent();
 

@@ -18,6 +18,8 @@
 
 * Improved
   * Setup wrapped in crash handler and dialog
+  * Skin colour editing - L1 & R1 step +- 10
+    * This is to work around the Y button being mapped to Left Shift, which doesn't support auto repeat in SDL
 
 **1.0.10** (*Codename: I can't believe it's not battery*)
 
