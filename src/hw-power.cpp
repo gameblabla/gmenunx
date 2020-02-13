@@ -53,6 +53,7 @@ bool JzPower::readLevel() {
     bool result = false;
 
     std::string strval = FileUtils::fileReader(this->BATTERY_LEVEL_PATH);
+    TRACE("raw battery level : '%s'", strval.c_str());
     this->level_ = atoi(strval.c_str());
     result = true;
 /*
