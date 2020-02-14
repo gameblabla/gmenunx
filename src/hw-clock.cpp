@@ -56,6 +56,13 @@ std::string IClock::getDateTime() {
 // RTC section starts
 
 void RTC::refresh() {
+
+    TRACE("enter");
+    time_t theTime = time(NULL);
+    this->myTime = (*localtime(&theTime));
+    TRACE("exit");
+    return;
+
     TRACE("enter");
     int fd;
     fd = open("/dev/rtc", O_RDONLY);
