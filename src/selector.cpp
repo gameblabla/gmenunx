@@ -385,9 +385,12 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 	TRACE("number of dirs: %i", this->numDirs);
 
 	if (NULL != screens) {
-		freeScreenshots(screens);
+		TRACE("clearing the screens collection");
+		this->freeScreenshots(screens);
 		screens->resize(fl->getFiles().size());
 	}
+	TRACE("resetting the titles");
+	titles->clear();
 	titles->resize(fl->dirCount() + fl->getFiles().size());
 
 	std::string fname, noext, realdir;
@@ -400,7 +403,15 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 	} else realPath = "/";
 	TRACE("realPath: '%s'", realPath.c_str());
 
-	bool previewsDirExists = FileUtils::dirExists(realPath + PREVIEWS_DIR);
+	std::string previewsDir = realPath + PREVIEWS_DIR;
+	TRACE("checking for previews dir at : '%s'", previewsDir.c_str());
+	bool previewsDirExists = FileUtils::dirExists(previewsDir);
+	if (!previewsDirExists) {
+		TRACE("didn't find previews dir in current path, trying up one level...");
+		previewsDir = FileUtils::resolvePath(realPath + "../") + "/" + PREVIEWS_DIR;
+		TRACE("checking for previews dir at : '%s'", previewsDir.c_str());
+		previewsDirExists = FileUtils::dirExists(previewsDir);
+	}
 	TRACE("previews folder exists: %i",  previewsDirExists);
 
 	// put all the dirs into titles first
@@ -431,12 +442,13 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 				}
 			}
 			if (screens->at(i).empty()) {
-				// fallback - always search for filename.png and jpg in a .previews folder inside the current path
+				// fallback - always search for filename.png and jpg in a .previews folder 
+				// either inside the current path, or one level higher
 				if (previewsDirExists && 0 != app->skin->previewWidth) {
-					if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".png"))
-						screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".png";
-					else if (FileUtils::fileExists(realPath + PREVIEWS_DIR + "/" + noext + ".jpg"))
-						screens->at(i) = realPath + PREVIEWS_DIR + "/" + noext + ".jpg";
+					if (FileUtils::fileExists(previewsDir + "/" + noext + ".png"))
+						screens->at(i) = previewsDir + "/" + noext + ".png";
+					else if (FileUtils::fileExists(previewsDir + "/" + noext + ".jpg"))
+						screens->at(i) = previewsDir + "/" + noext + ".jpg";
 				}
 			}
 			if (!screens->at(i).empty()) {
@@ -455,6 +467,7 @@ void Selector::freeScreenshots(std::vector<std::string> *screens) {
 		if (!screens->at(i).empty())
 			app->sc->del(screens->at(i));
 	}
+	screens->clear();
 }
 
 void Selector::loadAliases() {
