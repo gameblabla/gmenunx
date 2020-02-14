@@ -49,6 +49,7 @@ private:
 	void loadAliases();
 	std::string getAlias(const std::string &key, const std::string &fname);
 	void prepare(FileLister *fl, std::vector<std::string> *titles, std::vector<std::string> *screens = NULL);
+	void handleImages(std::string realPath, std::string noext, int fileIndex, bool previewsDirExists, std::string previewsDir, std::vector<std::string> *titles, std::vector<std::string> *screens);
 	void freeScreenshots(std::vector<std::string> *screens);
 
 public:

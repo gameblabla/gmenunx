@@ -110,9 +110,10 @@ int Selector::exec(int startSelection) {
 
 	// kick off the chooser loop
 	while (!close) {
+		int currentUniversalIndex = selected;
+		int currentFileIndex = selected - fl.dirCount();
 
 		// bang the background in
-		int currentFileIndex = selected - fl.dirCount();
 		this->bg->blit(app->screen, 0, 0);
 
 		if (!fl.size()) {
@@ -125,9 +126,9 @@ int Selector::exec(int startSelection) {
 			if (selected >= firstElement + numRows) firstElement = selected - numRows;
 			if (selected < firstElement) firstElement = selected;
 
-			if  (-1 == app->skin->previewWidth  && currentFileIndex >= 0) {
+			if  (-1 == app->skin->previewWidth  && selected >= 0) {
 				// we are doing a full background thing
-				std::string screenPath = screens.at(currentFileIndex);
+				std::string screenPath = screens.at(selected);
 				if (!screenPath.empty()) {
 					// line it up with the text
 					SDL_Rect bgArea {
@@ -194,11 +195,11 @@ int Selector::exec(int startSelection) {
 			}
 
 			// screenshot logic
-			if (app->skin->previewWidth > 0 && currentFileIndex >= 0) {
+			if (app->skin->previewWidth > 0 && selected >= 0) {
 				// we're in the files section and there's some art to deal with
-				if (!screens[currentFileIndex].empty()) {
+				if (!screens[selected].empty()) {
 
-					std::string screenPath = screens.at(currentFileIndex);
+					std::string screenPath = screens.at(selected);
 					if (!app->sc->exists(screenPath)) {
 						TRACE("1st load windowed - stretching screen path : %s", screenPath.c_str());
 						(*app->sc)[screenPath]->softStretch(
@@ -215,7 +216,7 @@ int Selector::exec(int startSelection) {
 						app->listRect.h, 
 						app->skin->colours.titleBarBackground);
 
-					(*app->sc)[screens[selected - fl.dirCount()]]->blit(
+					(*app->sc)[screens[selected]]->blit(
 						app->screen, 
 						{	app->getScreenWidth() - animation + padding, 
 							app->listRect.y + padding, 
@@ -387,13 +388,12 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 	if (NULL != screens) {
 		TRACE("clearing the screens collection");
 		this->freeScreenshots(screens);
-		screens->resize(fl->getFiles().size());
+		screens->resize(this->numDirs + this->numFiles);
 	}
 	TRACE("resetting the titles");
 	titles->clear();
-	titles->resize(fl->dirCount() + fl->getFiles().size());
+	titles->resize(this->numDirs + this->numFiles);
 
-	std::string fname, noext, realdir;
 	std::string::size_type pos;
 	std::string realPath = FileUtils::resolvePath(fl->getPath());
 	if (realPath.length() > 0) {
@@ -415,51 +415,56 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 	TRACE("previews folder exists: %i",  previewsDirExists);
 
 	// put all the dirs into titles first
-	for (uint32_t i = 0; i < fl->dirCount(); i++) {
-		titles->at(i) = fl->getDirectories()[i];
+	for (uint32_t i = 0; i < this->numDirs; i++) {
+		std::string dirName = fl->getDirectories()[i];
+		titles->at(i) = dirName;
+		this->handleImages(realPath, dirName, i, previewsDirExists, previewsDir, titles, screens);
 	}
 
 	// then loop thru all the files
-	for (uint32_t i = 0; i < fl->getFiles().size(); i++) {
-		fname = fl->getFiles()[i];
-		noext = FileUtils::fileBaseName(fname);
+	for (uint32_t i = 0; i < this->numFiles; i++) {
+		int fileIndex = i + this->numDirs;
+		std::string fname = fl->getFiles()[i];
+		std::string noext = FileUtils::fileBaseName(fname);
+
 		// and push into titles, via alias lookup
-		titles->at(fl->dirCount() + i) = getAlias(noext, fname);
+		titles->at(fileIndex) = getAlias(noext, fname);
+		this->handleImages(realPath, noext, fileIndex, previewsDirExists, previewsDir, titles, screens);
 
-		if (NULL != screens) {
-			// are we looking for screen shots
-			if (!screendir.empty() && 0 != app->skin->previewWidth) {
-				if (screendir[0] == '.') {
-					// allow "." as "current directory", therefore, relative paths
-					realdir = realPath + screendir + "/";
-				} else realdir = FileUtils::resolvePath(screendir) + "/";
-
-				// INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
-				if (FileUtils::fileExists(realdir + noext + ".jpg")) {
-					screens->at(i) = realdir + noext + ".jpg";
-				} else if (FileUtils::fileExists(realdir + noext + ".png")){
-					screens->at(i) = realdir + noext + ".png";
-				}
-			}
-			if (screens->at(i).empty()) {
-				// fallback - always search for filename.png and jpg in a .previews folder 
-				// either inside the current path, or one level higher
-				if (previewsDirExists && 0 != app->skin->previewWidth) {
-					if (FileUtils::fileExists(previewsDir + "/" + noext + ".png"))
-						screens->at(i) = previewsDir + "/" + noext + ".png";
-					else if (FileUtils::fileExists(previewsDir + "/" + noext + ".jpg"))
-						screens->at(i) = previewsDir + "/" + noext + ".jpg";
-				}
-			}
-			if (!screens->at(i).empty()) {
-				TRACE("adding name: %s, screen : %s", fname.c_str(), screens->at(i).c_str());
-			}
-		}
-	}
-	if (NULL != screens) {
-		TRACE("loaded %zu screens", screens->size());
 	}
 	TRACE("exit");
+}
+
+void Selector::handleImages(std::string realPath, std::string noext, int fileIndex, bool previewsDirExists, std::string previewsDir, std::vector<std::string> *titles, std::vector<std::string> *screens) {
+    
+	if (NULL == screens) return;
+
+	std::string realdir;
+    // are we looking for screen shots
+    if (!this->screendir.empty() && 0 != this->app->skin->previewWidth) {
+        if (this->screendir[0] == '.') {
+            // allow "." as "current directory", therefore, relative paths
+            realdir = realPath + this->screendir + "/";
+        } else
+            realdir = FileUtils::resolvePath(screendir) + "/";
+
+        // INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
+        if (FileUtils::fileExists(realdir + noext + ".jpg")) {
+            screens->at(fileIndex) = realdir + noext + ".jpg";
+        } else if (FileUtils::fileExists(realdir + noext + ".png")) {
+            screens->at(fileIndex) = realdir + noext + ".png";
+        }
+    }
+    if (screens->at(fileIndex).empty()) {
+        // fallback - always search for filename.png and jpg in a .previews folder
+        // either inside the current path, or one level higher
+        if (previewsDirExists && 0 != app->skin->previewWidth) {
+            if (FileUtils::fileExists(previewsDir + "/" + noext + ".png"))
+                screens->at(fileIndex) = previewsDir + "/" + noext + ".png";
+            else if (FileUtils::fileExists(previewsDir + "/" + noext + ".jpg"))
+                screens->at(fileIndex) = previewsDir + "/" + noext + ".jpg";
+        }
+    }
 }
 
 void Selector::freeScreenshots(std::vector<std::string> *screens) {

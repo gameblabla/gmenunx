@@ -12,6 +12,21 @@
     * Toggleable in Settings menu
       * If enabled, use the built in App Scanner (via select button) to manually update on demand
     * Live monitoring for new opk's is always enabled
+  * Folder previews - for when your roms come in multi files - ps1 etc
+    * Name the folder the same as the rom (minus the suffix) and you'll get a preview if you have an image
+    * Or have a different image for the folder
+    * eg....
+    * psx/
+      * .previews/
+        * game1.png
+        * game2-folder.png
+        * game2.png
+      * game1/
+        * game1.cue
+        * game1.bin
+      * game2-folder/
+        * game2.cue
+        * game2.bin
 
 * Fixed
   * LED low power boot loop
