@@ -1,5 +1,6 @@
 
 #include <limits.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <dirent.h>
@@ -17,6 +18,88 @@
 #ifndef PATH_MAX
 #define PATH_MAX 2048
 #endif
+
+bool FileUtils::syncDirs(std::string source, std::string dest, std::function<void(std::string)> progressCallback, bool overwrite) {
+
+    if (!FileUtils::dirExists(source))
+        return false;
+
+    TRACE("synchronising : '%s' -> '%s'", source.c_str(), dest.c_str());
+    bool result = true;
+
+    DIR *dirp;
+    struct stat st;
+    struct dirent *dptr;
+    std::string name;
+    if (source[source.length() - 1] != '/') source += "/";
+
+    std::string progress = "Synch dir : '" + source + "'";
+    if (NULL != progressCallback)
+        progressCallback(progress);
+
+    if (dest[dest.length()-1] != '/') dest += "/";
+    if (!FileUtils::dirExists(dest)) {
+        TRACE("creating destination dir : '%s'", dest.c_str());
+        if (!FileUtils::makeDir(dest)) {
+            ERROR("Couldn't make dir : '%s'", dest.c_str());
+            return false;
+        }
+    }
+
+    if ((dirp = opendir(source.c_str())) != NULL) {
+        TRACE("entered dir : %s", source.c_str());
+        while ((dptr = readdir(dirp))) {
+            name = dptr->d_name;
+            // skip psuedo dirs
+            if (0 == name.compare("."))
+                continue;
+            if (0 == name.compare(".."))
+                continue;
+
+            std::string localSource = source + name;
+            std::string localDest = dest + name;
+
+            TRACE("checking type of : '%s'", localSource.c_str());
+            int statRet = stat(localSource.c_str(), &st);
+
+            if (S_ISDIR(st.st_mode)) {
+                TRACE("found directory : %s", name.c_str());
+                if (!FileUtils::syncDirs(localSource, localDest, progressCallback, overwrite)) {
+                    result = false;
+                    break;
+                }
+            } else if (S_ISREG(st.st_mode)) {
+                TRACE("found file : %s", name.c_str());
+                if (!FileUtils::fileExists(localDest) || overwrite) {
+                    if (NULL != progressCallback)
+                        progressCallback(progress + " [" + name + "]");
+
+                    if (!FileUtils::copyFile(localSource, localDest)) {
+                        ERROR("Couldn't copy file '%s' to : '%s'", localSource.c_str(), localDest.c_str());
+                        result = false;
+                        break;
+                    } else {
+                        TRACE("copied file : '%s'", localSource.c_str());
+                    }
+                } else {
+                    TRACE("skipping existing file : '%s'", localDest.c_str());
+                }
+            }
+        }
+        closedir(dirp);
+    }
+
+    TRACE("exit");
+    return result;
+} 
+
+bool FileUtils::makeDir(std::string path) {
+    TRACE("enter : '%s'", path.c_str());
+    if (FileUtils::dirExists(path)) return true;
+    if (0 == mkdir(path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH))
+        return true;
+    return false;
+}
 
 // returns a filename minus the dot extension part
 std::string FileUtils::fileBaseName(const std::string &filename) {

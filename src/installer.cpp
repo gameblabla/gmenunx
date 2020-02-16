@@ -102,23 +102,13 @@ bool Installer::copyFiles() {
 
 bool Installer::copyDirs(bool force) {
     TRACE("enter");
-    std::string cp = force ? "/bin/cp -af" : "/bin/cp -a";
     for (std::vector<std::string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
         std::string directory = (*it);
         std::string source = this->sourceRootPath + directory;
-        std::string destination = this->destinationRootPath;// + directory;
-        TRACE("copying dir from : %s to %s", source.c_str(), destination.c_str());
-        this->notify("directory: " + directory);
-        if (!FileUtils::dirExists(source)) {
-            ERROR("Source directory doesn't exist : %s", source.c_str());
+        std::string destination = this->destinationRootPath + directory;
+        if (!FileUtils::syncDirs(source, destination, this->notifiable, false)) {
             return false;
         }
-        std::stringstream ss;
-        ss << cp << " \"" << source << "\" " << "\"" << destination << "\"";
-        std::string call = ss.str();
-        TRACE("running command : %s", call.c_str());
-        std::system(call.c_str());
-        sync();
     }
     TRACE("exit");
     return true;

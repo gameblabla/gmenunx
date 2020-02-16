@@ -2,10 +2,17 @@
 #define _FILE_UTILS_H_
 
 #include <string>
+#include <functional>
 
 class FileUtils {
 
 	public:
+
+		// recursive copies dir structure, with flag to overwrite if dest exists 
+		static bool syncDirs(std::string source, std::string dest, std::function<void(std::string)> progressCallback = NULL, bool overwrite = false);
+
+		// create a directory
+		static bool makeDir(std::string path);
 
 		// returns a filename minus the dot extension part
 		static std::string fileBaseName(const std::string & filename);
