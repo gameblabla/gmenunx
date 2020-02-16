@@ -12,21 +12,27 @@
     * Toggleable in Settings menu
       * If enabled, use the built in App Scanner (via select button) to manually update on demand
     * Live monitoring for new opk's is always enabled
-  * Folder previews - for when your roms come in multi files - ps1 etc
-    * Name the folder the same as the rom (minus the suffix) and you'll get a preview if you have an image
+  * Folder previews 
+    - for when your roms come in multi files - ps1 etc
+    - or if you have custom folders that you want images for
+    * Name the folder the same as the rom (minus the suffix), and you'll get a preview if you have an existing image
     * Or have a different image for the folder
     * eg....
-    * psx/
-      * .previews/
-        * game1.png
-        * game2-folder.png
-        * game2.png
-      * game1/
-        * game1.cue
-        * game1.bin
-      * game2-folder/
-        * game2.cue
-        * game2.bin
+    - psx/
+      - .previews/
+        - favourites.png
+        - game1.png
+        - game2.png
+        - game2-folder.png
+        - something.png
+        - something-else.png
+      - favourites/
+        - something.bin
+        - something-else.bin
+      - game1/
+        - game1.bin
+      - game2-folder/
+        - game2.bin
 
 * Fixed
   * LED low power boot loop
@@ -39,10 +45,10 @@
   * Skin colour editing - L1 & R1 step +- 10
     * This is to work around the Y button being mapped to Left Shift, which doesn't support auto repeat in SDL
   * Preview images looks one directory higher now as well, so you can have something like
-    * snes/
-     * .previews/
-     * all/
-     * favourites/
+    - snes/
+     - .previews/
+     - all/
+     - favourites/
 
 **1.0.10** (*Codename: I can't believe it's not battery*)
 
