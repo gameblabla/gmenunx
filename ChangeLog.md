@@ -3,7 +3,7 @@
 **1.0.11** (*Codename: SpeedRun*)
 
 * Added
-  * Quick launch the last game on 1st boot
+  * Quick launch the last game on 1st boot - only for games that needed a rom selector to launch (currently)
     * Hold left on the dpad down to bypass
     * Toggle on / off in Settings menu
   * Fast cache load option
