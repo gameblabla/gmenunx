@@ -50,7 +50,7 @@ bool Installer::install(IHardware * hw) {
     std::string destination = this->destinationRootPath + "input.conf";
     if (!FileUtils::copyFile(source, destination)) 
         return false;
-	
+
     TRACE("exit : %i", result);
     return result;
 }
@@ -77,7 +77,7 @@ bool Installer::upgrade() {
     TRACE("enter");
     bool result = false;
     if (this->copyFiles()) {
-        if (this->copyDirs(true)) {
+        if (this->copyDirs(false)) {
             result = this->setBinaryPermissions();
         }
     }
@@ -102,7 +102,7 @@ bool Installer::copyFiles() {
 
 bool Installer::copyDirs(bool force) {
     TRACE("enter");
-    std::string cp = force ? "/bin/cp -arfp" : "/bin/cp -arp";
+    std::string cp = force ? "/bin/cp -af" : "/bin/cp -a";
     for (std::vector<std::string>::iterator it = this->folderManifest.begin(); it != this->folderManifest.end(); it++) {
         std::string directory = (*it);
         std::string source = this->sourceRootPath + directory;

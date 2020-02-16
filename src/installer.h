@@ -7,6 +7,7 @@
 
 #include "constants.h"
 #include "hw-ihardware.h"
+#include "config.h"
 
 class Installer {
 
@@ -22,7 +23,6 @@ class Installer {
 
         std::vector<std::string> fileManifest = {
             BINARY_NAME, 
-            BINARY_NAME + ".conf", 
             BINARY_NAME + ".man.txt",
             "about.txt", 
             "ChangeLog.md", 

@@ -31,6 +31,7 @@
 * Fixed
   * LED low power boot loop
   * Time Zones
+  * Upgrades clobbering the config and resetting your skin
 
 * Improved
   * Setup wrapped in crash handler and dialog
