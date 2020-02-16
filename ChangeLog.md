@@ -14,7 +14,7 @@
     * Live monitoring for new opk's is always enabled
   * Folder previews 
     - for when your roms come in multi files - ps1 etc
-    - or if you have custom folders that you want images for
+    - or if you have custom rom sub-folders that you want images for
     * Name the folder the same as the rom (minus the suffix), and you'll get a preview if you have an existing image
     * Or have a different image for the folder
     * eg....
