@@ -31,7 +31,8 @@
 * Fixed
   * LED low power boot loop
   * Time Zones
-  * Upgrades clobbering the config and resetting your skin
+  * Upgrades clobbering the esoteric.conf file and resetting your skin
+  * Upgrades clobbering existing files, like your skin.conf settings
 
 * Improved
   * Setup wrapped in crash handler and dialog
