@@ -44,6 +44,7 @@ std::string Config::toString() {
     vec.push_back(StringUtils::stringFormat("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
     vec.push_back(StringUtils::stringFormat("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
     vec.push_back(StringUtils::stringFormat("defaultCpuSpeed=\"%s\"", this->defaultCpuSpeed().c_str()));
+    vec.push_back(StringUtils::stringFormat("selectedRom=\"%s\"", this->selectedRom().c_str()));
 
     // ints
     vec.push_back(StringUtils::stringFormat("buttonRepeatRate=%i", this->buttonRepeatRate()));
@@ -64,7 +65,6 @@ std::string Config::toString() {
     vec.push_back(StringUtils::stringFormat("fastCache=%i", this->fastCache()));
     vec.push_back(StringUtils::stringFormat("section=%i", this->section()));
     vec.push_back(StringUtils::stringFormat("link=%i", this->link()));
-    vec.push_back(StringUtils::stringFormat("selectedRom=%i", this->selectedRom()));
 
     vec.push_back(StringUtils::stringFormat("respectHiddenLinks=%i", this->respectHiddenLinks()));
     vec.push_back(StringUtils::stringFormat("setHwLevelsOnBoot=%i", this->setHwLevelsOnBoot()));
@@ -117,6 +117,7 @@ void Config::reset() {
     this->sectionFilter_ = "";
     this->cpuMenu_ = "";
     this->defaultCpuSpeed_ = "";
+    this->selectedRom_ = "";
 
     if (FileUtils::dirExists(EXTERNAL_LAUNCHER_PATH)) {
         this->launcherPath(EXTERNAL_LAUNCHER_PATH);
@@ -141,7 +142,6 @@ void Config::reset() {
     this->fastCache_ = 0;
     this->section_ = 1;
     this->link_ = 1;
-    this->selectedRom_ = -1;
 
     this->setHwLevelsOnBoot_ = 0;
     this->respectHiddenLinks_ = true;
@@ -245,6 +245,8 @@ bool Config::fromFile() {
                             this->cpuMenu(StringUtils::stripQuotes(value));
                         } else if (name == "defaultcpuspeed") {
                             this->defaultCpuSpeed(StringUtils::stripQuotes(value));
+                        } else if (name == "selectedrom") {
+                            this->selectedRom(StringUtils::stripQuotes(value));
                         }
 
                         // ints
@@ -278,8 +280,6 @@ bool Config::fromFile() {
                             this->section(atoi(value.c_str()));
                         } else if (name == "link") {
                             this->link(atoi(value.c_str()));
-                        } else if (name == "selectedrom") {
-                            this->selectedRom(atoi(value.c_str()));
                         } else if (name == "sethwlevelsonboot") {
                             this->setHwLevelsOnBoot(atoi(value.c_str()));
                         } else if (name == "respecthiddenlinks") {

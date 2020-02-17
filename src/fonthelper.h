@@ -19,6 +19,7 @@ private:
 	TTF_Font *font, *fontOutline;
 	RGBAColor textColor, outlineColor;
 	std::string fontName;
+	void loadFont(const std::string &fontName, int fontSize);
 
 public:
 	FontHelper(const std::string &fontName, int size, RGBAColor textColor = (RGBAColor){255,255,255}, RGBAColor outlineColor = (RGBAColor){5,5,5});
@@ -42,8 +43,6 @@ public:
 	uint32_t getHeight() { return height; };
 	uint32_t getHalfHeight() { return halfHeight; };
 	uint32_t getSize() { return fontSize; }
-
-	void loadFont(const std::string &fontName, int fontSize);
 
 	FontHelper *setSize(const int size);
 	FontHelper *setColor(RGBAColor color);

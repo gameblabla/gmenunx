@@ -425,6 +425,7 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir, const
 	Selector sel(app, this, myDir);
 	if (!choose) {
 		// we just want to get the file from dir and index
+		TRACE("resolving for quickStart: %i", selection);
 		sel.resolve(selection);
 	} else {
 		// we are doing a full resolve
@@ -435,9 +436,15 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir, const
 	if (selection > -1) {
 		std::string launchArgs = this->resolveArgs(sel.getFile(), sel.getDir());
 		this->app->config->launcherPath(sel.getDir());
-		this->app->config->selectedRom(selection);
+		std::stringstream ss;
+		ss << this->app->menu->selSectionIndex() << ":" << this->app->menu->selLinkIndex() << ":" << selection;
+		std::string selectedRom = ss.str();
+		TRACE("storing launch combo : '%s'", selectedRom.c_str());
+		this->app->config->selectedRom(selectedRom);
 		this->app->writeTmp(selection, sel.getDir());
 		this->launch(launchArgs);
+	} else {
+		TRACE("selector didn't get us a file");
 	}
 	TRACE("exit");
 }

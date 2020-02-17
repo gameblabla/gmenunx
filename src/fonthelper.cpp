@@ -11,8 +11,10 @@ FontHelper::FontHelper(const std::string &fontName, int fontSize, RGBAColor text
 	  textColor(textColor),
 	  outlineColor(outlineColor) {
 
+	this->height = this->halfHeight = 0;
 	this->font = NULL;
 	this->fontOutline = NULL;
+
 	loadFont(fontName, fontSize);
 }
 

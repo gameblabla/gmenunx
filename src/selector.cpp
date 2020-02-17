@@ -96,8 +96,9 @@ int Selector::exec(int startSelection) {
 	this->bg->box(app->listRect, app->skin->colours.listBackground);
 
 	app->ui->drawButton(this->bg, "a", app->tr["Select"],
-	app->ui->drawButton(this->bg, "b", app->tr["Exit"], 
-	app->ui->drawButton(this->bg, "x", app->tr["Favourite"])));
+	app->ui->drawButton(this->bg, "b", app->tr["Up"], 
+	app->ui->drawButton(this->bg, "start", app->tr["Exit"],
+	app->ui->drawButton(this->bg, "x", app->tr["Favourite"]))));
 
 	this->prepare(&fl, &titles, &screens);
 	int selected = constrain(startSelection, 0, fl.size() - 1);

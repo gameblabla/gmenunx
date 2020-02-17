@@ -94,7 +94,7 @@ private:
 
 	std::string lastSelectorDir;
 	int lastSelectorElement;
-	void readTmp();
+	bool readTmp();
 	bool restoreState();
 
 	void initFont();
@@ -172,7 +172,6 @@ public:
 	void writeConfig();
 	void writeSkinConfig();
 	void writeTmp(int selelem=-1, const std::string &selectordir = "");
-
 
 	void setWallpaper(const std::string &wallpaper = "");
 	void updateAppCache(std::function<void(std::string)> callback = nullptr, bool readOnly = false);

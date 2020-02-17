@@ -161,8 +161,8 @@ public:
             this->isDirty = true;
         }
     }
-    int selectedRom() const { return this->selectedRom_; }
-    void selectedRom(int val) {
+    std::string selectedRom() const { return this->selectedRom_; }
+    void selectedRom(std::string val) {
         if (val != this->selectedRom_) {
             this->selectedRom_ = val;
             this->isDirty = true;
@@ -248,6 +248,7 @@ private:
     std::string launcherPath_; // = "/media/sdcard/ROMS"
     std::string cpuMenu_; // =600 || On demand
     std::string defaultCpuSpeed_; // = 1000 || Performance
+    std::string selectedRom_; // = {int:section}:{int:link}:{int:rom}
 
     int buttonRepeatRate_; // = 10
     int resolutionX_; // = 320
@@ -259,7 +260,6 @@ private:
     int aspectRatio_;
     int link_; // = 1
     int section_; // = 1
-    int selectedRom_; // = -1
     int saveSelection_; // = 1
     int quickStartGame_; // = 0
     int fastCache_; // = 0

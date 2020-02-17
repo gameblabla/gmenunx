@@ -326,6 +326,7 @@ void Esoteric::quit_all(int err) {
 		delete app;
 		app = nullptr;
 	}
+	fflush(NULL);
 	TRACE("exit");
 	std::exit(err);
 }
@@ -393,15 +394,15 @@ void Esoteric::main() {
 		// create this early so we can give it to the thread, but don't exec it yet
 		ProgressBar pbLoading(this, title, "skin:icons/device.png", -30);
 		pbLoading.updateDetail("Checking for new apps...");
-		TRACE("kicking off our app cache thread");
+		
 		bool readOnly = this->config->fastCache() || 
 					(
 						Loader::isFirstRun() && 
-						this->config->quickStartGame() && 
-						this->menu->selLinkApp() != NULL && 
-						this->lastSelectorElement >- 1
+						this->config->quickStartGame() 
 					);
+		TRACE("installed : %i", !readOnly);
 
+		TRACE("kicking off our app cache thread");
 		std::thread * thread_cache = new std::thread(
 			&Esoteric::updateAppCache, 
 			this, 
@@ -432,8 +433,8 @@ void Esoteric::main() {
 
 		// initMenu needs to come after cache thread has joined
 		pbLoading.updateDetail("Building the menu");
-		initMenu();
-		setWallpaper(this->skin->wallpaper);
+		this->initMenu();
+		this->setWallpaper(this->skin->wallpaper);
 
 		TRACE("set hardware to real settings");
 		this->screenManager->setTimeout(config->backlightTimeout());
@@ -522,6 +523,7 @@ void Esoteric::main() {
 
 			try {
 				if ((*this->inputManager)[CONFIRM] && this->menu->selLink() != NULL) {
+
 					TRACE("******************RUNNING THIS*******************");
 					if (menu->selLinkApp() != NULL && menu->selLinkApp()->getSelectorDir().empty()) {
 						MessageBox mb(this, tr["Launching "] + menu->selLink()->getTitle().c_str(), menu->selLink()->getIconPath());
@@ -529,6 +531,7 @@ void Esoteric::main() {
 						mb.exec();
 					}
 					TRACE("******************RUNNING THIS -- RUN*******************");
+
 					menu->selLink()->run();
 					TRACE("Run called");
 				} else if ((*this->inputManager)[INC]) {
@@ -585,62 +588,89 @@ void Esoteric::main() {
 
 // returns true if we don't go straight into launching something
 bool Esoteric::restoreState() {
-	TRACE("enter");
-	// readTmp has to come after initMenu, because of section hiding etc
-	this->readTmp();
-	if (this->lastSelectorElement >- 1 && this->menu->selLinkApp() != NULL) {
-		if (FileUtils::dirExists(this->lastSelectorDir)) {
-			TRACE("recoverSession happening");
-			this->menu->selLinkApp()->selector(
-				this->lastSelectorElement, 
-				this->lastSelectorDir, 
-				true);
-		}
-	} else if (this->config->saveSelection()) {
-		TRACE("save selection is set");
-		if (this->config->section() > 0) {
-			TRACE("restore section : %i", this->config->section());
-			this->menu->setSectionIndex(this->config->section());
-		}
-		if (this->config->link() > 0) {
-			TRACE("restore link : %i", this->config->link());
-			this->menu->setLinkIndex(this->config->link());
-		}
-		TRACE("quickStartGame : %i", this->config->quickStartGame());
-		TRACE("first run : %i", Loader::isFirstRun());
+    TRACE("enter");
 
-		if (Loader::isFirstRun() && this->config->quickStartGame()) {
-			TRACE("first run and quickStartGame tests have passed");
-			std::string launchDir = this->config->launcherPath();
-			TRACE("launcherPath : '%s'", launchDir.c_str());
-			int selection = this->config->selectedRom();
-			TRACE("selectedRom : %i", selection);
-			if (selection >= 0 and FileUtils::dirExists(launchDir)) {
-				TRACE("potential quickStartGame scenario");
-
-				// don't do anything if we have the left dpad down
-				if (!(*this->inputManager)[LEFT]) {
-					
-					TRACE("a quickStartGame is happening");
-					this->menu->selLinkApp()->selector(
-						selection,
-						launchDir,
-						false);
-					this->quit();
-					quit_all(0);
-					return false;
-
-				} else {
-					TRACE("quickStartGame bypassed by button over ride");
-				}
-			} else {
-				TRACE("quickStartGame skipped for <= 0 index value or missing dir");
+    // readTmp has to come after initMenu, because of section hiding etc
+	if (!Loader::isFirstRun() && this->readTmp()) {
+		if (this->lastSelectorElement > -1 && this->menu->selLinkApp() != NULL) {
+			// we can only get here if we're not on 1st run
+			if (FileUtils::dirExists(this->lastSelectorDir)) {
+				TRACE("recoverSession happening");
+				this->menu->selLinkApp()->selector(
+					this->lastSelectorElement,
+					this->lastSelectorDir,
+					true);
 			}
 		}
-	}
-	this->config->selectedRom(-1);
-	TRACE("exit");
-	return true;
+	} else {
+
+		bool isFirstRun = Loader::isFirstRun();
+		bool quickStartGame = this->config->quickStartGame();
+		TRACE("is first run : %i", isFirstRun);
+		TRACE("quick start game : %i", quickStartGame);
+
+        // we only care about quick starting a game on first boot
+        if (Loader::isFirstRun() && this->config->quickStartGame()) {
+            TRACE("first run and quickStartGame tests have passed");
+            std::string launchDir = this->config->launcherPath();
+            TRACE("launcherPath : '%s'", launchDir.c_str());
+			std::vector<std::string> launchParts;
+			std::string romPath = this->config->selectedRom();
+			TRACE("romPath : '%s'", romPath.c_str());
+			StringUtils::split(launchParts, romPath, ":", true);
+			if (3 != launchParts.size()) return true;
+
+			int sectionId = atoi(launchParts[0].c_str());
+			int linkId = atoi(launchParts[1].c_str());
+			int selectorId = atoi(launchParts[2].c_str());
+
+			this->config->selectedRom("");
+
+            if (sectionId >= 0 && linkId >= 0 && selectorId >= 0 and FileUtils::dirExists(launchDir)) {
+				TRACE("potential quickStartGame scenario");
+                TRACE("restore section : %i", sectionId);
+                this->menu->setSectionIndex(sectionId);
+                TRACE("restore link : %i", linkId);
+                this->menu->setLinkIndex(linkId);
+
+                // don't do anything if we have the left dpad down
+                if (!(*this->inputManager)[LEFT]) {
+
+                    TRACE("a quickStartGame is happening");
+					TRACE("selectedRom : %i", selectorId);
+
+                    this->menu->selLinkApp()->selector(
+                        selectorId,
+                        launchDir,
+                        false);
+
+                    this->quit();
+                    quit_all(0);
+                    return false;
+
+                } else {
+                    TRACE("quickStartGame bypassed by button over ride");
+                }
+            } else {
+                TRACE("quickStartGame skipped for <= 0 index value or missing dir");
+            }
+        } else if (this->config->saveSelection()) {
+            TRACE("save selection is set");
+            if (this->config->section() > 0) {
+                TRACE("restore section : %i", this->config->section());
+                this->menu->setSectionIndex(this->config->section());
+            }
+            if (this->config->link() > 0) {
+                TRACE("restore link : %i", this->config->link());
+                this->menu->setLinkIndex(this->config->link());
+            }
+            TRACE("quickStartGame : %i", this->config->quickStartGame());
+            TRACE("first run : %i", Loader::isFirstRun());
+        }
+    }
+
+    TRACE("exit");
+    return true;
 }
 
 void Esoteric::cacheChanged(const DesktopFile & file, const bool & added) {
@@ -1434,9 +1464,9 @@ void Esoteric::settings() {
 		this->screenManager->resetTimer();
 		this->screenManager->setTimeout(this->config->backlightTimeout());
 
-		if (!this->needsInstalling) {
-			this->writeConfig();
-		} else {
+		this->writeConfig();
+
+		if (this->needsInstalling) {
 			restartNeeded = false;
 		}
 
@@ -1543,12 +1573,12 @@ void Esoteric::cpuSettings() {
 // sets the section and selected link up
 // and the tv out mode. 
 // Must be called after initMenu
-void Esoteric::readTmp() {
+bool Esoteric::readTmp() {
 	TRACE("enter");
-	lastSelectorElement = -1;
-	if (!FileUtils::fileExists(TEMP_FILE)) return;
+	this->lastSelectorElement = -1;
+	if (!FileUtils::fileExists(TEMP_FILE)) return false;
 	std::ifstream inf(TEMP_FILE, std::ios_base::in);
-	if (!inf.is_open()) return;
+	if (!inf.is_open()) return false;
 	std::string line, name, value;
 
 	while (getline(inf, line, '\n')) {
@@ -1564,6 +1594,7 @@ void Esoteric::readTmp() {
 	}
 	inf.close();
 	unlink(TEMP_FILE.c_str());
+	return true;
 }
 
 void Esoteric::writeTmp(int selelem, const std::string &selectordir) {
@@ -1584,7 +1615,7 @@ void Esoteric::writeConfig() {
 	this->hw->ledOn();
 	TRACE("led set");
 	// don't try and save to RO file system
-	if (!this->needsInstalling) {
+	if (FileUtils::dirExists(this->getWriteablePath())) {
 		TRACE("config needs saving");
 		if (config->saveSelection() && menu != NULL) {
 			TRACE("saving current selection : [%i:%i]", menu->selSectionIndex(), menu->selLinkIndex());
@@ -1852,8 +1883,8 @@ void Esoteric::doUpgrade() {
 	INFO("Esoteric::doUpgrade - enter");
 	bool success = false;
 	// check for the writable home directory existing
-	std::string source = getExePath();
-	std::string destination = getWriteablePath();
+	std::string source = this->getExePath();
+	std::string destination = this->getWriteablePath();
 
 	INFO("upgrade from : %s, to : %s", source.c_str(), destination.c_str());
 	ProgressBar *pbInstall = new ProgressBar(
@@ -1870,6 +1901,10 @@ void Esoteric::doUpgrade() {
 		destination, 
 		[&](std::string message){ return pbInstall->updateDetail(message); } );
 
+	if (!FileUtils::fileExists(destination + CONFIG_FILE_NAME)) {
+		this->config->changePath(destination);
+		this->config->save();
+	}
 	if (installer->upgrade()) {
 		pbInstall->finished();
 	} else {
