@@ -119,7 +119,7 @@ public:
 	bool &operator[](int action);
 	bool isActive(int action);
 	bool isActionKey(int action, int key);
-	bool isKeyCombo(const std::vector<int> & comboActions);
+	bool isKeyCombo(uint8_t *keystate, const std::vector<int> & comboActions);
 	bool isOnlyActive(int action);
 
 	void setButtonRepeat(const int &repeatRate);

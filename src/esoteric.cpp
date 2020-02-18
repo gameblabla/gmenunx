@@ -634,7 +634,7 @@ bool Esoteric::restoreState() {
                 this->menu->setLinkIndex(linkId);
 
                 // don't do anything if we have the left dpad down
-                if (!(*this->inputManager)[LEFT]) {
+                if (!this->inputManager->isActive(LEFT)) {
 
                     TRACE("a quickStartGame is happening");
 					TRACE("selectedRom : %i", selectorId);
@@ -649,6 +649,7 @@ bool Esoteric::restoreState() {
                     return false;
 
                 } else {
+					this->inputManager->dropEvents();
                     TRACE("quickStartGame bypassed by button over ride");
                 }
             } else {

@@ -441,13 +441,19 @@ bool InputManager::update(bool wait) {
 }
 
 void InputManager::dropEvents() {
-	for (uint32_t x = 0; x < actions.size(); x++) {
-		actions[x].active = false;
+    for (uint32_t x = 0; x < actions.size(); x++) {
+        TRACE("resetting action : %i", x);
+        actions[x].active = false;
+        /*
 		if (actions[x].timer != NULL) {
 			SDL_RemoveTimer(actions[x].timer);
 			actions[x].timer = NULL;
 		}
-	}
+		*/
+    }
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+    }
 }
 
 int InputManager::count() {
@@ -508,6 +514,8 @@ bool InputManager::isActive(int action) {
 	}
 
 	MappingList mapList = actions[action].maplist;
+	uint8_t *keystate = SDL_GetKeyState(NULL);
+
 	//TRACE("we have got to check %zu mappings for action %i", mapList.size(), action);
 	for (MappingList::const_iterator it = mapList.begin(); it != mapList.end(); ++it) {
 		InputMap map = *it;
@@ -525,14 +533,14 @@ bool InputManager::isActive(int action) {
 				break;
 			case InputManager::MAPPING_TYPE_KEYCOMBO:
 				//TRACE("key combo test for action %i", action);
-				if (this->isKeyCombo(map.combo)) {
+				if (this->isKeyCombo(keystate, map.combo)) {
 					//TRACE("combo hit for action %i", action);
 					return true;
 				}
 				break;
 			case InputManager::MAPPING_TYPE_KEYPRESS:
 				//TRACE("key press test for action %i", action);
-				uint8_t *keystate = SDL_GetKeyState(NULL);
+				
 				if (keystate[map.value]) {
 					return true;
 				}
@@ -542,7 +550,7 @@ bool InputManager::isActive(int action) {
 	return false;
 }
 
-bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
+bool InputManager::isKeyCombo(uint8_t *keystate, const std::vector<int> & comboActions) {
 	//TRACE("enter  - looking for %zu combo keys", comboActions.size());
 
 	#if (LOG_LEVEL >= INFO_L)
@@ -554,7 +562,6 @@ bool InputManager::isKeyCombo(const std::vector<int> & comboActions) {
 	TRACE("we're looking for : '%s'", search.c_str());
 	#endif
 
-	uint8_t *keystate = SDL_GetKeyState(NULL);
 	bool isComboKey;
 	std::list<int>::iterator mappedIt;
 	for (mappedIt = this->allMappedKeys.begin(); mappedIt != this->allMappedKeys.end(); mappedIt++) {
