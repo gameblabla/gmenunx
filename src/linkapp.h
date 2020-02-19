@@ -93,11 +93,13 @@ public:
 
 	bool save();
 	void run();
+	std::string selectRom(int startSelection = -1, const std::string &selectorDir = "");
+	void runWithRom(const std::string &romFile);
+
 	void makeFavourite();
 	void makeFavourite(std::string dir, std::string file, std::string backdrop = "");
 
 	// void showManual();
-	void selector(int startSelection = 0, const std::string &selectorDir = "", const bool &choose = true);
 	bool targetExists();
 
 	const std::string &getFile() { return file; }

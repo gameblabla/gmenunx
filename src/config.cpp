@@ -44,7 +44,7 @@ std::string Config::toString() {
     vec.push_back(StringUtils::stringFormat("externalAppPath=\"%s\"", this->externalAppPath().c_str()));
     vec.push_back(StringUtils::stringFormat("cpuMenu=\"%s\"", this->cpuMenu().c_str()));
     vec.push_back(StringUtils::stringFormat("defaultCpuSpeed=\"%s\"", this->defaultCpuSpeed().c_str()));
-    vec.push_back(StringUtils::stringFormat("selectedRom=\"%s\"", this->selectedRom().c_str()));
+    vec.push_back(StringUtils::stringFormat("quickStartPath=\"%s\"", this->quickStartPath().c_str()));
 
     // ints
     vec.push_back(StringUtils::stringFormat("buttonRepeatRate=%i", this->buttonRepeatRate()));
@@ -117,7 +117,7 @@ void Config::reset() {
     this->sectionFilter_ = "";
     this->cpuMenu_ = "";
     this->defaultCpuSpeed_ = "";
-    this->selectedRom_ = "";
+    this->quickStartPath_ = "";
 
     if (FileUtils::dirExists(EXTERNAL_LAUNCHER_PATH)) {
         this->launcherPath(EXTERNAL_LAUNCHER_PATH);
@@ -245,8 +245,8 @@ bool Config::fromFile() {
                             this->cpuMenu(StringUtils::stripQuotes(value));
                         } else if (name == "defaultcpuspeed") {
                             this->defaultCpuSpeed(StringUtils::stripQuotes(value));
-                        } else if (name == "selectedrom") {
-                            this->selectedRom(StringUtils::stripQuotes(value));
+                        } else if (name == "quickstartpath") {
+                            this->quickStartPath(StringUtils::stripQuotes(value));
                         }
 
                         // ints

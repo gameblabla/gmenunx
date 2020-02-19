@@ -596,64 +596,51 @@ bool Esoteric::restoreState() {
 			// we can only get here if we're not on 1st run
 			if (FileUtils::dirExists(this->lastSelectorDir)) {
 				TRACE("recoverSession happening");
-				this->menu->selLinkApp()->selector(
+				std::string romFile = this->menu->selLinkApp()->selectRom(
 					this->lastSelectorElement,
-					this->lastSelectorDir,
-					true);
+					this->lastSelectorDir);
+
+				this->menu->selLinkApp()->runWithRom(romFile);
 			}
 		}
 	} else {
 
-		bool isFirstRun = Loader::isFirstRun();
-		bool quickStartGame = this->config->quickStartGame();
-		TRACE("is first run : %i", isFirstRun);
-		TRACE("quick start game : %i", quickStartGame);
-
+		std::string romPath = this->config->quickStartPath();
         // we only care about quick starting a game on first boot
-        if (Loader::isFirstRun() && this->config->quickStartGame()) {
+		if (this->inputManager->isActive(LEFT)) {
+			this->inputManager->dropEvents();
+            TRACE("quickStartGame bypassed by button over ride");
+			return true;
+        } else if (Loader::isFirstRun() && this->config->quickStartGame() && !romPath.empty()) {
+
             TRACE("first run and quickStartGame tests have passed");
-            std::string launchDir = this->config->launcherPath();
-            TRACE("launcherPath : '%s'", launchDir.c_str());
 			std::vector<std::string> launchParts;
-			std::string romPath = this->config->selectedRom();
 			TRACE("romPath : '%s'", romPath.c_str());
 			StringUtils::split(launchParts, romPath, ":", true);
-			if (3 != launchParts.size()) return true;
 
+			// minimum required for a quick launch
+			if (launchParts.size() < 2) return true;
 			int sectionId = atoi(launchParts[0].c_str());
 			int linkId = atoi(launchParts[1].c_str());
-			int selectorId = atoi(launchParts[2].c_str());
 
-			this->config->selectedRom("");
+			if (sectionId >= 0 && linkId >= 0) {
+				TRACE("restore section : %i", sectionId);
+				this->menu->setSectionIndex(sectionId);
+				TRACE("restore link : %i", linkId);
+				this->menu->setLinkIndex(linkId);
+			} else return true;
 
-            if (sectionId >= 0 && linkId >= 0 && selectorId >= 0 and FileUtils::dirExists(launchDir)) {
-				TRACE("potential quickStartGame scenario");
-                TRACE("restore section : %i", sectionId);
-                this->menu->setSectionIndex(sectionId);
-                TRACE("restore link : %i", linkId);
-                this->menu->setLinkIndex(linkId);
-
-                // don't do anything if we have the left dpad down
-                if (!this->inputManager->isActive(LEFT)) {
-
-                    TRACE("a quickStartGame is happening");
-					TRACE("selectedRom : %i", selectorId);
-
-                    this->menu->selLinkApp()->selector(
-                        selectorId,
-                        launchDir,
-                        false);
-
-                    this->quit();
-                    quit_all(0);
-                    return false;
-
-                } else {
-					this->inputManager->dropEvents();
-                    TRACE("quickStartGame bypassed by button over ride");
-                }
-            } else {
-                TRACE("quickStartGame skipped for <= 0 index value or missing dir");
+			if (launchParts.size() >= 3) {
+				std::string romFile = launchParts[2];
+				this->config->quickStartPath("");
+				TRACE("a quickStartGame is happening");
+				TRACE("selectedRom : '%s'", romFile.c_str());
+				this->menu->selLinkApp()->runWithRom(romFile);
+				return false;
+			} else {
+				this->config->quickStartPath("");
+                this->menu->selLinkApp()->run();
+				return false;
             }
         } else if (this->config->saveSelection()) {
             TRACE("save selection is set");

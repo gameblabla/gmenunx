@@ -38,7 +38,7 @@
 #include "constants.h"
 #include "stringutils.h"
 
-static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
+//static std::array<const char *, 4> tokens = { "%f", "%F", "%u", "%U", };
 const std::string LinkApp::FAVOURITE_FOLDER = "favourites";
 
 LinkApp::LinkApp(Esoteric *app, const char* linkfile, bool deletable_) :
@@ -393,19 +393,34 @@ void LinkApp::makeFavourite() {
 void LinkApp::run() {
 	TRACE("enter");
 	if (!selectordir.empty()) {
-		selector();
+		std::string romFile = this->selectRom();
+		this->runWithRom(romFile);
 	} else {
-		std::string launchArgs = resolveArgs();
-		launch(launchArgs);
+		std::string launchArgs = this->resolveArgs();
+		this->launch(launchArgs);
 	}
 	TRACE("exit");
+}
+
+// takes a full path to a rom file
+void LinkApp::runWithRom(const std::string &romFile) {
+
+	// turn this into a pub func and call it from quickstart eso
+	if (!FileUtils::fileExists(romFile)) {
+		TRACE("supporting rom file doesn't exist : '%s'", romFile.c_str());
+		return;
+	}
+	std::string launchArgs = this->resolveArgs(romFile);
+	this->launch(launchArgs);
 }
 
 /*
  * lauches a supporting file selector if needed
  */
-void LinkApp::selector(int startSelection, const std::string &selectorDir, const bool &choose) {
+std::string LinkApp::selectRom(int startSelection, const std::string &selectorDir) {
+
 	TRACE("enter - startSelection = %i, selectorDir = %s", startSelection, selectorDir.c_str());
+	std::string result;
 
 	// Run selector interface - this is the order of dir specificity
 	// - directly requested in the call args
@@ -423,52 +438,48 @@ void LinkApp::selector(int startSelection, const std::string &selectorDir, const
 	}
 
 	Selector sel(app, this, myDir);
-	if (!choose) {
-		// we just want to get the file from dir and index
-		TRACE("resolving for quickStart: %i", selection);
-		sel.resolve(selection);
-	} else {
-		// we are doing a full resolve
-		selection = sel.exec(selection);
-	}
+	// we are doing a full resolve
+	selection = sel.exec(selection);
 
 	// we got a file
 	if (selection > -1) {
-		std::string launchArgs = this->resolveArgs(sel.getFile(), sel.getDir());
-		this->app->config->launcherPath(sel.getDir());
-		std::stringstream ss;
-		ss << this->app->menu->selSectionIndex() << ":" << this->app->menu->selLinkIndex() << ":" << selection;
-		std::string selectedRom = ss.str();
-		TRACE("storing launch combo : '%s'", selectedRom.c_str());
-		this->app->config->selectedRom(selectedRom);
-		this->app->writeTmp(selection, sel.getDir());
-		this->launch(launchArgs);
+		std::string romDir = sel.getDir();
+		std::string romFile = sel.getFile();
+		this->app->writeTmp(selection, romDir);
+		result = romDir + romFile;
 	} else {
 		TRACE("selector didn't get us a file");
 	}
-	TRACE("exit");
+	TRACE("exit : '%s'", result.c_str());
+	return result;
 }
 
 std::string LinkApp::resolveArgs(const std::string &selectedFile, const std::string &selectedDir) {
 	TRACE("enter file : '%s', dir : '%s'", selectedFile.c_str(), selectedDir.c_str());
 	std::string launchArgs = "";
+	std::string localFile = selectedFile;
+	std::string dir = selectedDir;
 
 	// selectedFile means a rom or some kind of data file..
-	if (!selectedFile.empty()) {
-		TRACE("we have a selected file to work with : %s", selectedFile.c_str());
+	if (!localFile.empty()) {
+		TRACE("we have a selected file to work with : %s", localFile.c_str());
 		// break out the dir, filename and extension
 		std::string selectedFileExtension;
 		std::string selectedFileName;
-		std::string dir;
+		
+		selectedFileExtension = FileUtils::fileExtension(localFile);
+		selectedFileName = FileUtils::fileBaseName(localFile);
+		TRACE("file - basename : '%s', extension : '%s'", selectedFileName.c_str(), selectedFileExtension.c_str());
 
-		selectedFileExtension = FileUtils::fileExtension(selectedFile);
-		selectedFileName = FileUtils::fileBaseName(selectedFile);
-
-		TRACE("name : %s, extension : %s", selectedFileName.c_str(), selectedFileExtension.c_str());
-		if (selectedDir.empty())
-			dir = getSelectorDir();
-		else
-			dir = selectedDir;
+		if (dir.empty()) {
+			if (FileUtils::fileExists(selectedFile)) {
+				// it's alreaday fully qualified
+				dir = FileUtils::dirName(selectedFile);
+				localFile = FileUtils::pathBaseName(localFile);
+			} else {
+				dir = this->getSelectorDir();
+			}
+		}
 
 		// force a slash at the end
 		if (dir.length() > 0) {
@@ -478,28 +489,43 @@ std::string LinkApp::resolveArgs(const std::string &selectedFile, const std::str
 		TRACE("dir : %s", dir.c_str());
 
 		if (this->getParams().empty()) {
-			launchArgs = "\"" + dir + selectedFile + "\"";
+			launchArgs = "\"" + dir + localFile + "\"";
 			TRACE("no params, so cleaned to : %s", launchArgs.c_str());
 		} else {
 			TRACE("params need handling : %s", this->getParams().c_str());
-			launchArgs = StringUtils::strReplace(params, "[selFullPath]", StringUtils::cmdClean(dir + selectedFile));
+			launchArgs = StringUtils::strReplace(params, "[selFullPath]", StringUtils::cmdClean(dir + localFile));
 			launchArgs = StringUtils::strReplace(launchArgs, "[selPath]", StringUtils::cmdClean(dir));
 			launchArgs = StringUtils::strReplace(launchArgs, "[selFile]", StringUtils::cmdClean(selectedFileName));
 			launchArgs = StringUtils::strReplace(launchArgs, "[selExt]", StringUtils::cmdClean(selectedFileExtension));
 			// if this is true, then we've made no subs, so we still need to add the selected file
 			if (this->getParams() == launchArgs) {
-				launchArgs += " \"" + dir + selectedFile + "\"";
+				launchArgs += " \"" + dir + localFile + "\"";
 			}
 
 		}
 		// save the last dir
 		TRACE("setting the launcher path : %s", dir.c_str());
 		app->config->launcherPath(dir);
+
 	} else {
 		TRACE("no file selected");
 		TRACE("assigning params : '%s'", this->getParams().c_str());
 		launchArgs = this->getParams();
 	}
+
+	// save the quick start link
+	std::stringstream ss;
+	ss << 	this->app->menu->selSectionIndex() << 
+			":" << 
+			this->app->menu->selLinkIndex();
+
+	if (!localFile.empty()) {
+		ss << ":" << dir << localFile;
+	}
+	std::string quickStart = ss.str();
+	TRACE("storing launch combo : '%s'", quickStart.c_str());
+	this->app->config->quickStartPath(quickStart);
+
 	TRACE("exit : %s", launchArgs.c_str());
 	return launchArgs;
 }
@@ -620,7 +646,6 @@ void LinkApp::setManual(const std::string &manual) {
 const std::string &LinkApp::getSelectorDir() { return selectordir; }
 void LinkApp::setSelectorDir(const std::string &selectordir) {
 	this->selectordir = selectordir;
-	// if (this->selectordir!="" && this->selectordir[this->selectordir.length()-1]!='/') this->selectordir += "/";
 	if (!this->selectordir.empty()) this->selectordir = FileUtils::resolvePath(this->selectordir);
 	edited = true;
 }
