@@ -513,19 +513,19 @@ std::string LinkApp::resolveArgs(const std::string &selectedFile, const std::str
 		launchArgs = this->getParams();
 	}
 
-	// save the quick start link
-	std::stringstream ss;
-	ss << 	this->app->menu->selSectionIndex() << 
-			":" << 
-			this->app->menu->selLinkIndex();
-
-	if (!localFile.empty()) {
-		ss << ":" << dir << localFile;
+	// save the quick start link if it's not from settings section
+	int currentSection = this->app->menu->selSectionIndex();
+	int i = this->app->menu->getSectionIndex("settings");
+	if (currentSection != i) {
+		std::stringstream ss;
+		ss << currentSection << ":" << this->app->menu->selLinkIndex();
+		if (!localFile.empty()) {
+			ss << ":" << dir << localFile;
+		}
+		std::string quickStart = ss.str();
+		TRACE("storing launch combo : '%s'", quickStart.c_str());
+		this->app->config->quickStartPath(quickStart);
 	}
-	std::string quickStart = ss.str();
-	TRACE("storing launch combo : '%s'", quickStart.c_str());
-	this->app->config->quickStartPath(quickStart);
-
 	TRACE("exit : %s", launchArgs.c_str());
 	return launchArgs;
 }

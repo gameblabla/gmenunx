@@ -829,39 +829,36 @@ void Esoteric::initMenu() {
 	int myLink = 0;
 	bool restoreView = false;
 	if (nullptr != this->menu) {
+		TRACE("we're killing the existing menu");
 		myLink = menu->selLinkIndex();
 		mySection = menu->selSectionIndex();
 		restoreView = true;
-		delete menu;
+		delete this->menu;
 	}
 
-	TRACE("initLayout");
-	initLayout();
-
-	//Menu structure handler
-	TRACE("new menu");
-	menu = new Menu(this);
+	this->initLayout();
+	this->menu = new Menu(this);
 
 	bool isDefaultLauncher = Installer::isDefaultLauncher(this->getWriteablePath());
 
 	TRACE("add built in action links");
-	int i = menu->getSectionIndex("applications");
+	int i = this->menu->getSectionIndex("applications");
 
-	menu->addActionLink(i, 
+	this->menu->addActionLink(i, 
 						tr["Explorer"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::explorer), 
 						tr["Browse files and launch apps"], 
 						"skin:icons/explorer.png");
 
-	i = menu->getSectionIndex("settings");
-	menu->addActionLink(
+	i = this->menu->getSectionIndex("settings");
+	this->menu->addActionLink(
 						i, 
 						tr["About"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::about), 
 						tr["Info about system"], 
 						"skin:icons/about.png");
 
-	menu->addActionLink(
+	this->menu->addActionLink(
 						i, 
 						tr["Device"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::deviceMenu), 
@@ -869,7 +866,7 @@ void Esoteric::initMenu() {
 						"skin:icons/device.png");
 
 	if (!isDefaultLauncher) {
-		menu->addActionLink(
+		this->menu->addActionLink(
 							i, 
 							tr["Install me"], 
 							fastdelegate::MakeDelegate(this, &Esoteric::doInstall), 
@@ -878,7 +875,7 @@ void Esoteric::initMenu() {
 	}
 
 	if (FileUtils::fileExists(getWriteablePath() + "log.txt"))
-		menu->addActionLink(
+		this->menu->addActionLink(
 						i, 
 						tr["Log Viewer"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::viewLog), 
@@ -886,28 +883,28 @@ void Esoteric::initMenu() {
 						"skin:icons/ebook.png");
 
 	if (this->hw->getCardStatus() == IHardware::MMC_UNMOUNTED)
-		menu->addActionLink(
+		this->menu->addActionLink(
 						i, 
 						tr["Mount"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::mountSdDialog), 
 						tr["Mount external SD"], 
 						"skin:icons/eject.png");
 
-	menu->addActionLink(
+	this->menu->addActionLink(
 						i, 
 						tr["Power"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::poweroffDialog), 
 						tr["Power menu"], 
 						"skin:icons/exit.png");
 
-	menu->addActionLink(
+	this->menu->addActionLink(
 						i, 
 						tr["Settings"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::settings), 
 						tr["Configure system and choose skin"], 
 						"skin:icons/configure.png");
 
-	menu->addActionLink(
+	this->menu->addActionLink(
 						i, 
 						tr["Skin - " + skin->name], 
 						fastdelegate::MakeDelegate(this, &Esoteric::skinMenu), 
@@ -915,7 +912,7 @@ void Esoteric::initMenu() {
 						"skin:icons/skin.png");
 
 	if (this->hw->getCardStatus() == IHardware::MMC_MOUNTED)
-		menu->addActionLink(
+		this->menu->addActionLink(
 						i, 
 						tr["Umount"], 
 						fastdelegate::MakeDelegate(this, &Esoteric::umountSdDialog), 
@@ -923,7 +920,7 @@ void Esoteric::initMenu() {
 						"skin:icons/eject.png");
 
 	if (isDefaultLauncher) {
-		menu->addActionLink(
+		this->menu->addActionLink(
 							i, 
 							tr["UnInstall me"], 
 							fastdelegate::MakeDelegate(this, &Esoteric::doUnInstall), 
@@ -935,7 +932,7 @@ void Esoteric::initMenu() {
 						FileUtils::processPid(this->hw->packageManager()) > 0;
 
 	if (showUpgrade) { 
-		menu->addActionLink(
+		this->menu->addActionLink(
 							i, 
 							tr["Upgrade me"], 
 							fastdelegate::MakeDelegate(this, &Esoteric::doUpgrade), 
@@ -944,14 +941,14 @@ void Esoteric::initMenu() {
 	}
 
 	TRACE("re-order now we've added these guys");
-	menu->orderLinks();
+	this->menu->orderLinks();
 	TRACE("menu->loadIcons");
-	menu->loadIcons();
+	this->menu->loadIcons();
 	TRACE("restore the view");
 
 	if (restoreView) {
-		menu->setSectionIndex(mySection);
-		menu->setLinkIndex(myLink);
+		this->menu->setSectionIndex(mySection);
+		this->menu->setLinkIndex(myLink);
 	}
 	TRACE("exit");
 }
