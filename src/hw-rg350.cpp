@@ -60,7 +60,7 @@ void HwRg350::ledOn(int flashSpeed) {
     TRACE("enter");
     try {
         int limited = constrain(flashSpeed, 0, atoi(ledMaxBrightness_.c_str()));
-        std::string trigger = triggerToString(LedAllowedTriggers::TIMER);
+        std::string trigger = this->triggerToString(LedAllowedTriggers::TIMER);
         TRACE("mode : %s - for %i", trigger.c_str(), limited);
         FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
         FileUtils::fileWriter(LED_DELAY_ON_PATH, limited);
@@ -75,7 +75,7 @@ void HwRg350::ledOn(int flashSpeed) {
 void HwRg350::ledOff() {
     TRACE("enter");
     try {
-        std::string trigger = triggerToString(LedAllowedTriggers::NONE);
+        std::string trigger = this->triggerToString(LedAllowedTriggers::NONE);
         TRACE("mode : %s", trigger.c_str());
         FileUtils::fileWriter(LED_TRIGGER_PATH, trigger);
         FileUtils::fileWriter(LED_BRIGHTNESS_PATH, ledMaxBrightness_);

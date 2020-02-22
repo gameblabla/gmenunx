@@ -67,7 +67,6 @@ typedef std::vector<InputMap> MappingList;
 typedef struct {
 	bool active;
 	int interval;
-	long last;
 	MappingList maplist;
 	SDL_TimerID timer = 0;
 } InputManagerAction;
@@ -82,7 +81,6 @@ private:
 	bool powerSet_;
 	bool readStream(std::istream & input);
 	InputMap getInputMapping(int action);
-	SDL_TimerID wakeUpTimer;
 
 	std::vector <SDL_Joystick*> joysticks;
 	std::vector <InputManagerAction> actions;

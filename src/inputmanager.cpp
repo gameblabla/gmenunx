@@ -88,7 +88,6 @@ InputManager::InputManager(ScreenManager& screenManager, PowerManager& powerMana
 	powerManager(powerManager) {
 
 	this->powerSet_ = false;
-	wakeUpTimer = NULL;
 }
 
 InputManager::~InputManager() {
@@ -250,7 +249,6 @@ void InputManager::setActionsCount(int count) {
 		InputManagerAction action;
 		action.active = false;
 		action.interval = 0;
-		// action.last = 0;
 		action.timer = NULL;
 		actions.push_back(action);
 	}
@@ -414,21 +412,7 @@ bool InputManager::update(bool wait) {
 	for (uint32_t x = 0; x < actions.size(); x++) {
 		actions[x].active = isActive(x);
 		if (actions[x].active) {
-			/*
-			if (actions[x].timer == NULL) {
-				actions[x].timer = SDL_AddTimer(actions[x].interval, wakeUp, NULL);
-			}
-			*/
 			anyactions = true;
-			actions[x].last = SDL_GetTicks();
-		} else {
-			/*
-			if (actions[x].timer != NULL) {
-				SDL_RemoveTimer(actions[x].timer);
-				actions[x].timer = NULL;
-			}
-			*/
-			actions[x].last = 0;
 		}
 	}
 	if (anyactions) {
@@ -444,16 +428,9 @@ void InputManager::dropEvents() {
     for (uint32_t x = 0; x < actions.size(); x++) {
         TRACE("resetting action : %i", x);
         actions[x].active = false;
-        /*
-		if (actions[x].timer != NULL) {
-			SDL_RemoveTimer(actions[x].timer);
-			actions[x].timer = NULL;
-		}
-		*/
     }
     SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-    }
+    while (SDL_PollEvent(&event)) { };
 }
 
 int InputManager::count() {

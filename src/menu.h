@@ -35,6 +35,7 @@ Handles the menu structure
 	@author Massimiliano Torromeo <massimiliano.torromeo@gmail.com>
 */
 class Menu {
+
 private:
 	Esoteric *app;
 	int iSection, iLink;
