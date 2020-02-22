@@ -679,7 +679,7 @@ void Renderer::pollHW() {
 				TRACE("battery scaling factor : %i", scale);
 				this->batteryIcon = ((scale / (float)100) * level) - 1;
 				TRACE("unbounded battery level : %i", this->batteryIcon);
-				constrain(this->batteryIcon, 0, scale - 1);
+				this->batteryIcon = constrain(this->batteryIcon, 0, scale - 1);
 				TRACE("final battery level : %i", this->batteryIcon);
 			}
 		}
