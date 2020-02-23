@@ -2231,7 +2231,7 @@ void Esoteric::editLink() {
 	std::vector<std::string> pathV;
 	StringUtils::split(pathV, menu->selLinkApp()->getFile(), "/");
 	std::string oldSection;
-	if (pathV.size() > 1) oldSection = pathV[pathV.size()-2];
+	if (pathV.size() > 1) oldSection = pathV[pathV.size() - 2];
 	std::string newSection = oldSection;
 
 	std::string linkExec = menu->selLinkApp()->getExec();
@@ -2408,7 +2408,7 @@ void Esoteric::editLink() {
 		} else {
 			menu->selLinkApp()->setClock(strMenuCpu);
 		}
-		
+
 		//if section changed move file and update link->file
 		if (oldSection != newSection) {
 			std::vector<std::string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);

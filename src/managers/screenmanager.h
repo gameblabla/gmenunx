@@ -44,9 +44,9 @@ class ScreenManager : public IManager {
         }
 
         void resetTimer() {
-            TRACE("calling base::resetTimer");
+            //TRACE("calling base::resetTimer");
             IManager::resetTimer();
-            TRACE("called base::resetTimer");
+            //TRACE("called base::resetTimer");
             // do my work
             this->enableScreen();
         }

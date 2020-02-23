@@ -81,7 +81,7 @@ void FileLister::browse() {
 
 				while ((dptr = readdir(dirp))) {
 					file = dptr->d_name;
-					TRACE("raw result : %s", file.c_str());
+					//TRACE("raw result : %s", file.c_str());
 
 					if (file[0] == '.') {
 						// test and maybe skip hidden dirs

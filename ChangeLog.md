@@ -1,5 +1,16 @@
 # 350teric Changelog
 
+**1.0.12** (*Codename: *)
+
+* Added
+  * Prevention against setting anything in Settings as a quick launch option
+
+* Fixed
+  * SDL input freakout on holding left on 1st boot to cancel quic launch
+
+* Improved
+  * Previews traversal is now open ended on dir structure
+
 **1.0.11** (*Codename: SpeedRun*)
 
 * Added

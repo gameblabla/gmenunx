@@ -404,16 +404,9 @@ void Selector::prepare(FileLister *fl, std::vector<std::string> *titles, std::ve
 	} else realPath = "/";
 	TRACE("realPath: '%s'", realPath.c_str());
 
-	std::string previewsDir = realPath + PREVIEWS_DIR;
-	TRACE("checking for previews dir at : '%s'", previewsDir.c_str());
-	bool previewsDirExists = FileUtils::dirExists(previewsDir);
-	if (!previewsDirExists) {
-		TRACE("didn't find previews dir in current path, trying up one level...");
-		previewsDir = FileUtils::resolvePath(realPath + "../") + "/" + PREVIEWS_DIR;
-		TRACE("checking for previews dir at : '%s'", previewsDir.c_str());
-		previewsDirExists = FileUtils::dirExists(previewsDir);
-	}
-	TRACE("previews folder exists: %i",  previewsDirExists);
+	std::string previewsDir = FileUtils::findFirstMatchingDir(realPath, PREVIEWS_DIR);
+	bool previewsDirExists = previewsDir.length() > 0;
+	TRACE("previews folder '%s' exists: %i",  previewsDir.c_str(), previewsDirExists);
 
 	// put all the dirs into titles first
 	for (uint32_t i = 0; i < this->numDirs; i++) {
@@ -443,11 +436,13 @@ void Selector::handleImages(std::string realPath, std::string noext, int fileInd
 	std::string realdir;
     // are we looking for screen shots
     if (!this->screendir.empty() && 0 != this->app->skin->previewWidth) {
-        if (this->screendir[0] == '.') {
+        if (0 == this->screendir.compare(".")) {
             // allow "." as "current directory", therefore, relative paths
             realdir = realPath + this->screendir + "/";
-        } else
+        } else {
             realdir = FileUtils::resolvePath(screendir) + "/";
+		}
+		TRACE("realdir resolved to : '%s'", realdir.c_str());
 
         // INFO("Searching for screen '%s%s.png'", realdir.c_str(), noext.c_str());
         if (FileUtils::fileExists(realdir + noext + ".jpg")) {
@@ -458,7 +453,6 @@ void Selector::handleImages(std::string realPath, std::string noext, int fileInd
     }
     if (screens->at(fileIndex).empty()) {
         // fallback - always search for filename.png and jpg in a .previews folder
-        // either inside the current path, or one level higher
         if (previewsDirExists && 0 != app->skin->previewWidth) {
             if (FileUtils::fileExists(previewsDir + "/" + noext + ".png"))
                 screens->at(fileIndex) = previewsDir + "/" + noext + ".png";
