@@ -264,8 +264,7 @@ bool Menu::addLink(std::string path, std::string file, std::string section) {
 	}
 
 	INFO("Adding link: '%s'", linkpath.c_str());
-
-	if (path[path.length() - 1] != '/') path += "/";
+	path = FileUtils::normalisePath(path);
 
 	std::string shorttitle = title;
 	std::string exec = path + file;
