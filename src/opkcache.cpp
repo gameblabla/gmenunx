@@ -240,8 +240,7 @@ bool OpkCache::loadCache() {
         struct stat st;
         struct dirent *dptr;
         std::string section;
-        std::string path = this->sectionDir_;
-        if (path[path.length()-1] != '/') path += "/";
+        std::string path = FileUtils::normalisePath(this->sectionDir_);
 
         if ((dirp = opendir(path.c_str()) ) != NULL) {
             TRACE("entered section dir : %s", this->sectionDir_.c_str());
@@ -277,7 +276,7 @@ void OpkCache::scanSection(const std::string & sectionName, std::string path) {
 	struct dirent *dptr;
 	std::string filepath;
 
-	if (path[path.length() -1] != '/') path += "/";
+    path = FileUtils::normalisePath(path);
 	if ((dirp = opendir(path.c_str())) == NULL) return;
 
 	while ((dptr = readdir(dirp))) {
