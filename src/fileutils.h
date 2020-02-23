@@ -4,9 +4,17 @@
 #include <string>
 #include <functional>
 
+#include "utilities.h"
+
 class FileUtils {
 
 	public:
+
+		// ensures trailing slashes on directory paths
+		static std::string normalisePath(const std::string path);
+
+		// walks up the directory tree, looking for first instance of folder name
+		static std::string findFirstMatchingDir(const std::string startPath, const std::string search);
 
 		// recursive copies dir structure, with flag to overwrite if dest exists 
 		static bool syncDirs(std::string source, std::string dest, std::function<void(std::string)> progressCallback = NULL, bool overwrite = false);

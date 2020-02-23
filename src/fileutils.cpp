@@ -13,11 +13,51 @@
 #include "debug.h"
 #include "fileutils.h"
 #include "stringutils.h"
-#include "utilities.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX 2048
 #endif
+
+
+std::string FileUtils::normalisePath(const std::string path) {
+    std::string result = path;
+    if (result.length() > 1) {
+        if (result[result.length() - 1] != '/') result += "/";
+    }
+    return result;
+}
+
+// finds the first matching search directory walking up from startPath
+std::string FileUtils::findFirstMatchingDir(const std::string startPath, const std::string search) {
+    TRACE("enter - looking for '%s' under '%s'", search.c_str(), startPath.c_str());
+
+    std::string result;
+    std::string realRoot = startPath;
+
+    // let's make sure the root exists, or walk to one that does
+    if (!FileUtils::dirExists(realRoot)) {
+        realRoot = FileUtils::firstExistingDir(realRoot);
+        if (!FileUtils::dirExists(realRoot)) {
+            // fail with empty string
+            return result;
+        }
+    }
+
+    realRoot = FileUtils::normalisePath(realRoot);
+    std::string finalPath = realRoot + search;
+    while (0 != realRoot.compare("/")) {
+        TRACE("checking for : '%s'", finalPath.c_str());
+        if (FileUtils::dirExists(finalPath)) {
+            result = finalPath;
+            break;
+        }
+        realRoot = FileUtils::resolvePath(realRoot + "../");
+        realRoot = FileUtils::normalisePath(realRoot);
+        finalPath = realRoot + search;
+    }
+    TRACE("exit : '%s'", result.c_str());
+    return result;
+}
 
 bool FileUtils::syncDirs(std::string source, std::string dest, std::function<void(std::string)> progressCallback, bool overwrite) {
 
@@ -120,6 +160,7 @@ std::string FileUtils::fileExtension(const std::string &filename) {
     return "";
 }
 
+// copies a file form x t o y
 bool FileUtils::copyFile(std::string from, std::string to) {
     TRACE("copying from : '%s' to '%s'", from.c_str(), to.c_str());
     if (!FileUtils::fileExists(from)) {
@@ -136,6 +177,7 @@ bool FileUtils::copyFile(std::string from, std::string to) {
     return FileUtils::fileExists(to);
 }
 
+// deletes recursively a sub tree
 bool FileUtils::rmTree(std::string path) {
     TRACE("enter : '%s'", path.c_str());
 
@@ -169,8 +211,9 @@ bool FileUtils::rmTree(std::string path) {
     return rmdir(path.c_str()) == 0;
 }
 
+// tests if a file exists, and returns true if it's a link or regular file
 bool FileUtils::fileExists(const std::string &path) {
-    TRACE("enter : %s", path.c_str());
+    //TRACE("enter : %s", path.c_str());
     struct stat s;
     // check both that it exists and is a file or a link
     bool result = ((lstat(path.c_str(), &s) == 0) && (S_ISREG(s.st_mode) || S_ISLNK(s.st_mode)));
@@ -178,6 +221,7 @@ bool FileUtils::fileExists(const std::string &path) {
     return result;
 }
 
+// tests if a directory exists
 bool FileUtils::dirExists(const std::string &path) {
     TRACE("enter : %s", path.c_str());
     struct stat s;
@@ -186,6 +230,7 @@ bool FileUtils::dirExists(const std::string &path) {
     return result;
 }
 
+// turns a mixed or relative path into an absolute one
 std::string FileUtils::resolvePath(const std::string &path) {
     char max_path[PATH_MAX];
     std::string outpath;
@@ -196,7 +241,6 @@ std::string FileUtils::resolvePath(const std::string &path) {
         TRACE("NOENT came back");
         errno = 0;
         return FileUtils::firstExistingDir(path);
-        //return path;
     }
     return (std::string)max_path;
 }
@@ -228,6 +272,7 @@ std::string FileUtils::pathBaseName(const std::string &path) {
     return path.substr(p + 1, path.length());
 }
 
+// walks up a given path until it finds an existing directory
 std::string FileUtils::firstExistingDir(const std::string &path) {
     TRACE("enter : '%s'", path.c_str());
     if (path.empty() || std::string::npos == path.find("/"))
@@ -238,12 +283,13 @@ std::string FileUtils::firstExistingDir(const std::string &path) {
         TRACE("real path : '%s'", result.c_str());
         return result;
     }
+    // get the next level up
     const std::string &nextPath = FileUtils::dirName(path);
     TRACE("next path : '%s'", nextPath.c_str());
     return FileUtils::firstExistingDir(nextPath);
 }
 
-
+// returns the pid of a running process
 const int FileUtils::processPid(const std::string name) {
 
     TRACE("enter : '%s'", name.c_str());
@@ -268,7 +314,7 @@ const int FileUtils::processPid(const std::string name) {
                 std::getline(cmdFile, cmdLine);
                 if (!cmdLine.empty()) {
                     // Keep first cmdline item which contains the program path
-                    size_t pos = cmdLine.find('\0');
+                    std::size_t pos = cmdLine.find('\0');
                     if (pos != std::string::npos)
                         cmdLine = cmdLine.substr(0, pos);
                     // Keep program name only, removing the path
@@ -287,6 +333,7 @@ const int FileUtils::processPid(const std::string name) {
     return pid;
 }
 
+// reads a file to a string
 const std::string FileUtils::fileReader(std::string path) {
 	std::ifstream str(path);
 	std::stringstream buf;
@@ -295,6 +342,7 @@ const std::string FileUtils::fileReader(std::string path) {
     return StringUtils::fullTrim(rawval);
 }
 
+// writes a string value to a file
 bool FileUtils::fileWriter(std::string path, std::string value) {
 	TRACE("%s - %s", path.c_str(), value.c_str());
 	if (FileUtils::fileExists(path)) {
@@ -308,6 +356,7 @@ bool FileUtils::fileWriter(std::string path, std::string value) {
 	return false;
 }
 
+// writes an int value to a file
 bool FileUtils::fileWriter(std::string path, int value) {
 	std::stringstream ss;
 	std::string strVal;
@@ -316,6 +365,7 @@ bool FileUtils::fileWriter(std::string path, int value) {
 	return FileUtils::fileWriter(path, strVal);
 }
 
+// executes a shell command
 std::string FileUtils::execute(const char* cmd) { 
 	TRACE("enter : %s", cmd);
 	FILE* pipe = popen(cmd, "r");
