@@ -10,6 +10,7 @@
 
 * Improved
   * Previews traversal is now open ended on dir structure
+  * HW Polling resilience
 
 **1.0.11** (*Codename: SpeedRun*)
 

@@ -663,41 +663,47 @@ void Renderer::pollHW() {
 
 	this->polling_ = true;
 
-	//TRACE("section bar test");
-	if (this->app->skin->sectionBar) {
-		//TRACE("section bar exists in skin settings");
-		//TRACE("updating helper icon status");
-		this->app->hw->Power()->read();
-		if (this->app->skin->showBatteryIcons) {
-			if (IPower::PowerStates::CHARGING == this->app->hw->Power()->state()) {
-				TRACE("battery is charging");
-				this->batteryIcon = 6;
-			} else {
-				int level = this->app->hw->Power()->rawLevel();
-				TRACE("got raw battery level : %i", level);
-				int scale = 6;
-				TRACE("battery scaling factor : %i", scale);
-				this->batteryIcon = ((scale / (float)100) * level) - 1;
-				TRACE("unbounded battery level : %i", this->batteryIcon);
-				this->batteryIcon = constrain(this->batteryIcon, 0, scale - 1);
-				TRACE("final battery level : %i", this->batteryIcon);
+		try {
+		//TRACE("section bar test");
+		if (this->app->skin->sectionBar) {
+			//TRACE("section bar exists in skin settings");
+			//TRACE("updating helper icon status");
+			this->app->hw->Power()->read();
+			if (this->app->skin->showBatteryIcons) {
+				if (IPower::PowerStates::CHARGING == this->app->hw->Power()->state()) {
+					TRACE("battery is charging");
+					this->batteryIcon = 6;
+				} else {
+					int level = this->app->hw->Power()->rawLevel();
+					TRACE("got raw battery level : %i", level);
+					int scale = 6;
+					TRACE("battery scaling factor : %i", scale);
+					this->batteryIcon = ((scale / (float)100) * level) - 1;
+					TRACE("unbounded battery level : %i", this->batteryIcon);
+					this->batteryIcon = constrain(this->batteryIcon, 0, scale - 1);
+					TRACE("final battery level : %i", this->batteryIcon);
+				}
 			}
+
+			this->brightnessIcon = this->app->hw->getBacklightLevel();
+			if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
+				this->brightnessIcon = 5;
+
+			int currentVolume = this->app->hw->Soundcard()->getVolume();
+			this->currentVolumeMode = this->getVolumeMode(currentVolume);
+
+			//TRACE("helper icon status updated");
 		}
 
-		this->brightnessIcon = this->app->hw->getBacklightLevel();
-		if (this->brightnessIcon > 4 || this->iconBrightness[this->brightnessIcon] == NULL) 
-			this->brightnessIcon = 5;
-
-		int currentVolume = this->app->hw->Soundcard()->getVolume();
-		this->currentVolumeMode = this->getVolumeMode(currentVolume);
-
-		//TRACE("helper icon status updated");
-    }
-
-	//TRACE("checking clock skin flag");
-	if (this->app->skin->showClock) {
-		TRACE("refreshing the clock");
-		app->hw->Clock()->getDateTime();
+		//TRACE("checking clock skin flag");
+		if (this->app->skin->showClock) {
+			TRACE("refreshing the clock");
+			app->hw->Clock()->getDateTime();
+		}
+	} catch(std::exception e) {
+		ERROR("caught : '%s'", e.what());
+	} catch (...) {
+		ERROR("unknown error");
 	}
 
 	this->app->inputManager->noop();
