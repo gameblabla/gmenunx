@@ -78,16 +78,25 @@ std::string Config::toString() {
 
 bool Config::save() {
     TRACE("enter");
-    if (this->isDirty) {
-        std::string fileName = this->prefix + CONFIG_FILE_NAME;
-        TRACE("saving to : %s", fileName.c_str());
-        std::ofstream config(fileName.c_str());
-        if (config.is_open()) {
-            config << this->toString();
-            config.close();
-            sync();
-            this->isDirty = false;
+    try {
+        if (this->isDirty) {
+            std::string fileName = this->prefix + CONFIG_FILE_NAME;
+            TRACE("saving to : %s", fileName.c_str());
+            std::ofstream config(fileName.c_str());
+            if (config.is_open()) {
+                config << this->toString();
+                config.close();
+                sync();
+                this->isDirty = false;
+            }
         }
+	} catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
+         return false;
+    }
+    catch(...) {
+		ERROR("Unknown error");
+        return false;
     }
     TRACE("exit");
     return true;
@@ -95,11 +104,20 @@ bool Config::save() {
 
 bool Config::loadConfig() {
     TRACE("enter");
-    this->reset();
-    if (this->fromFile()) {
-        this->constrain();
-        isDirty = false;
-        return true;
+    try {
+        this->reset();
+        if (this->fromFile()) {
+            this->constrain();
+            isDirty = false;
+            return true;
+        }
+	} catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
+         return false;
+    }
+    catch(...) {
+		ERROR("Unknown error");
+        return false;
     }
     return false;
 }
