@@ -91,7 +91,7 @@ bool Config::save() {
             }
         }
 	} catch(std::exception const& e) {
-         ERROR("main : %s", e.what());
+         ERROR("%s", e.what());
          return false;
     }
     catch(...) {
@@ -112,7 +112,7 @@ bool Config::loadConfig() {
             return true;
         }
 	} catch(std::exception const& e) {
-         ERROR("main : %s", e.what());
+         ERROR("%s", e.what());
          return false;
     }
     catch(...) {

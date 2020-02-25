@@ -36,35 +36,43 @@ std::vector<std::string> Skin::getSkins(std::string assetsPath) {
 
 	std::string skinPath = assetsPath + SKIN_FOLDER;
     std::vector<std::string> result;
-	TRACE("getSkins - searching for skins in : %s", skinPath.c_str());
-	if (FileUtils::dirExists(skinPath)) {
 
-		DIR *dirp;
-		if ((dirp = opendir(skinPath.c_str())) == NULL) {
-			ERROR("Error: Skin::getSkins - opendir(%s)", skinPath.c_str());
-			return result;
-		}
+    try {
+        TRACE("getSkins - searching for skins in : %s", skinPath.c_str());
+        if (FileUtils::dirExists(skinPath)) {
 
-		struct stat st;
-		struct dirent *dptr;
-        std::string folder, fullPath;
-
-		while ((dptr = readdir(dirp))) {
-			folder = dptr->d_name;
-			if (folder[0] == '.') continue;
-			fullPath = skinPath + "/" + folder;
-			int statRet = stat(fullPath.c_str(), &st);
-			if (statRet == -1) {
-				ERROR("Error: Skin::getSkins - Stat failed on '%s' with error '%s'", fullPath.c_str(), strerror(errno));
-				continue;
-			}
-			if (S_ISDIR(st.st_mode)) {
-				TRACE("adding directory : %s", folder.c_str());
-				result.push_back(folder);
+            DIR *dirp;
+            if ((dirp = opendir(skinPath.c_str())) == NULL) {
+                ERROR("Error: Skin::getSkins - opendir(%s)", skinPath.c_str());
+                return result;
             }
+
+            struct stat st;
+            struct dirent *dptr;
+            std::string folder, fullPath;
+
+            while ((dptr = readdir(dirp))) {
+                folder = dptr->d_name;
+                if (folder[0] == '.') continue;
+                fullPath = skinPath + "/" + folder;
+                int statRet = stat(fullPath.c_str(), &st);
+                if (statRet == -1) {
+                    ERROR("Error: Skin::getSkins - Stat failed on '%s' with error '%s'", fullPath.c_str(), strerror(errno));
+                    continue;
+                }
+                if (S_ISDIR(st.st_mode)) {
+                    TRACE("adding directory : %s", folder.c_str());
+                    result.push_back(folder);
+                }
+            }
+            closedir(dirp);
+            sort(result.begin(), result.end(), caseLess());
         }
-        closedir(dirp);
-        sort(result.begin(), result.end(), caseLess());
+	} catch(std::exception const& e) {
+         ERROR("%s", e.what());
+    }
+    catch(...) {
+		ERROR("Unknown error");
     }
     return result;
 }
@@ -237,30 +245,46 @@ std::string Skin::toString() {
 
 bool Skin::remove() {
     std::string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name;
-    return (0 ==unlink(fileName.c_str()));
+    return (0 == unlink(fileName.c_str()));
 }
 
 bool Skin::save() {
     TRACE("enter");
-    std::string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;
-    TRACE("saving to : %s", fileName.c_str());
-
-	std::ofstream config(fileName.c_str());
-	if (config.is_open()) {
-		config << this->toString();
-		config.close();
-		sync();
-	}
-
+    bool result = false;
+    try {
+        std::string fileName = this->assetsPrefix + SKIN_FOLDER + "/" + this->name + "/" + SKIN_FILE_NAME;
+        TRACE("saving to : %s", fileName.c_str());
+        std::ofstream config(fileName.c_str());
+        if (config.is_open()) {
+            config << this->toString();
+            config.close();
+            sync();
+            result = true;
+        }
+	} catch(std::exception const& e) {
+         ERROR("%s", e.what());
+    }
+    catch(...) {
+		ERROR("Unknown error");
+    }
     TRACE("exit");
-    return true;
+    return result;
 }
 
 bool Skin::loadSkin(std::string name) {
     TRACE("loading skin : %s", name.c_str());
-    this->name = name;
-    this->reset();
-    return this->fromFile();
+    try {
+        this->name = name;
+        this->reset();
+        return this->fromFile();
+	} catch(std::exception const& e) {
+         ERROR("%s", e.what());
+         return false;
+    }
+    catch(...) {
+		ERROR("Unknown error");
+        return false;
+    }
 }
 
 std::vector<std::string> Skin::getWallpapers() {
