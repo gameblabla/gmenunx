@@ -61,33 +61,49 @@ OpkCache::~OpkCache() {
 
 void OpkCache::startMonitors() {
     TRACE("adding directory watchers");
-    for(std::vector<std::string>::iterator it = this->opkDirs_.begin(); it != this->opkDirs_.end(); it++) {
-        std::string dir = (*it);
-        if (!FileUtils::dirExists(dir))
-            continue;
+    try {
+        for(std::vector<std::string>::iterator it = this->opkDirs_.begin(); it != this->opkDirs_.end(); it++) {
+            std::string dir = (*it);
+            if (!FileUtils::dirExists(dir))
+                continue;
 
-        TRACE("adding monitor for : %s", dir.c_str());
+            TRACE("adding monitor for : %s", dir.c_str());
 
-        OpkMonitor *monitor = new OpkMonitor(
-            dir, 
-            [&](std::string path){ return this->handleNewOpk(path); }, 
-            [&](std::string path){ return this->handleRemovedOpk(path); }
-        );
-        this->directoryMonitors.push_back(monitor);
+            OpkMonitor *monitor = new OpkMonitor(
+                dir, 
+                [&](std::string path){ return this->handleNewOpk(path); }, 
+                [&](std::string path){ return this->handleRemovedOpk(path); }
+            );
+            this->directoryMonitors.push_back(monitor);
+        }
+        this->isMonitoring_ = true;
+	}
+	catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
     }
-    this->isMonitoring_ = true;
+    catch(...) {
+		ERROR("Unknown error");
+    }
     TRACE("we're monitoring %zu directories", this->directoryMonitors.size());
 }
 
 void OpkCache::stopMonitors() {
     TRACE("enter");
-    std::list<OpkMonitor *>::iterator it;
-    for (it = this->directoryMonitors.begin(); it != this->directoryMonitors.end(); it++) {
-        (*it)->stop();
-        delete (*it);
+    try {
+        std::list<OpkMonitor *>::iterator it;
+        for (it = this->directoryMonitors.begin(); it != this->directoryMonitors.end(); it++) {
+            (*it)->stop();
+            delete (*it);
+        }
+        this->directoryMonitors.clear();
+        this->isMonitoring_ = false;
+	}
+	catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
     }
-    this->directoryMonitors.clear();
-    this->isMonitoring_ = false;
+    catch(...) {
+		ERROR("Unknown error");
+    }
     TRACE("exit");
 }
 
@@ -113,27 +129,36 @@ bool OpkCache::update(std::function<void(std::string)> progressCallback, bool re
     this->progressCallback = progressCallback;
     this->dirty_ = false;
 
-    this->stopMonitors();
-    if (!this->ensureCacheDirs())
-        return false;
+        try {
+        this->stopMonitors();
+        if (!this->ensureCacheDirs())
+            return false;
 
-    if (!this->loaded_) {
-        TRACE("we need to load the cache");
-        if (!loadCache()) return false;
+        if (!this->loaded_) {
+            TRACE("we need to load the cache");
+            if (!loadCache()) return false;
+        }
+        if (!readOnly) {
+            TRACE("detecting cache changes");
+            // add any new ones first, so we can run the upgrade logic on any unlinked ones
+            if (!createMissingOpkDesktopFiles()) return false;
+            if (!removeUnlinkedDesktopFiles()) return false;
+            sync();
+        }
+        this->startMonitors();
+        this->notifyProgress("Cache updated");
+        this->progressCallback = nullptr;
+	}
+	catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
+         return false;
     }
-    if (!readOnly) {
-        TRACE("detecting cache changes");
-        // add any new ones first, so we can run the upgrade logic on any unlinked ones
-        if (!createMissingOpkDesktopFiles()) return false;
-        if (!removeUnlinkedDesktopFiles()) return false;
-        sync();
+    catch(...) {
+		ERROR("Unknown error");
+        return false;
     }
-    this->startMonitors();
-    this->notifyProgress("Cache updated");
-    this->progressCallback = nullptr;
     TRACE("exit");
     return true;
-
 }
 
 const std::string OpkCache::imagesCachePath() {
@@ -149,64 +174,72 @@ const std::string OpkCache::aliasCachePath() {
 bool OpkCache::ensureCacheDirs() {
     TRACE("enter");
 
-    this->notifyProgress("Checking root directory exists");
-    if (!FileUtils::dirExists(this->rootDir_)) {
-        if (mkdir(this->rootDir_.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", this->rootDir_.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->rootDir_.c_str());
-            return false;
+    try {
+        this->notifyProgress("Checking root directory exists");
+        if (!FileUtils::dirExists(this->rootDir_)) {
+            if (mkdir(this->rootDir_.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", this->rootDir_.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->rootDir_.c_str());
+                return false;
+            }
         }
-    }
-    this->notifyProgress("Checking sections directory exists");
-    if (!FileUtils::dirExists(this->sectionDir_)) {
-        if (mkdir(this->sectionDir_.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", this->sectionDir_.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->sectionDir_.c_str());
-            return false;
+        this->notifyProgress("Checking sections directory exists");
+        if (!FileUtils::dirExists(this->sectionDir_)) {
+            if (mkdir(this->sectionDir_.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", this->sectionDir_.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create root dir : %s", this->sectionDir_.c_str());
+                return false;
+            }
         }
-    }
-    this->notifyProgress("Checking cache directory exists");
-    if (!FileUtils::dirExists(this->cacheDir_)) {
-        if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", this->cacheDir_.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create cache dir : %s", this->cacheDir_.c_str());
-            return false;
+        this->notifyProgress("Checking cache directory exists");
+        if (!FileUtils::dirExists(this->cacheDir_)) {
+            if (mkdir(this->cacheDir_.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", this->cacheDir_.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create cache dir : %s", this->cacheDir_.c_str());
+                return false;
+            }
         }
-    }
-    this->notifyProgress("Checking image cache directory exists");
-    std::string imageDir = this->imagesCachePath();
-    if (!FileUtils::dirExists(imageDir)) {
-        if (mkdir(imageDir.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", imageDir.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create image cache dir : %s", imageDir.c_str());
-            return false;
+        this->notifyProgress("Checking image cache directory exists");
+        std::string imageDir = this->imagesCachePath();
+        if (!FileUtils::dirExists(imageDir)) {
+            if (mkdir(imageDir.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", imageDir.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create image cache dir : %s", imageDir.c_str());
+                return false;
+            }
         }
-    }
 
-    this->notifyProgress("Checking manuals cache directory exists");
-    std::string manualsDir = this->manualsCachePath();
-    if (!FileUtils::dirExists(manualsDir)) {
-        if (mkdir(manualsDir.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", manualsDir.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create manuals cache dir : %s", manualsDir.c_str());
-            return false;
+        this->notifyProgress("Checking manuals cache directory exists");
+        std::string manualsDir = this->manualsCachePath();
+        if (!FileUtils::dirExists(manualsDir)) {
+            if (mkdir(manualsDir.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", manualsDir.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create manuals cache dir : %s", manualsDir.c_str());
+                return false;
+            }
         }
-    }
 
-    this->notifyProgress("Checking alias cache directory exists");
-    std::string aliasDir = this->aliasCachePath();
-    if (!FileUtils::dirExists(aliasDir)) {
-        if (mkdir(aliasDir.c_str(), 0777) == 0) {
-            TRACE("created dir : %s", aliasDir.c_str());
-        } else {
-            ERROR("OpkCache::ensureCacheDirs - failed to create alias cache dir : %s", aliasDir.c_str());
-            return false;
+        this->notifyProgress("Checking alias cache directory exists");
+        std::string aliasDir = this->aliasCachePath();
+        if (!FileUtils::dirExists(aliasDir)) {
+            if (mkdir(aliasDir.c_str(), 0777) == 0) {
+                TRACE("created dir : %s", aliasDir.c_str());
+            } else {
+                ERROR("OpkCache::ensureCacheDirs - failed to create alias cache dir : %s", aliasDir.c_str());
+                return false;
+            }
         }
+	} catch(std::exception const& e) {
+         ERROR("main : %s", e.what());
+         return false;
+    } catch(...) {
+		ERROR("Unknown error");
+        return false;
     }
     TRACE("exit");
     return true;
