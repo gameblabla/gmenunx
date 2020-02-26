@@ -395,11 +395,11 @@ void Esoteric::main() {
 		ProgressBar pbLoading(this, title, "skin:icons/device.png", -30);
 		pbLoading.updateDetail("Checking for new apps...");
 		
+		// only resolve the cache if it's first run, and no over rides
 		bool readOnly = this->config->fastCache() || 
-					(
-						Loader::isFirstRun() && 
-						this->config->quickStartGame() 
-					);
+						( Loader::isFirstRun() && this->config->quickStartGame() ) || 
+						!Loader::isFirstRun();
+
 		TRACE("installed : %i", !readOnly);
 
 		TRACE("kicking off our app cache thread");
@@ -417,7 +417,6 @@ void Esoteric::main() {
 
 		TRACE("exec on pbLoading");
 		pbLoading.exec();
-
 		pbLoading.updateDetail("Initialising hardware");
 		TRACE("setting cpu speeed for me");
 		this->hw->Cpu()->setValue(this->config->cpuMenu());
@@ -439,7 +438,6 @@ void Esoteric::main() {
 		TRACE("set hardware to real settings");
 		this->screenManager->setTimeout(config->backlightTimeout());
 		this->hw->ledOff();
-
 		pbLoading.finished();
 
 		// has to come after initMenu
