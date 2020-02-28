@@ -90,38 +90,52 @@ void HwPG2::ledOff() {
 
 int HwPG2::getBacklightLevel() {
     TRACE("enter");
-    if (this->pollBacklight) {
-        int level = 0;
-        //force  scale 0 - 100
-        std::string result = FileUtils::fileReader(BACKLIGHT_PATH);
-        if (result.length() > 0) {
-            level = ceil(atoi(StringUtils::trim(result).c_str()) / 2.55);
-            //level = (level * -1) + 100;
+    try {
+        if (this->pollBacklight) {
+            int level = 0;
+            //force  scale 0 - 100
+            std::string result = FileUtils::fileReader(BACKLIGHT_PATH);
+            if (result.length() > 0) {
+                level = atoi(StringUtils::trim(result).c_str()) / 2.55;
+                level = (level * -1) + 100;
+                level = constrain(level, 1, 100);
+            }
+            this->backlightLevel_ = level;
         }
-        this->backlightLevel_ = level;
-    }
+	} catch(std::exception e) {
+		ERROR("caught : '%s'", e.what());
+	} catch (...) {
+		ERROR("unknown error");
+	}
     TRACE("exit : %i", this->backlightLevel_);
     return this->backlightLevel_;
 }
 int HwPG2::setBacklightLevel(int val) {
     TRACE("enter - %i", val);
-    // wrap it
-    if (val <= 0)
-        val = 100;
-    else if (val > 100)
-        val = 0;
-    if (val == this->backlightLevel_)
-        return val;
+    try {
+        // wrap it
+        if (val <= 0)
+            val = 100;
+        else if (val > 100)
+            val = 0;
+        if (val == this->backlightLevel_)
+            return val;
 
-    int localVal = (int)(val * (255.0f / 100));
-    //localVal = (localVal * -1) + 100;
-    TRACE("device value : %i", localVal);
+        int localVal = (int)(val * (255.0f / 100));
+        localVal = (localVal * -1) + 255;
+        localVal = constrain(localVal, 1, 254);
+        TRACE("device value : %i", localVal);
 
-    if (FileUtils::fileWriter(BACKLIGHT_PATH, localVal)) {
-        TRACE("success");
-    } else {
-        ERROR("Couldn't update backlight value to : %i", localVal);
-    }
+        if (FileUtils::fileWriter(BACKLIGHT_PATH, localVal)) {
+            TRACE("success");
+        } else {
+            ERROR("Couldn't update backlight value to : %i", localVal);
+        }
+	} catch(std::exception e) {
+		ERROR("caught : '%s'", e.what());
+	} catch (...) {
+		ERROR("unknown error");
+	}
     this->backlightLevel_ = val;
     return this->backlightLevel_;
 }

@@ -7,6 +7,8 @@
 
 * Fixed
   * SDL input freakout on holding left on 1st boot to cancel quic launch
+  * PocketGo2 brightness
+  * Low battery from going negative
 
 * Improved
   * Previews traversal is now open ended on dir structure
