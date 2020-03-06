@@ -26,9 +26,17 @@ class HwPG2 : IHardware {
         IPower * power_;
 
 		std::string ledMaxBrightness_;
-        int backlightLevel_ = 0;
         bool keepAspectRatio_ = false;
-        bool pollBacklight = false;
+
+        bool pollBacklight_ = false;
+        bool reverse_ = false;
+        bool rogue_ = false;
+        int backlightLevel_ = 0;
+        int max_ = 255;
+
+        const std::string BACKLIGHT_ROOT_PATH = "/sys/class/backlight/pwm-backlight/";
+        const std::string BACKLIGHT_PATH = BACKLIGHT_ROOT_PATH + "brightness";
+        const std::string BACKLIGHT_MAX_PATH = BACKLIGHT_ROOT_PATH + "max_brightness";
 
         const std::string SCREEN_BLANK_PATH = "/sys/class/graphics/fb0/blank";
 		const std::string LED_PREFIX = "/sys/class/leds/power/";
@@ -37,7 +45,6 @@ class HwPG2 : IHardware {
 		const std::string LED_DELAY_ON_PATH = LED_PREFIX + "delay_on";
 		const std::string LED_DELAY_OFF_PATH = LED_PREFIX + "delay_off";
 		const std::string LED_TRIGGER_PATH = LED_PREFIX + "trigger";
-        const std::string BACKLIGHT_PATH = "/sys/class/backlight/pwm-backlight/brightness";
         const std::string ASPECT_RATIO_PATH = "/sys/devices/platform/jz-lcd.0/keep_aspect_ratio";
         const std::string ALT_KEYMAP_FILE = "/sys/devices/platform/linkdev/alt_key_map";
 

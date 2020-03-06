@@ -1,13 +1,13 @@
 # 350teric Changelog
 
-**1.0.12** (*Codename: *)
+**1.0.12** (*Codename: Strong and stable*)
 
 * Added
   * Prevention against setting anything in Settings as a quick launch option
 
 * Fixed
   * SDL input freakout on holding left on 1st boot to cancel quic launch
-  * PocketGo2 brightness
+  * PocketGo2 brightness for rogue and stock differences
   * Low battery from going negative
 
 * Improved
