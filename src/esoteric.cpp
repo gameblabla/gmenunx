@@ -2209,7 +2209,7 @@ void Esoteric::addLink() {
 	BrowseDialog fd(this, tr["Add link"], tr["Select an application"]);
 	fd.showDirectories = true;
 	fd.showFiles = true;
-	fd.setFilter(".dge,.gpu,.gpe,.sh,.bin,.elf,");
+	fd.setFilter(".dge,.gpu,.gpe,.sh,.bin,.elf,.opk");
 	if (fd.exec()) {
 		this->hw->ledOn();
 		if (menu->addLink(fd.getPath(), fd.getFile())) {
