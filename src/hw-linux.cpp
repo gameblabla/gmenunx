@@ -16,6 +16,7 @@ HwLinux::HwLinux() : IHardware() {
     this->cpu_ = (ICpu *) new X1830Cpu();
     this->power_ = (IPower *)new GenericPower();
     this->led_ = (ILed *)new DummyLed();
+    this->hdmi_ = (IHdmi *)new DummyHdmi();
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();
@@ -31,13 +32,7 @@ HwLinux::~HwLinux() {
     delete this->soundcard_;
     delete this->power_;
     delete this->led_;
-}
-
-bool HwLinux::getTVOutStatus() { return 0; }
-std::string HwLinux::getTVOutMode() { return "OFF"; }
-void HwLinux::setTVOutMode(std::string mode) {
-    std::string val = mode;
-    if (val != "NTSC" && val != "PAL") val = "OFF";
+    delete this->hdmi_;
 }
 
 int HwLinux::getBacklightLevel() { return 100; };

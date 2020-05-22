@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "hw-ihardware.h"
-#include "hw-clock.h"
 #include "constants.h"
 
 class HwGkd350h : IHardware {
@@ -19,6 +18,7 @@ class HwGkd350h : IHardware {
         ICpu * cpu_;
         IPower * power_;
         ILed * led_;
+        IHdmi * hdmi_;
 
         int backlightLevel_ = 0;
         bool pollBacklight = false;
@@ -39,10 +39,7 @@ class HwGkd350h : IHardware {
         ICpu * Cpu() { return this->cpu_; }
         IPower * Power() { return this->power_; }
         ILed * Led() { return this->led_; }
-    
-        bool getTVOutStatus();
-        void setTVOutMode(std::string mode);
-        std::string getTVOutMode();
+        IHdmi * Hdmi() { return this->hdmi_; }
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

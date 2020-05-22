@@ -29,6 +29,7 @@
 #include "hw-cpu.h"
 #include "hw-power.h"
 #include "hw-led.h"
+#include "hw-hdmi.h"
 
 class IHardware {
 
@@ -77,10 +78,7 @@ class IHardware {
         virtual ICpu * Cpu() = 0;
         virtual IPower * Power() = 0;
         virtual ILed * Led() = 0;
-
-        virtual bool getTVOutStatus() = 0;
-        virtual void setTVOutMode(std::string mode) = 0;
-        virtual std::string getTVOutMode() = 0;
+        virtual IHdmi * Hdmi() = 0;
 
         virtual std::string getKernelVersion() {
             TRACE("enter");

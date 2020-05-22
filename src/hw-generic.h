@@ -7,7 +7,6 @@
 #include <algorithm>
 
 #include "hw-ihardware.h"
-#include "hw-clock.h"
 #include "constants.h"
 
 class HwGeneric : IHardware {
@@ -18,6 +17,7 @@ class HwGeneric : IHardware {
         ICpu * cpu_;
         IPower * power_;
         ILed * led_;
+        IHdmi * hdmi_;
 
     public:
         HwGeneric();
@@ -28,10 +28,7 @@ class HwGeneric : IHardware {
         ICpu * Cpu() { return this->cpu_; }
         IPower * Power() { return this->power_; }
         ILed * Led() { return this->led_; }
-
-        bool getTVOutStatus();
-        std::string getTVOutMode();
-        void setTVOutMode(std::string mode);
+        IHdmi * Hdmi() { return this->hdmi_; }
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

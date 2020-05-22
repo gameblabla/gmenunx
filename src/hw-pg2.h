@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "hw-ihardware.h"
-#include "hw-clock.h"
 #include "constants.h"
 
 class HwPG2 : IHardware {
@@ -20,6 +19,7 @@ class HwPG2 : IHardware {
         ICpu * cpu_;
         IPower * power_;
         ILed * led_;
+        IHdmi * hdmi_;
 
 		bool keepAspectRatio_ = false;
 
@@ -49,10 +49,7 @@ class HwPG2 : IHardware {
         ICpu * Cpu() { return this->cpu_; }
         IPower * Power() { return this->power_; }
         ILed * Led() { return this->led_; }
-
-        bool getTVOutStatus();
-        std::string getTVOutMode();
-        void setTVOutMode(std::string mode);
+        IHdmi * Hdmi() { return this->hdmi_; }
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

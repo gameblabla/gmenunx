@@ -8,6 +8,7 @@
 #include "hw-power.h"
 #include "hw-clock.h"
 #include "hw-led.h"
+#include "hw-hdmi.h"
 
 #include "fileutils.h"
 
@@ -25,6 +26,7 @@ HwGkd350h::HwGkd350h() : IHardware() {
     this->cpu_ = (ICpu *) new X1830Cpu();
     this->power_ = (IPower *)new JzPower();
     this->led_ = (ILed *)new DummyLed();
+    this->hdmi_ = (IHdmi *)new Rg350Hdmi();
 
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
@@ -45,13 +47,8 @@ HwGkd350h::~HwGkd350h() {
     delete this->soundcard_;
     delete this->power_;
     delete this->led_;
+    delete this->hdmi_;
 }
-
-bool HwGkd350h::getTVOutStatus() { return false; }
-
-void HwGkd350h::setTVOutMode(std::string mode) { return; }
-
-std::string HwGkd350h::getTVOutMode() { return ""; }
 
 int HwGkd350h::getBacklightLevel() {
     TRACE("enter");

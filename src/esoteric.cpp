@@ -1292,9 +1292,7 @@ void Esoteric::settings() {
 	}
 	TRACE("current language : %s", lang.c_str());
 
-	std::vector<std::string> encodings;
-	encodings.push_back("NTSC");
-	encodings.push_back("PAL");
+	bool hdmiEnabled = this->hw->Hdmi()->enabled();
 
 	std::vector<std::string> opFactory;
 	opFactory.push_back(">>");
@@ -1328,6 +1326,15 @@ void Esoteric::settings() {
 		tr["Set the skin used by " + APP_NAME], 
 		&skin, 
 		&skinList));
+
+	if (this->hw->Hdmi()->featureExists()) {
+		sd.addSetting(new MenuSettingBool(
+			this, 
+			hdmiEnabled ? tr["Disable HDMI Output"] : tr["Enable HDMI Output"], 
+			tr["Toggles HDMI display output"], 
+			&hdmiEnabled
+		));
+	}
 
 	sd.addSetting(new MenuSettingBool(
 		this, 
@@ -1382,11 +1389,6 @@ void Esoteric::settings() {
 		tr["Force show hidden links so you can edit them"], 
 		&showHiddenLinks));
 
-	#if defined(TARGET_RS97)
-	sd.addSetting(new MenuSettingMultiString(this, tr["TV-out"], tr["TV-out signal encoding"], &config->tvOutMode, &encodings));
-	sd.addSetting(new MenuSettingMultiString(this, tr["CPU settings"], tr["Define CPU and overclock settings"], &tmp, &opFactory, 0, MakeDelegate(this, &Esoteric::cpuSettings)));
-	#endif
-
 	sd.addSetting(new MenuSettingMultiString(
 		this, 
 		tr["Reset settings"], 
@@ -1417,6 +1419,9 @@ void Esoteric::settings() {
 
 		if (quickStartGame) {
 			saveSelection = true;
+		}
+		if (hdmiEnabled != this->hw->Hdmi()->enabled()) {
+			this->hw->Hdmi()->set(hdmiEnabled);
 		}
 
 		this->config->skin(skin);
@@ -1556,8 +1561,8 @@ void Esoteric::cpuSettings() {
 
 // reads the temp file back in, 
 // sets the section and selected link up
-// and the tv out mode. 
-// Must be called after initMenu
+// and enables hdmi output if required. 
+// Must be called after initMenu, so links work
 bool Esoteric::readTmp() {
 	TRACE("enter");
 	this->lastSelectorElement = -1;
@@ -1574,8 +1579,7 @@ bool Esoteric::readTmp() {
 		else if (name == "link") menu->setLinkIndex(atoi(value.c_str()));
 		else if (name == "selectorelem") lastSelectorElement = atoi(value.c_str());
 		else if (name == "selectordir") lastSelectorDir = value;
-		else if (name == "TVOut") this->hw->setTVOutMode(value);
-		//else if (name == "tvOutPrev") tvOutPrev = atoi(value.c_str());
+		else if (name == "hdmi") this->hw->Hdmi()->set(atoi(value.c_str()));
 	}
 	inf.close();
 	unlink(TEMP_FILE.c_str());
@@ -1589,8 +1593,9 @@ void Esoteric::writeTmp(int selelem, const std::string &selectordir) {
 		inf << "link=" << menu->selLinkIndex() << std::endl;
 		if (selelem > -1) inf << "selectorelem=" << selelem << std::endl;
 		if (!selectordir.empty()) inf << "selectordir=" << selectordir << std::endl;
-		//inf << "tvOutPrev=" << tvOutPrev << std::endl;
-		inf << "TVOut=" << this->hw->getTVOutMode() << std::endl;
+		if (this->hw->Hdmi()->featureExists()) {
+			inf << "hdmi=" << this->hw->Hdmi()->enabled() << std::endl;
+		}
 		inf.close();
 	}
 }

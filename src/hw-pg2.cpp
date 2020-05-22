@@ -14,6 +14,8 @@
 #include "hw-cpu.h"
 #include "hw-power.h"
 #include "hw-clock.h"
+#include "hw-led.h"
+#include "hw-hdmi.h"
 
 HwPG2::HwPG2() : IHardware() {
     TRACE("enter");
@@ -28,6 +30,7 @@ HwPG2::HwPG2() : IHardware() {
     this->cpu_ = JZ4770Factory::getCpu();
     this->power_ = (IPower *)new JzPower();
     this->led_ = (ILed *)new Rg350Led();
+    this->hdmi_ = (IHdmi *)new Rg350Hdmi();
 
     this->reverse_ = true;
     std::string issue = FileUtils::fileReader("/etc/issue");
@@ -63,13 +66,7 @@ HwPG2::~HwPG2() {
     delete this->soundcard_;
     delete this->power_;
     delete this->led_;
-}
-
-bool HwPG2::getTVOutStatus() { return 0; };
-std::string HwPG2::getTVOutMode() { return "OFF"; }
-void HwPG2::setTVOutMode(std::string mode) {
-    std::string val = mode;
-    if (val != "NTSC" && val != "PAL") val = "OFF";
+    delete this->hdmi_;
 }
 
 int HwPG2::getBacklightLevel() {

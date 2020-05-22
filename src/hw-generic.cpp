@@ -7,6 +7,8 @@
 #include "hw-generic.h"
 #include "hw-power.h"
 #include "hw-clock.h"
+#include "hw-led.h"
+#include "hw-hdmi.h"
 
 HwGeneric::HwGeneric() : IHardware() {
 
@@ -15,25 +17,21 @@ HwGeneric::HwGeneric() : IHardware() {
     this->cpu_ = (ICpu *)new DefaultCpu();
     this->power_ = (IPower *)new GenericPower();
     this->led_ = (ILed *)new DummyLed();
+    this->hdmi_ = (IHdmi *)new DummyHdmi();
 
     TRACE(
         "brightness: %i, volume : %i",
         this->getBacklightLevel(),
         this->soundcard_->getVolume());
 }
+
 HwGeneric::~HwGeneric() {
     delete this->clock_;
     delete this->cpu_;
     delete this->soundcard_;
     delete this->power_;
     delete this->led_;
-}
-
-bool HwGeneric::getTVOutStatus() { return 0; }
-std::string HwGeneric::getTVOutMode() { return "OFF"; }
-void HwGeneric::setTVOutMode(std::string mode) {
-    std::string val = mode;
-    if (val != "NTSC" && val != "PAL") val = "OFF";
+    delete this->hdmi_;
 }
 
 int HwGeneric::getBacklightLevel() { return 100; }

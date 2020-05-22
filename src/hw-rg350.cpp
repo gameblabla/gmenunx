@@ -50,13 +50,6 @@ HwRg350::~HwRg350() {
     delete this->led_;
 }
 
-bool HwRg350::getTVOutStatus() { return 0; };
-std::string HwRg350::getTVOutMode() { return "OFF"; }
-void HwRg350::setTVOutMode(std::string mode) {
-    std::string val = mode;
-    if (val != "NTSC" && val != "PAL") val = "OFF";
-}
-
 int HwRg350::getBacklightLevel() {
     TRACE("enter");
     if (this->pollBacklight) {
