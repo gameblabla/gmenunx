@@ -1329,10 +1329,9 @@ void Esoteric::settings() {
 		&skinList));
 
 	if (this->hw->Hdmi()->featureExists()) {
-		std::string msg = hdmiEnabled ? "Disable HDMI Output" : "Enable HDMI Output";
 		sd.addSetting(new MenuSettingBool(
 			this, 
-			tr[msg], 
+			tr["HDMI Output"], 
 			tr["Toggles HDMI display output"], 
 			&hdmiEnabled
 		));
