@@ -30,6 +30,7 @@ HwRg350::HwRg350() : IHardware() {
     this->cpu_ = JZ4770Factory::getCpu();
     this->power_ = (IPower *)new JzPower();
     this->led_ = (ILed *)new Rg350Led();
+    this->hdmi_ = (IHdmi *)new Rg350Hdmi();
 
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 

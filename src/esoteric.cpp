@@ -1293,6 +1293,7 @@ void Esoteric::settings() {
 	TRACE("current language : %s", lang.c_str());
 
 	bool hdmiEnabled = this->hw->Hdmi()->enabled();
+	TRACE("hdmi enabled? %i", hdmiEnabled);
 
 	std::vector<std::string> opFactory;
 	opFactory.push_back(">>");
@@ -1328,9 +1329,10 @@ void Esoteric::settings() {
 		&skinList));
 
 	if (this->hw->Hdmi()->featureExists()) {
+		std::string msg = hdmiEnabled ? "Disable HDMI Output" : "Enable HDMI Output";
 		sd.addSetting(new MenuSettingBool(
 			this, 
-			hdmiEnabled ? tr["Disable HDMI Output"] : tr["Enable HDMI Output"], 
+			tr[msg], 
 			tr["Toggles HDMI display output"], 
 			&hdmiEnabled
 		));
@@ -1420,9 +1422,11 @@ void Esoteric::settings() {
 		if (quickStartGame) {
 			saveSelection = true;
 		}
+		
 		if (hdmiEnabled != this->hw->Hdmi()->enabled()) {
 			this->hw->Hdmi()->set(hdmiEnabled);
 		}
+		
 
 		this->config->skin(skin);
 		this->config->saveSelection(saveSelection);
@@ -1680,7 +1684,7 @@ void Esoteric::about() {
 	std::string ledStatus = this->hw->Led()->state();
 	std::string cpuFreq = this->hw->Cpu()->getDisplayValue();
 	std::string cpuType = this->hw->Cpu()->getType();
-
+	std::string hdmiSupported = this->hw->Hdmi()->featureExists() ? "Y" : "N";
 	std::string volume;
 	std::stringstream ss;
 	ss << this->hw->Soundcard()->getVolume();
@@ -1696,6 +1700,7 @@ void Esoteric::about() {
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + battery + "\n";
 	temp += tr["LED: "] + ledStatus + "\n";
+	temp += tr["HDMI Supported: "] + hdmiSupported + "\n";
 	temp += tr["CPU speed: "] + cpuFreq + "\n";
 	temp += tr["CPU type: "] + cpuType + "\n";
 	temp += tr["Volume: "] + volume + "\n";

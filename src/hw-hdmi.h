@@ -8,7 +8,7 @@
 
 class IHdmi {
 
-    private:
+    protected:
 
         bool exists_ = false;
         std::string path_ = "";
