@@ -7,6 +7,8 @@
 #include "hw-cpu.h"
 #include "hw-power.h"
 #include "hw-clock.h"
+#include "hw-led.h"
+
 #include "fileutils.h"
 
 HwGkd350h::HwGkd350h() : IHardware() {
@@ -22,6 +24,7 @@ HwGkd350h::HwGkd350h() : IHardware() {
     this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
     this->cpu_ = (ICpu *) new X1830Cpu();
     this->power_ = (IPower *)new JzPower();
+    this->led_ = (ILed *)new DummyLed();
 
     this->pollBacklight = FileUtils::fileExists(BACKLIGHT_PATH);
 
@@ -41,6 +44,7 @@ HwGkd350h::~HwGkd350h() {
     delete this->cpu_;
     delete this->soundcard_;
     delete this->power_;
+    delete this->led_;
 }
 
 bool HwGkd350h::getTVOutStatus() { return false; }
@@ -48,10 +52,6 @@ bool HwGkd350h::getTVOutStatus() { return false; }
 void HwGkd350h::setTVOutMode(std::string mode) { return; }
 
 std::string HwGkd350h::getTVOutMode() { return ""; }
-
-void HwGkd350h::ledOn(int flashSpeed) { return; }
-
-void HwGkd350h::ledOff() { return; }
 
 int HwGkd350h::getBacklightLevel() {
     TRACE("enter");

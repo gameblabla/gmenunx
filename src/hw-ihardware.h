@@ -28,6 +28,7 @@
 #include "hw-soundcard.h"
 #include "hw-cpu.h"
 #include "hw-power.h"
+#include "hw-led.h"
 
 class IHardware {
 
@@ -75,13 +76,11 @@ class IHardware {
         virtual ISoundcard * Soundcard() = 0;
         virtual ICpu * Cpu() = 0;
         virtual IPower * Power() = 0;
+        virtual ILed * Led() = 0;
 
         virtual bool getTVOutStatus() = 0;
         virtual void setTVOutMode(std::string mode) = 0;
         virtual std::string getTVOutMode() = 0;
-
-        virtual void ledOn(int flashSpeed = 250) = 0;
-        virtual void ledOff() = 0;
 
         virtual std::string getKernelVersion() {
             TRACE("enter");

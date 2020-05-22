@@ -18,6 +18,7 @@ class HwGkd350h : IHardware {
         ISoundcard * soundcard_;
         ICpu * cpu_;
         IPower * power_;
+        ILed * led_;
 
         int backlightLevel_ = 0;
         bool pollBacklight = false;
@@ -37,13 +38,11 @@ class HwGkd350h : IHardware {
         ISoundcard * Soundcard() { return this->soundcard_; }
         ICpu * Cpu() { return this->cpu_; }
         IPower * Power() { return this->power_; }
-
+        ILed * Led() { return this->led_; }
+    
         bool getTVOutStatus();
         void setTVOutMode(std::string mode);
         std::string getTVOutMode();
-
-        void ledOn(int flashSpeed);
-        void ledOff();
 
         int getBacklightLevel();
         int setBacklightLevel(int val);

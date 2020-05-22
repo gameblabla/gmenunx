@@ -68,7 +68,8 @@ class OpkCache;
 class Esoteric {
 private:
 
-	int screenHalfWidth, screenHalfHeight;
+	int screenHalfWidth;
+	int screenHalfHeight;
 
 	bool needsInstalling;
 	std::string exe_path; //!< Contains the working directory of Esoteric
@@ -120,6 +121,20 @@ private:
 	void hideSection();
 	void renameSection();
 	void deleteSection();
+
+	void ledOn() {
+		if (!this->bypassLeds) {
+			TRACE("turning led on");
+			this->hw->Led()->turnOn();
+		}
+	};
+	void ledOff() {
+		if (!this->bypassLeds) {
+			TRACE("turning led off");
+			this->hw->Led()->turnOff();
+		}
+	};
+	bool bypassLeds;
 
 public:
 	Esoteric();

@@ -14,6 +14,7 @@ HwGeneric::HwGeneric() : IHardware() {
     this->soundcard_ = (ISoundcard *)new DummySoundcard();
     this->cpu_ = (ICpu *)new DefaultCpu();
     this->power_ = (IPower *)new GenericPower();
+    this->led_ = (ILed *)new DummyLed();
 
     TRACE(
         "brightness: %i, volume : %i",
@@ -25,6 +26,7 @@ HwGeneric::~HwGeneric() {
     delete this->cpu_;
     delete this->soundcard_;
     delete this->power_;
+    delete this->led_;
 }
 
 bool HwGeneric::getTVOutStatus() { return 0; }
@@ -33,9 +35,6 @@ void HwGeneric::setTVOutMode(std::string mode) {
     std::string val = mode;
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
-
-void HwGeneric::ledOn(int flashSpeed) { return; }
-void HwGeneric::ledOff() { return; }
 
 int HwGeneric::getBacklightLevel() { return 100; }
 int HwGeneric::setBacklightLevel(int val) { return val; }

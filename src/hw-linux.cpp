@@ -15,6 +15,7 @@ HwLinux::HwLinux() : IHardware() {
     this->soundcard_ = (ISoundcard *) new AlsaSoundcard("default", "Master");
     this->cpu_ = (ICpu *) new X1830Cpu();
     this->power_ = (IPower *)new GenericPower();
+    this->led_ = (ILed *)new DummyLed();
 
     this->getBacklightLevel();
     this->getKeepAspectRatio();
@@ -29,6 +30,7 @@ HwLinux::~HwLinux() {
     delete this->cpu_;
     delete this->soundcard_;
     delete this->power_;
+    delete this->led_;
 }
 
 bool HwLinux::getTVOutStatus() { return 0; }
@@ -37,9 +39,6 @@ void HwLinux::setTVOutMode(std::string mode) {
     std::string val = mode;
     if (val != "NTSC" && val != "PAL") val = "OFF";
 }
-
-void HwLinux::ledOn(int flashSpeed) { return; }
-void HwLinux::ledOff() { return; }
 
 int HwLinux::getBacklightLevel() { return 100; };
 int HwLinux::setBacklightLevel(int val) { return val; }

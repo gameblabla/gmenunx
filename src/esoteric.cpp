@@ -130,7 +130,9 @@ Esoteric::Esoteric() {
 	this->hw = HwFactory::GetHardware(HwFactory::readDeviceType());
 
 	TRACE("ledOn");
-	this->hw->ledOn();
+	this->bypassLeds = ILed::LedStates::FLASHING == this->hw->Led()->getState();
+	TRACE("bypassing leds : %i", this->bypassLeds);
+	this->ledOn();
 
 	TRACE("get paths");
 	this->getExePath();
@@ -437,7 +439,7 @@ void Esoteric::main() {
 
 		TRACE("set hardware to real settings");
 		this->screenManager->setTimeout(config->backlightTimeout());
-		this->hw->ledOff();
+		this->ledOff();
 		pbLoading.finished();
 
 		// has to come after initMenu
@@ -1595,7 +1597,7 @@ void Esoteric::writeTmp(int selelem, const std::string &selectordir) {
 
 void Esoteric::writeConfig() {
 	TRACE("enter");
-	this->hw->ledOn();
+	this->ledOn();
 	TRACE("led set");
 	// don't try and save to RO file system
 	if (FileUtils::dirExists(this->getWriteablePath())) {
@@ -1609,15 +1611,15 @@ void Esoteric::writeConfig() {
 		TRACE("config saved");
 	}
 	TRACE("ledOff");
-	this->hw->ledOff();
+	this->ledOff();
 	TRACE("exit");
 }
 
 void Esoteric::writeSkinConfig() {
 	TRACE("enter");
-	this->hw->ledOn();
+	this->ledOn();
 	skin->save();
-	this->hw->ledOff();
+	this->ledOff();
 	TRACE("exit");
 }
 
@@ -1669,6 +1671,8 @@ void Esoteric::about() {
 		appPath = this->getExePath() + BINARY_NAME;
 	}
 
+	this->hw->Led()->read();
+	std::string ledStatus = this->hw->Led()->state();
 	std::string cpuFreq = this->hw->Cpu()->getDisplayValue();
 	std::string cpuType = this->hw->Cpu()->getType();
 
@@ -1686,6 +1690,7 @@ void Esoteric::about() {
 	temp += tr["Device: "] + this->hw->getDeviceType() + "\n";
 	temp += tr["Uptime: "] + uptime + "\n";
 	temp += tr["Battery: "] + battery + "\n";
+	temp += tr["LED: "] + ledStatus + "\n";
 	temp += tr["CPU speed: "] + cpuFreq + "\n";
 	temp += tr["CPU type: "] + cpuType + "\n";
 	temp += tr["Volume: "] + volume + "\n";
@@ -1733,11 +1738,11 @@ void Esoteric::viewLog() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
-		this->hw->ledOn();
+		this->ledOn();
 		unlink(logfile.c_str());
 		sync();
 		menu->deleteSelectedLink();
-		this->hw->ledOff();
+		this->ledOff();
 	}
 }
 
@@ -2211,12 +2216,12 @@ void Esoteric::addLink() {
 	fd.showFiles = true;
 	fd.setFilter(".dge,.gpu,.gpe,.sh,.bin,.elf,.opk");
 	if (fd.exec()) {
-		this->hw->ledOn();
+		this->ledOn();
 		if (menu->addLink(fd.getPath(), fd.getFile())) {
 			editLink();
 		}
 		sync();
-		this->hw->ledOff();
+		this->ledOff();
 	}
 }
 
@@ -2384,7 +2389,7 @@ void Esoteric::editLink() {
 			dialogIcon));
 
 	if (sd.exec() && sd.edited() && sd.save) {
-		this->hw->ledOn();
+		this->ledOn();
 
 		if (!linkExec.empty() && FileUtils::fileExists(linkExec)) {
 			menu->selLinkApp()->setExec(linkExec);
@@ -2411,7 +2416,7 @@ void Esoteric::editLink() {
 		if (oldSection != newSection) {
 			std::vector<std::string>::const_iterator newSectionIndex = find(menu->getSections().begin(), menu->getSections().end(), newSection);
 			if (newSectionIndex == menu->getSections().end()) {
-				this->hw->ledOff();
+				this->ledOff();
 				return;
 			}
 			std::string newFileName = "sections/" + newSection + "/" + linkTitle;
@@ -2434,7 +2439,7 @@ void Esoteric::editLink() {
 		}
 		menu->selLinkApp()->save();
 		sync();
-		this->hw->ledOff();
+		this->ledOff();
 	}
 	config->section(menu->selSectionIndex());
 	config->link(menu->selLinkIndex());
@@ -2447,10 +2452,10 @@ void Esoteric::deleteLink() {
 		mb.setButton(CONFIRM, tr["Yes"]);
 		mb.setButton(CANCEL,  tr["No"]);
 		if (mb.exec() == CONFIRM) {
-			this->hw->ledOn();
+			this->ledOn();
 			menu->deleteSelectedLink();
 			sync();
-			this->hw->ledOff();
+			this->ledOff();
 		}
 	}
 }
@@ -2470,12 +2475,12 @@ void Esoteric::addSection() {
 		//only if a section with the same name does not exist
 		if (find(menu->getSections().begin(), menu->getSections().end(), id.getInput()) == menu->getSections().end()) {
 			//section directory doesn't exists
-			this->hw->ledOn();
+			this->ledOn();
 			if (menu->addSection(id.getInput())) {
 				menu->setSectionIndex( menu->getSections().size() - 1 ); //switch to the new section
 				sync();
 			}
-			this->hw->ledOff();
+			this->ledOff();
 		}
 	}
 }
@@ -2499,7 +2504,7 @@ void Esoteric::renameSection() {
 			//section directory doesn't exists
 			std::string newsectiondir = "sections/" + id.getInput();
 			std::string sectiondir = "sections/" + menu->selSection();
-			this->hw->ledOn();
+			this->ledOn();
 			if (rename(sectiondir.c_str(), "tmpsection")==0 && rename("tmpsection", newsectiondir.c_str())==0) {
 				std::string oldpng = sectiondir + ".png", newpng = newsectiondir+".png";
 				std::string oldicon = this->skin->getSkinFilePath(oldpng), newicon = this->skin->getSkinFilePath(newpng);
@@ -2516,7 +2521,7 @@ void Esoteric::renameSection() {
 				menu->renameSection(menu->selSectionIndex(), id.getInput());
 				sync();
 			}
-			this->hw->ledOff();
+			this->ledOff();
 		}
 	}
 }
@@ -2526,12 +2531,12 @@ void Esoteric::deleteSection() {
 	mb.setButton(CONFIRM, tr["Yes"]);
 	mb.setButton(CANCEL,  tr["No"]);
 	if (mb.exec() == CONFIRM) {
-		this->hw->ledOn();
+		this->ledOn();
 		if (FileUtils::rmTree(getWriteablePath() + "sections/" + menu->selSection())) {
 			menu->deleteSelectedSection();
 			sync();
 		}
-		this->hw->ledOff();
+		this->ledOff();
 	}
 }
 
