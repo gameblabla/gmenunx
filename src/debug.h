@@ -38,10 +38,10 @@
 #if (LOG_LEVEL >= TRACE_L)
 # ifdef COLOR_TRACE
 #  define TRACE(str, ...) \
-    std::fprintf(stdout, COLOR_TRACE "[T] - %lu -  %s:%d %s: " str COLOR_END "\n", time (NULL),  __FILE__, __LINE__, __func__,  ##__VA_ARGS__)
+    std::fprintf(stdout, COLOR_TRACE "[T] - %lu -  %s:%d %s: " str COLOR_END "\n", time (NULL),  __FILE__, __LINE__, __func__,  ##__VA_ARGS__) && fflush(NULL)
 # else
 #  define TRACE(str, ...) \
-    std::fprintf(stdout, "TRACE: %lu - " str "\n", time (NULL), ##__VA_ARGS__)
+    std::fprintf(stdout, "TRACE: %lu - " str "\n", time (NULL), ##__VA_ARGS__) && fflush(NULL)
 # endif
 #else
 # define TRACE(...)
