@@ -1,8 +1,5 @@
-To compile the sourcecode you need to set the GP2XDEV environment variable and probably edit the Makefile present in the src folder.
-This is an example environment:
-
-# export GP2XDEV="/usr/local/gp2xdev"
-# export PATH="$PATH:${GP2XDEV}/bin"
+To compile the sourcecode you run quick-rg.sh with the args you need
 
 === Installation ===
-Put the file "autorun.gpu" and the folder "gmenu2x" on the root of your sd, create the links as described on the documentation present on the website (http://gmenu2x.sourceforge.net) and boot your gp2x.
+Put the file "esoteric.opk" in the apps folder of your sd, and esoteric will show up under the Applications section.
+Launch it, and there is an option to install, or upgrade if you have already installed it.
